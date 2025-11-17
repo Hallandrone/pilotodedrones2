@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Piloto de Drones Design System 
+Colores: Primario #1A1A1A, Acento #2FB8FF, Fondos blancos y grises suaves
+Fuente: Inter
+*/
+
+@layer base {
+  :root {
+    /* Piloto de Drones Brand Colors - Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 202 81% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 202 81% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 202 81% 17%;
+
+    /* Primary: #083b4e - Dark Blue */
+    --primary: 202 81% 17%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Soft light backgrounds */
+    --secondary: 200 50% 96%;
+    --secondary-foreground: 202 81% 17%;
+
+    --muted: 200 50% 96%;
+    --muted-foreground: 202 40% 40%;
+
+    /* Accent: #00b3f3 - Bright Blue */
+    --accent: 196 100% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 200 30% 90%;
+    --input: 200 50% 96%;
+    --ring: 196 100% 48%;
+
+    --radius: 0.75rem;
+
+    /* Custom design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(202 81% 17%), hsl(202 70% 25%));
+    --gradient-accent: linear-gradient(135deg, hsl(196 100% 48%), hsl(196 100% 60%));
+    --shadow-elegant: 0 10px 30px -10px hsl(202 81% 17% / 0.2);
+    --shadow-accent: 0 10px 30px -10px hsl(196 100% 48% / 0.3);
+
+    --sidebar-background: 202 81% 17%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 196 100% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 202 70% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 202 60% 25%;
+    --sidebar-ring: 196 100% 48%;
+  }
+
+  .dark {
+    /* Dark Theme with #083b4e background */
+    --background: 202 81% 17%;        /* #083b4e - Main background */
+    --foreground: 0 0% 100%;          /* White text */
+
+    --card: 202 70% 22%;              /* Slightly lighter card background */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 202 70% 22%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 196 100% 48%;          /* #00b3f3 - Bright blue for buttons */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 202 70% 25%;         /* Slightly lighter secondary */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 202 60% 30%;             /* Muted backgrounds */
+    --muted-foreground: 0 0% 85%;
+
+    /* Accent: #00b3f3 */
+    --accent: 196 100% 48%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 202 60% 30%;            /* Lighter borders */
+    --input: 202 70% 22%;             /* Input backgrounds */
+    --ring: 196 100% 48%;             /* Accent color for focus rings */
+
+    --sidebar-background: 202 81% 17%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 196 100% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 202 70% 25%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 202 60% 30%;
+    --sidebar-ring: 196 100% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}

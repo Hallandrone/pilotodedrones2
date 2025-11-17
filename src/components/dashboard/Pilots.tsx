@@ -1,0 +1,369 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Badge,
+} from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { PilotDetailsModal } from "./PilotDetailsModal";
+import { 
+  Loader2, 
+  Plane, 
+  Mail, 
+  Calendar, 
+  MoreHorizontal, 
+  Eye, 
+  Edit, 
+  Ban,
+  CheckCircle,
+  XCircle,
+  Clock
+} from "lucide-react";
+
+interface PilotService {
+  id: string;
+  service_type: string;
+  description: string | null;
+  price_per_hour: number | null;
+  is_published: boolean;
+}
+
+interface PilotProfile {
+  id: string;
+  user_id: string;
+  phone: string | null;
+  certifications: string[] | null;
+  certification_status: boolean;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  profiles: {
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  };
+  pilot_services: PilotService[];
+}
+
+export function Pilots() {
+  const [pilots, setPilots] = useState<PilotProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPilot, setSelectedPilot] = useState<PilotProfile | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchPilots();
+  }, []);
+
+  const fetchPilots = async () => {
+    try {
+      // Get pilots with their profile information and services
+      const { data: pilotsData, error } = await supabase
+        .from('pilots')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      // Get profiles and services for each pilot
+      const pilotsWithDetails = await Promise.all(
+        (pilotsData || []).map(async (pilot) => {
+          // Get profile data
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, email, avatar_url')
+            .eq('id', pilot.user_id)
+            .single();
+
+          // Get pilot services
+          const { data: servicesData } = await supabase
+            .from('pilot_services')
+            .select('*')
+            .eq('pilot_id', pilot.id);
+
+          return {
+            ...pilot,
+            profiles: profileData || { full_name: null, email: null, avatar_url: null },
+            pilot_services: servicesData || []
+          };
+        })
+      );
+
+      setPilots(pilotsWithDetails);
+    } catch (error) {
+      console.error('Error fetching pilots:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los pilotos",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (pilotId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('pilots')
+        .update({ status: newStatus })
+        .eq('id', pilotId);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Estado actualizado",
+        description: `El estado del piloto ha sido actualizado a ${getStatusLabel(newStatus)}`,
+      });
+
+      // Refresh the pilots list
+      fetchPilots();
+      setDetailsModalOpen(false);
+    } catch (error: any) {
+      console.error('Error updating pilot status:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo actualizar el estado del piloto",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openPilotDetails = (pilot: PilotProfile) => {
+    setSelectedPilot(pilot);
+    setDetailsModalOpen(true);
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'default';
+      case 'pending':
+        return 'secondary';
+      case 'suspended':
+        return 'destructive';
+      case 'rejected':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const statusMap: { [key: string]: string } = {
+      active: 'Activo',
+      pending: 'Pendiente',
+      suspended: 'Suspendido',
+      rejected: 'Rechazado'
+    };
+    return statusMap[status] || status;
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle className="h-3 w-3 text-green-500" />;
+      case 'pending':
+        return <Clock className="h-3 w-3 text-yellow-500" />;
+      case 'suspended':
+      case 'rejected':
+        return <XCircle className="h-3 w-3 text-red-500" />;
+      default:
+        return <Clock className="h-3 w-3 text-gray-500" />;
+    }
+  };
+
+  const getPublishedServicesCount = (services: PilotService[]) => {
+    return services.filter(service => service.is_published).length;
+  };
+
+  const getMainServiceType = (services: PilotService[]) => {
+    const publishedServices = services.filter(service => service.is_published);
+    if (publishedServices.length === 0) return "Sin servicios";
+    if (publishedServices.length === 1) return publishedServices[0].service_type;
+    return `${publishedServices[0].service_type} (+${publishedServices.length - 1})`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Plane className="h-6 w-6 text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Pilotos</h1>
+            <p className="text-muted-foreground">Gestiona los pilotos registrados y sus servicios</p>
+          </div>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Lista de Pilotos</span>
+            <Badge variant="secondary" className="text-sm">
+              {pilots.length} pilotos
+            </Badge>
+          </CardTitle>
+          <CardDescription>
+            Información de pilotos que han registrado sus servicios en la plataforma
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {pilots.length === 0 ? (
+            <div className="text-center py-8">
+              <Plane className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No hay pilotos registrados</p>
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nombre Completo</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Certificación</TableHead>
+                    <TableHead>Tipo de Servicio</TableHead>
+                    <TableHead>Estado de Publicación</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pilots.map((pilot) => (
+                    <TableRow key={pilot.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={pilot.profiles.avatar_url || ''} />
+                            <AvatarFallback>
+                              {pilot.profiles.full_name?.charAt(0) || 'P'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">
+                            {pilot.profiles.full_name || 'Sin nombre'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm">
+                            {pilot.profiles.email || 'Sin email'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {pilot.certification_status ? (
+                          <div className="flex items-center gap-1">
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                            <Badge variant="default">Sí</Badge>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <XCircle className="h-3 w-3 text-red-500" />
+                            <Badge variant="secondary">No</Badge>
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">
+                          {getMainServiceType(pilot.pilot_services)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {getPublishedServicesCount(pilot.pilot_services)} servicio(s)
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {getStatusIcon(pilot.status)}
+                          <Badge variant={getStatusBadgeVariant(pilot.status)}>
+                            {getStatusLabel(pilot.status)}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Abrir menú</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => openPilotDetails(pilot)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Ver detalles completos
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Editar información
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={() => handleStatusUpdate(pilot.id, pilot.status === 'active' ? 'suspended' : 'rejected')}
+                            >
+                              <Ban className="mr-2 h-4 w-4" />
+                              {pilot.status === 'active' ? 'Suspender' : 'Desactivar'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <PilotDetailsModal
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
+        pilot={selectedPilot}
+        onStatusUpdate={handleStatusUpdate}
+      />
+    </div>
+  );
+}
