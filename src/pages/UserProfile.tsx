@@ -72,13 +72,16 @@ const UserProfile = () => {
           
           // Si es una actualización, actualizar el certificado específico
           if (payload.eventType === 'UPDATE' && payload.new) {
+            console.log('Actualizando certificado en tiempo real:', payload.new);
             setCertifications(prev => prev.map(cert => {
               if (cert.id === payload.new.id) {
-                return {
+                const updatedCert = {
                   ...cert,
                   status: payload.new.status as 'pending' | 'approved' | 'rejected',
                   rejection_observations: payload.new.rejection_observations || null
                 };
+                console.log('Certificado actualizado:', updatedCert);
+                return updatedCert;
               }
               return cert;
             }));
@@ -163,12 +166,17 @@ const UserProfile = () => {
       }
 
       // Load certifications
-      const { data: certsData } = await supabase
+      const { data: certsData, error: certsError } = await supabase
         .from('user_certifications')
-        .select('*')
+        .select('id, file_name, file_url, status, uploaded_at, rejection_observations')
         .eq('user_id', user.id);
 
+      if (certsError) {
+        console.error('Error loading certifications:', certsError);
+      }
+
       if (certsData) {
+        console.log('Certificaciones cargadas:', certsData);
         setCertifications(certsData.map(cert => ({
           id: cert.id,
           file_name: cert.file_name,
@@ -634,7 +642,7 @@ const UserProfile = () => {
                             </Button>
                           </div>
                         </div>
-                        {cert.status === 'rejected' && cert.rejection_observations && (
+                        {cert.status === 'rejected' && (
                           <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                             <div className="flex items-start gap-2">
                               <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
@@ -642,9 +650,15 @@ const UserProfile = () => {
                                 <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
                                   Observaciones del administrador:
                                 </p>
-                                <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
-                                  {cert.rejection_observations}
-                                </p>
+                                {cert.rejection_observations ? (
+                                  <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                                    {cert.rejection_observations}
+                                  </p>
+                                ) : (
+                                  <p className="text-sm text-red-600 dark:text-red-400 italic">
+                                    No se proporcionaron observaciones específicas.
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>

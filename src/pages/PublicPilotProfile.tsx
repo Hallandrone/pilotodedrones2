@@ -167,9 +167,9 @@ const PublicPilotProfile = () => {
             <CardContent className="p-0">
               {/* Header Section */}
               <div className="bg-white p-8 md:p-10 border-b border-gray-200">
-                <div className="flex flex-col lg:flex-row items-start gap-8">
+                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
                   {/* Avatar Section */}
-                  <div className="flex flex-col items-center gap-6">
+                  <div className="flex flex-col items-center gap-6 w-full lg:w-auto">
                     <div className="relative">
                       <div className="h-36 w-36 bg-[#083b4e] rounded-lg flex items-center justify-center text-5xl font-semibold text-white border-2 border-gray-200">
                         {profile.avatar_url ? (
@@ -196,21 +196,21 @@ const PublicPilotProfile = () => {
                   </div>
 
                   {/* Info Section */}
-                  <div className="flex-1 w-full">
+                  <div className="flex-1 w-full text-center lg:text-left">
                     <div className="flex flex-col lg:flex-row lg:items-start gap-4 mb-6">
                       <div className="flex-1">
                         <h1 className="text-3xl md:text-4xl font-semibold text-[#083b4e] mb-2">
                           {profile.full_name}
                         </h1>
                         {profile.location && (
-                          <p className="text-gray-600 text-base flex items-center gap-2 mb-4">
+                          <p className="text-gray-600 text-base flex items-center gap-2 justify-center lg:justify-start mb-4">
                             <MapPin className="h-4 w-4" />
                             {profile.location}
                           </p>
                         )}
                       </div>
                       {pilotData?.certification_status && (
-                        <Badge className="bg-[#00b3f3] text-white border-0 px-4 py-1.5 text-sm font-medium w-fit">
+                        <Badge className="bg-[#00b3f3] text-white border-0 px-4 py-1.5 text-sm font-medium w-fit mx-auto lg:mx-0">
                           <Shield className="h-4 w-4 mr-2" />
                           Certificado
                         </Badge>
