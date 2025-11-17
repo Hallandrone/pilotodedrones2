@@ -164,34 +164,54 @@ const AdminCertificates = () => {
 
   const handleApprove = async (id: string) => {
     try {
+      console.log('Aprobando certificado:', id);
+      
       // 1. Primero obtener el user_id del certificado antes de actualizarlo
-      const { data: certData } = await supabase
+      const { data: certData, error: certDataError } = await supabase
         .from('user_certifications')
         .select('user_id')
         .eq('id', id)
         .single();
 
+      if (certDataError) {
+        console.error('Error obteniendo datos del certificado:', certDataError);
+        throw certDataError;
+      }
+
       if (!certData) {
         throw new Error('No se pudo obtener el usuario del certificado');
       }
 
+      console.log('Datos del certificado obtenidos:', certData);
+
       // 2. Actualizar el certificado
-      const { error: certError } = await supabase
+      const { data: updatedCert, error: certError } = await supabase
         .from('user_certifications')
         .update({ 
           status: 'validated',
           validated_at: new Date().toISOString()
         })
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (certError) throw certError;
+      if (certError) {
+        console.error('Error actualizando certificado:', certError);
+        throw certError;
+      }
+
+      console.log('Certificado actualizado exitosamente:', updatedCert);
 
       // 3. Verificar si tiene suscripción activa
-      const { data: subscription } = await supabase
+      const { data: subscription, error: subscriptionError } = await supabase
         .from('user_subscriptions')
         .select('status, plan_name')
         .eq('user_id', certData.user_id)
         .single();
+
+      if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+        // PGRST116 es "no rows returned", que es normal si no tiene suscripción
+        console.error('Error verificando suscripción:', subscriptionError);
+      }
 
       // 4. Si tiene suscripción activa, activar su perfil de piloto
       if (subscription && subscription.status === 'active') {
@@ -206,6 +226,8 @@ const AdminCertificates = () => {
         if (pilotError) {
           console.error('Error activating pilot profile:', pilotError);
           // No falla toda la operación si esto falla
+        } else {
+          console.log('Perfil de piloto activado exitosamente');
         }
 
         toast({
@@ -214,17 +236,18 @@ const AdminCertificates = () => {
         });
       } else {
         toast({
-          title: "⚠️ Certificado aprobado",
-          description: "El certificado fue validado, pero el perfil permanecerá inactivo hasta tener una suscripción activa",
+          title: "✅ Certificado aprobado",
+          description: "El certificado fue validado exitosamente",
         });
       }
 
       await loadCertifications();
-    } catch (error) {
-      console.error('Error approving certification:', error);
+    } catch (error: any) {
+      console.error('Error completo al aprobar certificado:', error);
+      const errorMessage = error?.message || error?.error_description || error?.code || 'Error desconocido';
       toast({
-        title: "Error",
-        description: "No se pudo aprobar el certificado",
+        title: "Error al aprobar certificado",
+        description: `No se pudo aprobar el certificado: ${errorMessage}`,
         variant: "destructive",
       });
     }
