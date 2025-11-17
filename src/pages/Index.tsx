@@ -317,7 +317,7 @@ const Index = () => {
                     className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
                     <LogIn className="h-4 w-4 mr-2" />
-                    Ingresar/Registrarse
+                    Ingresar
                   </Button>
                 </>
               )}
