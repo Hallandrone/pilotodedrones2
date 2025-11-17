@@ -53,6 +53,7 @@ const PilotMembership = () => {
 
   // Planes disponibles
   // IMPORTANTE: Agregar flow_plan_id de los planes creados en Flow
+  // Flow está ACTIVO y configurado para usar sandbox por defecto
   const defaultPlans: AvailablePlan[] = [
     {
       id: 'profesional',
@@ -93,12 +94,12 @@ const PilotMembership = () => {
     loadMembership();
     setAvailablePlans(defaultPlans);
 
-    // Manejar parámetros de URL después del checkout de Reveniu
+    // Manejar parámetros de URL después del checkout de Flow
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       toast({
         title: "¡Suscripción exitosa!",
-        description: "Tu suscripción ha sido activada correctamente",
+        description: "Tu suscripción ha sido activada correctamente a través de Flow",
       });
       // Limpiar URL
       window.history.replaceState({}, '', window.location.pathname);
@@ -199,8 +200,8 @@ const PilotMembership = () => {
 
       if (!flowPlanId) {
         toast({
-          title: "Error",
-          description: "No se encontró el ID del plan en Flow. Contacta al administrador.",
+          title: "Error de configuración",
+          description: "El plan no tiene un ID de Flow configurado. Por favor, contacta al administrador para configurar los planes en Flow sandbox.",
           variant: "destructive",
         });
         setSubscribing(null);

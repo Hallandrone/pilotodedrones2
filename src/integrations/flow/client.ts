@@ -1,3 +1,8 @@
+/**
+ * Cliente de integración con Flow Payments
+ * Flow está ACTIVO y configurado para usar sandbox por defecto
+ * Configuración: VITE_FLOW_ENV=sandbox (o 'production' para producción)
+ */
 import { supabase } from '@/integrations/supabase/client';
 
 type HttpMethod = 'GET' | 'POST';

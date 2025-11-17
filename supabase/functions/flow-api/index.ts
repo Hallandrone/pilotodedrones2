@@ -1,3 +1,8 @@
+/**
+ * Edge Function para integración con Flow Payments API
+ * Flow está ACTIVO - Usa sandbox por defecto (VITE_FLOW_ENV=sandbox)
+ * Cambia a 'production' para usar el ambiente de producción
+ */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {

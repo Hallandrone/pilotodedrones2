@@ -1,3 +1,8 @@
+/**
+ * Webhook de Flow Payments - ACTIVO
+ * Recibe notificaciones de Flow sobre cambios en suscripciones y pagos
+ * Valida las firmas HMAC SHA-256 para asegurar la autenticidad de las notificaciones
+ */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {

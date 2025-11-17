@@ -121,13 +121,12 @@ const PublicPilotProfile = () => {
     }
   };
 
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-primary flex items-center justify-center font-inter">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-inter">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent mb-4"></div>
-          <p className="text-foreground">Cargando perfil...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#00b3f3] mb-4"></div>
+          <p className="text-[#083b4e]">Cargando perfil...</p>
         </div>
       </div>
     );
@@ -135,12 +134,12 @@ const PublicPilotProfile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-primary flex items-center justify-center p-4 font-inter">
-        <Card className="max-w-md w-full bg-card border-border">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-inter">
+        <Card className="max-w-md w-full bg-white border border-gray-200 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-center text-foreground">Perfil no encontrado</CardTitle>
+            <CardTitle className="text-center text-[#083b4e]">Perfil no encontrado</CardTitle>
           </CardHeader>
-          <CardContent className="text-center text-muted-foreground">
+          <CardContent className="text-center text-gray-600">
             No se encontró el perfil del piloto solicitado.
           </CardContent>
         </Card>
@@ -149,131 +148,117 @@ const PublicPilotProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#083b4e] font-inter relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 z-0">
-        <svg className="absolute inset-0 h-full w-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a4a60]/50 via-transparent to-[#062833]/50"></div>
-      </div>
-
+    <div className="min-h-screen bg-gray-50 font-inter">
       {/* Content */}
-      <div className="relative z-10 px-4 py-8 md:py-12">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className="px-4 py-8 md:py-12">
+        <div className="max-w-5xl mx-auto space-y-8">
           {/* Back Button */}
           <Button 
             variant="ghost" 
             onClick={handleBack}
-            className="text-white hover:bg-white/10 mb-4 gap-2"
+            className="text-[#083b4e] hover:bg-gray-100 mb-4 gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Volver a resultados
           </Button>
 
           {/* Profile Header Card */}
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
+          <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
             <CardContent className="p-0">
-              {/* Hero Header with Gradient */}
-              <div className="bg-gradient-to-br from-sky-500/30 via-blue-600/20 to-indigo-600/30 p-8 md:p-12 border-b border-white/10">
-                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+              {/* Header Section */}
+              <div className="bg-white p-8 md:p-10 border-b border-gray-200">
+                <div className="flex flex-col lg:flex-row items-start gap-8">
                   {/* Avatar Section */}
-                  <div className="flex flex-col items-center gap-6 lg:sticky lg:top-8">
-                    <div className="relative group">
-                      <div className="absolute inset-0 bg-gradient-to-br from-sky-400 to-blue-600 rounded-3xl blur-xl opacity-60 group-hover:opacity-80 transition-opacity"></div>
-                      <div className="relative h-48 w-48 bg-gradient-to-br from-sky-400 to-blue-600 rounded-3xl flex items-center justify-center text-6xl font-bold text-white shadow-2xl ring-4 ring-white/20">
+                  <div className="flex flex-col items-center lg:items-start gap-6">
+                    <div className="relative">
+                      <div className="h-36 w-36 bg-[#083b4e] rounded-lg flex items-center justify-center text-5xl font-semibold text-white border-2 border-gray-200">
                         {profile.avatar_url ? (
-                          <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-48 w-48 rounded-3xl object-cover" />
+                          <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-36 w-36 rounded-lg object-cover" />
                         ) : (
                           profile.full_name?.charAt(0).toUpperCase()
                         )}
                       </div>
                       {pilotData?.certification_status && (
-                        <div className="absolute -bottom-4 -right-4 bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl p-4 shadow-2xl border-4 border-white/30 animate-pulse">
-                          <CheckCircle className="h-8 w-8 text-white" />
+                        <div className="absolute -bottom-2 -right-2 bg-[#00b3f3] rounded-full p-2 border-4 border-white shadow-md">
+                          <CheckCircle className="h-5 w-5 text-white" />
                         </div>
                       )}
                     </div>
                     
                     {/* QR Code */}
-                    <div className="bg-white p-5 rounded-2xl shadow-2xl ring-2 ring-white/20">
-                      <QRCodeSVG value={profileUrl} size={140} level="H" />
-                      <p className="text-xs text-center text-gray-700 mt-3 flex items-center justify-center gap-1.5 font-medium">
-                        <QrCode className="h-4 w-4" />
+                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                      <QRCodeSVG value={profileUrl} size={120} level="H" />
+                      <p className="text-xs text-center text-gray-600 mt-2 flex items-center justify-center gap-1.5 font-medium">
+                        <QrCode className="h-3 w-3" />
                         Perfil Verificable
                       </p>
                     </div>
                   </div>
 
                   {/* Info Section */}
-                  <div className="flex-1 text-center lg:text-left w-full">
+                  <div className="flex-1 w-full">
                     <div className="flex flex-col lg:flex-row lg:items-start gap-4 mb-6">
                       <div className="flex-1">
-                        <h1 className="text-5xl md:text-6xl font-bold text-white mb-3 tracking-tight">
+                        <h1 className="text-3xl md:text-4xl font-semibold text-[#083b4e] mb-2">
                           {profile.full_name}
                         </h1>
                         {profile.location && (
-                          <p className="text-sky-200 text-lg flex items-center gap-2 justify-center lg:justify-start mb-4">
-                            <MapPin className="h-5 w-5" />
+                          <p className="text-gray-600 text-base flex items-center gap-2 mb-4">
+                            <MapPin className="h-4 w-4" />
                             {profile.location}
                           </p>
                         )}
                       </div>
                       {pilotData?.certification_status && (
-                        <Badge className="bg-gradient-to-r from-green-400 to-emerald-500 text-white border-0 px-6 py-2 text-base font-semibold shadow-lg w-fit mx-auto lg:mx-0">
-                          <Shield className="h-5 w-5 mr-2" />
+                        <Badge className="bg-[#00b3f3] text-white border-0 px-4 py-1.5 text-sm font-medium w-fit">
+                          <Shield className="h-4 w-4 mr-2" />
                           Certificado
                         </Badge>
                       )}
                     </div>
 
                     {profile.bio && (
-                      <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-white/10">
-                        <p className="text-white/90 text-lg leading-relaxed">{profile.bio}</p>
+                      <div className="bg-gray-50 rounded-lg p-6 mb-6 border border-gray-200">
+                        <p className="text-gray-700 text-base leading-relaxed">{profile.bio}</p>
                       </div>
                     )}
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                       {/* Flight Hours */}
-                      <div className="bg-gradient-to-br from-sky-500/20 to-blue-600/20 backdrop-blur-sm rounded-2xl p-6 border border-sky-400/30 hover:border-sky-400/50 transition-all">
-                        <Clock className="h-8 w-8 text-sky-400 mb-3" />
-                        <div className="text-sky-300 text-4xl font-bold mb-1">{flightHours}</div>
-                        <div className="text-white/80 text-sm font-medium">Horas de Vuelo</div>
+                      <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-[#00b3f3]/30 transition-colors">
+                        <Clock className="h-6 w-6 text-[#00b3f3] mb-3" />
+                        <div className="text-[#083b4e] text-3xl font-semibold mb-1">{flightHours}</div>
+                        <div className="text-gray-600 text-sm font-medium">Horas de Vuelo</div>
                       </div>
                       
                       {/* Experience */}
                       {profile.experience_years && profile.experience_years > 0 && (
-                        <div className="bg-gradient-to-br from-purple-500/20 to-indigo-600/20 backdrop-blur-sm rounded-2xl p-6 border border-purple-400/30 hover:border-purple-400/50 transition-all">
-                          <Star className="h-8 w-8 text-purple-400 mb-3" />
-                          <div className="text-purple-300 text-4xl font-bold mb-1">{profile.experience_years}</div>
-                          <div className="text-white/80 text-sm font-medium">Años de Experiencia</div>
+                        <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-[#00b3f3]/30 transition-colors">
+                          <Star className="h-6 w-6 text-[#00b3f3] mb-3" />
+                          <div className="text-[#083b4e] text-3xl font-semibold mb-1">{profile.experience_years}</div>
+                          <div className="text-gray-600 text-sm font-medium">Años de Experiencia</div>
                         </div>
                       )}
                       
                       {/* Services Count */}
-                      <div className="bg-gradient-to-br from-emerald-500/20 to-green-600/20 backdrop-blur-sm rounded-2xl p-6 border border-emerald-400/30 hover:border-emerald-400/50 transition-all">
-                        <Briefcase className="h-8 w-8 text-emerald-400 mb-3" />
-                        <div className="text-emerald-300 text-4xl font-bold mb-1">{services.length}</div>
-                        <div className="text-white/80 text-sm font-medium">Servicios Disponibles</div>
+                      <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-[#00b3f3]/30 transition-colors">
+                        <Briefcase className="h-6 w-6 text-[#00b3f3] mb-3" />
+                        <div className="text-[#083b4e] text-3xl font-semibold mb-1">{services.length}</div>
+                        <div className="text-gray-600 text-sm font-medium">Servicios Disponibles</div>
                       </div>
                     </div>
 
                     {/* Certification Badge */}
                     {pilotData?.certification_academy && (
-                      <div className="bg-gradient-to-r from-amber-500/30 to-orange-500/30 backdrop-blur-sm rounded-2xl p-6 border border-amber-400/40 mb-8 hover:border-amber-400/60 transition-all">
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
                         <div className="flex items-center gap-4">
-                          <div className="bg-amber-400/20 rounded-xl p-3">
-                            <Award className="h-10 w-10 text-amber-400" />
+                          <div className="bg-[#00b3f3]/10 rounded-lg p-3">
+                            <Award className="h-8 w-8 text-[#00b3f3]" />
                           </div>
-                          <div className="text-left">
-                            <div className="text-amber-300 font-semibold text-sm uppercase tracking-wider mb-1">Certificado por</div>
-                            <div className="text-white font-bold text-xl">{pilotData.certification_academy}</div>
+                          <div>
+                            <div className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-1">Certificado por</div>
+                            <div className="text-[#083b4e] font-semibold text-lg">{pilotData.certification_academy}</div>
                           </div>
                         </div>
                       </div>
@@ -283,14 +268,13 @@ const PublicPilotProfile = () => {
                     <div className="grid md:grid-cols-2 gap-6">
                       {/* Specialties */}
                       {profile.specialties && profile.specialties.length > 0 && (
-                        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                          <h3 className="text-white font-bold mb-4 text-xl flex items-center gap-2">
-                            <div className="h-2 w-2 bg-sky-400 rounded-full"></div>
+                        <div className="bg-white border border-gray-200 rounded-lg p-6">
+                          <h3 className="text-[#083b4e] font-semibold mb-4 text-lg">
                             Especialidades
                           </h3>
                           <div className="flex flex-wrap gap-2">
                             {profile.specialties.map((specialty, index) => (
-                              <Badge key={index} className="bg-sky-500/30 text-sky-200 border border-sky-400/50 px-4 py-2 text-sm font-medium hover:bg-sky-500/40 transition-colors">
+                              <Badge key={index} className="bg-white text-[#00b3f3] border border-[#00b3f3] px-3 py-1 text-sm font-normal hover:bg-[#00b3f3]/5 transition-colors">
                                 {specialty}
                               </Badge>
                             ))}
@@ -300,14 +284,13 @@ const PublicPilotProfile = () => {
 
                       {/* Drone Types */}
                       {profile.drone_types && profile.drone_types.length > 0 && (
-                        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                          <h3 className="text-white font-bold mb-4 text-xl flex items-center gap-2">
-                            <div className="h-2 w-2 bg-purple-400 rounded-full"></div>
+                        <div className="bg-white border border-gray-200 rounded-lg p-6">
+                          <h3 className="text-[#083b4e] font-semibold mb-4 text-lg">
                             Tipos de Drones
                           </h3>
                           <div className="flex flex-wrap gap-2">
                             {profile.drone_types.map((drone, index) => (
-                              <Badge key={index} className="bg-purple-500/30 text-purple-200 border border-purple-400/50 px-4 py-2 text-sm font-medium hover:bg-purple-500/40 transition-colors">
+                              <Badge key={index} className="bg-white text-[#00b3f3] border border-[#00b3f3] px-3 py-1 text-sm font-normal hover:bg-[#00b3f3]/5 transition-colors">
                                 {drone}
                               </Badge>
                             ))}
@@ -323,32 +306,32 @@ const PublicPilotProfile = () => {
 
           {/* Services Card */}
           {services.length > 0 && (
-            <Card className="bg-white/10 backdrop-blur-xl border-white/20 overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-sky-500/20 to-blue-600/20 border-b border-white/10">
-                <CardTitle className="flex items-center gap-3 text-white text-3xl">
-                  <div className="bg-sky-400/20 rounded-xl p-2">
-                    <Briefcase className="h-7 w-7 text-sky-400" />
+            <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50 border-b border-gray-200">
+                <CardTitle className="flex items-center gap-3 text-[#083b4e] text-2xl font-semibold">
+                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
+                    <Briefcase className="h-6 w-6 text-[#00b3f3]" />
                   </div>
                   Servicios Disponibles
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-8">
+              <CardContent className="pt-6">
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {services.map((service, index) => (
-                    <Card key={index} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border-white/20 hover:border-sky-400/50 hover:shadow-xl hover:shadow-sky-500/20 transition-all duration-300 group">
+                    <Card key={index} className="bg-white border border-gray-200 hover:border-[#00b3f3]/30 transition-colors">
                       <CardContent className="pt-6">
                         <div className="flex flex-col gap-4">
                           <div className="flex items-start justify-between">
-                            <h3 className="font-bold text-white text-xl group-hover:text-sky-300 transition-colors">{service.service_type}</h3>
-                            <Badge className="bg-gradient-to-r from-sky-500 to-blue-600 text-white border-0 px-4 py-1.5 text-base font-bold shadow-lg whitespace-nowrap">
+                            <h3 className="font-semibold text-[#083b4e] text-lg">{service.service_type}</h3>
+                            <Badge className="bg-[#00b3f3] text-white border-0 px-3 py-1 text-sm font-medium whitespace-nowrap">
                               ${service.price_per_hour?.toLocaleString()}/hr
                             </Badge>
                           </div>
                           {service.description && (
-                            <p className="text-sm text-white/80 leading-relaxed">{service.description}</p>
+                            <p className="text-sm text-gray-600 leading-relaxed">{service.description}</p>
                           )}
-                          <div className="pt-2 border-t border-white/10">
-                            <Button className="w-full bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/50">
+                          <div className="pt-2 border-t border-gray-200">
+                            <Button className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white">
                               Solicitar Servicio
                             </Button>
                           </div>
@@ -362,42 +345,42 @@ const PublicPilotProfile = () => {
           )}
 
           {/* Contact Card */}
-          <Card className="bg-white/10 backdrop-blur-xl border-white/20 overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-emerald-500/20 to-green-600/20 border-b border-white/10">
-              <CardTitle className="text-white text-3xl flex items-center gap-3">
-                <div className="bg-emerald-400/20 rounded-xl p-2">
-                  <Mail className="h-7 w-7 text-emerald-400" />
+          <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
+            <CardHeader className="bg-gray-50 border-b border-gray-200">
+              <CardTitle className="text-[#083b4e] text-2xl font-semibold flex items-center gap-3">
+                <div className="bg-[#00b3f3]/10 rounded-lg p-2">
+                  <Mail className="h-6 w-6 text-[#00b3f3]" />
                 </div>
                 Información de Contacto
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-8">
+            <CardContent className="pt-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 {profile.email && (
                   <a 
                     href={`mailto:${profile.email}`}
-                    className="group flex items-center gap-5 p-6 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl hover:bg-white/15 hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 border border-white/20 hover:border-emerald-400/50"
+                    className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
                   >
-                    <div className="h-16 w-16 bg-gradient-to-br from-emerald-500/30 to-green-600/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Mail className="h-8 w-8 text-emerald-400" />
+                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center">
+                      <Mail className="h-6 w-6 text-[#00b3f3]" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-white/60 font-medium mb-1">Email</p>
-                      <p className="font-semibold text-white text-lg break-all">{profile.email}</p>
+                      <p className="text-sm text-gray-600 font-medium mb-1">Email</p>
+                      <p className="font-medium text-[#083b4e] text-base break-all">{profile.email}</p>
                     </div>
                   </a>
                 )}
                 {profile.phone && (
                   <a 
                     href={`tel:${profile.phone}`}
-                    className="group flex items-center gap-5 p-6 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-2xl hover:bg-white/15 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 border border-white/20 hover:border-sky-400/50"
+                    className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
                   >
-                    <div className="h-16 w-16 bg-gradient-to-br from-sky-500/30 to-blue-600/30 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Phone className="h-8 w-8 text-sky-400" />
+                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center">
+                      <Phone className="h-6 w-6 text-[#00b3f3]" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-white/60 font-medium mb-1">Teléfono</p>
-                      <p className="font-semibold text-white text-lg">{profile.phone}</p>
+                      <p className="text-sm text-gray-600 font-medium mb-1">Teléfono</p>
+                      <p className="font-medium text-[#083b4e] text-base">{profile.phone}</p>
                     </div>
                   </a>
                 )}
