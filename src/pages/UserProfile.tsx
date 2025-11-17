@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye } from "lucide-react";
+import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
 
 // Types
@@ -24,6 +24,7 @@ interface Certification {
   file_url: string;
   status: 'pending' | 'approved' | 'rejected';
   uploaded_at: string;
+  rejection_observations?: string | null;
 }
 
 interface Subscription {
@@ -51,6 +52,72 @@ const UserProfile = () => {
   useEffect(() => {
     loadUserData();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Configurar Realtime subscription para escuchar cambios en tiempo real
+    const channel = supabase
+      .channel('user-certifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escuchar INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'user_certifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Certification change detected in user profile:', payload);
+          
+          // Si es una actualización, actualizar el certificado específico
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            setCertifications(prev => prev.map(cert => {
+              if (cert.id === payload.new.id) {
+                return {
+                  ...cert,
+                  status: payload.new.status as 'pending' | 'approved' | 'rejected',
+                  rejection_observations: payload.new.rejection_observations || null
+                };
+              }
+              return cert;
+            }));
+            
+            // Mostrar notificación si fue rechazado
+            if (payload.new.status === 'rejected' && payload.new.rejection_observations) {
+              toast({
+                title: "Certificado rechazado",
+                description: "Tu certificado ha sido rechazado. Revisa las observaciones.",
+                variant: "destructive",
+              });
+            } else if (payload.new.status === 'validated') {
+              toast({
+                title: "Certificado aprobado",
+                description: "Tu certificado ha sido validado exitosamente",
+              });
+            }
+          } else if (payload.eventType === 'INSERT' && payload.new) {
+            // Agregar nuevo certificado
+            setCertifications(prev => [...prev, {
+              id: payload.new.id,
+              file_name: payload.new.file_name,
+              file_url: payload.new.file_url,
+              status: payload.new.status as 'pending' | 'approved' | 'rejected',
+              uploaded_at: payload.new.uploaded_at,
+              rejection_observations: payload.new.rejection_observations || null
+            }]);
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            // Eliminar certificado
+            setCertifications(prev => prev.filter(cert => cert.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, toast]);
 
   const loadUserData = async () => {
     try {
@@ -107,7 +174,8 @@ const UserProfile = () => {
           file_name: cert.file_name,
           file_url: cert.file_url,
           status: cert.status as 'pending' | 'approved' | 'rejected',
-          uploaded_at: cert.uploaded_at
+          uploaded_at: cert.uploaded_at,
+          rejection_observations: cert.rejection_observations || null
         })));
       }
 
@@ -525,38 +593,55 @@ const UserProfile = () => {
                   <h4 className="font-medium text-foreground mb-4">Certificaciones subidas</h4>
                   <div className="space-y-3">
                     {certifications.map((cert) => (
-                      <div key={cert.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border border-border/30">
-                        <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium text-foreground">{cert.file_name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
-                            </p>
+                      <div key={cert.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium text-foreground">{cert.file_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={getStatusColor(cert.status)}>
+                              {getStatusIcon(cert.status)}
+                              <span className="ml-1">{getStatusText(cert.status)}</span>
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewCertification(cert.id)}
+                              className="text-primary hover:text-primary hover:bg-primary/10"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteCertification(cert.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className={getStatusColor(cert.status)}>
-                            {getStatusIcon(cert.status)}
-                            <span className="ml-1">{getStatusText(cert.status)}</span>
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewCertification(cert.id)}
-                            className="text-primary hover:text-primary hover:bg-primary/10"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteCertification(cert.id)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        {cert.status === 'rejected' && cert.rejection_observations && (
+                          <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                                  Observaciones del administrador:
+                                </p>
+                                <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                                  {cert.rejection_observations}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
