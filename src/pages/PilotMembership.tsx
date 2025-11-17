@@ -603,7 +603,7 @@ const PilotMembership = () => {
         <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
           <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
             <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold text-white">
                 <div className="h-10 w-10 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl flex items-center justify-center">
                   <HelpCircle className="h-5 w-5 text-white" />
                 </div>
@@ -691,10 +691,6 @@ const PilotMembership = () => {
                 </div>
               </div>
             </div>
-            
-            <Button variant="outline" className="w-full mt-4 bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4]">
-              Ver Todo el Historial
-            </Button>
             </CardContent>
           </div>
         </Card>

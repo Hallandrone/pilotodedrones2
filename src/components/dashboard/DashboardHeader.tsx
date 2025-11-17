@@ -214,7 +214,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         <Logo size="md" className="hidden md:flex" />
         
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/80" />
           <Input
             placeholder="Buscar en el dashboard..."
             className="pl-10 bg-background/50"
@@ -227,7 +227,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative hover:bg-accent">
-              <Bell className="h-5 w-5 text-[#083b4e] hover:text-[#00b3f3] transition-colors" />
+              <Bell className="h-5 w-5 text-white hover:text-white/80 transition-colors" />
               {isSuperAdmin && notificationCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-5 w-5 bg-[#00b3f3] rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-md">
                   {notificationCount > 9 ? '9+' : notificationCount}

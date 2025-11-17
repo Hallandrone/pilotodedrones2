@@ -304,16 +304,15 @@ const PilotDashboard = () => {
         <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
           <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-[#00b3f3]/10 p-1">
             <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-4 sm:mb-8 animate-scale-in">
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-[#00b3f3] to-[#00d4ff] rounded-full opacity-75 group-hover:opacity-100 blur transition duration-300"></div>
-                  <Avatar className="relative h-20 w-20 sm:h-28 sm:w-28 ring-4 ring-[#00b3f3]/50 shadow-2xl hover:ring-[#00b3f3] transition-all duration-300">
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-4 sm:mb-8">
+                <div className="relative">
+                  <Avatar className="relative h-20 w-20 sm:h-28 sm:w-28 ring-4 ring-[#00b3f3]/50 shadow-2xl">
                     <AvatarImage src={pilotData?.profiles.avatar_url || ''} />
                     <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-2xl sm:text-3xl">
                       {pilotData?.profiles.full_name?.charAt(0) || 'P'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-1 -right-1 h-6 w-6 sm:h-8 sm:w-8 bg-green-500 rounded-full border-4 border-[#083b4e] flex items-center justify-center shadow-lg animate-pulse">
+                  <div className="absolute -bottom-1 -right-1 h-6 w-6 sm:h-8 sm:w-8 bg-green-500 rounded-full border-4 border-[#083b4e] flex items-center justify-center shadow-lg">
                     <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   </div>
                 </div>
