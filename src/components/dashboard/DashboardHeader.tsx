@@ -1,4 +1,4 @@
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search, User, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -28,15 +29,41 @@ interface UserRole {
   role: string;
 }
 
+interface PendingCertification {
+  id: string;
+  user_id: string;
+  file_name: string;
+  uploaded_at: string;
+  profiles: {
+    full_name: string;
+    email: string;
+  } | null;
+}
+
 export function DashboardHeader({ user }: DashboardHeaderProps) {
+  const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [pendingCertifications, setPendingCertifications] = useState<PendingCertification[]>([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       loadUserProfile();
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    // Solo cargar notificaciones si el usuario es super_admin
+    if (userRole?.role === 'super_admin') {
+      loadPendingCertifications();
+      // Configurar polling cada 30 segundos para actualizar notificaciones
+      const interval = setInterval(() => {
+        loadPendingCertifications();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [userRole?.role]);
 
   const loadUserProfile = async () => {
     if (!user?.id) return;
@@ -63,6 +90,51 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     }
   };
 
+  const loadPendingCertifications = async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoadingNotifications(true);
+      
+      // Obtener certificaciones pendientes
+      const { data: certsData, error: certsError } = await supabase
+        .from('user_certifications')
+        .select('id, user_id, file_name, uploaded_at')
+        .eq('status', 'pending')
+        .order('uploaded_at', { ascending: false })
+        .limit(10); // Limitar a las 10 más recientes
+
+      if (certsError) throw certsError;
+
+      if (!certsData || certsData.length === 0) {
+        setPendingCertifications([]);
+        return;
+      }
+
+      // Obtener información de los usuarios
+      const userIds = [...new Set(certsData.map(cert => cert.user_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      // Combinar certificaciones con perfiles
+      const certificationsWithProfiles = certsData.map(cert => {
+        const profile = profilesData?.find(p => p.id === cert.user_id);
+        return {
+          ...cert,
+          profiles: profile ? { full_name: profile.full_name || 'Usuario', email: profile.email || '' } : null
+        };
+      });
+
+      setPendingCertifications(certificationsWithProfiles as PendingCertification[]);
+    } catch (error) {
+      console.error('Error loading pending certifications:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -84,6 +156,28 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     return roleNames[role as keyof typeof roleNames] || role;
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'Hace menos de una hora';
+    } else if (diffInHours < 24) {
+      return `Hace ${diffInHours} ${diffInHours === 1 ? 'hora' : 'horas'}`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `Hace ${diffInDays} ${diffInDays === 1 ? 'día' : 'días'}`;
+    }
+  };
+
+  const handleNotificationClick = () => {
+    navigate('/dashboard/certificates');
+  };
+
+  const isSuperAdmin = userRole?.role === 'super_admin';
+  const notificationCount = pendingCertifications.length;
+
   return (
     <header className="h-16 bg-card/50 backdrop-blur-sm border-b flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
@@ -100,10 +194,81 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute -top-1 -right-1 h-3 w-3 bg-destructive rounded-full text-xs"></span>
-        </Button>
+        {/* Notifications Button - Solo visible para super_admin */}
+        {isSuperAdmin && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-4 w-4" />
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-[#00b3f3] rounded-full text-xs text-white flex items-center justify-center font-semibold">
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuLabel className="flex items-center justify-between">
+                <span>Notificaciones</span>
+                {notificationCount > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {notificationCount} {notificationCount === 1 ? 'pendiente' : 'pendientes'}
+                  </span>
+                )}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {loadingNotifications ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  Cargando notificaciones...
+                </div>
+              ) : notificationCount === 0 ? (
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                  No hay certificaciones pendientes
+                </div>
+              ) : (
+                <>
+                  {pendingCertifications.map((cert) => (
+                    <DropdownMenuItem
+                      key={cert.id}
+                      className="flex flex-col items-start p-3 cursor-pointer"
+                      onClick={handleNotificationClick}
+                    >
+                      <div className="flex items-start gap-3 w-full">
+                        <div className="h-8 w-8 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <FileText className="h-4 w-4 text-[#00b3f3]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {cert.profiles?.full_name || 'Usuario'} envió una certificación
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {cert.file_name}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatDate(cert.uploaded_at)}
+                          </p>
+                        </div>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                  {notificationCount > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-center justify-center cursor-pointer"
+                        onClick={handleNotificationClick}
+                      >
+                        <span className="text-sm font-medium text-[#00b3f3]">
+                          Ver todas las certificaciones
+                        </span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

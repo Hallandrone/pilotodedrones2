@@ -4,6 +4,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { 
   FileText, 
   Eye, 
@@ -326,80 +334,102 @@ const AdminCertificates = () => {
       </div>
 
       {/* Content */}
-      <div className="space-y-4">
-        {certifications.length > 0 ? (
-          certifications.map((cert) => (
-            <Card key={cert.id}>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                      <FileText className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-lg mb-2">{cert.file_name}</h4>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <User className="h-4 w-4" />
-                          <span>{cert.profiles?.full_name || 'N/A'}</span>
-                          <span>•</span>
-                          <span>{cert.profiles?.email || 'N/A'}</span>
+      {certifications.length > 0 ? (
+        <Card>
+          <CardContent className="p-0">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Usuario</TableHead>
+                    <TableHead>Certificado</TableHead>
+                    <TableHead>Fecha de Subida</TableHead>
+                    <TableHead>Fecha de Validación</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {certifications.map((cert) => (
+                    <TableRow key={cert.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <User className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{cert.profiles?.full_name || 'N/A'}</p>
+                            <p className="text-sm text-muted-foreground">{cert.profiles?.email || 'N/A'}</p>
+                          </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{cert.file_name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="h-4 w-4" />
-                          <span>Subido: {formatDate(cert.uploaded_at)}</span>
+                          {formatDate(cert.uploaded_at)}
                         </div>
-                        {cert.validated_at && (
+                      </TableCell>
+                      <TableCell>
+                        {cert.validated_at ? (
                           <div className="flex items-center gap-2 text-sm text-green-500">
                             <CheckCircle className="h-4 w-4" />
-                            <span>Validado: {formatDate(cert.validated_at)}</span>
+                            {formatDate(cert.validated_at)}
                           </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="ml-4">
-                    {getStatusBadge(cert.status)}
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleViewCertification(cert.file_url)}
-                    className="flex-1"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Ver Certificado
-                  </Button>
-                  {cert.status === 'pending' && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleApprove(cert.id)}
-                        className="flex-1 border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Aprobar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleReject(cert.id)}
-                        className="flex-1 border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                      >
-                        <XCircle className="h-4 w-4 mr-2" />
-                        Rechazar
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(cert.status)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleViewCertification(cert.file_url)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Ver
+                          </Button>
+                          {cert.status === 'pending' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleApprove(cert.id)}
+                                className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Aprobar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleReject(cert.id)}
+                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Rechazar
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
           <Card>
             <CardContent className="p-8 text-center">
               <div className="h-20 w-20 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center mx-auto mb-6">

@@ -169,7 +169,7 @@ const PublicPilotProfile = () => {
               <div className="bg-white p-8 md:p-10 border-b border-gray-200">
                 <div className="flex flex-col lg:flex-row items-start gap-8">
                   {/* Avatar Section */}
-                  <div className="flex flex-col items-center lg:items-start gap-6">
+                  <div className="flex flex-col items-center gap-6">
                     <div className="relative">
                       <div className="h-36 w-36 bg-[#083b4e] rounded-lg flex items-center justify-center text-5xl font-semibold text-white border-2 border-gray-200">
                         {profile.avatar_url ? (

@@ -37,7 +37,6 @@ import {
   Calendar, 
   MoreHorizontal, 
   Eye, 
-  Edit, 
   Ban,
   CheckCircle,
   XCircle,
@@ -333,10 +332,6 @@ export function Pilots() {
                             <DropdownMenuItem onClick={() => openPilotDetails(pilot)}>
                               <Eye className="mr-2 h-4 w-4" />
                               Ver detalles completos
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar información
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 

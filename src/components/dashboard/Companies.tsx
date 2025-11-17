@@ -38,7 +38,6 @@ import {
   Plus, 
   MoreHorizontal, 
   Eye, 
-  Edit, 
   Trash2,
   CheckCircle,
   XCircle,
@@ -257,10 +256,6 @@ export function Companies() {
                             <DropdownMenuItem onClick={() => openDetailsModal(company)}>
                               <Eye className="mr-2 h-4 w-4" />
                               Ver Detalles
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-[#dc2626]">
