@@ -273,51 +273,55 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 lg:px-8 py-5">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <Logo size="lg" className="hover:scale-105 transition-transform duration-200" />
-            <div className="flex items-center gap-4">
+      <header className="border-b border-border bg-card shadow-sm sticky top-0 z-50 w-full">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
+          <div className="flex items-center justify-between gap-4 w-full">
+            <Logo size="lg" className="hover:scale-105 transition-transform duration-200 flex-shrink-0" />
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
               {user ? (
                 <>
                   <Button 
                     variant="outline" 
-                    size="lg"
+                    size="sm"
+                    className="sm:h-11 sm:px-8 hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2 whitespace-nowrap"
                     onClick={() => {
                       // Redirigir según el tipo de usuario
                       navigate('/dashboard');
                     }}
-                    className="hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2"
                   >
-                    <User className="h-4 w-4 mr-2" />
-                    Mi Cuenta
+                    <User className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden md:inline">Mi Cuenta</span>
+                    <span className="md:hidden">Cuenta</span>
                   </Button>
                   <Button 
                     variant="ghost" 
-                    size="lg"
+                    size="sm"
+                    className="sm:h-11 sm:px-8 hover:bg-accent/10 transition-all duration-200 whitespace-nowrap"
                     onClick={handleLogout}
-                    className="hover:bg-accent/10 transition-all duration-200"
                   >
-                    Cerrar Sesión
+                    <span className="hidden sm:inline">Cerrar Sesión</span>
+                    <span className="sm:hidden">Salir</span>
                   </Button>
                 </>
               ) : (
                 <>
                   <Button 
                     variant="outline" 
-                    size="lg"
+                    size="sm"
+                    className="sm:h-11 sm:px-8 hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2 whitespace-nowrap"
                     onClick={() => navigate('/demo')}
-                    className="hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2"
                   >
-                    Usuario Demo
+                    <span className="hidden sm:inline">Usuario Demo</span>
+                    <span className="sm:hidden">Demo</span>
                   </Button>
                   <Button 
-                    size="lg"
+                    size="sm"
+                    className="sm:h-11 sm:px-8 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
                     onClick={() => navigate('/auth')}
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl"
                   >
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Ingresar
+                    <LogIn className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                    <span className="hidden sm:inline">Ingresar/Registrarse</span>
+                    <span className="sm:hidden">Entrar</span>
                   </Button>
                 </>
               )}
