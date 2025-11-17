@@ -565,6 +565,13 @@ const UserProfile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
+              {/* Info Message */}
+              <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
+                <p className="text-sm text-foreground leading-relaxed">
+                  <strong className="text-accent">💡 Importante:</strong> Subir un certificado validado le da más seriedad y credibilidad a tu perfil profesional. Los certificados aprobados aumentan la confianza de los clientes y mejoran tu visibilidad en la plataforma.
+                </p>
+              </div>
+              
               {/* Upload Area */}
               <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
                 <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
