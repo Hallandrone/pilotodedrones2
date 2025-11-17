@@ -237,7 +237,14 @@ const AdminCertificates = () => {
   };
 
   const handleReject = async () => {
-    if (!rejectingCertId) return;
+    if (!rejectingCertId) {
+      toast({
+        title: "Error",
+        description: "No se pudo identificar el certificado a rechazar",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (!rejectionObservations.trim()) {
       toast({
@@ -249,16 +256,25 @@ const AdminCertificates = () => {
     }
 
     try {
-      const { error } = await supabase
+      console.log('Rechazando certificado:', rejectingCertId);
+      console.log('Observaciones:', rejectionObservations.trim());
+      
+      const { data, error } = await supabase
         .from('user_certifications')
         .update({ 
           status: 'rejected',
           validated_at: new Date().toISOString(),
           rejection_observations: rejectionObservations.trim()
         })
-        .eq('id', rejectingCertId);
+        .eq('id', rejectingCertId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error de Supabase al rechazar:', error);
+        throw error;
+      }
+
+      console.log('Certificado rechazado exitosamente:', data);
 
       toast({
         title: "Certificado rechazado",
@@ -269,11 +285,12 @@ const AdminCertificates = () => {
       setRejectionObservations('');
       setRejectingCertId(null);
       await loadCertifications();
-    } catch (error) {
-      console.error('Error rejecting certification:', error);
+    } catch (error: any) {
+      console.error('Error completo al rechazar certificado:', error);
+      const errorMessage = error?.message || error?.error_description || 'Error desconocido';
       toast({
-        title: "Error",
-        description: "No se pudo rechazar el certificado",
+        title: "Error al rechazar certificado",
+        description: `No se pudo rechazar el certificado: ${errorMessage}`,
         variant: "destructive",
       });
     }
