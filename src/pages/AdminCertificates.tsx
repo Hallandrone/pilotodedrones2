@@ -12,6 +12,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { 
   FileText, 
   Eye, 
@@ -19,7 +29,8 @@ import {
   Clock, 
   XCircle,
   User,
-  Calendar
+  Calendar,
+  AlertCircle
 } from "lucide-react";
 
 interface Certification {
@@ -30,6 +41,7 @@ interface Certification {
   status: 'pending' | 'validated' | 'rejected';
   uploaded_at: string;
   validated_at: string | null;
+  rejection_observations: string | null;
   profiles: {
     full_name: string;
     email: string;
@@ -41,10 +53,44 @@ const AdminCertificates = () => {
   const [allCertifications, setAllCertifications] = useState<Certification[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'validated' | 'rejected'>('pending');
   const [selectedCert, setSelectedCert] = useState<Certification | null>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionObservations, setRejectionObservations] = useState('');
+  const [rejectingCertId, setRejectingCertId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCertifications();
+    
+    // Configurar Realtime subscription para escuchar cambios en tiempo real
+    const channel = supabase
+      .channel('certifications-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escuchar INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'user_certifications'
+        },
+        (payload) => {
+          console.log('Certification change detected:', payload);
+          // Recargar certificaciones cuando haya cambios
+          loadCertifications();
+          
+          // Mostrar notificación si es un nuevo certificado
+          if (payload.eventType === 'INSERT' && payload.new?.status === 'pending') {
+            toast({
+              title: "Nuevo certificado recibido",
+              description: `Se ha recibido un nuevo certificado para revisar`,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -184,23 +230,44 @@ const AdminCertificates = () => {
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleRejectClick = (id: string) => {
+    setRejectingCertId(id);
+    setRejectionObservations('');
+    setRejectDialogOpen(true);
+  };
+
+  const handleReject = async () => {
+    if (!rejectingCertId) return;
+
+    if (!rejectionObservations.trim()) {
+      toast({
+        title: "Observaciones requeridas",
+        description: "Debes ingresar las observaciones para rechazar el certificado",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('user_certifications')
         .update({ 
           status: 'rejected',
-          validated_at: new Date().toISOString()
+          validated_at: new Date().toISOString(),
+          rejection_observations: rejectionObservations.trim()
         })
-        .eq('id', id);
+        .eq('id', rejectingCertId);
 
       if (error) throw error;
 
       toast({
         title: "Certificado rechazado",
-        description: "El certificado ha sido rechazado",
+        description: "El certificado ha sido rechazado con las observaciones ingresadas",
       });
 
+      setRejectDialogOpen(false);
+      setRejectionObservations('');
+      setRejectingCertId(null);
       await loadCertifications();
     } catch (error) {
       console.error('Error rejecting certification:', error);
@@ -346,6 +413,7 @@ const AdminCertificates = () => {
                     <TableHead>Fecha de Subida</TableHead>
                     <TableHead>Fecha de Validación</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead>Observaciones</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -388,6 +456,17 @@ const AdminCertificates = () => {
                       <TableCell>
                         {getStatusBadge(cert.status)}
                       </TableCell>
+                      <TableCell>
+                        {cert.status === 'rejected' && cert.rejection_observations ? (
+                          <div className="max-w-xs">
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {cert.rejection_observations}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Button
@@ -412,7 +491,7 @@ const AdminCertificates = () => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleReject(cert.id)}
+                                onClick={() => handleRejectClick(cert.id)}
                                 className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
@@ -446,7 +525,57 @@ const AdminCertificates = () => {
             </CardContent>
           </Card>
         )}
-      </div>
+
+      {/* Dialog para ingresar observaciones al rechazar */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              Rechazar Certificado
+            </DialogTitle>
+            <DialogDescription>
+              Ingresa las observaciones sobre por qué se rechaza este certificado. El usuario recibirá esta información.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="observations">Observaciones *</Label>
+              <Textarea
+                id="observations"
+                placeholder="Ej: El certificado no cumple con los requisitos establecidos, falta información, documento ilegible, etc."
+                value={rejectionObservations}
+                onChange={(e) => setRejectionObservations(e.target.value)}
+                rows={5}
+                className="resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                Estas observaciones serán visibles para el usuario
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectDialogOpen(false);
+                setRejectionObservations('');
+                setRejectingCertId(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={!rejectionObservations.trim()}
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Rechazar Certificado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

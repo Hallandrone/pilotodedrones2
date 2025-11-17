@@ -57,11 +57,40 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     // Solo cargar notificaciones si el usuario es super_admin
     if (userRole?.role === 'super_admin') {
       loadPendingCertifications();
-      // Configurar polling cada 30 segundos para actualizar notificaciones
-      const interval = setInterval(() => {
-        loadPendingCertifications();
-      }, 30000);
-      return () => clearInterval(interval);
+      
+      // Configurar Realtime subscription para escuchar cambios en tiempo real
+      const channel = supabase
+        .channel('certifications-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Escuchar INSERT, UPDATE, DELETE
+            schema: 'public',
+            table: 'user_certifications'
+          },
+          (payload) => {
+            console.log('Certification change detected:', payload);
+            // Solo recargar si el cambio afecta certificaciones pendientes
+            const newStatus = payload.new?.status;
+            const oldStatus = payload.old?.status;
+            
+            // Recargar si:
+            // - Se insertó un nuevo certificado pendiente
+            // - Se actualizó el status de un certificado (puede afectar el contador)
+            if (payload.eventType === 'INSERT' && newStatus === 'pending') {
+              loadPendingCertifications();
+            } else if (payload.eventType === 'UPDATE' && (newStatus === 'pending' || oldStatus === 'pending')) {
+              loadPendingCertifications();
+            } else if (payload.eventType === 'DELETE' && oldStatus === 'pending') {
+              loadPendingCertifications();
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [userRole?.role]);
 
