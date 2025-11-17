@@ -223,81 +223,83 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Notifications Button - Solo visible para super_admin */}
-        {isSuperAdmin && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-4 w-4" />
+        {/* Notifications Button - Visible siempre, pero solo funciona para super_admin */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative hover:bg-accent">
+              <Bell className="h-5 w-5 text-[#083b4e] hover:text-[#00b3f3] transition-colors" />
+              {isSuperAdmin && notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-[#00b3f3] rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-md">
+                  {notificationCount > 9 ? '9+' : notificationCount}
+                </span>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel className="flex items-center justify-between">
+              <span>Notificaciones</span>
+              {isSuperAdmin && notificationCount > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  {notificationCount} {notificationCount === 1 ? 'pendiente' : 'pendientes'}
+                </span>
+              )}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {!isSuperAdmin ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Solo disponible para administradores
+              </div>
+            ) : loadingNotifications ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Cargando notificaciones...
+              </div>
+            ) : notificationCount === 0 ? (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                No hay certificaciones pendientes
+              </div>
+            ) : (
+              <>
+                {pendingCertifications.map((cert) => (
+                  <DropdownMenuItem
+                    key={cert.id}
+                    className="flex flex-col items-start p-3 cursor-pointer"
+                    onClick={handleNotificationClick}
+                  >
+                    <div className="flex items-start gap-3 w-full">
+                      <div className="h-8 w-8 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileText className="h-4 w-4 text-[#00b3f3]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {cert.profiles?.full_name || 'Usuario'} envió una certificación
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {cert.file_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatDate(cert.uploaded_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                ))}
                 {notificationCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-5 w-5 bg-[#00b3f3] rounded-full text-xs text-white flex items-center justify-center font-semibold">
-                    {notificationCount > 9 ? '9+' : notificationCount}
-                  </span>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <DropdownMenuLabel className="flex items-center justify-between">
-                <span>Notificaciones</span>
-                {notificationCount > 0 && (
-                  <span className="text-xs text-muted-foreground">
-                    {notificationCount} {notificationCount === 1 ? 'pendiente' : 'pendientes'}
-                  </span>
-                )}
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {loadingNotifications ? (
-                <div className="p-4 text-center text-sm text-muted-foreground">
-                  Cargando notificaciones...
-                </div>
-              ) : notificationCount === 0 ? (
-                <div className="p-4 text-center text-sm text-muted-foreground">
-                  No hay certificaciones pendientes
-                </div>
-              ) : (
-                <>
-                  {pendingCertifications.map((cert) => (
+                  <>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      key={cert.id}
-                      className="flex flex-col items-start p-3 cursor-pointer"
+                      className="text-center justify-center cursor-pointer"
                       onClick={handleNotificationClick}
                     >
-                      <div className="flex items-start gap-3 w-full">
-                        <div className="h-8 w-8 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <FileText className="h-4 w-4 text-[#00b3f3]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">
-                            {cert.profiles?.full_name || 'Usuario'} envió una certificación
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {cert.file_name}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {formatDate(cert.uploaded_at)}
-                          </p>
-                        </div>
-                      </div>
+                      <span className="text-sm font-medium text-[#00b3f3]">
+                        Ver todas las certificaciones
+                      </span>
                     </DropdownMenuItem>
-                  ))}
-                  {notificationCount > 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-center justify-center cursor-pointer"
-                        onClick={handleNotificationClick}
-                      >
-                        <span className="text-sm font-medium text-[#00b3f3]">
-                          Ver todas las certificaciones
-                        </span>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                  </>
+                )}
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
