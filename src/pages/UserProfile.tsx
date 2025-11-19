@@ -16,6 +16,8 @@ interface ProfileData {
   email: string;
   phone?: string;
   address?: string;
+  instagram_username?: string;
+  linkedin_username?: string;
 }
 
 interface Certification {
@@ -41,7 +43,9 @@ const UserProfile = () => {
     full_name: '',
     email: '',
     phone: '',
-    address: ''
+    address: '',
+    instagram_username: '',
+    linkedin_username: ''
   });
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -160,8 +164,10 @@ const UserProfile = () => {
         setProfile({
           full_name: profileData.full_name || '',
           email: profileData.email || user.email || '',
-          phone: '', // Add phone to profiles table if needed
-          address: '' // Add address to profiles table if needed
+          phone: profileData.phone || '',
+          address: '',
+          instagram_username: profileData.instagram_username || '',
+          linkedin_username: profileData.linkedin_username || ''
         });
       }
 
@@ -215,6 +221,31 @@ const UserProfile = () => {
     }
   };
 
+  // Function to clean social media username (remove @, URLs, etc.)
+  const cleanSocialUsername = (input: string): string => {
+    if (!input) return '';
+    
+    let cleaned = input.trim();
+    
+    // Remove common URL patterns
+    cleaned = cleaned.replace(/^https?:\/\//, '');
+    cleaned = cleaned.replace(/^www\./, '');
+    cleaned = cleaned.replace(/^instagram\.com\//, '');
+    cleaned = cleaned.replace(/^linkedin\.com\//, '');
+    cleaned = cleaned.replace(/^linkedin\.com\/in\//, '');
+    
+    // Remove @ symbol
+    cleaned = cleaned.replace(/^@/, '');
+    
+    // Remove trailing slashes and query parameters
+    cleaned = cleaned.split('/')[0].split('?')[0];
+    
+    // Only allow alphanumeric, dots, underscores, and hyphens
+    cleaned = cleaned.replace(/[^a-zA-Z0-9._-]/g, '');
+    
+    return cleaned;
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     
@@ -231,12 +262,23 @@ const UserProfile = () => {
     try {
       setSaving(true);
       
+      // Clean social media usernames
+      const cleanedInstagram = profile.instagram_username 
+        ? cleanSocialUsername(profile.instagram_username) 
+        : null;
+      const cleanedLinkedIn = profile.linkedin_username 
+        ? cleanSocialUsername(profile.linkedin_username) 
+        : null;
+      
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
           full_name: profile.full_name.trim(),
           email: profile.email,
+          phone: profile.phone || null,
+          instagram_username: cleanedInstagram || null,
+          linkedin_username: cleanedLinkedIn || null,
           updated_at: new Date().toISOString()
         });
 
@@ -543,6 +585,42 @@ const UserProfile = () => {
                     className="border-border/50 focus:border-accent"
                     placeholder="Tu dirección"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instagram_username" className="text-foreground font-medium">
+                    <span className="inline-block mr-1">📷</span>
+                    Instagram
+                  </Label>
+                  <Input
+                    id="instagram_username"
+                    type="text"
+                    value={profile.instagram_username || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, instagram_username: e.target.value }))}
+                    className="border-border/50 focus:border-accent"
+                    placeholder="nombre_usuario (sin @)"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Solo ingresa tu nombre de usuario, sin @ ni URL
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin_username" className="text-foreground font-medium">
+                    <span className="inline-block mr-1">💼</span>
+                    LinkedIn
+                  </Label>
+                  <Input
+                    id="linkedin_username"
+                    type="text"
+                    value={profile.linkedin_username || ''}
+                    onChange={(e) => setProfile(prev => ({ ...prev, linkedin_username: e.target.value }))}
+                    className="border-border/50 focus:border-accent"
+                    placeholder="nombre-usuario (sin URL)"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Solo ingresa tu nombre de usuario de linkedin.com/in/
+                  </p>
                 </div>
               </div>
 
