@@ -56,8 +56,16 @@ const PublicPilotProfile = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
-  const profileUrl = `${window.location.origin}/pilot/${pilotId}`;
   const searchState = location.state as any;
+  const [actualUserId, setActualUserId] = useState<string | null>(null);
+  const [profileSlug, setProfileSlug] = useState<string | null>(null);
+
+  // Generate profile URL - use slug if available, otherwise use ID
+  const profileUrl = profileSlug 
+    ? `${window.location.origin}/pilot/${profileSlug}`
+    : actualUserId 
+      ? `${window.location.origin}/pilot/${actualUserId}`
+      : `${window.location.origin}/pilot/${pilotId}`;
 
   const handleBack = () => {
     if (searchState) {
@@ -79,27 +87,65 @@ const PublicPilotProfile = () => {
 
   const loadPilotProfile = async () => {
     try {
-      // Load profile data
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', pilotId)
-        .single();
+      let profileData = null;
+      let userId = null;
 
-      if (profileError) throw profileError;
+      // UUIDs have format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars with hyphens)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pilotId || '');
+      
+      // If it's not a UUID, try to find by slug first
+      if (!isUUID) {
+        const { data: slugData, error: slugError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('public_profile_slug', pilotId)
+          .single();
+
+        if (slugData && !slugError) {
+          profileData = slugData;
+          userId = slugData.id;
+          setProfileSlug(pilotId);
+        }
+      }
+
+      // If not found by slug (or if it's a UUID), try by ID
+      if (!profileData) {
+        const { data: idData, error: idError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', pilotId)
+          .single();
+
+        if (idError) {
+          // If it was a UUID and not found, throw error
+          if (isUUID) throw idError;
+          // If it was a slug and not found by ID either, throw error
+          throw new Error('Perfil no encontrado');
+        }
+        
+        profileData = idData;
+        userId = idData.id;
+        setProfileSlug(idData.public_profile_slug || null);
+      }
+
+      if (!profileData || !userId) {
+        throw new Error('Perfil no encontrado');
+      }
+
+      setActualUserId(userId);
 
       // Load pilot data (status, certification, etc.)
       const { data: pilotInfo } = await supabase
         .from('pilots')
         .select('status, certification_status, certification_academy')
-        .eq('user_id', pilotId)
+        .eq('user_id', userId)
         .single();
 
       // Load published services
       const { data: servicesData } = await supabase
         .from('pilot_services')
         .select('*')
-        .eq('pilot_id', pilotId)
+        .eq('pilot_id', userId)
         .eq('is_published', true);
 
       // TODO: Load flight hours when table is created

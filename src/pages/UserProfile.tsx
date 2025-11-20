@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle } from "lucide-react";
+import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
 
 // Types
@@ -18,6 +18,7 @@ interface ProfileData {
   address?: string;
   instagram_username?: string;
   linkedin_username?: string;
+  public_profile_slug?: string;
 }
 
 interface Certification {
@@ -45,12 +46,15 @@ const UserProfile = () => {
     phone: '',
     address: '',
     instagram_username: '',
-    linkedin_username: ''
+    linkedin_username: '',
+    public_profile_slug: ''
   });
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [checkingSlug, setCheckingSlug] = useState(false);
+  const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -167,7 +171,8 @@ const UserProfile = () => {
           phone: profileData.phone || '',
           address: '',
           instagram_username: profileData.instagram_username || '',
-          linkedin_username: profileData.linkedin_username || ''
+          linkedin_username: profileData.linkedin_username || '',
+          public_profile_slug: profileData.public_profile_slug || ''
         });
       }
 
@@ -246,6 +251,124 @@ const UserProfile = () => {
     return cleaned;
   };
 
+  // Reserved words that cannot be used as slugs
+  const RESERVED_WORDS = ['admin', 'api', 'dashboard', 'pilot', 'search', 'login', 'register', 'profile', 'settings', 'help', 'about', 'contact', 'terms', 'privacy'];
+
+  // Function to clean and validate profile slug
+  const cleanSlug = (input: string): string => {
+    if (!input) return '';
+    
+    let cleaned = input.trim().toLowerCase();
+    
+    // Remove spaces and replace with hyphens
+    cleaned = cleaned.replace(/\s+/g, '-');
+    
+    // Remove special characters, only allow alphanumeric, hyphens, and underscores
+    cleaned = cleaned.replace(/[^a-z0-9_-]/g, '');
+    
+    // Remove multiple consecutive hyphens
+    cleaned = cleaned.replace(/-+/g, '-');
+    
+    // Remove leading/trailing hyphens and underscores
+    cleaned = cleaned.replace(/^[-_]+|[-_]+$/g, '');
+    
+    return cleaned;
+  };
+
+  // Function to validate slug format
+  const validateSlug = (slug: string): { valid: boolean; error?: string } => {
+    if (!slug) {
+      return { valid: false, error: 'El slug no puede estar vacío' };
+    }
+    
+    if (slug.length < 3) {
+      return { valid: false, error: 'El slug debe tener al menos 3 caracteres' };
+    }
+    
+    if (slug.length > 30) {
+      return { valid: false, error: 'El slug no puede tener más de 30 caracteres' };
+    }
+    
+    // Check if it matches the allowed pattern
+    if (!/^[a-z0-9_-]+$/.test(slug)) {
+      return { valid: false, error: 'El slug solo puede contener letras minúsculas, números, guiones y guiones bajos' };
+    }
+    
+    // Check if it starts with a number
+    if (/^[0-9]/.test(slug)) {
+      return { valid: false, error: 'El slug no puede comenzar con un número' };
+    }
+    
+    // Check reserved words
+    if (RESERVED_WORDS.includes(slug)) {
+      return { valid: false, error: 'Este nombre no está disponible (palabra reservada)' };
+    }
+    
+    return { valid: true };
+  };
+
+  // Function to check slug availability
+  const checkSlugAvailability = async (slug: string): Promise<boolean> => {
+    if (!slug || !user?.id) return false;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('public_profile_slug', slug)
+        .neq('id', user.id)
+        .single();
+      
+      // If no error and data exists, slug is taken
+      if (data) return false;
+      
+      // If error is "not found", slug is available
+      if (error && error.code === 'PGRST116') return true;
+      
+      // Other errors
+      if (error) {
+        console.error('Error checking slug availability:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking slug availability:', error);
+      return false;
+    }
+  };
+
+  // Handle slug input change with debounced availability check
+  const handleSlugChange = async (value: string) => {
+    const cleaned = cleanSlug(value);
+    const currentSlug = profile.public_profile_slug;
+    
+    setProfile(prev => ({ ...prev, public_profile_slug: cleaned }));
+    setSlugAvailable(null);
+    
+    if (!cleaned) {
+      setSlugAvailable(null);
+      return;
+    }
+    
+    const validation = validateSlug(cleaned);
+    if (!validation.valid) {
+      setSlugAvailable(false);
+      return;
+    }
+    
+    // Check if it's the same as current slug (no need to check)
+    if (cleaned === currentSlug) {
+      setSlugAvailable(true);
+      return;
+    }
+    
+    setCheckingSlug(true);
+    const available = await checkSlugAvailability(cleaned);
+    setSlugAvailable(available);
+    setCheckingSlug(false);
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
     
@@ -259,6 +382,40 @@ const UserProfile = () => {
       return;
     }
 
+    // Validate slug if provided
+    if (profile.public_profile_slug) {
+      // Check if user has active subscription
+      if (!subscription || subscription.status !== 'active') {
+        toast({
+          title: "Plan requerido",
+          description: "La URL personalizada solo está disponible con un plan pagado activo",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const validation = validateSlug(profile.public_profile_slug);
+      if (!validation.valid) {
+        toast({
+          title: "Slug inválido",
+          description: validation.error || "El formato del slug no es válido",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Final availability check before saving
+      const available = await checkSlugAvailability(profile.public_profile_slug);
+      if (!available) {
+        toast({
+          title: "Slug no disponible",
+          description: "Este nombre de usuario ya está en uso. Por favor, elige otro.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     try {
       setSaving(true);
       
@@ -270,6 +427,11 @@ const UserProfile = () => {
         ? cleanSocialUsername(profile.linkedin_username) 
         : null;
       
+      // Clean slug
+      const cleanedSlug = profile.public_profile_slug 
+        ? cleanSlug(profile.public_profile_slug) 
+        : null;
+      
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -279,6 +441,7 @@ const UserProfile = () => {
           phone: profile.phone || null,
           instagram_username: cleanedInstagram || null,
           linkedin_username: cleanedLinkedIn || null,
+          public_profile_slug: cleanedSlug || null,
           updated_at: new Date().toISOString()
         });
 
@@ -286,7 +449,9 @@ const UserProfile = () => {
 
       toast({
         title: "Perfil actualizado",
-        description: "Tus datos han sido guardados correctamente",
+        description: cleanedSlug 
+          ? `Tu perfil público está disponible en: /pilot/${cleanedSlug}`
+          : "Tus datos han sido guardados correctamente",
       });
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -623,6 +788,106 @@ const UserProfile = () => {
                   </p>
                 </div>
               </div>
+
+              {/* URL Personalizada del Perfil Público - Solo para usuarios con plan pagado */}
+              {subscription && subscription.status === 'active' && (
+                <div className="mt-6 pt-6 border-t border-border/50">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Crown className="h-5 w-5 text-yellow-500" />
+                      <Label className="text-foreground font-semibold text-lg">
+                        URL Personalizada del Perfil Público
+                      </Label>
+                      <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
+                        Premium
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Personaliza la URL de tu perfil público. Solo disponible con plan pagado activo.
+                    </p>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
+                        <Link className="inline h-4 w-4 mr-1" />
+                        Nombre de usuario para tu perfil
+                      </Label>
+                      <div className="relative">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                          /pilot/
+                        </div>
+                        <Input
+                          id="public_profile_slug"
+                          type="text"
+                          value={profile.public_profile_slug || ''}
+                          onChange={(e) => handleSlugChange(e.target.value)}
+                          className="border-border/50 focus:border-accent pl-20"
+                          placeholder="nombreusuario"
+                          disabled={checkingSlug}
+                        />
+                        {checkingSlug && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                        {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            {slugAvailable ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {profile.public_profile_slug && (
+                        <div className="mt-2">
+                          {slugAvailable === true && (
+                            <p className="text-xs text-green-600 flex items-center gap-1">
+                              <CheckCircle className="h-3 w-3" />
+                              Disponible: {window.location.origin}/pilot/{profile.public_profile_slug}
+                            </p>
+                          )}
+                          {slugAvailable === false && (
+                            <p className="text-xs text-red-600 flex items-center gap-1">
+                              <X className="h-3 w-3" />
+                              Este nombre ya está en uso. Por favor, elige otro.
+                            </p>
+                          )}
+                          {checkingSlug && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Verificando disponibilidad...
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Mensaje si no tiene plan activo */}
+              {(!subscription || subscription.status !== 'active') && (
+                <div className="mt-6 pt-6 border-t border-border/50">
+                  <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                    <div className="flex items-start gap-3">
+                      <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                          URL Personalizada del Perfil
+                        </p>
+                        <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                          Esta característica está disponible solo para usuarios con un plan pagado activo. 
+                          Suscríbete a un plan para personalizar la URL de tu perfil público.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="mt-6 flex justify-end">
                 <Button 

@@ -42,8 +42,11 @@ const PilotQR = () => {
       if (profileData) {
         setPilotData(profileData);
         
-        // Generate QR code URL
-        const profileUrl = `${window.location.origin}/pilot/${user.id}`;
+        // Generate QR code URL - use slug if available, otherwise use ID
+        const profileSlug = profileData.public_profile_slug;
+        const profileUrl = profileSlug 
+          ? `${window.location.origin}/pilot/${profileSlug}`
+          : `${window.location.origin}/pilot/${user.id}`;
         setQrCode(profileUrl);
       }
     } catch (error) {
@@ -103,19 +106,24 @@ const PilotQR = () => {
   };
 
   const handleShare = async () => {
+    const profileSlug = pilotData?.public_profile_slug;
+    const profileUrl = profileSlug 
+      ? `${window.location.origin}/pilot/${profileSlug}`
+      : `${window.location.origin}/pilot/${pilotData?.id}`;
+    
     if (navigator.share) {
       try {
         await navigator.share({
           title: 'Mi Perfil de Piloto',
           text: `Soy ${pilotData?.full_name}, piloto certificado de drones`,
-          url: `${window.location.origin}/pilot/${pilotData?.id}`
+          url: profileUrl
         });
       } catch (error) {
         console.error('Error sharing:', error);
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`${window.location.origin}/pilot/${pilotData?.id}`);
+      navigator.clipboard.writeText(profileUrl);
       toast({
         title: "Enlace copiado",
         description: "El enlace de tu perfil ha sido copiado al portapapeles",
@@ -124,7 +132,11 @@ const PilotQR = () => {
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(`${window.location.origin}/pilot/${pilotData?.id}`);
+    const profileSlug = pilotData?.public_profile_slug;
+    const profileUrl = profileSlug 
+      ? `${window.location.origin}/pilot/${profileSlug}`
+      : `${window.location.origin}/pilot/${pilotData?.id}`;
+    navigator.clipboard.writeText(profileUrl);
     toast({
       title: "Enlace copiado",
       description: "El enlace de tu perfil ha sido copiado al portapapeles",

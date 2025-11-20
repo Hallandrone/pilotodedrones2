@@ -22,6 +22,7 @@ interface PilotWithServices {
   certification_status: boolean;
   certification_academy: string | null;
   company_name: string | null;
+  public_profile_slug: string | null;
   services: Array<{
     id: string;
     service_type: string;
@@ -181,6 +182,7 @@ const SearchResults = () => {
           certification_status: pilot.certification_status || false,
           certification_academy: pilot.certification_academy || null,
           company_name: companyAssoc ? (companyAssoc.company as any).company_name : null,
+          public_profile_slug: (profile as any)?.public_profile_slug || null,
           services: pilotServices.map(s => ({
             id: s.id,
             service_type: s.service_type,
@@ -714,17 +716,22 @@ const SearchResults = () => {
 
                         <Button
                           className="w-full mt-4"
-                          onClick={() => navigate(`/pilot/${pilot.id}`, {
-                            state: {
-                              searchTerm,
-                              selectedRegion,
-                              selectedSpecialty,
-                              selectedDroneType,
-                              selectedExperience,
-                              selectedCompany,
-                              certifiedOnly
-                            }
-                          })}
+                          onClick={() => {
+                            const profileUrl = pilot.public_profile_slug 
+                              ? `/pilot/${pilot.public_profile_slug}`
+                              : `/pilot/${pilot.id}`;
+                            navigate(profileUrl, {
+                              state: {
+                                searchTerm,
+                                selectedRegion,
+                                selectedSpecialty,
+                                selectedDroneType,
+                                selectedExperience,
+                                selectedCompany,
+                                certifiedOnly
+                              }
+                            });
+                          }}
                         >
                           Ver Perfil
                         </Button>
