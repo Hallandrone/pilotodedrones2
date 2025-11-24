@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Building2, Upload, UserPlus, X } from "lucide-react";
+import { Building2, Upload, UserPlus, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Company {
@@ -31,11 +31,23 @@ interface AssociatedPilot {
   };
 }
 
+interface Certification {
+  id: string;
+  file_name: string;
+  file_url: string;
+  status: 'pending' | 'validated' | 'rejected';
+  uploaded_at: string;
+  certificate_type: 'AOC' | 'CEO';
+  rejection_observations?: string | null;
+}
+
 export default function CompanyProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<Company | null>(null);
   const [associatedPilots, setAssociatedPilots] = useState<AssociatedPilot[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     company_name: "",
     description: "",
@@ -88,6 +100,7 @@ export default function CompanyProfile() {
         });
 
         await loadAssociatedPilots(companyData.id);
+        await loadCertifications();
       }
     } catch (error: any) {
       console.error("Error loading company:", error);
@@ -95,6 +108,25 @@ export default function CompanyProfile() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadCertifications = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('user_certifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .in('certificate_type', ['AOC', 'CEO'])
+      .order('uploaded_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading certifications:', error);
+      return;
+    }
+
+    setCertifications((data || []) as Certification[]);
   };
 
   const loadAssociatedPilots = async (companyId: string) => {
@@ -176,6 +208,128 @@ export default function CompanyProfile() {
 
     toast.success("Empresa actualizada correctamente");
     await loadCompanyData(user.id);
+  };
+
+  const handleCertificateUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    certType: 'AOC' | 'CEO'
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Validar tipo de archivo
+    const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (!allowedTypes.includes(fileExtension)) {
+      toast.error("Solo se permiten archivos PDF, JPG, JPEG y PNG");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('certifications')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { error: dbError } = await supabase
+        .from('user_certifications')
+        .insert({
+          user_id: user.id,
+          file_name: file.name,
+          file_url: fileName,
+          status: 'pending',
+          certificate_type: certType
+        });
+
+      if (dbError) throw dbError;
+
+      toast.success(`Certificado ${certType} subido correctamente`);
+      await loadCertifications();
+    } catch (error) {
+      console.error('Error uploading certificate:', error);
+      toast.error("No se pudo subir el certificado");
+    } finally {
+      setUploading(false);
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteCertification = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_certifications')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCertifications(prev => prev.filter(cert => cert.id !== id));
+      toast.success("Certificado eliminado correctamente");
+    } catch (error) {
+      console.error('Error deleting certification:', error);
+      toast.error("No se pudo eliminar el certificado");
+    }
+  };
+
+  const getSignedUrl = async (filePath: string): Promise<string> => {
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+    
+    const { data, error } = await supabase.storage
+      .from('certifications')
+      .createSignedUrl(filePath, 3600);
+    
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      throw error;
+    }
+    
+    return data.signedUrl;
+  };
+
+  const handleViewCertification = async (certId: string) => {
+    try {
+      const cert = certifications.find(c => c.id === certId);
+      if (!cert) return;
+      
+      const signedUrl = await getSignedUrl(cert.file_url);
+      window.open(signedUrl, '_blank');
+    } catch (error) {
+      console.error('Error viewing certification:', error);
+      toast.error("No se pudo abrir el certificado");
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'validated': return 'bg-green-100 text-green-800 border-green-200';
+      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'validated': return <CheckCircle className="h-3 w-3" />;
+      case 'rejected': return <XCircle className="h-3 w-3" />;
+      default: return <Clock className="h-3 w-3" />;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'validated': return 'Validado';
+      case 'rejected': return 'Rechazado';
+      default: return 'Pendiente';
+    }
   };
 
   const handleAddPilot = async () => {
@@ -311,6 +465,104 @@ export default function CompanyProfile() {
           </div>
 
           <Button onClick={() => handleSave()}>Guardar Cambios</Button>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Certificados de Empresa</CardTitle>
+          <CardDescription>Sube tus certificados AOC o CEO</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* AOC Certificate */}
+          <div className="space-y-2">
+            <Label htmlFor="aoc-certificate">Certificado AOC</Label>
+            <Input
+              id="aoc-certificate"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => handleCertificateUpload(e, 'AOC')}
+              disabled={uploading}
+            />
+            <p className="text-xs text-muted-foreground">
+              Sube tu certificado AOC (Air Operator Certificate)
+            </p>
+          </div>
+
+          {/* CEO Certificate */}
+          <div className="space-y-2">
+            <Label htmlFor="ceo-certificate">Certificado CEO</Label>
+            <Input
+              id="ceo-certificate"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={(e) => handleCertificateUpload(e, 'CEO')}
+              disabled={uploading}
+            />
+            <p className="text-xs text-muted-foreground">
+              Sube tu certificado CEO (Chief Executive Officer)
+            </p>
+          </div>
+
+          {/* Lista de certificados subidos */}
+          {certifications.length > 0 && (
+            <div className="space-y-2 pt-4 border-t">
+              <Label>Certificados Subidos</Label>
+              <div className="space-y-2">
+                {certifications.map((cert) => (
+                  <div key={cert.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3 flex-1">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium">{cert.file_name}</p>
+                          <Badge className={getStatusColor(cert.status)}>
+                            {getStatusIcon(cert.status)}
+                            <span className="ml-1">{getStatusText(cert.status)}</span>
+                          </Badge>
+                          <Badge variant="outline">{cert.certificate_type}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
+                        </p>
+                        {cert.status === 'rejected' && cert.rejection_observations && (
+                          <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded text-xs">
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="h-3 w-3 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <p className="font-semibold text-red-800 dark:text-red-300 mb-1">
+                                  Observaciones:
+                                </p>
+                                <p className="text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                                  {cert.rejection_observations}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleViewCertification(cert.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleDeleteCertification(cert.id)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -30,6 +30,8 @@ interface PilotProfile {
   experience_years: number | null;
   avatar_url: string | null;
   drone_types: string[] | null;
+  instagram_username?: string | null;
+  linkedin_username?: string | null;
 }
 
 interface PilotData {
@@ -427,6 +429,38 @@ const PublicPilotProfile = () => {
                     <div className="flex-1">
                       <p className="text-sm text-gray-600 font-medium mb-1">Teléfono</p>
                       <p className="font-medium text-[#083b4e] text-base">{profile.phone}</p>
+                    </div>
+                  </a>
+                )}
+                {profile.instagram_username && (
+                  <a 
+                    href={`https://instagram.com/${profile.instagram_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
+                  >
+                    <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">📷</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600 font-medium mb-1">Instagram</p>
+                      <p className="font-medium text-[#083b4e] text-base">@{profile.instagram_username}</p>
+                    </div>
+                  </a>
+                )}
+                {profile.linkedin_username && (
+                  <a 
+                    href={`https://linkedin.com/in/${profile.linkedin_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
+                  >
+                    <div className="h-14 w-14 bg-[#0077b5]/10 rounded-lg flex items-center justify-center">
+                      <span className="text-[#0077b5] text-2xl font-bold">💼</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600 font-medium mb-1">LinkedIn</p>
+                      <p className="font-medium text-[#083b4e] text-base">{profile.linkedin_username}</p>
                     </div>
                   </a>
                 )}

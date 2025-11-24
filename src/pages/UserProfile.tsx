@@ -238,12 +238,13 @@ const UserProfile = () => {
     cleaned = cleaned.replace(/^instagram\.com\//, '');
     cleaned = cleaned.replace(/^linkedin\.com\//, '');
     cleaned = cleaned.replace(/^linkedin\.com\/in\//, '');
+    cleaned = cleaned.replace(/^\/in\//, ''); // Handle /in/username pattern
     
     // Remove @ symbol
     cleaned = cleaned.replace(/^@/, '');
     
     // Remove trailing slashes and query parameters
-    cleaned = cleaned.split('/')[0].split('?')[0];
+    cleaned = cleaned.split('/')[0].split('?')[0].split('#')[0];
     
     // Only allow alphanumeric, dots, underscores, and hyphens
     cleaned = cleaned.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -761,12 +762,15 @@ const UserProfile = () => {
                     id="instagram_username"
                     type="text"
                     value={profile.instagram_username || ''}
-                    onChange={(e) => setProfile(prev => ({ ...prev, instagram_username: e.target.value }))}
+                    onChange={(e) => {
+                      const cleaned = cleanSocialUsername(e.target.value);
+                      setProfile(prev => ({ ...prev, instagram_username: cleaned }));
+                    }}
                     className="border-border/50 focus:border-accent"
-                    placeholder="nombre_usuario (sin @)"
+                    placeholder="juan_perez"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Solo ingresa tu nombre de usuario, sin @ ni URL
+                    Solo ingresa tu nombre de usuario (ej: juan_perez). Se limpiará automáticamente si ingresas una URL completa.
                   </p>
                 </div>
 
@@ -779,12 +783,15 @@ const UserProfile = () => {
                     id="linkedin_username"
                     type="text"
                     value={profile.linkedin_username || ''}
-                    onChange={(e) => setProfile(prev => ({ ...prev, linkedin_username: e.target.value }))}
+                    onChange={(e) => {
+                      const cleaned = cleanSocialUsername(e.target.value);
+                      setProfile(prev => ({ ...prev, linkedin_username: cleaned }));
+                    }}
                     className="border-border/50 focus:border-accent"
-                    placeholder="nombre-usuario (sin URL)"
+                    placeholder="juan-perez"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Solo ingresa tu nombre de usuario de linkedin.com/in/
+                    Solo ingresa tu nombre de usuario (ej: juan-perez). Se limpiará automáticamente si ingresas una URL completa.
                   </p>
                 </div>
               </div>

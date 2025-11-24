@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { ArrowLeft, MapPin, DollarSign, Shield, Briefcase, Search, Filter } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { isCertificationValid } from "@/utils/certificationHelpers";
 
 interface PilotWithServices {
   id: string;
@@ -20,6 +21,7 @@ interface PilotWithServices {
   drone_types: string[];
   experience_years: number;
   certification_status: boolean;
+  certification_expires_at: string | null;
   certification_academy: string | null;
   company_name: string | null;
   public_profile_slug: string | null;
@@ -118,7 +120,7 @@ const SearchResults = () => {
       // Obtener TODOS los pilotos
       const { data: pilotsData, error: pilotsError } = await supabase
         .from("pilots")
-        .select("id, user_id, certification_status, certification_academy");
+        .select("id, user_id, certification_status, certification_expires_at, certification_academy");
 
       if (pilotsError) throw pilotsError;
 
@@ -180,6 +182,7 @@ const SearchResults = () => {
           drone_types: (profile as any)?.drone_types || [],
           experience_years: (profile as any)?.experience_years || 0,
           certification_status: pilot.certification_status || false,
+          certification_expires_at: pilot.certification_expires_at || null,
           certification_academy: pilot.certification_academy || null,
           company_name: companyAssoc ? (companyAssoc.company as any).company_name : null,
           public_profile_slug: (profile as any)?.public_profile_slug || null,
@@ -259,9 +262,11 @@ const SearchResults = () => {
       filtered = filtered.filter(p => p.experience_years >= years);
     }
 
-    // Filtro por certificación
+    // Filtro por certificación (solo certificaciones vigentes)
     if (certifiedOnly) {
-      filtered = filtered.filter(p => p.certification_status);
+      filtered = filtered.filter(p => 
+        p.certification_status && isCertificationValid(p.certification_expires_at)
+      );
     }
 
     // Filtro por empresa

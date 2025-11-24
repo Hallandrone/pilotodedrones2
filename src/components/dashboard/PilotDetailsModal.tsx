@@ -8,7 +8,14 @@ import { Button } from "@/components/ui/button";
 import { 
   CheckCircle, 
   XCircle,
+  Clock,
+  AlertCircle
 } from "lucide-react";
+import { 
+  getCertificationStatus, 
+  getDaysUntilExpiration, 
+  formatExpirationDate 
+} from "@/utils/certificationHelpers";
 
 interface PilotService {
   id: string;
@@ -24,6 +31,8 @@ interface PilotDetails {
   phone: string | null;
   certifications: string[] | null;
   certification_status: boolean;
+  certification_validated_at: string | null;
+  certification_expires_at: string | null;
   status: string;
   created_at: string;
   updated_at: string;
@@ -117,21 +126,73 @@ export function PilotDetailsModal({
           {/* Certificaciones */}
           <section className="mb-7 bg-gray-50 p-5 rounded-xl border-l-4 border-sky-500">
             <h4 className="text-lg font-semibold text-sky-700 mb-2.5">Certificaciones y Acreditaciones</h4>
-            <p className="mb-2.5">
-              <strong>Estado:</strong> 
-              <span className={pilot.certification_status ? 'text-green-600 ml-1' : 'text-red-600 ml-1'}>
-                {pilot.certification_status ? '✓ Certificado' : '✗ Sin certificar'}
-              </span>
-            </p>
-            {pilot.certifications && pilot.certifications.length > 0 ? (
-              <ul className="mt-2.5 pl-5 text-slate-800">
-                {pilot.certifications.map((cert, index) => (
-                  <li key={index}>{cert}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-slate-600 mt-2.5">No hay certificaciones registradas</p>
-            )}
+            {(() => {
+              const certStatus = getCertificationStatus(
+                pilot.certification_status,
+                pilot.certification_expires_at
+              );
+              const daysUntilExpiration = getDaysUntilExpiration(pilot.certification_expires_at);
+              
+              return (
+                <>
+                  <div className="mb-2.5">
+                    <strong>Estado:</strong> 
+                    {certStatus === 'valid' && (
+                      <span className="text-green-600 ml-1 flex items-center gap-1">
+                        <CheckCircle className="h-4 w-4" />
+                        Certificado (Vigente)
+                      </span>
+                    )}
+                    {certStatus === 'expiring_soon' && (
+                      <span className="text-yellow-600 ml-1 flex items-center gap-1">
+                        <AlertCircle className="h-4 w-4" />
+                        Certificado (Por vencer - {daysUntilExpiration} días)
+                      </span>
+                    )}
+                    {certStatus === 'expired' && (
+                      <span className="text-red-600 ml-1 flex items-center gap-1">
+                        <XCircle className="h-4 w-4" />
+                        Certificado (Vencido)
+                      </span>
+                    )}
+                    {certStatus === 'not_validated' && (
+                      <span className="text-red-600 ml-1 flex items-center gap-1">
+                        <XCircle className="h-4 w-4" />
+                        Sin certificar
+                      </span>
+                    )}
+                  </div>
+                  
+                  {pilot.certification_validated_at && (
+                    <p className="mb-2.5 text-sm text-slate-600">
+                      <strong>Última validación:</strong> {new Date(pilot.certification_validated_at).toLocaleDateString('es-CL')}
+                    </p>
+                  )}
+                  
+                  {pilot.certification_expires_at && (
+                    <p className="mb-2.5 text-sm text-slate-600">
+                      <strong>Válido hasta:</strong> {formatExpirationDate(pilot.certification_expires_at)}
+                      {daysUntilExpiration !== null && daysUntilExpiration > 0 && (
+                        <span className="ml-2">({daysUntilExpiration} días restantes)</span>
+                      )}
+                    </p>
+                  )}
+                  
+                  {pilot.certifications && pilot.certifications.length > 0 ? (
+                    <div className="mt-2.5">
+                      <strong className="text-slate-800">Certificaciones:</strong>
+                      <ul className="mt-1.5 pl-5 text-slate-800">
+                        {pilot.certifications.map((cert, index) => (
+                          <li key={index}>{cert}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <p className="text-slate-600 mt-2.5">No hay certificaciones registradas</p>
+                  )}
+                </>
+              );
+            })()}
           </section>
 
           {/* Servicios Publicados */}

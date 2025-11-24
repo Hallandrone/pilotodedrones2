@@ -40,8 +40,15 @@ import {
   Ban,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  RefreshCw
 } from "lucide-react";
+import { 
+  getCertificationStatus, 
+  getDaysUntilExpiration, 
+  formatExpirationDate,
+  calculateExpirationDate 
+} from "@/utils/certificationHelpers";
 
 interface PilotService {
   id: string;
@@ -57,6 +64,8 @@ interface PilotProfile {
   phone: string | null;
   certifications: string[] | null;
   certification_status: boolean;
+  certification_validated_at: string | null;
+  certification_expires_at: string | null;
   status: string;
   created_at: string;
   updated_at: string;
@@ -152,6 +161,41 @@ export function Pilots() {
       toast({
         title: "Error",
         description: error.message || "No se pudo actualizar el estado del piloto",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRenewCertification = async (pilotId: string, userId: string) => {
+    try {
+      const validationDate = new Date();
+      const expirationDate = calculateExpirationDate();
+
+      const { error } = await supabase
+        .from('pilots')
+        .update({
+          certification_validated_at: validationDate.toISOString(),
+          certification_expires_at: expirationDate.toISOString(),
+          certification_status: true
+        })
+        .eq('id', pilotId);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Certificación renovada",
+        description: `La certificación ha sido renovada por 1 año más. Válida hasta ${expirationDate.toLocaleDateString('es-CL')}`,
+      });
+
+      // Refresh the pilots list
+      fetchPilots();
+    } catch (error: any) {
+      console.error('Error renewing certification:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo renovar la certificación",
         variant: "destructive",
       });
     }
@@ -258,6 +302,7 @@ export function Pilots() {
                     <TableHead>Nombre Completo</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Certificación</TableHead>
+                    <TableHead>Expiración</TableHead>
                     <TableHead>Tipo de Servicio</TableHead>
                     <TableHead>Estado de Publicación</TableHead>
                     <TableHead>Estado</TableHead>
@@ -289,16 +334,66 @@ export function Pilots() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {pilot.certification_status ? (
-                          <div className="flex items-center gap-1">
-                            <CheckCircle className="h-3 w-3 text-green-500" />
-                            <Badge variant="default">Sí</Badge>
+                        {(() => {
+                          const certStatus = getCertificationStatus(
+                            pilot.certification_status,
+                            pilot.certification_expires_at
+                          );
+                          const daysUntilExpiration = getDaysUntilExpiration(pilot.certification_expires_at);
+                          
+                          if (certStatus === 'valid') {
+                            return (
+                              <div className="flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3 text-green-500" />
+                                <Badge variant="default" className="bg-green-500">Vigente</Badge>
+                              </div>
+                            );
+                          } else if (certStatus === 'expiring_soon') {
+                            return (
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3 text-yellow-500" />
+                                <Badge variant="outline" className="border-yellow-500 text-yellow-600">
+                                  Por vencer ({daysUntilExpiration}d)
+                                </Badge>
+                              </div>
+                            );
+                          } else if (certStatus === 'expired') {
+                            return (
+                              <div className="flex items-center gap-1">
+                                <XCircle className="h-3 w-3 text-red-500" />
+                                <Badge variant="destructive">Vencida</Badge>
+                              </div>
+                            );
+                          } else {
+                            return (
+                              <div className="flex items-center gap-1">
+                                <XCircle className="h-3 w-3 text-gray-500" />
+                                <Badge variant="secondary">No certificado</Badge>
+                              </div>
+                            );
+                          }
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        {pilot.certification_expires_at ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs text-muted-foreground">
+                              {formatExpirationDate(pilot.certification_expires_at)}
+                            </span>
+                            {(() => {
+                              const days = getDaysUntilExpiration(pilot.certification_expires_at);
+                              if (days !== null && days <= 30) {
+                                return (
+                                  <span className="text-xs text-yellow-600 font-medium">
+                                    {days > 0 ? `${days} días restantes` : 'Vencida'}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <XCircle className="h-3 w-3 text-red-500" />
-                            <Badge variant="secondary">No</Badge>
-                          </div>
+                          <span className="text-xs text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -333,6 +428,17 @@ export function Pilots() {
                               <Eye className="mr-2 h-4 w-4" />
                               Ver detalles completos
                             </DropdownMenuItem>
+                            {pilot.certification_status && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  onClick={() => handleRenewCertification(pilot.id, pilot.user_id)}
+                                >
+                                  <RefreshCw className="mr-2 h-4 w-4" />
+                                  Renovar Certificación (1 año)
+                                </DropdownMenuItem>
+                              </>
+                            )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-destructive"

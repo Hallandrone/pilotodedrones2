@@ -18,6 +18,7 @@ import {
   LogOut, 
   CheckCircle, 
   AlertCircle,
+  XCircle,
   Upload,
   Download,
   Phone,
@@ -29,6 +30,12 @@ import {
   HelpCircle
 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
+import { 
+  getCertificationStatus, 
+  getDaysUntilExpiration, 
+  formatExpirationDate,
+  type CertificationStatus 
+} from "@/utils/certificationHelpers";
 
 interface PilotData {
   id: string;
@@ -36,6 +43,8 @@ interface PilotData {
   phone: string | null;
   certifications: string[] | null;
   certification_status: boolean;
+  certification_validated_at: string | null;
+  certification_expires_at: string | null;
   status: string;
   created_at: string;
   profiles: {
@@ -165,6 +174,8 @@ const PilotDashboard = () => {
             certifications: null,
             certification_status: false,
             certification_academy: null,
+            certification_validated_at: null,
+            certification_expires_at: null,
             status: 'active',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -414,36 +425,118 @@ const PilotDashboard = () => {
           <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
             <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-emerald-500/10 p-1">
               <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-                    </div>
-                    <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
-                  </div>
-                  {pilotData?.certification_status ? (
-                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                      <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-400" />
-                    </div>
-                  ) : (
-                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                      <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
-                    </div>
-                  )}
-                </div>
-                <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                  {pilotData?.certification_status 
-                    ? 'Tus certificaciones están validadas y activas ✓'
-                    : 'Pendiente de validación de certificaciones'
-                  }
-                </p>
-                <Button 
-                  size="lg" 
-                  onClick={() => navigate('/pilot/certificates')}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                >
-                  {pilotData?.certification_status ? 'Ver Certificados' : 'Subir Certificados'}
-                </Button>
+                {(() => {
+                  const certStatus = getCertificationStatus(
+                    pilotData?.certification_status || false,
+                    pilotData?.certification_expires_at || null
+                  );
+                  const daysUntilExpiration = getDaysUntilExpiration(pilotData?.certification_expires_at || null);
+                  
+                  return (
+                    <>
+                      <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <div className="flex items-center gap-2 sm:gap-4">
+                          <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${
+                            certStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
+                            certStatus === 'expiring_soon' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
+                            certStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
+                            'bg-gradient-to-br from-gray-500 to-gray-600'
+                          }`}>
+                            <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                          </div>
+                          <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
+                        </div>
+                        {certStatus === 'valid' ? (
+                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                            <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-400" />
+                          </div>
+                        ) : certStatus === 'expiring_soon' ? (
+                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
+                          </div>
+                        ) : certStatus === 'expired' ? (
+                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-red-500/20 border-2 border-red-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                            <XCircle className="h-5 w-5 sm:h-7 sm:w-7 text-red-400" />
+                          </div>
+                        ) : (
+                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                        {certStatus === 'valid' && (
+                          <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
+                            <p className="text-white text-sm sm:text-base font-medium mb-1">
+                              ✓ Certificación Vigente
+                            </p>
+                            <p className="text-white/80 text-xs sm:text-sm">
+                              Válida hasta: {formatExpirationDate(pilotData?.certification_expires_at || null)}
+                            </p>
+                            {daysUntilExpiration !== null && (
+                              <p className="text-white/70 text-xs mt-1">
+                                {daysUntilExpiration} días restantes
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {certStatus === 'expiring_soon' && (
+                          <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-3 sm:p-4">
+                            <p className="text-white text-sm sm:text-base font-medium mb-1 flex items-center gap-2">
+                              <AlertCircle className="h-4 w-4" />
+                              Certificación por Vencer
+                            </p>
+                            <p className="text-white/80 text-xs sm:text-sm">
+                              Vence el: {formatExpirationDate(pilotData?.certification_expires_at || null)}
+                            </p>
+                            {daysUntilExpiration !== null && (
+                              <p className="text-yellow-300 text-xs sm:text-sm font-semibold mt-1">
+                                ⚠️ Quedan {daysUntilExpiration} días. Debes renovar tu validación.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {certStatus === 'expired' && (
+                          <div className="bg-red-500/20 border border-red-400/30 rounded-lg p-3 sm:p-4">
+                            <p className="text-white text-sm sm:text-base font-medium mb-1 flex items-center gap-2">
+                              <XCircle className="h-4 w-4" />
+                              Certificación Vencida
+                            </p>
+                            <p className="text-white/80 text-xs sm:text-sm">
+                              Venció el: {formatExpirationDate(pilotData?.certification_expires_at || null)}
+                            </p>
+                            <p className="text-red-300 text-xs sm:text-sm font-semibold mt-1">
+                              ⚠️ Debes renovar tu validación para continuar operando.
+                            </p>
+                          </div>
+                        )}
+                        
+                        {certStatus === 'not_validated' && (
+                          <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+                            Pendiente de validación de certificaciones
+                          </p>
+                        )}
+                      </div>
+                      
+                      <Button 
+                        size="lg" 
+                        onClick={() => navigate('/pilot/certificates')}
+                        className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${
+                          certStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
+                          certStatus === 'expiring_soon' || certStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
+                          'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+                        }`}
+                      >
+                        {certStatus === 'not_validated' ? 'Subir Certificados' : 
+                         certStatus === 'expired' ? 'Renovar Certificación' : 
+                         'Ver Certificados'}
+                      </Button>
+                    </>
+                  );
+                })()}
               </CardContent>
             </div>
           </Card>

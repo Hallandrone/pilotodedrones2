@@ -32,6 +32,7 @@ import {
   Calendar,
   AlertCircle
 } from "lucide-react";
+import { calculateExpirationDate } from "@/utils/certificationHelpers";
 
 interface Certification {
   id: string;
@@ -213,31 +214,38 @@ const AdminCertificates = () => {
         console.error('Error verificando suscripción:', subscriptionError);
       }
 
-      // 4. Si tiene suscripción activa, activar su perfil de piloto
+      // 4. Calcular fechas de validación y expiración (1 año)
+      const validationDate = new Date();
+      const expirationDate = calculateExpirationDate();
+
+      // 5. Actualizar perfil de piloto con certificación y fechas
+      const { error: pilotError } = await supabase
+        .from('pilots')
+        .update({ 
+          certification_status: true,
+          status: 'active',
+          certification_validated_at: validationDate.toISOString(),
+          certification_expires_at: expirationDate.toISOString()
+        })
+        .eq('user_id', certData.user_id);
+
+      if (pilotError) {
+        console.error('Error activating pilot profile:', pilotError);
+        // No falla toda la operación si esto falla
+      } else {
+        console.log('Perfil de piloto activado exitosamente con fechas de validación');
+      }
+
+      // 6. Si tiene suscripción activa, mostrar mensaje adicional
       if (subscription && subscription.status === 'active') {
-        const { error: pilotError } = await supabase
-          .from('pilots')
-          .update({ 
-            certification_status: true,
-            status: 'active'
-          })
-          .eq('user_id', certData.user_id);
-
-        if (pilotError) {
-          console.error('Error activating pilot profile:', pilotError);
-          // No falla toda la operación si esto falla
-        } else {
-          console.log('Perfil de piloto activado exitosamente');
-        }
-
         toast({
           title: "✅ Certificado aprobado y perfil activado",
-          description: "El certificado fue validado y el perfil de piloto está ahora activo",
+          description: `El certificado fue validado y el perfil de piloto está ahora activo. Válido hasta ${expirationDate.toLocaleDateString('es-CL')}`,
         });
       } else {
         toast({
           title: "✅ Certificado aprobado",
-          description: "El certificado fue validado exitosamente",
+          description: `El certificado fue validado exitosamente. Válido hasta ${expirationDate.toLocaleDateString('es-CL')}`,
         });
       }
 
