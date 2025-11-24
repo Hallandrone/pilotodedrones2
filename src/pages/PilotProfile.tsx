@@ -18,7 +18,8 @@ import {
   Mail, 
   Map,
   Camera,
-  Upload
+  Upload,
+  X
 } from "lucide-react";
 
 interface ProfileData {
@@ -30,6 +31,7 @@ interface ProfileData {
   region: string;
   experience_years: number;
   specialties: string[];
+  drone_types: string[];
 }
 
 // Campos que existen en la tabla profiles
@@ -59,12 +61,14 @@ const PilotProfile = () => {
     location: '',
     region: '',
     experience_years: 0,
-    specialties: []
+    specialties: [],
+    drone_types: []
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [customSpecialty, setCustomSpecialty] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -99,6 +103,81 @@ const PilotProfile = () => {
     'Entretenimiento',
     'Mapeo 3D'
   ];
+
+  // Lista completa de drones organizados por nivel
+  const basicDrones = [
+    'DJI Mini 2',
+    'DJI Mini 3',
+    'DJI Mini 4',
+    'DJI Mini SE',
+    'DJI Tello',
+    'Parrot Mambo',
+    'Parrot Swing',
+    'Ryze Tello'
+  ];
+
+  const intermediateDrones = [
+    'DJI Mavic Air',
+    'DJI Mavic Air 2',
+    'DJI Mavic Air 2S',
+    'DJI Mavic Pro',
+    'DJI Mavic Pro 2',
+    'DJI Mavic 3',
+    'DJI Mavic 3 Pro',
+    'DJI Phantom 3',
+    'DJI Phantom 4',
+    'DJI Phantom 4 Pro',
+    'DJI Phantom 4 Advanced',
+    'DJI Air 2S',
+    'DJI Air 3',
+    'Autel EVO Lite+',
+    'Autel EVO Nano+',
+    'Autel EVO II',
+    'Parrot Anafi',
+    'Parrot Bebop 2'
+  ];
+
+  const professionalDrones = [
+    'DJI Inspire 1',
+    'DJI Inspire 2',
+    'DJI Matrice 100',
+    'DJI Matrice 200',
+    'DJI Matrice 210',
+    'DJI Matrice 300 RTK',
+    'DJI Matrice 350 RTK',
+    'DJI Matrice 600',
+    'DJI Matrice 600 Pro',
+    'DJI Agras T10',
+    'DJI Agras T20',
+    'DJI Agras T30',
+    'DJI Agras T40',
+    'DJI Agras T50',
+    'Autel EVO II Pro',
+    'Autel EVO II Dual',
+    'Autel EVO II Enterprise',
+    'Autel Dragonfish',
+    'Freefly Alta 6',
+    'Freefly Alta 8',
+    'Freefly Astro',
+    'Yuneec Typhoon H',
+    'Yuneec H520',
+    'Yuneec H920',
+    'DJI FPV',
+    'DJI Avata',
+    'DJI Avata 2',
+    'DJI Mavic 3 Enterprise',
+    'DJI Mavic 3 Thermal',
+    'DJI Zenmuse P1',
+    'DJI Zenmuse P4RTK',
+    'DJI Zenmuse H20',
+    'DJI Zenmuse H20T',
+    'DJI Zenmuse L1',
+    'DJI Zenmuse X7',
+    'DJI Zenmuse X5S',
+    'DJI Zenmuse X4S'
+  ];
+
+  const allDroneOptions = [...basicDrones, ...intermediateDrones, ...professionalDrones, 'Otro'];
 
   useEffect(() => {
     loadProfile();
@@ -146,7 +225,8 @@ const PilotProfile = () => {
               location: '',
               region: '',
               experience_years: 0,
-              specialties: []
+              specialties: [],
+              drone_types: []
             });
 
           if (createError) {
@@ -171,7 +251,8 @@ const PilotProfile = () => {
               location: data.location || '',
               region: data.region || '',
               experience_years: data.experience_years || 0,
-              specialties: data.specialties || []
+              specialties: data.specialties || [],
+              drone_types: data.drone_types || []
             });
           }
         } else {
@@ -189,7 +270,8 @@ const PilotProfile = () => {
           location: data.location || '',
           region: data.region || '',
           experience_years: data.experience_years || 0,
-          specialties: data.specialties || []
+          specialties: data.specialties || [],
+          drone_types: data.drone_types || []
         });
       }
     } catch (error: any) {
@@ -273,7 +355,8 @@ const PilotProfile = () => {
           location: profile.location || null,
           region: profile.region || null,
           experience_years: profile.experience_years || 0,
-          specialties: profile.specialties || []
+          specialties: profile.specialties || [],
+          drone_types: profile.drone_types || []
         }, {
           onConflict: 'id'
         });
@@ -313,6 +396,51 @@ const PilotProfile = () => {
     setHasChanges(true);
   };
 
+  const handleCustomSpecialty = (value: string) => {
+    setCustomSpecialty(value);
+  };
+
+  const addCustomSpecialty = () => {
+    const trimmed = customSpecialty.trim();
+    if (trimmed && !profile.specialties.includes(trimmed)) {
+      setProfile(prev => ({
+        ...prev,
+        specialties: [...prev.specialties, trimmed]
+      }));
+      setCustomSpecialty('');
+      setHasChanges(true);
+    } else if (trimmed && profile.specialties.includes(trimmed)) {
+      toast({
+        title: "Especialidad duplicada",
+        description: "Esta especialidad ya está agregada",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeCustomSpecialty = (specialty: string) => {
+    setProfile(prev => ({
+      ...prev,
+      specialties: prev.specialties.filter(s => s !== specialty)
+    }));
+    setHasChanges(true);
+  };
+
+  // Función para verificar si una especialidad es personalizada (no está en la lista predefinida)
+  const isCustomSpecialty = (specialty: string) => {
+    return !specialtyOptions.includes(specialty);
+  };
+
+  const toggleDroneType = (droneType: string) => {
+    setProfile(prev => ({
+      ...prev,
+      drone_types: prev.drone_types.includes(droneType)
+        ? prev.drone_types.filter(d => d !== droneType)
+        : [...prev.drone_types, droneType]
+    }));
+    setHasChanges(true);
+  };
+
   const handleInputChange = (field: keyof ProfileData, value: any) => {
     setProfile(prev => ({
       ...prev,
@@ -344,7 +472,8 @@ const PilotProfile = () => {
           location: profile.location || null,
           region: profile.region || null,
           experience_years: profile.experience_years || 0,
-          specialties: profile.specialties || []
+          specialties: profile.specialties || [],
+          drone_types: profile.drone_types || []
         }, {
           onConflict: 'id'
         });
@@ -558,21 +687,211 @@ const PilotProfile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
-              <div className="flex flex-wrap gap-3">
-                {specialtyOptions.map((specialty) => (
-                  <Badge
-                    key={specialty}
-                    variant={profile.specialties.includes(specialty) ? "default" : "outline"}
-                    className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                      profile.specialties.includes(specialty)
-                        ? 'bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg hover:shadow-xl hover:scale-105'
-                        : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4]'
-                    }`}
-                    onClick={() => toggleSpecialty(specialty)}
-                  >
-                    {specialty}
-                  </Badge>
-                ))}
+              <div className="space-y-4">
+                {/* Especialidades predefinidas */}
+                <div className="flex flex-wrap gap-3">
+                  {specialtyOptions.map((specialty) => (
+                    <Badge
+                      key={specialty}
+                      variant={profile.specialties.includes(specialty) ? "default" : "outline"}
+                      className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                        profile.specialties.includes(specialty)
+                          ? 'bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg hover:shadow-xl hover:scale-105'
+                          : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4]'
+                      }`}
+                      onClick={() => toggleSpecialty(specialty)}
+                    >
+                      {specialty}
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Especialidades personalizadas agregadas */}
+                {profile.specialties.filter(isCustomSpecialty).length > 0 && (
+                  <div className="pt-4 border-t border-[#333333]">
+                    <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
+                      Especialidades personalizadas:
+                    </Label>
+                    <div className="flex flex-wrap gap-3">
+                      {profile.specialties.filter(isCustomSpecialty).map((specialty) => (
+                        <Badge
+                          key={specialty}
+                          variant="default"
+                          className="bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                          onClick={() => removeCustomSpecialty(specialty)}
+                        >
+                          {specialty}
+                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Campo para agregar otra especialidad */}
+                <div className="pt-4 border-t border-[#333333]">
+                  <Label htmlFor="custom-specialty" className="text-[#E0E0E0] text-sm mb-2 block font-medium">
+                    Otra
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="custom-specialty"
+                      type="text"
+                      value={customSpecialty}
+                      onChange={(e) => handleCustomSpecialty(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustomSpecialty();
+                        }
+                      }}
+                      placeholder="Escribe otra especialidad..."
+                      className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#FF69B4] placeholder:text-[#666666]"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addCustomSpecialty}
+                      disabled={!customSpecialty.trim() || profile.specialties.includes(customSpecialty.trim())}
+                      className="bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Agregar
+                    </Button>
+                  </div>
+                  <p className="text-xs text-[#B0B0B0] mt-2">
+                    Presiona Enter o haz clic en "Agregar" para incluir tu especialidad personalizada
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </div>
+        </Card>
+
+        {/* Drone Types */}
+        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-[#00b3f3]/20 via-[#00b3f3]/10 to-[#00b3f3]/20 p-1">
+            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold text-[#E0E0E0]">
+                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+                  <Camera className="h-5 w-5 text-white" />
+                </div>
+                Tipos de Drones
+              </CardTitle>
+              <CardDescription className="text-[#B0B0B0] font-medium">
+                Selecciona los modelos de drones que estás habilitado para pilotear
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
+              <div className="space-y-6">
+                {/* Drones seleccionados */}
+                {profile.drone_types.length > 0 && (
+                  <div className="pb-4 border-b border-[#333333]">
+                    <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
+                      Drones seleccionados ({profile.drone_types.length}):
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.drone_types.map((drone) => (
+                        <Badge
+                          key={drone}
+                          variant="default"
+                          className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                          onClick={() => toggleDroneType(drone)}
+                        >
+                          {drone}
+                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Nivel Básico */}
+                <div>
+                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
+                    🟢 Nivel Básico/Principiante
+                  </Label>
+                  <div className="flex flex-wrap gap-3">
+                    {basicDrones.map((drone) => (
+                      <Badge
+                        key={drone}
+                        variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                          profile.drone_types.includes(drone)
+                            ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                            : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                        }`}
+                        onClick={() => toggleDroneType(drone)}
+                      >
+                        {drone}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Nivel Intermedio */}
+                <div>
+                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
+                    🟡 Nivel Intermedio
+                  </Label>
+                  <div className="flex flex-wrap gap-3">
+                    {intermediateDrones.map((drone) => (
+                      <Badge
+                        key={drone}
+                        variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                          profile.drone_types.includes(drone)
+                            ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                            : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                        }`}
+                        onClick={() => toggleDroneType(drone)}
+                      >
+                        {drone}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Nivel Profesional */}
+                <div>
+                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
+                    🔴 Nivel Profesional
+                  </Label>
+                  <div className="flex flex-wrap gap-3">
+                    {professionalDrones.map((drone) => (
+                      <Badge
+                        key={drone}
+                        variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                          profile.drone_types.includes(drone)
+                            ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                            : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                        }`}
+                        onClick={() => toggleDroneType(drone)}
+                      >
+                        {drone}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Otro */}
+                <div>
+                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
+                    ⚪ Otro
+                  </Label>
+                  <div className="flex flex-wrap gap-3">
+                    <Badge
+                      variant={profile.drone_types.includes('Otro') ? "default" : "outline"}
+                      className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                        profile.drone_types.includes('Otro')
+                          ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                          : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                      }`}
+                      onClick={() => toggleDroneType('Otro')}
+                    >
+                      Otro
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </div>
