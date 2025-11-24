@@ -26,3 +26,4 @@ CREATE INDEX IF NOT EXISTS idx_pilots_certification_expires_at
 ON public.pilots(certification_expires_at) 
 WHERE certification_status = true;
 
+
