@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { 
   ArrowLeft, 
   Save, 
@@ -1059,74 +1060,101 @@ const PilotProfile = () => {
                   </div>
                 )}
 
-                {/* Nivel Básico */}
-                <div>
-                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
-                    🟢 Nivel Básico/Principiante
-                  </Label>
-                  <div className="flex flex-wrap gap-3">
-                    {basicDrones.map((drone) => (
-                      <Badge
-                        key={drone}
-                        variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                          profile.drone_types.includes(drone)
-                            ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                            : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                        }`}
-                        onClick={() => toggleDroneType(drone)}
-                      >
-                        {drone}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                {/* Acordeones por nivel */}
+                <Accordion type="multiple" className="w-full space-y-2">
+                  {/* Nivel Básico */}
+                  <AccordionItem value="basic" className="border-[#333333]">
+                    <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🟢</span>
+                        <span className="font-semibold">Nivel Básico/Principiante</span>
+                        <Badge variant="outline" className="ml-2 text-xs border-[#333333] text-[#B0B0B0] bg-[#2C2C2C]">
+                          {basicDrones.filter(d => profile.drone_types.includes(d)).length}/{basicDrones.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                      <div className="flex flex-wrap gap-3">
+                        {basicDrones.map((drone) => (
+                          <Badge
+                            key={drone}
+                            variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                              profile.drone_types.includes(drone)
+                                ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                                : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                            }`}
+                            onClick={() => toggleDroneType(drone)}
+                          >
+                            {drone}
+                          </Badge>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
 
-                {/* Nivel Intermedio */}
-                <div>
-                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
-                    🟡 Nivel Intermedio
-                  </Label>
-                  <div className="flex flex-wrap gap-3">
-                    {intermediateDrones.map((drone) => (
-                      <Badge
-                        key={drone}
-                        variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                          profile.drone_types.includes(drone)
-                            ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                            : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                        }`}
-                        onClick={() => toggleDroneType(drone)}
-                      >
-                        {drone}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                  {/* Nivel Intermedio */}
+                  <AccordionItem value="intermediate" className="border-[#333333]">
+                    <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🟡</span>
+                        <span className="font-semibold">Nivel Intermedio</span>
+                        <Badge variant="outline" className="ml-2 text-xs border-[#333333] text-[#B0B0B0] bg-[#2C2C2C]">
+                          {intermediateDrones.filter(d => profile.drone_types.includes(d)).length}/{intermediateDrones.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                      <div className="flex flex-wrap gap-3">
+                        {intermediateDrones.map((drone) => (
+                          <Badge
+                            key={drone}
+                            variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                              profile.drone_types.includes(drone)
+                                ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                                : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                            }`}
+                            onClick={() => toggleDroneType(drone)}
+                          >
+                            {drone}
+                          </Badge>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
 
-                {/* Nivel Profesional */}
-                <div>
-                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
-                    🔴 Nivel Profesional
-                  </Label>
-                  <div className="flex flex-wrap gap-3">
-                    {professionalDrones.map((drone) => (
-                      <Badge
-                        key={drone}
-                        variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                          profile.drone_types.includes(drone)
-                            ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                            : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                        }`}
-                        onClick={() => toggleDroneType(drone)}
-                      >
-                        {drone}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                  {/* Nivel Profesional */}
+                  <AccordionItem value="professional" className="border-[#333333]">
+                    <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🔴</span>
+                        <span className="font-semibold">Nivel Profesional</span>
+                        <Badge variant="outline" className="ml-2 text-xs border-[#333333] text-[#B0B0B0] bg-[#2C2C2C]">
+                          {professionalDrones.filter(d => profile.drone_types.includes(d)).length}/{professionalDrones.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                      <div className="flex flex-wrap gap-3">
+                        {professionalDrones.map((drone) => (
+                          <Badge
+                            key={drone}
+                            variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                              profile.drone_types.includes(drone)
+                                ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                                : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                            }`}
+                            onClick={() => toggleDroneType(drone)}
+                          >
+                            {drone}
+                          </Badge>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
 
                 {/* Drones personalizados agregados */}
                 {profile.drone_types.filter(isCustomDrone).length > 0 && (
