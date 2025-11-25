@@ -32,6 +32,8 @@ interface PilotProfile {
   drone_types: string[] | null;
   instagram_username?: string | null;
   linkedin_username?: string | null;
+  instagram_url?: string | null;
+  linkedin_url?: string | null;
 }
 
 interface PilotData {
@@ -432,9 +434,9 @@ const PublicPilotProfile = () => {
                     </div>
                   </a>
                 )}
-                {profile.instagram_username && (
+                {(profile.instagram_url || profile.instagram_username) && (
                   <a 
-                    href={`https://instagram.com/${profile.instagram_username}`}
+                    href={profile.instagram_url || `https://instagram.com/${profile.instagram_username}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
@@ -444,13 +446,15 @@ const PublicPilotProfile = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-gray-600 font-medium mb-1">Instagram</p>
-                      <p className="font-medium text-[#083b4e] text-base">@{profile.instagram_username}</p>
+                      <p className="font-medium text-[#083b4e] text-base">
+                        @{profile.instagram_username || (profile.instagram_url ? profile.instagram_url.split('/').pop() : '')}
+                      </p>
                     </div>
                   </a>
                 )}
-                {profile.linkedin_username && (
+                {(profile.linkedin_url || profile.linkedin_username) && (
                   <a 
-                    href={`https://linkedin.com/in/${profile.linkedin_username}`}
+                    href={profile.linkedin_url || `https://linkedin.com/in/${profile.linkedin_username}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
@@ -460,7 +464,9 @@ const PublicPilotProfile = () => {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-gray-600 font-medium mb-1">LinkedIn</p>
-                      <p className="font-medium text-[#083b4e] text-base">{profile.linkedin_username}</p>
+                      <p className="font-medium text-[#083b4e] text-base">
+                        {profile.linkedin_username || (profile.linkedin_url ? profile.linkedin_url.split('/').pop() : '')}
+                      </p>
                     </div>
                   </a>
                 )}

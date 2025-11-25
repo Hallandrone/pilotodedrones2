@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2 } from "lucide-react";
@@ -18,6 +19,8 @@ interface ProfileData {
   address?: string;
   instagram_username?: string;
   linkedin_username?: string;
+  instagram_url?: string;
+  linkedin_url?: string;
   public_profile_slug?: string;
 }
 
@@ -47,6 +50,8 @@ const UserProfile = () => {
     address: '',
     instagram_username: '',
     linkedin_username: '',
+    instagram_url: '',
+    linkedin_url: '',
     public_profile_slug: ''
   });
   const [certifications, setCertifications] = useState<Certification[]>([]);
@@ -55,6 +60,8 @@ const UserProfile = () => {
   const [saving, setSaving] = useState(false);
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [useInstagramUrl, setUseInstagramUrl] = useState(false);
+  const [useLinkedInUrl, setUseLinkedInUrl] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -165,6 +172,10 @@ const UserProfile = () => {
         .single();
 
       if (profileData) {
+        // Detectar si hay URLs completas para activar los toggles
+        const hasInstagramUrl = !!(profileData.instagram_url);
+        const hasLinkedInUrl = !!(profileData.linkedin_url);
+        
         setProfile({
           full_name: profileData.full_name || '',
           email: profileData.email || user.email || '',
@@ -172,8 +183,13 @@ const UserProfile = () => {
           address: '',
           instagram_username: profileData.instagram_username || '',
           linkedin_username: profileData.linkedin_username || '',
+          instagram_url: profileData.instagram_url || '',
+          linkedin_url: profileData.linkedin_url || '',
           public_profile_slug: profileData.public_profile_slug || ''
         });
+        
+        setUseInstagramUrl(hasInstagramUrl);
+        setUseLinkedInUrl(hasLinkedInUrl);
       }
 
       // Load certifications
@@ -250,6 +266,50 @@ const UserProfile = () => {
     cleaned = cleaned.replace(/[^a-zA-Z0-9._-]/g, '');
     
     return cleaned;
+  };
+
+  // Function to extract username from Instagram URL
+  const extractInstagramUsername = (url: string): string => {
+    if (!url) return '';
+    let cleaned = url.trim();
+    cleaned = cleaned.replace(/^https?:\/\//, '');
+    cleaned = cleaned.replace(/^www\./, '');
+    cleaned = cleaned.replace(/^instagram\.com\//, '');
+    cleaned = cleaned.split('/')[0].split('?')[0].split('#')[0];
+    return cleaned.replace(/^@/, '');
+  };
+
+  // Function to extract username from LinkedIn URL
+  const extractLinkedInUsername = (url: string): string => {
+    if (!url) return '';
+    let cleaned = url.trim();
+    cleaned = cleaned.replace(/^https?:\/\//, '');
+    cleaned = cleaned.replace(/^www\./, '');
+    cleaned = cleaned.replace(/^linkedin\.com\/in\//, '');
+    cleaned = cleaned.replace(/^linkedin\.com\//, '');
+    cleaned = cleaned.replace(/^\/in\//, '');
+    cleaned = cleaned.split('/')[0].split('?')[0].split('#')[0];
+    return cleaned;
+  };
+
+  // Function to check if input is a URL
+  const isUrl = (input: string): boolean => {
+    if (!input) return false;
+    return /^https?:\/\//i.test(input.trim());
+  };
+
+  // Function to build Instagram URL from username
+  const buildInstagramUrl = (username: string): string => {
+    if (!username) return '';
+    const cleaned = cleanSocialUsername(username);
+    return cleaned ? `https://instagram.com/${cleaned}` : '';
+  };
+
+  // Function to build LinkedIn URL from username
+  const buildLinkedInUrl = (username: string): string => {
+    if (!username) return '';
+    const cleaned = cleanSocialUsername(username);
+    return cleaned ? `https://linkedin.com/in/${cleaned}` : '';
   };
 
   // Reserved words that cannot be used as slugs
@@ -420,13 +480,35 @@ const UserProfile = () => {
     try {
       setSaving(true);
       
-      // Clean social media usernames
-      const cleanedInstagram = profile.instagram_username 
-        ? cleanSocialUsername(profile.instagram_username) 
-        : null;
-      const cleanedLinkedIn = profile.linkedin_username 
-        ? cleanSocialUsername(profile.linkedin_username) 
-        : null;
+      // Procesar Instagram: construir URL completa según el modo
+      let instagramUrlFinal = null;
+      let instagramUsernameFinal = null;
+      
+      if (useInstagramUrl && profile.instagram_url) {
+        // Modo URL completa: guardar URL y extraer username como respaldo
+        instagramUrlFinal = profile.instagram_url.trim();
+        instagramUsernameFinal = extractInstagramUsername(profile.instagram_url);
+      } else if (profile.instagram_username) {
+        // Modo alias: construir URL completa y guardar username
+        const cleaned = cleanSocialUsername(profile.instagram_username);
+        instagramUsernameFinal = cleaned;
+        instagramUrlFinal = buildInstagramUrl(cleaned);
+      }
+
+      // Procesar LinkedIn: construir URL completa según el modo
+      let linkedinUrlFinal = null;
+      let linkedinUsernameFinal = null;
+      
+      if (useLinkedInUrl && profile.linkedin_url) {
+        // Modo URL completa: guardar URL y extraer username como respaldo
+        linkedinUrlFinal = profile.linkedin_url.trim();
+        linkedinUsernameFinal = extractLinkedInUsername(profile.linkedin_url);
+      } else if (profile.linkedin_username) {
+        // Modo alias: construir URL completa y guardar username
+        const cleaned = cleanSocialUsername(profile.linkedin_username);
+        linkedinUsernameFinal = cleaned;
+        linkedinUrlFinal = buildLinkedInUrl(cleaned);
+      }
       
       // Clean slug
       const cleanedSlug = profile.public_profile_slug 
@@ -440,8 +522,10 @@ const UserProfile = () => {
           full_name: profile.full_name.trim(),
           email: profile.email,
           phone: profile.phone || null,
-          instagram_username: cleanedInstagram || null,
-          linkedin_username: cleanedLinkedIn || null,
+          instagram_username: instagramUsernameFinal || null,
+          linkedin_username: linkedinUsernameFinal || null,
+          instagram_url: instagramUrlFinal || null,
+          linkedin_url: linkedinUrlFinal || null,
           public_profile_slug: cleanedSlug || null,
           updated_at: new Date().toISOString()
         });
@@ -760,46 +844,175 @@ const UserProfile = () => {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="instagram_username" className="text-foreground font-medium">
-                    <span className="inline-block mr-1">📷</span>
-                    Instagram
-                  </Label>
-                  <Input
-                    id="instagram_username"
-                    type="text"
-                    value={profile.instagram_username || ''}
-                    onChange={(e) => {
-                      const cleaned = cleanSocialUsername(e.target.value);
-                      setProfile(prev => ({ ...prev, instagram_username: cleaned }));
-                    }}
-                    className="border-border/50 focus:border-accent"
-                    placeholder="juan_perez"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Solo ingresa tu nombre de usuario (ej: juan_perez). Se limpiará automáticamente si ingresas una URL completa.
-                  </p>
-                </div>
+                {/* Redes Sociales */}
+                <div className="space-y-4 pt-4 border-t border-border/50">
+                  <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Redes Sociales</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Agrega tus redes sociales. Puedes ingresar solo tu alias (ej: juan_perez) o la URL completa. 
+                      El sistema construirá automáticamente la URL completa desde tu alias, o puedes usar el toggle para ingresar la URL directamente.
+                    </p>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="linkedin_username" className="text-foreground font-medium">
-                    <span className="inline-block mr-1">💼</span>
-                    LinkedIn
-                  </Label>
-                  <Input
-                    id="linkedin_username"
-                    type="text"
-                    value={profile.linkedin_username || ''}
-                    onChange={(e) => {
-                      const cleaned = cleanSocialUsername(e.target.value);
-                      setProfile(prev => ({ ...prev, linkedin_username: cleaned }));
-                    }}
-                    className="border-border/50 focus:border-accent"
-                    placeholder="juan-perez"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Solo ingresa tu nombre de usuario (ej: juan-perez). Se limpiará automáticamente si ingresas una URL completa.
-                  </p>
+                  {/* Instagram */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="instagram" className="text-foreground font-medium">
+                        <span className="inline-block mr-1">📷</span>
+                        Instagram
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="instagram-url-toggle" className="text-xs text-muted-foreground cursor-pointer">
+                          Usar URL completa
+                        </Label>
+                        <Switch
+                          id="instagram-url-toggle"
+                          checked={useInstagramUrl}
+                          onCheckedChange={(checked) => {
+                            setUseInstagramUrl(checked);
+                            // Si se activa el toggle y hay username, construir URL
+                            if (checked && profile.instagram_username && !profile.instagram_url) {
+                              setProfile(prev => ({
+                                ...prev,
+                                instagram_url: buildInstagramUrl(prev.instagram_username || '')
+                              }));
+                            }
+                            // Si se desactiva, extraer username de la URL
+                            if (!checked && profile.instagram_url) {
+                              const username = extractInstagramUsername(profile.instagram_url);
+                              setProfile(prev => ({
+                                ...prev,
+                                instagram_username: username,
+                                instagram_url: ''
+                              }));
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    {useInstagramUrl ? (
+                      <Input
+                        id="instagram"
+                        type="text"
+                        value={profile.instagram_url || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setProfile(prev => ({ ...prev, instagram_url: value }));
+                          // Extraer username automáticamente para mostrarlo como referencia
+                          if (value && isUrl(value)) {
+                            const username = extractInstagramUsername(value);
+                            setProfile(prev => ({ ...prev, instagram_username: username }));
+                          }
+                        }}
+                        className="border-border/50 focus:border-accent"
+                        placeholder="https://instagram.com/juan_perez"
+                      />
+                    ) : (
+                      <Input
+                        id="instagram"
+                        type="text"
+                        value={profile.instagram_username || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Si detecta URL, extraer username automáticamente
+                          if (isUrl(value)) {
+                            const username = extractInstagramUsername(value);
+                            setProfile(prev => ({ ...prev, instagram_username: username }));
+                          } else {
+                            const cleaned = cleanSocialUsername(value);
+                            setProfile(prev => ({ ...prev, instagram_username: cleaned }));
+                          }
+                        }}
+                        className="border-border/50 focus:border-accent"
+                        placeholder="juan_perez"
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {useInstagramUrl 
+                        ? "Ingresa la URL completa de tu perfil de Instagram"
+                        : "Ingresa solo tu nombre de usuario (ej: juan_perez). El sistema construirá la URL automáticamente."}
+                    </p>
+                  </div>
+
+                  {/* LinkedIn */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="linkedin" className="text-foreground font-medium">
+                        <span className="inline-block mr-1">💼</span>
+                        LinkedIn
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor="linkedin-url-toggle" className="text-xs text-muted-foreground cursor-pointer">
+                          Usar URL completa
+                        </Label>
+                        <Switch
+                          id="linkedin-url-toggle"
+                          checked={useLinkedInUrl}
+                          onCheckedChange={(checked) => {
+                            setUseLinkedInUrl(checked);
+                            // Si se activa el toggle y hay username, construir URL
+                            if (checked && profile.linkedin_username && !profile.linkedin_url) {
+                              setProfile(prev => ({
+                                ...prev,
+                                linkedin_url: buildLinkedInUrl(prev.linkedin_username || '')
+                              }));
+                            }
+                            // Si se desactiva, extraer username de la URL
+                            if (!checked && profile.linkedin_url) {
+                              const username = extractLinkedInUsername(profile.linkedin_url);
+                              setProfile(prev => ({
+                                ...prev,
+                                linkedin_username: username,
+                                linkedin_url: ''
+                              }));
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    {useLinkedInUrl ? (
+                      <Input
+                        id="linkedin"
+                        type="text"
+                        value={profile.linkedin_url || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setProfile(prev => ({ ...prev, linkedin_url: value }));
+                          // Extraer username automáticamente para mostrarlo como referencia
+                          if (value && isUrl(value)) {
+                            const username = extractLinkedInUsername(value);
+                            setProfile(prev => ({ ...prev, linkedin_username: username }));
+                          }
+                        }}
+                        className="border-border/50 focus:border-accent"
+                        placeholder="https://linkedin.com/in/juan-perez"
+                      />
+                    ) : (
+                      <Input
+                        id="linkedin"
+                        type="text"
+                        value={profile.linkedin_username || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Si detecta URL, extraer username automáticamente
+                          if (isUrl(value)) {
+                            const username = extractLinkedInUsername(value);
+                            setProfile(prev => ({ ...prev, linkedin_username: username }));
+                          } else {
+                            const cleaned = cleanSocialUsername(value);
+                            setProfile(prev => ({ ...prev, linkedin_username: cleaned }));
+                          }
+                        }}
+                        className="border-border/50 focus:border-accent"
+                        placeholder="juan-perez"
+                      />
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {useLinkedInUrl 
+                        ? "Ingresa la URL completa de tu perfil de LinkedIn"
+                        : "Ingresa solo tu nombre de usuario (ej: juan-perez). El sistema construirá la URL automáticamente."}
+                    </p>
+                  </div>
                 </div>
               </div>
 
