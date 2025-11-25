@@ -218,17 +218,31 @@ const UserProfile = () => {
       setLoading(true);
       
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Error getting user:', userError);
+        setLoading(false);
+        return;
+      }
+      
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       
       setUser(user);
 
       // Get user role
-      const { data: roleData } = await supabase
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('id', user.id)
         .single();
+      
+      if (roleError && roleError.code !== 'PGRST116') {
+        // PGRST116 es "no rows returned", que es normal si no tiene rol aún
+        console.error('Error loading role:', roleError);
+      }
       
       if (roleData) {
         setUserRole(roleData.role);
@@ -238,14 +252,22 @@ const UserProfile = () => {
           setLoading(false);
           return;
         }
+      } else {
+        // Si no tiene rol, establecer un rol vacío para que pueda ver el perfil
+        setUserRole('');
       }
 
       // Load profile data
-      const { data: profileData } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        // PGRST116 es "no rows returned", que es normal si no tiene perfil aún
+        console.error('Error loading profile:', profileError);
+      }
 
       if (profileData) {
         // Detectar si hay URLs completas para activar los toggles
@@ -266,6 +288,19 @@ const UserProfile = () => {
         
         setUseInstagramUrl(hasInstagramUrl);
         setUseLinkedInUrl(hasLinkedInUrl);
+      } else {
+        // Si no hay perfil, establecer valores por defecto
+        setProfile({
+          full_name: '',
+          email: user.email || '',
+          phone: '',
+          address: '',
+          instagram_username: '',
+          linkedin_username: '',
+          instagram_url: '',
+          linkedin_url: '',
+          public_profile_slug: ''
+        });
       }
 
       // Load certifications
@@ -967,6 +1002,18 @@ const UserProfile = () => {
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <p className="mt-4 text-muted-foreground">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay usuario, mostrar mensaje
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-foreground mb-2">No autenticado</h1>
+          <p className="text-muted-foreground">Por favor, inicia sesión para ver tu perfil</p>
         </div>
       </div>
     );
