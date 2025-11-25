@@ -10,8 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2 } from "lucide-react";
+import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2, CheckCircle } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
+import { getBaseUrlClean } from "@/lib/getBaseUrl";
 
 // Types
 interface ProfileData {
@@ -74,6 +75,8 @@ const purposeOptions = [
   'Otro'
 ];
 
+const appBaseUrl = getBaseUrlClean();
+
 const UserProfile = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string>('');
@@ -105,6 +108,7 @@ const UserProfile = () => {
   const [saving, setSaving] = useState(false);
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [slugFeedback, setSlugFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [useInstagramUrl, setUseInstagramUrl] = useState(false);
   const [useLinkedInUrl, setUseLinkedInUrl] = useState(false);
   const { toast } = useToast();
@@ -321,6 +325,17 @@ const UserProfile = () => {
         
         setUseInstagramUrl(hasInstagramUrl);
         setUseLinkedInUrl(hasLinkedInUrl);
+
+        if (profileData.public_profile_slug) {
+          setSlugAvailable(true);
+          setSlugFeedback({
+            type: 'success',
+            text: `Tu perfil público actual es ${appBaseUrl}/pilot/${profileData.public_profile_slug}`
+          });
+        } else {
+          setSlugAvailable(null);
+          setSlugFeedback(null);
+        }
       } else {
         // Si no hay perfil, establecer valores por defecto
         setProfile({
@@ -334,6 +349,8 @@ const UserProfile = () => {
           linkedin_url: '',
           public_profile_slug: ''
         });
+        setSlugAvailable(null);
+        setSlugFeedback(null);
       }
 
       // Load certifications
@@ -571,35 +588,62 @@ const UserProfile = () => {
     }
   };
 
-  // Handle slug input change with debounced availability check
-  const handleSlugChange = async (value: string) => {
+  // Handle slug input change (manual verification via button)
+  const handleSlugChange = (value: string) => {
     const cleaned = cleanSlug(value);
-    const currentSlug = profile.public_profile_slug;
-    
     setProfile(prev => ({ ...prev, public_profile_slug: cleaned }));
     setSlugAvailable(null);
+    setSlugFeedback(null);
     
     if (!cleaned) {
-      setSlugAvailable(null);
       return;
     }
     
     const validation = validateSlug(cleaned);
     if (!validation.valid) {
+      setSlugFeedback({
+        type: 'error',
+        text: validation.error || 'El formato del nombre no es válido'
+      });
+    }
+  };
+
+  const handleSlugVerification = async () => {
+    if (!profile.public_profile_slug) {
+      setSlugFeedback({
+        type: 'error',
+        text: 'Ingresa un nombre para tu perfil antes de verificar'
+      });
+      setSlugAvailable(null);
+      return;
+    }
+    
+    const validation = validateSlug(profile.public_profile_slug);
+    if (!validation.valid) {
+      setSlugFeedback({
+        type: 'error',
+        text: validation.error || 'El formato del nombre no es válido'
+      });
       setSlugAvailable(false);
       return;
     }
     
-    // Check if it's the same as current slug (no need to check)
-    if (cleaned === currentSlug) {
-      setSlugAvailable(true);
-      return;
-    }
-    
     setCheckingSlug(true);
-    const available = await checkSlugAvailability(cleaned);
-    setSlugAvailable(available);
+    const available = await checkSlugAvailability(profile.public_profile_slug);
     setCheckingSlug(false);
+    setSlugAvailable(available);
+    
+    if (available) {
+      setSlugFeedback({
+        type: 'success',
+        text: `Excelente, tu URL será ${appBaseUrl}/pilot/${profile.public_profile_slug}`
+      });
+    } else {
+      setSlugFeedback({
+        type: 'error',
+        text: 'Este nombre ya está en uso. Por favor, elige otro.'
+      });
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -629,6 +673,11 @@ const UserProfile = () => {
 
       const validation = validateSlug(profile.public_profile_slug);
       if (!validation.valid) {
+        setSlugAvailable(false);
+        setSlugFeedback({
+          type: 'error',
+          text: validation.error || 'El formato del nombre no es válido'
+        });
         toast({
           title: "Slug inválido",
           description: validation.error || "El formato del slug no es válido",
@@ -640,6 +689,11 @@ const UserProfile = () => {
       // Final availability check before saving
       const available = await checkSlugAvailability(profile.public_profile_slug);
       if (!available) {
+        setSlugAvailable(false);
+        setSlugFeedback({
+          type: 'error',
+          text: 'Este nombre ya está en uso. Por favor, elige otro.'
+        });
         toast({
           title: "Slug no disponible",
           description: "Este nombre de usuario ya está en uso. Por favor, elige otro.",
@@ -707,9 +761,20 @@ const UserProfile = () => {
       toast({
         title: "Perfil actualizado",
         description: cleanedSlug 
-          ? `Tu perfil público está disponible en: /pilot/${cleanedSlug}`
+          ? `Tu perfil público está disponible en: ${appBaseUrl}/pilot/${cleanedSlug}`
           : "Tus datos han sido guardados correctamente",
       });
+
+      if (cleanedSlug) {
+        setSlugAvailable(true);
+        setSlugFeedback({
+          type: 'success',
+          text: `Tu perfil público está disponible en ${appBaseUrl}/pilot/${cleanedSlug}`
+        });
+      } else {
+        setSlugAvailable(null);
+        setSlugFeedback(null);
+      }
     } catch (error) {
       console.error('Error saving profile:', error);
       toast({
@@ -1408,55 +1473,70 @@ const UserProfile = () => {
                         <Link className="inline h-4 w-4 mr-1" />
                         Nombre de usuario para tu perfil
                       </Label>
-                      <div className="relative">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
-                          /pilot/
-                        </div>
-                        <Input
-                          id="public_profile_slug"
-                          type="text"
-                          value={profile.public_profile_slug || ''}
-                          onChange={(e) => handleSlugChange(e.target.value)}
-                          className="border-border/50 focus:border-accent pl-20"
-                          placeholder="nombreusuario"
-                          disabled={checkingSlug}
-                        />
-                        {checkingSlug && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                        <div className="relative flex-1">
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                            /pilot/
                           </div>
-                        )}
-                        {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            {slugAvailable ? (
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      {profile.public_profile_slug && (
-                        <div className="mt-2">
-                          {slugAvailable === true && (
-                            <p className="text-xs text-green-600 flex items-center gap-1">
-                              <CheckCircle className="h-3 w-3" />
-                              Disponible: {window.location.origin}/pilot/{profile.public_profile_slug}
-                            </p>
-                          )}
-                          {slugAvailable === false && (
-                            <p className="text-xs text-red-600 flex items-center gap-1">
-                              <X className="h-3 w-3" />
-                              Este nombre ya está en uso. Por favor, elige otro.
-                            </p>
-                          )}
+                          <Input
+                            id="public_profile_slug"
+                            type="text"
+                            value={profile.public_profile_slug || ''}
+                            onChange={(e) => handleSlugChange(e.target.value)}
+                            className="border-border/50 focus:border-accent pl-20"
+                            placeholder="nombreusuario"
+                          />
                           {checkingSlug && (
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                              Verificando disponibilidad...
-                            </p>
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            </div>
+                          )}
+                          {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              {slugAvailable ? (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <X className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
                           )}
                         </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleSlugVerification}
+                          disabled={checkingSlug || !profile.public_profile_slug}
+                          className="sm:w-auto w-full"
+                        >
+                          {checkingSlug ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Verificando...
+                            </span>
+                          ) : (
+                            'Verificar disponibilidad'
+                          )}
+                        </Button>
+                      </div>
+                      {slugFeedback && (
+                        <p
+                          className={`text-xs flex items-center gap-1 mt-2 ${
+                            slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
+                          }`}
+                        >
+                          {slugFeedback.type === 'success' ? (
+                            <CheckCircle className="h-3 w-3" />
+                          ) : (
+                            <AlertCircle className="h-3 w-3" />
+                          )}
+                          {slugFeedback.text}
+                        </p>
+                      )}
+                      {checkingSlug && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Verificando disponibilidad...
+                        </p>
                       )}
                       <p className="text-xs text-muted-foreground">
                         Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
