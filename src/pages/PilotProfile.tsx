@@ -336,7 +336,7 @@ const PilotProfile = () => {
     if (available) {
       setSlugFeedback({
         type: 'success',
-        text: `Excelente, tu URL será ${appBaseUrl}/pilot/${profile.public_profile_slug}`
+        text: `Excelente, tu URL será ${appBaseUrl}/${profile.public_profile_slug}`
       });
     } else {
       setSlugFeedback({
@@ -571,8 +571,8 @@ const PilotProfile = () => {
         drone_types: profile.drone_types || []
       };
 
-      // Solo incluir public_profile_slug si hay suscripción activa
-      if (subscription && subscription.status === 'active' && profile.public_profile_slug) {
+      // Incluir public_profile_slug si existe
+      if (profile.public_profile_slug) {
         updateData.public_profile_slug = profile.public_profile_slug;
       }
 
@@ -1210,16 +1210,16 @@ const PilotProfile = () => {
                     Nombre de usuario para tu perfil
                   </Label>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <div className="relative flex-1">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B0B0B0] text-sm">
-                        /pilot/
-                      </div>
+                      <div className="relative flex-1">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B0B0B0] text-sm">
+                          /
+                        </div>
                       <Input
                         id="public_profile_slug"
                         type="text"
                         value={profile.public_profile_slug || ''}
                         onChange={(e) => handleSlugChange(e.target.value)}
-                        className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666] pl-20"
+                        className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666] pl-8"
                         placeholder="nombreusuario"
                       />
                       {checkingSlug && (

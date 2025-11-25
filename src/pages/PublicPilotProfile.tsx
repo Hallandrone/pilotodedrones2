@@ -66,7 +66,7 @@ const PublicPilotProfile = () => {
 
   // Generate profile URL - use slug if available, otherwise use ID
   const profileUrl = profileSlug 
-    ? `${window.location.origin}/pilot/${profileSlug}`
+    ? `${window.location.origin}/${profileSlug}`
     : actualUserId 
       ? `${window.location.origin}/pilot/${actualUserId}`
       : `${window.location.origin}/pilot/${pilotId}`;

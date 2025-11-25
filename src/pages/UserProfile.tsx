@@ -321,7 +321,7 @@ const UserProfile = () => {
           setSlugAvailable(true);
           setSlugFeedback({
             type: 'success',
-            text: `Tu perfil público actual es ${appBaseUrl}/pilot/${profileData.public_profile_slug}`
+            text: `Tu perfil público actual es ${appBaseUrl}/${profileData.public_profile_slug}`
           });
         } else {
           setSlugAvailable(null);
@@ -627,7 +627,7 @@ const UserProfile = () => {
     if (available) {
       setSlugFeedback({
         type: 'success',
-        text: `Excelente, tu URL será ${appBaseUrl}/pilot/${profile.public_profile_slug}`
+        text: `Excelente, tu URL será ${appBaseUrl}/${profile.public_profile_slug}`
       });
     } else {
       setSlugFeedback({
@@ -742,7 +742,7 @@ const UserProfile = () => {
       toast({
         title: "Perfil actualizado",
         description: cleanedSlug 
-          ? `Tu perfil público está disponible en: ${appBaseUrl}/pilot/${cleanedSlug}`
+          ? `Tu perfil público está disponible en: ${appBaseUrl}/${cleanedSlug}`
           : "Tus datos han sido guardados correctamente",
       });
 
@@ -750,7 +750,7 @@ const UserProfile = () => {
         setSlugAvailable(true);
         setSlugFeedback({
           type: 'success',
-          text: `Tu perfil público está disponible en ${appBaseUrl}/pilot/${cleanedSlug}`
+          text: `Tu perfil público está disponible en ${appBaseUrl}/${cleanedSlug}`
         });
       } else {
         setSlugAvailable(null);
@@ -1423,14 +1423,14 @@ const UserProfile = () => {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                       <div className="relative flex-1">
                         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
-                          /pilot/
+                          /
                         </div>
                         <Input
                           id="public_profile_slug"
                           type="text"
                           value={profile.public_profile_slug || ''}
                           onChange={(e) => handleSlugChange(e.target.value)}
-                          className="border-border/50 focus:border-accent pl-20"
+                          className="border-border/50 focus:border-accent pl-8"
                           placeholder="nombreusuario"
                         />
                         {checkingSlug && (

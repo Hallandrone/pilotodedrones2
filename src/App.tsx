@@ -70,8 +70,11 @@ const App = () => (
             {/* Ruta temporal para ver UserProfile sin auth */}
             <Route path="/user-profile" element={<div className="dark"><UserProfile /></div>} />
             
-            {/* Perfil público del piloto (para QR) */}
+            {/* Perfil público del piloto (para QR) - mantener ruta antigua por compatibilidad */}
             <Route path="/pilot/:pilotId" element={<div className="dark"><PublicPilotProfile /></div>} />
+            
+            {/* Nueva ruta para perfiles públicos con slug personalizado (debe ir antes del catch-all) */}
+            <Route path="/:slug" element={<div className="dark"><PublicPilotProfile /></div>} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

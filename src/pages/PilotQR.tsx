@@ -45,7 +45,7 @@ const PilotQR = () => {
         // Generate QR code URL - use slug if available, otherwise use ID
         const profileSlug = profileData.public_profile_slug;
         const profileUrl = profileSlug 
-          ? `${window.location.origin}/pilot/${profileSlug}`
+          ? `${window.location.origin}/${profileSlug}`
           : `${window.location.origin}/pilot/${user.id}`;
         setQrCode(profileUrl);
       }
