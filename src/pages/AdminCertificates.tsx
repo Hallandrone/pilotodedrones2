@@ -20,6 +20,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { 
@@ -30,7 +36,10 @@ import {
   XCircle,
   User,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  GraduationCap,
+  Plane,
+  Building2
 } from "lucide-react";
 import { calculateExpirationDate } from "@/utils/certificationHelpers";
 
@@ -59,6 +68,21 @@ interface DocumentRecord {
     full_name: string;
     email: string;
   } | null;
+}
+
+interface GroupedUserDocuments {
+  user_id: string;
+  user: {
+    full_name: string;
+    email: string;
+  };
+  documents: DocumentRecord[];
+  summary: {
+    total: number;
+    pending: number;
+    validated: number;
+    rejected: number;
+  };
 }
 
 const AdminCertificates = () => {
@@ -472,6 +496,67 @@ const AdminCertificates = () => {
     ).length;
   };
 
+  const groupDocumentsByUser = (docs: DocumentRecord[]): GroupedUserDocuments[] => {
+    const grouped = new Map<string, GroupedUserDocuments>();
+
+    docs.forEach(doc => {
+      if (!grouped.has(doc.user_id)) {
+        grouped.set(doc.user_id, {
+          user_id: doc.user_id,
+          user: {
+            full_name: doc.profiles?.full_name || 'Usuario Desconocido',
+            email: doc.profiles?.email || 'N/A'
+          },
+          documents: [],
+          summary: {
+            total: 0,
+            pending: 0,
+            validated: 0,
+            rejected: 0
+          }
+        });
+      }
+
+      const group = grouped.get(doc.user_id)!;
+      group.documents.push(doc);
+      group.summary.total++;
+      
+      if (doc.status === 'pending') group.summary.pending++;
+      else if (doc.status === 'validated') group.summary.validated++;
+      else if (doc.status === 'rejected') group.summary.rejected++;
+    });
+
+    return Array.from(grouped.values()).sort((a, b) => 
+      new Date(b.documents[0]?.uploaded_at || 0).getTime() - 
+      new Date(a.documents[0]?.uploaded_at || 0).getTime()
+    );
+  };
+
+  const getDocumentTypeBadge = (doc: DocumentRecord) => {
+    if (doc.document_type === 'flight_log') {
+      return (
+        <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+          <Plane className="h-3 w-3 mr-1" />
+          Certificado de Itinerario/Horas de Vuelo
+        </Badge>
+      );
+    } else if (doc.document_type === 'company_certificate') {
+      return (
+        <Badge className="bg-purple-500/20 text-purple-500 border-purple-500/30">
+          <Building2 className="h-3 w-3 mr-1" />
+          Certificado de Empresa ({doc.certificate_type})
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className="bg-blue-500/20 text-blue-500 border-blue-500/30">
+          <GraduationCap className="h-3 w-3 mr-1" />
+          Certificado de Cursos/Capacitaciones
+        </Badge>
+      );
+    }
+  };
+
   return (
     <>
       {/* Title and Description */}
@@ -522,135 +607,182 @@ const AdminCertificates = () => {
       {documents.length > 0 ? (
         <Card>
           <CardContent className="p-0">
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Usuario</TableHead>
-                    <TableHead>Documento</TableHead>
-                    <TableHead>Detalles</TableHead>
-                    <TableHead>Fecha de Subida</TableHead>
-                    <TableHead>Fecha de Validación</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Observaciones</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <User className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium">{doc.profiles?.full_name || 'N/A'}</p>
-                            <p className="text-sm text-muted-foreground">{doc.profiles?.email || 'N/A'}</p>
-                          </div>
+            <Accordion type="multiple" className="w-full">
+              {groupDocumentsByUser(documents).map((group) => (
+                <AccordionItem key={group.user_id} value={group.user_id} className="border-b">
+                  <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <User className="h-6 w-6 text-white" />
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <span className="font-medium block">{doc.file_name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {doc.document_type === 'flight_log'
-                                ? 'Vitacora de vuelo'
-                                : doc.document_type === 'company_certificate'
-                                  ? `Certificado de empresa (${doc.certificate_type})`
-                                  : 'Certificado de piloto'}
-                            </span>
-                          </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-lg text-foreground">
+                            {group.user.full_name}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {group.user.email}
+                          </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {doc.document_type === 'flight_log' ? (
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            <p><span className="font-medium text-foreground">Fecha:</span> {doc.flight_date ? new Date(doc.flight_date).toLocaleDateString() : 'N/A'}</p>
-                            <p><span className="font-medium text-foreground">Duración:</span> {doc.duration_hours ? `${doc.duration_hours} h` : 'N/A'}</p>
-                            <p><span className="font-medium text-foreground">Propósito:</span> {doc.purpose || 'N/A'}</p>
-                            {doc.location && <p><span className="font-medium text-foreground">Ubicación:</span> {doc.location}</p>}
-                            {typeof doc.flight_hours === 'number' && doc.flight_hours > 0 && (
-                              <p><span className="font-medium text-foreground">Horas validadas:</span> {doc.flight_hours} h</p>
+                      </div>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-foreground">
+                            {group.summary.total} {group.summary.total === 1 ? 'documento' : 'documentos'}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {group.summary.pending > 0 && (
+                              <Badge className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30 text-xs">
+                                {group.summary.pending} pendiente{group.summary.pending !== 1 ? 's' : ''}
+                              </Badge>
+                            )}
+                            {group.summary.validated > 0 && (
+                              <Badge className="bg-green-500/20 text-green-500 border-green-500/30 text-xs">
+                                {group.summary.validated} validado{group.summary.validated !== 1 ? 's' : ''}
+                              </Badge>
+                            )}
+                            {group.summary.rejected > 0 && (
+                              <Badge className="bg-red-500/20 text-red-500 border-red-500/30 text-xs">
+                                {group.summary.rejected} rechazado{group.summary.rejected !== 1 ? 's' : ''}
+                              </Badge>
                             )}
                           </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">
-                            {doc.certificate_type ? `Tipo: ${doc.certificate_type}` : '—'}
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          {formatDate(doc.uploaded_at)}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        {doc.validated_at ? (
-                          <div className="flex items-center gap-2 text-sm text-green-500">
-                            <CheckCircle className="h-4 w-4" />
-                            {formatDate(doc.validated_at)}
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-4">
+                    <div className="space-y-3 pt-2">
+                      {group.documents.map((doc) => (
+                        <div
+                          key={doc.id}
+                          className="border rounded-lg p-4 bg-muted/30 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-4 mb-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
+                                {getDocumentTypeBadge(doc)}
+                                <span className="font-medium text-foreground truncate">
+                                  {doc.file_name}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>Subido: {formatDate(doc.uploaded_at)}</span>
+                                </div>
+                                {doc.validated_at && (
+                                  <div className="flex items-center gap-1 text-green-500">
+                                    <CheckCircle className="h-3 w-3" />
+                                    <span>Validado: {formatDate(doc.validated_at)}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {getStatusBadge(doc.status)}
+                            </div>
                           </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(doc.status)}
-                      </TableCell>
-                      <TableCell>
-                        {doc.status === 'rejected' && doc.rejection_observations ? (
-                          <div className="max-w-xs">
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {doc.rejection_observations}
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewDocument(doc)}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver
-                          </Button>
-                          {doc.status === 'pending' && (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleApprove(doc)}
-                                className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Aprobar
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleRejectClick(doc)}
-                                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                              >
-                                <XCircle className="h-4 w-4 mr-2" />
-                                Rechazar
-                              </Button>
-                            </>
+
+                          {doc.document_type === 'flight_log' && (
+                            <div className="text-sm text-muted-foreground space-y-1 mb-3 bg-background/50 rounded p-2">
+                              {doc.flight_date && (
+                                <p><span className="font-medium text-foreground">Fecha de vuelo:</span> {new Date(doc.flight_date).toLocaleDateString()}</p>
+                              )}
+                              {doc.duration_hours && (
+                                <p><span className="font-medium text-foreground">Duración:</span> {doc.duration_hours} h</p>
+                              )}
+                              {doc.purpose && (
+                                <p><span className="font-medium text-foreground">Propósito:</span> {doc.purpose}</p>
+                              )}
+                              {doc.location && (
+                                <p><span className="font-medium text-foreground">Ubicación:</span> {doc.location}</p>
+                              )}
+                              {typeof doc.flight_hours === 'number' && doc.flight_hours > 0 && (
+                                <p><span className="font-medium text-foreground">Horas validadas:</span> {doc.flight_hours} h</p>
+                              )}
+                            </div>
                           )}
+
+                          {doc.rejection_observations && (
+                            <div className={`mb-3 p-3 rounded-lg border ${
+                              doc.status === 'rejected'
+                                ? 'bg-red-500/10 border-red-500/30'
+                                : doc.status === 'validated'
+                                ? 'bg-green-500/10 border-green-500/30'
+                                : 'bg-blue-500/10 border-blue-500/30'
+                            }`}>
+                              <div className="flex items-start gap-2">
+                                {doc.status === 'rejected' ? (
+                                  <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                ) : doc.status === 'validated' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                ) : (
+                                  <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                                )}
+                                <div className="flex-1">
+                                  <p className={`text-sm font-semibold mb-1 ${
+                                    doc.status === 'rejected'
+                                      ? 'text-red-400'
+                                      : doc.status === 'validated'
+                                      ? 'text-green-400'
+                                      : 'text-blue-400'
+                                  }`}>
+                                    Observaciones:
+                                  </p>
+                                  <p className={`text-sm whitespace-pre-wrap ${
+                                    doc.status === 'rejected'
+                                      ? 'text-red-300'
+                                      : doc.status === 'validated'
+                                      ? 'text-green-300'
+                                      : 'text-blue-300'
+                                  }`}>
+                                    {doc.rejection_observations}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewDocument(doc)}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Ver Documento
+                            </Button>
+                            {doc.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleApprove(doc)}
+                                  className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Aprobar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRejectClick(doc)}
+                                  className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Rechazar
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </CardContent>
         </Card>
       ) : (
