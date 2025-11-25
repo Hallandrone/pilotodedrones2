@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +43,11 @@ interface FlightLog {
   uploaded_at: string;
   rejection_observations?: string | null;
   flight_hours?: number | null;
+  flight_date?: string | null;
+  duration_hours?: number | null;
+  location?: string | null;
+  purpose?: string | null;
+  notes?: string | null;
 }
 
 interface Subscription {
@@ -50,6 +56,23 @@ interface Subscription {
   renewal_date: string;
   payment_method: string;
 }
+
+const purposeOptions = [
+  'Fotografía Aérea',
+  'Topografía',
+  'Inspección Industrial',
+  'Agricultura de Precisión',
+  'Seguridad y Vigilancia',
+  'Construcción',
+  'Minería',
+  'Búsqueda y Rescate',
+  'Monitoreo Ambiental',
+  'Entretenimiento',
+  'Mapeo 3D',
+  'Entrenamiento',
+  'Pruebas de Equipos',
+  'Otro'
+];
 
 const UserProfile = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -67,6 +90,16 @@ const UserProfile = () => {
   });
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([]);
+  const [showFlightLogForm, setShowFlightLogForm] = useState(false);
+  const [flightLogForm, setFlightLogForm] = useState({
+    date: '',
+    duration: '',
+    location: '',
+    purpose: '',
+    notes: ''
+  });
+  const [flightLogFile, setFlightLogFile] = useState<File | null>(null);
+  const [submittingFlightLog, setSubmittingFlightLog] = useState(false);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -328,7 +361,7 @@ const UserProfile = () => {
       // Load flight logs
       const { data: logsData, error: logsError } = await supabase
         .from('flight_logs')
-        .select('id, file_name, file_url, status, uploaded_at, rejection_observations, flight_hours')
+        .select('id, file_name, file_url, status, uploaded_at, rejection_observations, flight_hours, flight_date, duration_hours, location, purpose, notes')
         .eq('user_id', user.id)
         .order('uploaded_at', { ascending: false });
 
@@ -344,7 +377,12 @@ const UserProfile = () => {
           status: log.status as 'pending' | 'validated' | 'rejected',
           uploaded_at: log.uploaded_at,
           rejection_observations: log.rejection_observations || null,
-          flight_hours: log.flight_hours || null
+          flight_hours: log.flight_hours || null,
+          flight_date: log.flight_date,
+          duration_hours: log.duration_hours,
+          location: log.location,
+          purpose: log.purpose,
+          notes: log.notes
         })));
       }
 
@@ -776,14 +814,41 @@ const UserProfile = () => {
     }
   };
 
-  const handleFlightLogUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user) return;
+  const handleAddFlightLog = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!user) return;
 
-    // Validate file type
+    if (!flightLogForm.date || !flightLogForm.duration || !flightLogForm.location || !flightLogForm.purpose) {
+      toast({
+        title: "Campos incompletos",
+        description: "Debes completar fecha, duración, ubicación y propósito",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const durationValue = parseFloat(flightLogForm.duration);
+    if (Number.isNaN(durationValue) || durationValue <= 0) {
+      toast({
+        title: "Duración inválida",
+        description: "Ingresa una duración válida en horas",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!flightLogFile) {
+      toast({
+        title: "Archivo requerido",
+        description: "Debes adjuntar la vitacora del vuelo",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
-    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+    const fileExtension = '.' + flightLogFile.name.split('.').pop()?.toLowerCase();
+
     if (!allowedTypes.includes(fileExtension)) {
       toast({
         title: "Archivo no válido",
@@ -793,8 +858,7 @@ const UserProfile = () => {
       return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
+    if (flightLogFile.size > 10 * 1024 * 1024) {
       toast({
         title: "Archivo muy grande",
         description: "El archivo no debe exceder 10MB",
@@ -804,61 +868,72 @@ const UserProfile = () => {
     }
 
     try {
-      // Upload file to Supabase Storage
-      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      setSubmittingFlightLog(true);
+
+      const fileName = `${user.id}/logs/${Date.now()}_${flightLogFile.name}`;
       const { error: uploadError } = await supabase.storage
         .from('flight-logs')
-        .upload(fileName, file);
+        .upload(fileName, flightLogFile);
 
       if (uploadError) throw uploadError;
 
-      // Save flight log record with file path
-      const { error: dbError } = await supabase
+      const { data, error: dbError } = await supabase
         .from('flight_logs')
         .insert({
           user_id: user.id,
-          file_name: file.name,
+          file_name: flightLogFile.name,
           file_url: fileName,
-          status: 'pending'
-        });
+          status: 'pending',
+          flight_date: flightLogForm.date,
+          duration_hours: durationValue,
+          location: flightLogForm.location,
+          purpose: flightLogForm.purpose,
+          notes: flightLogForm.notes
+        })
+        .select();
 
       if (dbError) throw dbError;
 
+      if (data && data.length > 0) {
+        setFlightLogs(prev => [ 
+          {
+            ...data[0],
+            rejection_observations: data[0].rejection_observations || null,
+            flight_hours: data[0].flight_hours || null,
+            purpose: data[0].purpose || flightLogForm.purpose,
+            location: data[0].location || flightLogForm.location,
+            notes: data[0].notes || flightLogForm.notes
+          },
+          ...prev
+        ]);
+      } else {
+        await loadUserData();
+      }
+
       toast({
-        title: "Vitacora subida",
+        title: "Registro enviado",
         description: "Tu vitacora ha sido enviada para revisión",
       });
 
-      // Reload flight logs
-      const { data: logsData } = await supabase
-        .from('flight_logs')
-        .select('id, file_name, file_url, status, uploaded_at, rejection_observations, flight_hours')
-        .eq('user_id', user.id)
-        .order('uploaded_at', { ascending: false });
-
-      if (logsData) {
-        setFlightLogs(logsData.map(log => ({
-          id: log.id,
-          file_name: log.file_name,
-          file_url: log.file_url,
-          status: log.status as 'pending' | 'validated' | 'rejected',
-          uploaded_at: log.uploaded_at,
-          rejection_observations: log.rejection_observations || null,
-          flight_hours: log.flight_hours || null
-        })));
-      }
-
+      setFlightLogForm({
+        date: '',
+        duration: '',
+        location: '',
+        purpose: '',
+        notes: ''
+      });
+      setFlightLogFile(null);
+      setShowFlightLogForm(false);
     } catch (error) {
       console.error('Error uploading flight log:', error);
       toast({
         title: "Error",
-        description: "No se pudo subir la vitacora",
+        description: "No se pudo registrar la vitacora",
         variant: "destructive",
       });
+    } finally {
+      setSubmittingFlightLog(false);
     }
-
-    // Reset file input
-    event.target.value = '';
   };
 
   const handleDeleteFlightLog = async (id: string) => {
@@ -1576,38 +1651,141 @@ const UserProfile = () => {
                     </p>
                     <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
                       <p>
-                        • Sube tus vitacoras de vuelo para que un administrador las revise y valide.
+                        • Registra tus vuelos y adjunta la vitacora correspondiente para validarla.
                       </p>
                       <p>
-                        • Esta acción es realizada por un administrador humano que revisa cada vitacora.
+                        • Esta revisión es humana: si el documento es válido, se acreditará en tu perfil.
                       </p>
                       <p>
-                        • Si tu vitacora es válida, las horas de vuelo serán acreditadas en tu perfil y aumentarán tu credibilidad profesional.
+                        • Las horas validadas mejoran tu credibilidad y visibilidad frente a los clientes.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Upload Area */}
-              <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  Arrastra y suelta tu vitacora aquí, o 
-                </p>
-                <Label htmlFor="flight-log-upload" className="cursor-pointer">
-                  <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
-                  <Input
-                    id="flight-log-upload"
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={handleFlightLogUpload}
-                    className="hidden"
-                  />
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
-                </p>
+
+              <div className="mb-6 flex flex-col gap-4">
+                <Button
+                  onClick={() => setShowFlightLogForm((prev) => !prev)}
+                  className="self-start"
+                  variant={showFlightLogForm ? "outline" : "default"}
+                >
+                  {showFlightLogForm ? "Cancelar registro" : "Agregar registro de vuelo"}
+                </Button>
+
+                {showFlightLogForm && (
+                  <div className="border border-border/50 rounded-2xl p-6 bg-muted/30">
+                    <form className="space-y-4" onSubmit={handleAddFlightLog}>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="flight-date">Fecha del vuelo *</Label>
+                          <Input
+                            id="flight-date"
+                            type="date"
+                            value={flightLogForm.date}
+                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, date: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="flight-duration">Duración (horas) *</Label>
+                          <Input
+                            id="flight-duration"
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            placeholder="2.5"
+                            value={flightLogForm.duration}
+                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, duration: e.target.value }))}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="flight-location">Ubicación *</Label>
+                          <Input
+                            id="flight-location"
+                            placeholder="Santiago, RM"
+                            value={flightLogForm.location}
+                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, location: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Propósito *</Label>
+                          <select
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            value={flightLogForm.purpose}
+                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, purpose: e.target.value }))}
+                            required
+                          >
+                            <option value="">Selecciona el propósito</option>
+                            {purposeOptions.map((option) => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="flight-notes">Notas adicionales</Label>
+                        <Textarea
+                          id="flight-notes"
+                          placeholder="Detalles adicionales del vuelo..."
+                          value={flightLogForm.notes}
+                          onChange={(e) => setFlightLogForm(prev => ({ ...prev, notes: e.target.value }))}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Vitacora del vuelo *</Label>
+                        <div className="border-2 border-dashed border-border/50 rounded-lg p-4 text-center">
+                          <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground mb-2">
+                            Arrastra y suelta el archivo o haz clic para seleccionarlo
+                          </p>
+                          <Label className="cursor-pointer inline-flex items-center gap-2 text-accent font-medium">
+                            <span>{flightLogFile ? flightLogFile.name : "Seleccionar archivo"}</span>
+                            <Input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="hidden"
+                              onChange={(e) => setFlightLogFile(e.target.files?.[0] || null)}
+                            />
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setShowFlightLogForm(false);
+                            setFlightLogFile(null);
+                            setFlightLogForm({
+                              date: '',
+                              duration: '',
+                              location: '',
+                              purpose: '',
+                              notes: ''
+                            });
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button type="submit" disabled={submittingFlightLog}>
+                          {submittingFlightLog ? "Enviando..." : "Guardar registro"}
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
 
               {/* Flight Logs List */}
@@ -1618,44 +1796,87 @@ const UserProfile = () => {
                   <div className="space-y-3">
                     {flightLogs.map((log) => (
                       <div key={log.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <p className="font-medium text-foreground">{log.file_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                Subido el {new Date(log.uploaded_at).toLocaleDateString()}
-                              </p>
-                              {log.flight_hours && (
-                                <p className="text-xs text-accent font-medium mt-1">
-                                  {log.flight_hours} horas validadas
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-accent" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-foreground">{log.file_name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Subido el {new Date(log.uploaded_at).toLocaleDateString()}
                                 </p>
-                              )}
+                                {log.flight_hours && (
+                                  <p className="text-xs text-accent font-medium mt-1">
+                                    {log.flight_hours} horas validadas
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className={getStatusColor(log.status)}>
+                                {getStatusIcon(log.status)}
+                                <span className="ml-1">{getStatusText(log.status)}</span>
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewFlightLog(log.id)}
+                                className="text-primary hover:text-primary hover:bg-primary/10"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteFlightLog(log.id)}
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className={getStatusColor(log.status)}>
-                              {getStatusIcon(log.status)}
-                              <span className="ml-1">{getStatusText(log.status)}</span>
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewFlightLog(log.id)}
-                              className="text-primary hover:text-primary hover:bg-primary/10"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteFlightLog(log.id)}
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
+
+                          <div className="grid md:grid-cols-3 gap-3 text-sm">
+                            <div>
+                              <p className="text-muted-foreground text-xs uppercase">Fecha</p>
+                              <p className="font-medium text-foreground">
+                                {log.flight_date ? new Date(log.flight_date).toLocaleDateString() : 'No especificado'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs uppercase">Duración</p>
+                              <p className="font-medium text-foreground">
+                                {log.duration_hours ? `${log.duration_hours} h` : 'No especificado'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-muted-foreground text-xs uppercase">Propósito</p>
+                              <p className="font-medium text-foreground">
+                                {log.purpose || 'No especificado'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid md:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-muted-foreground text-xs uppercase">Ubicación</p>
+                              <p className="font-medium text-foreground">
+                                {log.location || 'No especificado'}
+                              </p>
+                            </div>
+                            {log.notes && (
+                              <div>
+                                <p className="text-muted-foreground text-xs uppercase">Notas</p>
+                                <p className="font-medium text-foreground whitespace-pre-wrap">
+                                  {log.notes}
+                                </p>
+                              </div>
+                            )}
                           </div>
                         </div>
+
                         {log.status === 'rejected' && (
                           <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
                             <div className="flex items-start gap-2">
@@ -1684,7 +1905,6 @@ const UserProfile = () => {
               )}
             </CardContent>
           </Card>
-
           {/* Subscription */}
           {subscription && (
             <Card className="shadow-md border-0 bg-card/50 backdrop-blur-sm">

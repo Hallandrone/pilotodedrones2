@@ -282,7 +282,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   };
 
   const handleFlightLogNotificationClick = () => {
-    navigate('/dashboard/flight-logs');
+    navigate('/dashboard/certificates');
   };
 
   const isSuperAdmin = userRole?.role === 'super_admin';
@@ -406,28 +406,14 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                 {notificationCount > 0 && (
                   <>
                     <DropdownMenuSeparator />
-                    <div className="flex gap-2 px-2">
-                      {pendingCertifications.length > 0 && (
-                        <DropdownMenuItem
-                          className="flex-1 text-center justify-center cursor-pointer"
-                          onClick={handleNotificationClick}
-                        >
-                          <span className="text-sm font-medium text-[#00b3f3]">
-                            Ver certificaciones
-                          </span>
-                        </DropdownMenuItem>
-                      )}
-                      {pendingFlightLogs.length > 0 && (
-                        <DropdownMenuItem
-                          className="flex-1 text-center justify-center cursor-pointer"
-                          onClick={handleFlightLogNotificationClick}
-                        >
-                          <span className="text-sm font-medium text-orange-500">
-                            Ver vitacoras
-                          </span>
-                        </DropdownMenuItem>
-                      )}
-                    </div>
+                    <DropdownMenuItem
+                      className="text-center justify-center cursor-pointer"
+                      onClick={handleNotificationClick}
+                    >
+                      <span className="text-sm font-medium text-[#00b3f3]">
+                        Ver todos los documentos
+                      </span>
+                    </DropdownMenuItem>
                   </>
                 )}
               </>
