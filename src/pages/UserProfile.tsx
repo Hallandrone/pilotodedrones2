@@ -1141,10 +1141,26 @@ const UserProfile = () => {
             </CardHeader>
             <CardContent className="pt-6">
               {/* Info Message */}
-              <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-lg">
-                <p className="text-sm text-foreground leading-relaxed">
-                  <strong className="text-accent">💡 Importante:</strong> Subir un certificado validado le da más seriedad y credibilidad a tu perfil profesional. Los certificados aprobados aumentan la confianza de los clientes y mejoran tu visibilidad en la plataforma.
-                </p>
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                      Información sobre la validación de certificados
+                    </p>
+                    <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
+                      <p>
+                        <strong>• Solo los certificados impartidos por Academia de Drone Chile serán autenticados.</strong>
+                      </p>
+                      <p>
+                        • Esta acción es realizada por un administrador humano que revisa cada certificado.
+                      </p>
+                      <p>
+                        • Si tu certificado es válido, tu perfil contará con un <strong>distintivo de certificación válida</strong> que aumentará la confianza de los clientes y mejorará tu visibilidad en la plataforma.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               {/* Upload Area */}

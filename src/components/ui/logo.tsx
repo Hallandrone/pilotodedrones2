@@ -34,20 +34,22 @@ const Logo: React.FC<LogoProps> = ({
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       {!imageError ? (
-        <img 
-          src={logoPath} 
-          alt="Piloto de Drones" 
-          className={`${sizeClasses[size]} object-contain flex-shrink-0 w-auto`}
-          style={{ 
-            imageRendering: 'auto',
-            maxWidth: '100%',
-            height: 'auto'
-          }}
-          onError={() => {
-            setImageError(true);
-            console.error('Error loading logo:', logoPath);
-          }}
-        />
+        <div className={`${sizeClasses[size]} flex-shrink-0 flex items-center justify-center overflow-hidden`}>
+          <img 
+            src={logoPath} 
+            alt="Piloto de Drones" 
+            className="w-full h-full object-contain"
+            style={{ 
+              imageRendering: 'auto',
+              maxWidth: '100%',
+              maxHeight: '100%'
+            }}
+            onError={() => {
+              setImageError(true);
+              console.error('Error loading logo:', logoPath);
+            }}
+          />
+        </div>
       ) : (
         <div className={`${sizeClasses[size]} flex items-center justify-center bg-accent/10 rounded-lg flex-shrink-0`}>
           <Plane className={`${sizeClasses[size]} text-accent`} />
