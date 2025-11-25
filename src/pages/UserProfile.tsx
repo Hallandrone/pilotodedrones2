@@ -673,9 +673,16 @@ const UserProfile = () => {
     <div className="min-h-screen bg-primary">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Mi Perfil</h1>
-          <p className="text-white/80 text-lg">Gestiona tu información personal y certificaciones</p>
+        <div className="mb-8 flex items-center gap-4">
+          <img 
+            src="/piloto de drones-logo.png" 
+            alt="Piloto de Drones" 
+            className="h-12 w-12 flex-shrink-0 object-contain"
+          />
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2">Mi Perfil</h1>
+            <p className="text-white/80 text-lg">Gestiona tu información personal y certificaciones</p>
+          </div>
         </div>
 
         <div className="grid gap-6">
