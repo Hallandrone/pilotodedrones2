@@ -652,16 +652,6 @@ const UserProfile = () => {
 
     // Validate slug if provided
     if (profile.public_profile_slug) {
-      // Check if user has active subscription
-      if (!subscription || subscription.status !== 'active') {
-        toast({
-          title: "Plan requerido",
-          description: "La URL personalizada solo está disponible con un plan pagado activo",
-          variant: "destructive",
-        });
-        return;
-      }
-
       const validation = validateSlug(profile.public_profile_slug);
       if (!validation.valid) {
         setSlugAvailable(false);
@@ -1420,105 +1410,85 @@ const UserProfile = () => {
                     <Label className="text-foreground font-semibold text-lg">
                       URL Personalizada del Perfil Público
                     </Label>
-                    <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
-                      Premium
-                    </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Personaliza la URL de tu perfil público. Solo disponible con plan pagado activo.
+                    Personaliza la URL de tu perfil público.
                   </p>
                   
-                  {subscription && subscription.status === 'active' ? (
-                    <div className="space-y-2">
-                      <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
-                        <Link className="inline h-4 w-4 mr-1" />
-                        Nombre de usuario para tu perfil
-                      </Label>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                        <div className="relative flex-1">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
-                            /pilot/
+                  <div className="space-y-2">
+                    <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
+                      <Link className="inline h-4 w-4 mr-1" />
+                      Nombre de usuario para tu perfil
+                    </Label>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                      <div className="relative flex-1">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                          /pilot/
+                        </div>
+                        <Input
+                          id="public_profile_slug"
+                          type="text"
+                          value={profile.public_profile_slug || ''}
+                          onChange={(e) => handleSlugChange(e.target.value)}
+                          className="border-border/50 focus:border-accent pl-20"
+                          placeholder="nombreusuario"
+                        />
+                        {checkingSlug && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                           </div>
-                          <Input
-                            id="public_profile_slug"
-                            type="text"
-                            value={profile.public_profile_slug || ''}
-                            onChange={(e) => handleSlugChange(e.target.value)}
-                            className="border-border/50 focus:border-accent pl-20"
-                            placeholder="nombreusuario"
-                          />
-                          {checkingSlug && (
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                            </div>
-                          )}
-                          {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              {slugAvailable ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <X className="h-4 w-4 text-red-500" />
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handleSlugVerification}
-                          disabled={checkingSlug || !profile.public_profile_slug}
-                          className="sm:w-auto w-full"
-                        >
-                          {checkingSlug ? (
-                            <span className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Verificando...
-                            </span>
-                          ) : (
-                            'Verificar disponibilidad'
-                          )}
-                        </Button>
+                        )}
+                        {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            {slugAvailable ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
+                        )}
                       </div>
-                      {slugFeedback && (
-                        <p
-                          className={`text-xs flex items-center gap-1 mt-2 ${
-                            slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
-                          }`}
-                        >
-                          {slugFeedback.type === 'success' ? (
-                            <CheckCircle className="h-3 w-3" />
-                          ) : (
-                            <AlertCircle className="h-3 w-3" />
-                          )}
-                          {slugFeedback.text}
-                        </p>
-                      )}
-                      {checkingSlug && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                          Verificando disponibilidad...
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleSlugVerification}
+                        disabled={checkingSlug || !profile.public_profile_slug}
+                        className="sm:w-auto w-full"
+                      >
+                        {checkingSlug ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Verificando...
+                          </span>
+                        ) : (
+                          'Verificar disponibilidad'
+                        )}
+                      </Button>
+                    </div>
+                    {slugFeedback && (
+                      <p
+                        className={`text-xs flex items-center gap-1 mt-2 ${
+                          slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
+                        }`}
+                      >
+                        {slugFeedback.type === 'success' ? (
+                          <CheckCircle className="h-3 w-3" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3" />
+                        )}
+                        {slugFeedback.text}
                       </p>
-                    </div>
-                  ) : (
-                    <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                      <div className="flex items-start gap-3">
-                        <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
-                            Suscripción requerida
-                          </p>
-                          <p className="text-xs text-yellow-700 dark:text-yellow-400">
-                            Esta característica está disponible solo para usuarios con un plan pagado activo. 
-                            Suscríbete a un plan para personalizar la URL de tu perfil público.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    )}
+                    {checkingSlug && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Verificando disponibilidad...
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
+                    </p>
+                  </div>
                 </div>
               </div>
 
