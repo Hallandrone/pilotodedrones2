@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { getBaseUrlClean } from "@/lib/getBaseUrl";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,12 @@ import {
   Map,
   Camera,
   Upload,
-  X
+  X,
+  Crown,
+  Link,
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 
 interface ProfileData {
@@ -32,6 +38,14 @@ interface ProfileData {
   experience_years: number;
   specialties: string[];
   drone_types: string[];
+  public_profile_slug?: string;
+}
+
+interface Subscription {
+  id: string;
+  status: string;
+  plan_type: string;
+  payment_method: string;
 }
 
 // Campos que existen en la tabla profiles
@@ -70,8 +84,14 @@ const PilotProfile = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [customSpecialty, setCustomSpecialty] = useState('');
   const [customDrone, setCustomDrone] = useState('');
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [checkingSlug, setCheckingSlug] = useState(false);
+  const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [slugFeedback, setSlugFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const appBaseUrl = getBaseUrlClean();
 
   const regions = [
     'Región Metropolitana',
@@ -180,6 +200,152 @@ const PilotProfile = () => {
 
   const allDroneOptions = [...basicDrones, ...intermediateDrones, ...professionalDrones, 'Otro'];
 
+  // Reserved words that cannot be used as slugs
+  const RESERVED_WORDS = ['admin', 'api', 'dashboard', 'pilot', 'search', 'login', 'register', 'profile', 'settings', 'help', 'about', 'contact', 'terms', 'privacy'];
+
+  // Function to clean and validate profile slug
+  const cleanSlug = (input: string): string => {
+    if (!input) return '';
+    
+    let cleaned = input.trim().toLowerCase();
+    
+    // Remove spaces and replace with hyphens
+    cleaned = cleaned.replace(/\s+/g, '-');
+    
+    // Remove special characters, only allow alphanumeric, hyphens, and underscores
+    cleaned = cleaned.replace(/[^a-z0-9_-]/g, '');
+    
+    // Remove multiple consecutive hyphens
+    cleaned = cleaned.replace(/-+/g, '-');
+    
+    // Remove leading/trailing hyphens and underscores
+    cleaned = cleaned.replace(/^[-_]+|[-_]+$/g, '');
+    
+    return cleaned;
+  };
+
+  // Function to validate slug format
+  const validateSlug = (slug: string): { valid: boolean; error?: string } => {
+    if (!slug) {
+      return { valid: false, error: 'El slug no puede estar vacío' };
+    }
+    
+    if (slug.length < 3) {
+      return { valid: false, error: 'El slug debe tener al menos 3 caracteres' };
+    }
+    
+    if (slug.length > 30) {
+      return { valid: false, error: 'El slug no puede tener más de 30 caracteres' };
+    }
+    
+    // Check if it matches the allowed pattern
+    if (!/^[a-z0-9_-]+$/.test(slug)) {
+      return { valid: false, error: 'El slug solo puede contener letras minúsculas, números, guiones y guiones bajos' };
+    }
+    
+    // Check if it starts with a number
+    if (/^[0-9]/.test(slug)) {
+      return { valid: false, error: 'El slug no puede comenzar con un número' };
+    }
+    
+    // Check reserved words
+    if (RESERVED_WORDS.includes(slug)) {
+      return { valid: false, error: 'Este nombre no está disponible (palabra reservada)' };
+    }
+    
+    return { valid: true };
+  };
+
+  // Function to check slug availability
+  const checkSlugAvailability = async (slug: string): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !slug) return false;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('public_profile_slug', slug)
+        .neq('id', user.id)
+        .single();
+      
+      // If no error and data exists, slug is taken
+      if (data) return false;
+      
+      // If error is "not found", slug is available
+      if (error && error.code === 'PGRST116') return true;
+      
+      // Other errors
+      if (error) {
+        console.error('Error checking slug availability:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error checking slug availability:', error);
+      return false;
+    }
+  };
+
+  // Handle slug input change (manual verification via button)
+  const handleSlugChange = (value: string) => {
+    const cleaned = cleanSlug(value);
+    setProfile(prev => ({ ...prev, public_profile_slug: cleaned }));
+    setSlugAvailable(null);
+    setSlugFeedback(null);
+    
+    if (!cleaned) {
+      return;
+    }
+    
+    const validation = validateSlug(cleaned);
+    if (!validation.valid) {
+      setSlugFeedback({
+        type: 'error',
+        text: validation.error || 'El formato del nombre no es válido'
+      });
+    }
+  };
+
+  const handleSlugVerification = async () => {
+    if (!profile.public_profile_slug) {
+      setSlugFeedback({
+        type: 'error',
+        text: 'Ingresa un nombre para tu perfil antes de verificar'
+      });
+      setSlugAvailable(null);
+      return;
+    }
+    
+    const validation = validateSlug(profile.public_profile_slug);
+    if (!validation.valid) {
+      setSlugFeedback({
+        type: 'error',
+        text: validation.error || 'El formato del nombre no es válido'
+      });
+      setSlugAvailable(false);
+      return;
+    }
+    
+    setCheckingSlug(true);
+    const available = await checkSlugAvailability(profile.public_profile_slug);
+    setCheckingSlug(false);
+    setSlugAvailable(available);
+    
+    if (available) {
+      setSlugFeedback({
+        type: 'success',
+        text: `Excelente, tu URL será ${appBaseUrl}/pilot/${profile.public_profile_slug}`
+      });
+    } else {
+      setSlugFeedback({
+        type: 'error',
+        text: 'Este nombre ya está en uso. Por favor, elige otro.'
+      });
+    }
+  };
+
   useEffect(() => {
     loadProfile();
   }, []);
@@ -207,6 +373,18 @@ const PilotProfile = () => {
         .select('*')
         .eq('id', user.id)
         .single();
+
+      // Cargar suscripción
+      const { data: subscriptionData } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+      
+      if (subscriptionData) {
+        setSubscription(subscriptionData as Subscription);
+      }
 
       if (profileError) {
         console.error('Error loading profile:', profileError);
@@ -253,7 +431,8 @@ const PilotProfile = () => {
               region: data.region || '',
               experience_years: data.experience_years || 0,
               specialties: data.specialties || [],
-              drone_types: data.drone_types || []
+              drone_types: data.drone_types || [],
+              public_profile_slug: data.public_profile_slug || ''
             });
           }
         } else {
@@ -272,7 +451,8 @@ const PilotProfile = () => {
           region: data.region || '',
           experience_years: data.experience_years || 0,
           specialties: data.specialties || [],
-          drone_types: data.drone_types || []
+          drone_types: data.drone_types || [],
+          public_profile_slug: data.public_profile_slug || ''
         });
       }
     } catch (error: any) {
@@ -343,22 +523,62 @@ const PilotProfile = () => {
       console.log('Saving profile for user:', user.id);
       console.log('Profile data:', profile);
 
+      // Validar slug si existe y hay suscripción activa
+      if (profile.public_profile_slug && subscription && subscription.status === 'active') {
+        const validation = validateSlug(profile.public_profile_slug);
+        if (!validation.valid) {
+          toast({
+            title: "Error de validación",
+            description: validation.error || 'El formato del nombre de perfil no es válido',
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Verificar disponibilidad si no se ha verificado antes
+        if (slugAvailable === null) {
+          const available = await checkSlugAvailability(profile.public_profile_slug);
+          if (!available) {
+            toast({
+              title: "Nombre no disponible",
+              description: 'Este nombre ya está en uso. Por favor, verifica la disponibilidad antes de guardar.',
+              variant: "destructive",
+            });
+            return;
+          }
+        } else if (slugAvailable === false) {
+          toast({
+            title: "Nombre no disponible",
+            description: 'Este nombre ya está en uso. Por favor, elige otro.',
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       // Actualizar todos los datos en tabla profiles
+      const updateData: any = {
+        id: user.id,
+        full_name: profile.full_name,
+        email: profile.email,
+        user_type: 'pilot',
+        phone: profile.phone || null,
+        bio: profile.bio || null,
+        location: profile.location || null,
+        region: profile.region || null,
+        experience_years: profile.experience_years || 0,
+        specialties: profile.specialties || [],
+        drone_types: profile.drone_types || []
+      };
+
+      // Solo incluir public_profile_slug si hay suscripción activa
+      if (subscription && subscription.status === 'active' && profile.public_profile_slug) {
+        updateData.public_profile_slug = profile.public_profile_slug;
+      }
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: profile.full_name,
-          email: profile.email,
-          user_type: 'pilot',
-          phone: profile.phone || null,
-          bio: profile.bio || null,
-          location: profile.location || null,
-          region: profile.region || null,
-          experience_years: profile.experience_years || 0,
-          specialties: profile.specialties || [],
-          drone_types: profile.drone_types || []
-        }, {
+        .upsert(updateData, {
           onConflict: 'id'
         });
 
@@ -488,21 +708,28 @@ const PilotProfile = () => {
       if (!user) return;
 
       // Actualizar todos los datos en tabla profiles
+      const updateData: any = {
+        id: user.id,
+        full_name: profile.full_name,
+        email: profile.email,
+        user_type: 'pilot',
+        phone: profile.phone || null,
+        bio: profile.bio || null,
+        location: profile.location || null,
+        region: profile.region || null,
+        experience_years: profile.experience_years || 0,
+        specialties: profile.specialties || [],
+        drone_types: profile.drone_types || []
+      };
+
+      // Solo incluir public_profile_slug si hay suscripción activa
+      if (subscription && subscription.status === 'active' && profile.public_profile_slug) {
+        updateData.public_profile_slug = profile.public_profile_slug;
+      }
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: profile.full_name,
-          email: profile.email,
-          user_type: 'pilot',
-          phone: profile.phone || null,
-          bio: profile.bio || null,
-          location: profile.location || null,
-          region: profile.region || null,
-          experience_years: profile.experience_years || 0,
-          specialties: profile.specialties || [],
-          drone_types: profile.drone_types || []
-        }, {
+        .upsert(updateData, {
           onConflict: 'id'
         });
 
@@ -957,6 +1184,121 @@ const PilotProfile = () => {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </div>
+        </Card>
+
+        {/* URL Personalizada del Perfil Público */}
+        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-yellow-500/20 via-yellow-500/10 to-yellow-500/20 p-1">
+            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold text-[#E0E0E0]">
+                <div className="h-10 w-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
+                  <Crown className="h-5 w-5 text-white" />
+                </div>
+                URL Personalizada del Perfil Público
+                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+                  Premium
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-[#B0B0B0] font-medium">
+                Personaliza la URL de tu perfil público. Solo disponible con plan pagado activo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
+              {subscription && subscription.status === 'active' ? (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="public_profile_slug" className="text-[#E0E0E0] font-medium flex items-center gap-2">
+                      <Link className="h-4 w-4" />
+                      Nombre de usuario para tu perfil
+                    </Label>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                      <div className="relative flex-1">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B0B0B0] text-sm">
+                          /pilot/
+                        </div>
+                        <Input
+                          id="public_profile_slug"
+                          type="text"
+                          value={profile.public_profile_slug || ''}
+                          onChange={(e) => handleSlugChange(e.target.value)}
+                          className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666] pl-20"
+                          placeholder="nombreusuario"
+                        />
+                        {checkingSlug && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <Loader2 className="h-4 w-4 animate-spin text-[#B0B0B0]" />
+                          </div>
+                        )}
+                        {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            {slugAvailable ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <X className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleSlugVerification}
+                        disabled={checkingSlug || !profile.public_profile_slug}
+                        className="sm:w-auto w-full bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white border-[#00b3f3] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {checkingSlug ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Verificando...
+                          </span>
+                        ) : (
+                          'Verificar disponibilidad'
+                        )}
+                      </Button>
+                    </div>
+                    {slugFeedback && (
+                      <p
+                        className={`text-xs flex items-center gap-1 mt-2 ${
+                          slugFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
+                        }`}
+                      >
+                        {slugFeedback.type === 'success' ? (
+                          <CheckCircle className="h-3 w-3" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3" />
+                        )}
+                        {slugFeedback.text}
+                      </p>
+                    )}
+                    {checkingSlug && (
+                      <p className="text-xs text-[#B0B0B0] flex items-center gap-1 mt-1">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Verificando disponibilidad...
+                      </p>
+                    )}
+                    <p className="text-xs text-[#B0B0B0]">
+                      Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-yellow-950/20 border border-yellow-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <Crown className="h-5 w-5 text-yellow-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-yellow-300 mb-1">
+                        Suscripción requerida
+                      </p>
+                      <p className="text-xs text-yellow-400">
+                        Esta característica está disponible solo para usuarios con un plan pagado activo. 
+                        Suscríbete a un plan para personalizar la URL de tu perfil público.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </div>
         </Card>
