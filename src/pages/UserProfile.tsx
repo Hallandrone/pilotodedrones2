@@ -1010,7 +1010,7 @@ const UserProfile = () => {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
-          <Logo size="xl" className="flex-shrink-0 [&>div]:h-20 [&>div]:w-20" showText={false} />
+          <Logo size="xl" className="flex-shrink-0 [&>div]:h-24 [&>div]:w-24" showText={false} />
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">Mi Perfil</h1>
             <p className="text-white/80 text-lg">Gestiona tu información personal y certificaciones</p>
