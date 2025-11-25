@@ -219,22 +219,22 @@ const AdminCertificates = () => {
       const expirationDate = calculateExpirationDate();
 
       // 5. Actualizar perfil de piloto con certificación y fechas
-      const { error: pilotError } = await supabase
-        .from('pilots')
-        .update({ 
-          certification_status: true,
+        const { error: pilotError } = await supabase
+          .from('pilots')
+          .update({ 
+            certification_status: true,
           status: 'active',
           certification_validated_at: validationDate.toISOString(),
           certification_expires_at: expirationDate.toISOString()
-        })
-        .eq('user_id', certData.user_id);
+          })
+          .eq('user_id', certData.user_id);
 
-      if (pilotError) {
-        console.error('Error activating pilot profile:', pilotError);
-        // No falla toda la operación si esto falla
-      } else {
+        if (pilotError) {
+          console.error('Error activating pilot profile:', pilotError);
+          // No falla toda la operación si esto falla
+        } else {
         console.log('Perfil de piloto activado exitosamente con fechas de validación');
-      }
+        }
 
       // 6. Si tiene suscripción activa, mostrar mensaje adicional
       if (subscription && subscription.status === 'active') {
