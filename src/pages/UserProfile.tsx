@@ -93,16 +93,7 @@ const UserProfile = () => {
   });
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([]);
-  const [showFlightLogForm, setShowFlightLogForm] = useState(false);
-  const [flightLogForm, setFlightLogForm] = useState({
-    date: '',
-    duration: '',
-    location: '',
-    purpose: '',
-    notes: ''
-  });
-  const [flightLogFile, setFlightLogFile] = useState<File | null>(null);
-  const [submittingFlightLog, setSubmittingFlightLog] = useState(false);
+  const [uploadingFlightLog, setUploadingFlightLog] = useState(false);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -879,41 +870,15 @@ const UserProfile = () => {
     }
   };
 
-  const handleAddFlightLog = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!user) return;
+  // Función simple para subir certificados/registros de vuelo (sin formulario)
+  const handleFlightLogFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
 
-    if (!flightLogForm.date || !flightLogForm.duration || !flightLogForm.location || !flightLogForm.purpose) {
-      toast({
-        title: "Campos incompletos",
-        description: "Debes completar fecha, duración, ubicación y propósito",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const durationValue = parseFloat(flightLogForm.duration);
-    if (Number.isNaN(durationValue) || durationValue <= 0) {
-      toast({
-        title: "Duración inválida",
-        description: "Ingresa una duración válida en horas",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!flightLogFile) {
-      toast({
-        title: "Archivo requerido",
-        description: "Debes adjuntar la vitacora del vuelo",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Validate file type
     const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
-    const fileExtension = '.' + flightLogFile.name.split('.').pop()?.toLowerCase();
-
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
     if (!allowedTypes.includes(fileExtension)) {
       toast({
         title: "Archivo no válido",
@@ -923,7 +888,7 @@ const UserProfile = () => {
       return;
     }
 
-    if (flightLogFile.size > 10 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "Archivo muy grande",
         description: "El archivo no debe exceder 10MB",
@@ -933,71 +898,67 @@ const UserProfile = () => {
     }
 
     try {
-      setSubmittingFlightLog(true);
+      setUploadingFlightLog(true);
 
-      const fileName = `${user.id}/logs/${Date.now()}_${flightLogFile.name}`;
+      // Upload file to Supabase Storage
+      const fileName = `${user.id}/logs/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from('flight-logs')
-        .upload(fileName, flightLogFile);
+        .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
+      // Save flight log record (sin metadatos, solo el archivo)
       const { data, error: dbError } = await supabase
         .from('flight_logs')
         .insert({
           user_id: user.id,
-          file_name: flightLogFile.name,
+          file_name: file.name,
           file_url: fileName,
-          status: 'pending',
-          flight_date: flightLogForm.date,
-          duration_hours: durationValue,
-          location: flightLogForm.location,
-          purpose: flightLogForm.purpose,
-          notes: flightLogForm.notes
+          status: 'pending'
         })
         .select();
 
       if (dbError) throw dbError;
 
+      // Update local state
       if (data && data.length > 0) {
-        setFlightLogs(prev => [ 
-          {
-            ...data[0],
-            rejection_observations: data[0].rejection_observations || null,
-            flight_hours: data[0].flight_hours || null,
-            purpose: data[0].purpose || flightLogForm.purpose,
-            location: data[0].location || flightLogForm.location,
-            notes: data[0].notes || flightLogForm.notes
-          },
-          ...prev
-        ]);
+        const newLog: FlightLog = {
+          id: data[0].id,
+          file_name: data[0].file_name,
+          file_url: data[0].file_url,
+          status: data[0].status as 'pending' | 'validated' | 'rejected',
+          uploaded_at: data[0].uploaded_at,
+          rejection_observations: data[0].rejection_observations || null,
+          flight_hours: data[0].flight_hours || null,
+          flight_date: data[0].flight_date,
+          duration_hours: data[0].duration_hours,
+          location: data[0].location,
+          purpose: data[0].purpose,
+          notes: data[0].notes
+        };
+
+        setFlightLogs(prev => [newLog, ...prev]);
       } else {
         await loadUserData();
       }
 
       toast({
-        title: "Registro enviado",
-        description: "Tu vitacora ha sido enviada para revisión",
+        title: "Archivo subido",
+        description: "Tu certificado o registro de vuelo ha sido enviado para revisión",
       });
 
-      setFlightLogForm({
-        date: '',
-        duration: '',
-        location: '',
-        purpose: '',
-        notes: ''
-      });
-      setFlightLogFile(null);
-      setShowFlightLogForm(false);
     } catch (error) {
-      console.error('Error uploading flight log:', error);
+      console.error('Error uploading flight log file:', error);
       toast({
         title: "Error",
-        description: "No se pudo registrar la vitacora",
+        description: "No se pudo subir el archivo",
         variant: "destructive",
       });
     } finally {
-      setSubmittingFlightLog(false);
+      setUploadingFlightLog(false);
+      // Reset file input
+      event.target.value = '';
     }
   };
 
@@ -1589,59 +1550,69 @@ const UserProfile = () => {
                 Certificaciones
               </CardTitle>
               <CardDescription className="text-base">
-                Sube y gestiona tus certificaciones de piloto
+                Gestiona tus certificaciones y registros de vuelo
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              {/* Info Message */}
-              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                      Información sobre la validación de certificados
-                    </p>
-                    <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
-                      <p>
-                        <strong>• Solo los certificados impartidos por Academia de Drone Chile serán autenticados.</strong>
+              {/* Apartado 1: Certificados de Academia Drone Chile */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-accent" />
+                  <Label className="text-foreground font-semibold text-lg">
+                    Certificados de Academia Drone Chile
+                  </Label>
+                </div>
+                
+                {/* Info Message */}
+                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                        Información sobre la validación de certificados
                       </p>
-                      <p>
-                        • Esta acción es realizada por un administrador humano que revisa cada certificado.
-                      </p>
-                      <p>
-                        • Si tu certificado es válido, tu perfil contará con un <strong>distintivo de certificación válida</strong> que aumentará la confianza de los clientes y mejorará tu visibilidad en la plataforma.
-                      </p>
+                      <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
+                        <p>
+                          <strong>• Solo los certificados impartidos por Academia de Drone Chile serán autenticados.</strong>
+                        </p>
+                        <p>
+                          • Esta acción es realizada por un administrador humano que revisa cada certificado.
+                        </p>
+                        <p>
+                          • Si tu certificado es válido, tu perfil contará con un <strong>distintivo de certificación válida</strong> que aumentará la confianza de los clientes y mejorará tu visibilidad en la plataforma.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Upload Area */}
-              <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground mb-2">
-                  Arrastra y suelta tu certificación aquí, o 
-                </p>
-                <Label htmlFor="certification-upload" className="cursor-pointer">
-                  <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
-                  <Input
-                    id="certification-upload"
-                    type="file"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                </Label>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
-                </p>
+                
+                {/* Upload Area - Apartado 1 */}
+                <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
+                  <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Arrastra y suelta tu certificación aquí, o 
+                  </p>
+                  <Label htmlFor="certification-upload" className="cursor-pointer">
+                    <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
+                    <Input
+                      id="certification-upload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                  </p>
+                </div>
               </div>
 
-              {/* Certifications List */}
+              {/* Certifications List - Apartado 1 */}
               {certifications.length > 0 && (
                 <div className="mt-6">
                   <Separator className="mb-4" />
-                  <h4 className="font-medium text-foreground mb-4">Certificaciones subidas</h4>
+                  <h4 className="font-medium text-foreground mb-4">Certificados de Academia Drone Chile subidos</h4>
                   <div className="space-y-3">
                     {certifications.map((cert) => (
                       <div key={cert.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
@@ -1704,180 +1675,59 @@ const UserProfile = () => {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
 
-          {/* Horas de Vuelo */}
-          <Card className="shadow-xl border-2 border-accent/20 bg-white/95 backdrop-blur-sm">
-            <CardHeader className="border-b border-accent/10 bg-gradient-to-r from-accent/5 to-transparent">
-              <CardTitle className="flex items-center gap-3 text-primary text-2xl">
-                <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-white" />
+              {/* Separador entre apartados */}
+              <Separator className="my-8" />
+
+              {/* Apartado 2: Certificados o Registros de Vuelo */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-accent" />
+                  <Label className="text-foreground font-semibold text-lg">
+                    Certificados o Registros de Vuelo
+                  </Label>
                 </div>
-                Horas de Vuelo
-              </CardTitle>
-              <CardDescription className="text-base">
-                Sube tus vitacoras de vuelo para validación y registro de horas
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {/* Info Message */}
-              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                      Información sobre la validación de vitacoras
-                    </p>
-                    <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
-                      <p>
-                        • Registra tus vuelos y adjunta la vitacora correspondiente para validarla.
-                      </p>
-                      <p>
-                        • Esta revisión es humana: si el documento es válido, se acreditará en tu perfil.
-                      </p>
-                      <p>
-                        • Las horas validadas mejoran tu credibilidad y visibilidad frente a los clientes.
-                      </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Sube certificados adicionales o registros de vuelo (archivos PDF o imagen) para validación.
+                </p>
+                
+                {/* Upload Area - Apartado 2 */}
+                <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
+                  <Upload className={`mx-auto h-8 w-8 ${uploadingFlightLog ? 'text-muted-foreground/50' : 'text-muted-foreground'} mb-2`} />
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Arrastra y suelta tu certificado o registro de vuelo aquí, o 
+                  </p>
+                  <Label htmlFor="flight-log-upload" className="cursor-pointer">
+                    <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
+                    <Input
+                      id="flight-log-upload"
+                      type="file"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFlightLogFileUpload}
+                      className="hidden"
+                      disabled={uploadingFlightLog}
+                    />
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                  </p>
+                  {uploadingFlightLog && (
+                    <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Subiendo archivo...</span>
                     </div>
-                  </div>
+                  )}
                 </div>
-              </div>
 
-              <div className="mb-6 flex flex-col gap-4">
-                <Button
-                  onClick={() => setShowFlightLogForm((prev) => !prev)}
-                  className="self-start"
-                  variant={showFlightLogForm ? "outline" : "default"}
-                >
-                  {showFlightLogForm ? "Cancelar registro" : "Agregar registro de vuelo"}
-                </Button>
-
-                {showFlightLogForm && (
-                  <div className="border border-border/50 rounded-2xl p-6 bg-muted/30">
-                    <form className="space-y-4" onSubmit={handleAddFlightLog}>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="flight-date">Fecha del vuelo *</Label>
-                          <Input
-                            id="flight-date"
-                            type="date"
-                            value={flightLogForm.date}
-                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, date: e.target.value }))}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="flight-duration">Duración (horas) *</Label>
-                          <Input
-                            id="flight-duration"
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            placeholder="2.5"
-                            value={flightLogForm.duration}
-                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, duration: e.target.value }))}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="flight-location">Ubicación *</Label>
-                          <Input
-                            id="flight-location"
-                            placeholder="Santiago, RM"
-                            value={flightLogForm.location}
-                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, location: e.target.value }))}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Propósito *</Label>
-                          <select
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            value={flightLogForm.purpose}
-                            onChange={(e) => setFlightLogForm(prev => ({ ...prev, purpose: e.target.value }))}
-                            required
-                          >
-                            <option value="">Selecciona el propósito</option>
-                            {purposeOptions.map((option) => (
-                              <option key={option} value={option}>{option}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="flight-notes">Notas adicionales</Label>
-                        <Textarea
-                          id="flight-notes"
-                          placeholder="Detalles adicionales del vuelo..."
-                          value={flightLogForm.notes}
-                          onChange={(e) => setFlightLogForm(prev => ({ ...prev, notes: e.target.value }))}
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Vitacora del vuelo *</Label>
-                        <div className="border-2 border-dashed border-border/50 rounded-lg p-4 text-center">
-                          <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Arrastra y suelta el archivo o haz clic para seleccionarlo
-                          </p>
-                          <Label className="cursor-pointer inline-flex items-center gap-2 text-accent font-medium">
-                            <span>{flightLogFile ? flightLogFile.name : "Seleccionar archivo"}</span>
-                            <Input
-                              type="file"
-                              accept=".pdf,.jpg,.jpeg,.png"
-                              className="hidden"
-                              onChange={(e) => setFlightLogFile(e.target.files?.[0] || null)}
-                            />
-                          </Label>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end gap-3">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => {
-                            setShowFlightLogForm(false);
-                            setFlightLogFile(null);
-                            setFlightLogForm({
-                              date: '',
-                              duration: '',
-                              location: '',
-                              purpose: '',
-                              notes: ''
-                            });
-                          }}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button type="submit" disabled={submittingFlightLog}>
-                          {submittingFlightLog ? "Enviando..." : "Guardar registro"}
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-              </div>
-
-              {/* Flight Logs List */}
-              {flightLogs.length > 0 && (
-                <div className="mt-6">
-                  <Separator className="mb-4" />
-                  <h4 className="font-medium text-foreground mb-4">Vitacoras subidas</h4>
-                  <div className="space-y-3">
-                    {flightLogs.map((log) => (
-                      <div key={log.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between">
+                {/* Flight Logs List - Apartado 2 */}
+                {flightLogs.length > 0 && (
+                  <div className="mt-6">
+                    <Separator className="mb-4" />
+                    <h4 className="font-medium text-foreground mb-4">Certificados o registros de vuelo subidos</h4>
+                    <div className="space-y-3">
+                      {flightLogs.map((log) => (
+                        <div key={log.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                          <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-3">
                               <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
                                 <FileText className="h-5 w-5 text-accent" />
@@ -1917,72 +1767,33 @@ const UserProfile = () => {
                               </Button>
                             </div>
                           </div>
-
-                          <div className="grid md:grid-cols-3 gap-3 text-sm">
-                            <div>
-                              <p className="text-muted-foreground text-xs uppercase">Fecha</p>
-                              <p className="font-medium text-foreground">
-                                {log.flight_date ? new Date(log.flight_date).toLocaleDateString() : 'No especificado'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground text-xs uppercase">Duración</p>
-                              <p className="font-medium text-foreground">
-                                {log.duration_hours ? `${log.duration_hours} h` : 'No especificado'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-muted-foreground text-xs uppercase">Propósito</p>
-                              <p className="font-medium text-foreground">
-                                {log.purpose || 'No especificado'}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid md:grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <p className="text-muted-foreground text-xs uppercase">Ubicación</p>
-                              <p className="font-medium text-foreground">
-                                {log.location || 'No especificado'}
-                              </p>
-                            </div>
-                            {log.notes && (
-                              <div>
-                                <p className="text-muted-foreground text-xs uppercase">Notas</p>
-                                <p className="font-medium text-foreground whitespace-pre-wrap">
-                                  {log.notes}
-                                </p>
+                          {log.status === 'rejected' && (
+                            <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                                    Observaciones del administrador:
+                                  </p>
+                                  {log.rejection_observations ? (
+                                    <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                                      {log.rejection_observations}
+                                    </p>
+                                  ) : (
+                                    <p className="text-sm text-red-600 dark:text-red-400 italic">
+                                      No se proporcionaron observaciones específicas.
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
-
-                        {log.status === 'rejected' && (
-                          <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
-                            <div className="flex items-start gap-2">
-                              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
-                                  Observaciones del administrador:
-                                </p>
-                                {log.rejection_observations ? (
-                                  <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
-                                    {log.rejection_observations}
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-red-600 dark:text-red-400 italic">
-                                    No se proporcionaron observaciones específicas.
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </CardContent>
           </Card>
           {/* Subscription */}
