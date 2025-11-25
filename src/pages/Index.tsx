@@ -299,7 +299,7 @@ const Index = () => {
       <header className="border-b border-border bg-card shadow-sm sticky top-0 z-50 w-full">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
           <div className="flex items-center justify-between gap-4 w-full">
-            <Logo size="lg" className="hover:scale-105 transition-transform duration-200 flex-shrink-0" />
+            <Logo size="xl" className="hover:scale-105 transition-transform duration-200 flex-shrink-0" />
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
               {user ? (
                 <>
