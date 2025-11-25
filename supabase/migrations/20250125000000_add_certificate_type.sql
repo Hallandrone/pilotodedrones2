@@ -12,3 +12,4 @@ SET certificate_type = 'pilot'
 WHERE certificate_type IS NULL;
 
 
+

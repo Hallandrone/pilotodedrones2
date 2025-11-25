@@ -7,3 +7,4 @@ ADD COLUMN IF NOT EXISTS desktop_only BOOLEAN NOT NULL DEFAULT false;
 COMMENT ON COLUMN public.ad_banners.mobile_image_url IS 'URL de la imagen del banner para dispositivos móviles (solo para posición Lateral Derecho)';
 COMMENT ON COLUMN public.ad_banners.desktop_only IS 'Indica si el banner solo se muestra en desktop (true) o también tiene versión móvil (false)';
 
+

@@ -27,3 +27,4 @@ ON public.pilots(certification_expires_at)
 WHERE certification_status = true;
 
 
+
