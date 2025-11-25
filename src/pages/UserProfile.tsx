@@ -1412,23 +1412,23 @@ const UserProfile = () => {
                 </div>
               </div>
 
-              {/* URL Personalizada del Perfil Público - Solo para usuarios con plan pagado */}
-              {subscription && subscription.status === 'active' && (
-                <div className="mt-6 pt-6 border-t border-border/50">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Crown className="h-5 w-5 text-yellow-500" />
-                      <Label className="text-foreground font-semibold text-lg">
-                        URL Personalizada del Perfil Público
-                      </Label>
-                      <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
-                        Premium
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Personaliza la URL de tu perfil público. Solo disponible con plan pagado activo.
-                    </p>
-                    
+              {/* URL Personalizada del Perfil Público */}
+              <div className="mt-6 pt-6 border-t border-border/50">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crown className="h-5 w-5 text-yellow-500" />
+                    <Label className="text-foreground font-semibold text-lg">
+                      URL Personalizada del Perfil Público
+                    </Label>
+                    <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
+                      Premium
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Personaliza la URL de tu perfil público. Solo disponible con plan pagado activo.
+                  </p>
+                  
+                  {subscription && subscription.status === 'active' ? (
                     <div className="space-y-2">
                       <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
                         <Link className="inline h-4 w-4 mr-1" />
@@ -1503,29 +1503,24 @@ const UserProfile = () => {
                         Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
                       </p>
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Mensaje si no tiene plan activo */}
-              {(!subscription || subscription.status !== 'active') && (
-                <div className="mt-6 pt-6 border-t border-border/50">
-                  <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
-                          URL Personalizada del Perfil
-                        </p>
-                        <p className="text-xs text-yellow-700 dark:text-yellow-400">
-                          Esta característica está disponible solo para usuarios con un plan pagado activo. 
-                          Suscríbete a un plan para personalizar la URL de tu perfil público.
-                        </p>
+                  ) : (
+                    <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <Crown className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                            Suscripción requerida
+                          </p>
+                          <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                            Esta característica está disponible solo para usuarios con un plan pagado activo. 
+                            Suscríbete a un plan para personalizar la URL de tu perfil público.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
 
               <div className="mt-6 flex justify-end">
                 <Button 
