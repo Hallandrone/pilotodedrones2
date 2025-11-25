@@ -1505,17 +1505,17 @@ const UserProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Flight Logs (Vitacoras) */}
+          {/* Horas de Vuelo */}
           <Card className="shadow-xl border-2 border-accent/20 bg-white/95 backdrop-blur-sm">
             <CardHeader className="border-b border-accent/10 bg-gradient-to-r from-accent/5 to-transparent">
               <CardTitle className="flex items-center gap-3 text-primary text-2xl">
                 <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center">
                   <Clock className="h-5 w-5 text-white" />
                 </div>
-                Vitacoras de Vuelo
+                Horas de Vuelo
               </CardTitle>
               <CardDescription className="text-base">
-                Sube y gestiona tus vitacoras de vuelo para validación
+                Sube tus vitacoras de vuelo para validación y registro de horas
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
