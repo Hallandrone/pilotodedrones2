@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2 } from "lucide-react";
@@ -758,11 +759,7 @@ const UserProfile = () => {
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         {/* Header */}
         <div className="mb-8 flex items-center gap-4">
-          <img 
-            src="/piloto de drones-logo.png" 
-            alt="Piloto de Drones" 
-            className="h-12 w-12 flex-shrink-0 object-contain"
-          />
+          <Logo size="lg" className="flex-shrink-0" showText={false} />
           <div>
             <h1 className="text-4xl font-bold text-white mb-2">Mi Perfil</h1>
             <p className="text-white/80 text-lg">Gestiona tu información personal y certificaciones</p>
