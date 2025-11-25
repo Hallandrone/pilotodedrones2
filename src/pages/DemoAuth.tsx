@@ -1,53 +1,112 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plane, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { Plane, Loader2, CheckCircle, AlertCircle, Building2, User, Lock, ArrowLeft } from "lucide-react";
 
 const DemoAuth = () => {
+  const [step, setStep] = useState<'select' | 'password'>('select');
+  const [selectedType, setSelectedType] = useState<'pilot' | 'company' | null>(null);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'creating' | 'logging' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'authenticating' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Email y password del usuario demo
-  const DEMO_EMAIL = 'demo@piloto.com';
-  const DEMO_PASSWORD = 'demopilot123';
-  const DEMO_NAME = 'Usuario Demo';
+  // Contraseña de protección para acceder a los demos
+  const DEMO_PASSWORD_PROTECTION = 'jaj%4@/zVLN@)v5';
+  
+  // Credenciales demo piloto
+  const DEMO_PILOT_EMAIL = 'demo@piloto.com';
+  const DEMO_PILOT_PASSWORD = 'demopilot123';
+  const DEMO_PILOT_NAME = 'Usuario Demo';
+  
+  // Credenciales demo empresa
+  const DEMO_COMPANY_EMAIL = 'demo@empresa.com';
+  const DEMO_COMPANY_PASSWORD = 'demoempresa123';
+  const DEMO_COMPANY_NAME = 'Empresa Demo';
 
-  const createDemoUser = async () => {
+  const handleTypeSelect = (type: 'pilot' | 'company') => {
+    setSelectedType(type);
+    setStep('password');
+    setPassword('');
+    setPasswordError(false);
+    setStatus('idle');
+    setMessage('');
+  };
+
+  const handleBack = () => {
+    setStep('select');
+    setSelectedType(null);
+    setPassword('');
+    setPasswordError(false);
+    setStatus('idle');
+    setMessage('');
+  };
+
+  const handlePasswordSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    
+    if (!selectedType) return;
+
+    // Validar contraseña
+    if (password !== DEMO_PASSWORD_PROTECTION) {
+      setPasswordError(true);
+      setMessage('Contraseña incorrecta. Por favor, intenta nuevamente.');
+      toast({
+        title: "Contraseña incorrecta",
+        description: "La contraseña ingresada no es válida",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPasswordError(false);
     setLoading(true);
-    setStatus('creating');
-    setMessage('Creando usuario demo...');
+    setStatus('authenticating');
+    setMessage('Autenticando...');
 
+    // Autenticar según el tipo seleccionado
+    if (selectedType === 'pilot') {
+      await authenticateDemo('pilot');
+    } else {
+      await authenticateDemo('company');
+    }
+  };
+
+  const authenticateDemo = async (type: 'pilot' | 'company') => {
     try {
+      const email = type === 'pilot' ? DEMO_PILOT_EMAIL : DEMO_COMPANY_EMAIL;
+      const password = type === 'pilot' ? DEMO_PILOT_PASSWORD : DEMO_COMPANY_PASSWORD;
+      const name = type === 'pilot' ? DEMO_PILOT_NAME : DEMO_COMPANY_NAME;
+      const redirectPath = type === 'pilot' ? '/pilot' : '/company-profile';
+
       // Intentar iniciar sesión primero
       const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
-        email: DEMO_EMAIL,
-        password: DEMO_PASSWORD,
+        email,
+        password,
       });
 
       // Si el login fue exitoso
       if (!loginError && loginData.user) {
-        setMessage('Usuario demo existente encontrado, iniciando sesión...');
-        setStatus('logging');
-        
-        // Esperar un momento
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
         setStatus('success');
         setMessage('✓ Sesión iniciada correctamente. Redirigiendo...');
         
         toast({
           title: "¡Sesión iniciada!",
-          description: "Bienvenido al panel de piloto demo",
+          description: type === 'pilot' 
+            ? "Bienvenido al panel de piloto demo" 
+            : "Bienvenido al panel de empresa demo",
         });
 
         setTimeout(() => {
-          navigate('/pilot');
+          navigate(redirectPath);
         }, 1500);
         
         setLoading(false);
@@ -55,33 +114,29 @@ const DemoAuth = () => {
       }
 
       // Si no existe, intentar crearlo
-      setMessage('Usuario no existe, creando cuenta demo...');
+      setMessage('Creando cuenta demo...');
       
       const { data: signupData, error: signupError } = await supabase.auth.signUp({
-        email: DEMO_EMAIL,
-        password: DEMO_PASSWORD,
+        email,
+        password,
         options: {
           data: {
-            full_name: DEMO_NAME,
-            user_type: 'pilot'
+            full_name: name,
+            user_type: type
           }
         }
       });
 
       if (signupError) {
-        // Si hay un error porque el email ya existe pero hay un problema de password
+        // Si el email ya existe pero hay un problema de password
         if (signupError.message.includes('already registered')) {
-          setMessage('Cuenta existe, intentando login alternativo...');
-          
-          // Intentar resetear la contraseña o continuar
+          setStatus('error');
+          setMessage('La cuenta demo ya existe pero hay un problema. Contacta al administrador.');
           toast({
-            title: "Cuenta existente",
-            description: "La cuenta demo ya existe. Intenta iniciar sesión manualmente",
+            title: "Error",
+            description: "La cuenta demo ya existe. Contacta al administrador.",
             variant: "destructive",
           });
-          
-          setStatus('error');
-          setMessage('La cuenta demo ya existe. Usa la pestaña de login con: demo@piloto.com / demopilot123');
           setLoading(false);
           return;
         }
@@ -90,27 +145,49 @@ const DemoAuth = () => {
       }
 
       if (signupData.user) {
-        setMessage('Usuario creado, esperando confirmación...');
+        // Si es empresa, crear el registro en la tabla companies
+        if (type === 'company') {
+          try {
+            // Esperar un momento para que se cree el perfil
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const { error: companyError } = await supabase
+              .from('companies')
+              .insert({
+                user_id: signupData.user.id,
+                company_name: 'Empresa Demo',
+                description: 'Esta es una cuenta demo para empresas',
+              });
+
+            if (companyError && !companyError.message.includes('duplicate')) {
+              console.error('Error creando registro de empresa:', companyError);
+            }
+          } catch (error) {
+            console.error('Error al crear registro de empresa:', error);
+          }
+        }
+
         setStatus('success');
+        setMessage('✓ Cuenta demo creada. Redirigiendo...');
         
         toast({
-          title: "Usuario creado",
+          title: "Cuenta creada",
           description: "Redirigiendo al dashboard...",
         });
 
         setTimeout(() => {
-          navigate('/pilot');
+          navigate(redirectPath);
         }, 1500);
       }
 
     } catch (error: any) {
       console.error('Error:', error);
       setStatus('error');
-      setMessage(`Error: ${error.message || 'No se pudo crear el usuario demo'}`);
+      setMessage(`Error: ${error.message || 'No se pudo autenticar'}`);
       
       toast({
         title: "Error",
-        description: error.message || "Hubo un problema al crear el usuario demo",
+        description: error.message || "Hubo un problema al autenticar",
         variant: "destructive",
       });
     } finally {
@@ -129,27 +206,113 @@ const DemoAuth = () => {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Usuario Demo
+              {step === 'select' ? 'Acceso Demo' : selectedType === 'pilot' ? 'Perfil Usuario Demo' : 'Perfil Demo Empresa'}
             </CardTitle>
             <CardDescription className="text-base mt-2">
-              Acceso rápido al dashboard de piloto
+              {step === 'select' 
+                ? 'Selecciona el tipo de perfil demo que deseas probar'
+                : 'Ingresa la contraseña para acceder'}
             </CardDescription>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Status Messages */}
-          {status === 'creating' && (
-            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
-              <span className="text-blue-800 font-medium">{message}</span>
+          {/* Paso 1: Selección de tipo */}
+          {step === 'select' && (
+            <div className="space-y-4">
+              <Button
+                onClick={() => handleTypeSelect('pilot')}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-8 text-lg h-auto"
+                size="lg"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <User className="h-6 w-6" />
+                  <span>Perfil Usuario Demo</span>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => handleTypeSelect('company')}
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-8 text-lg h-auto"
+                size="lg"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <Building2 className="h-6 w-6" />
+                  <span>Perfil Demo Empresa</span>
+                </div>
+              </Button>
             </div>
           )}
 
-          {status === 'logging' && (
-            <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-              <Loader2 className="h-5 w-5 text-indigo-600 animate-spin" />
-              <span className="text-indigo-800 font-medium">{message}</span>
+          {/* Paso 2: Validación de contraseña */}
+          {step === 'password' && selectedType && (
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-semibold text-slate-700">
+                  Contraseña de acceso
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setPasswordError(false);
+                      setMessage('');
+                    }}
+                    placeholder="Ingresa la contraseña"
+                    className={`pl-10 ${passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                    disabled={loading}
+                    autoFocus
+                  />
+                </div>
+                {passwordError && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    Contraseña incorrecta
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading || !password}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-6 text-base"
+                size="lg"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Autenticando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    Ingresar
+                  </>
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleBack}
+                disabled={loading}
+                className="w-full"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Volver
+              </Button>
+            </form>
+          )}
+
+          {/* Status Messages */}
+          {status === 'authenticating' && (
+            <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+              <span className="text-blue-800 font-medium">{message}</span>
             </div>
           )}
 
@@ -167,61 +330,18 @@ const DemoAuth = () => {
             </div>
           )}
 
-          {/* Credentials Display */}
-          <div className="bg-slate-50 rounded-lg p-4 space-y-2 border border-slate-200">
-            <p className="text-sm font-semibold text-slate-700">Credenciales Demo:</p>
-            <div className="text-sm text-slate-600 space-y-1">
-              <p><span className="font-medium">Email:</span> demo@piloto.com</p>
-              <p><span className="font-medium">Password:</span> demopilot123</p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <Button 
-            onClick={createDemoUser} 
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-6 text-base"
-            size="lg"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                Procesando...
-              </>
-            ) : status === 'success' ? (
-              <>
-                <CheckCircle className="h-5 w-5 mr-2" />
-                Redirigiendo...
-              </>
-            ) : (
-              <>
-                <Plane className="h-5 w-5 mr-2" />
-                Iniciar Sesión Demo
-              </>
-            )}
-          </Button>
-
-          {status === 'error' && (
-            <div className="pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => navigate('/auth')}
-                className="w-full"
+          {/* Botón volver al inicio */}
+          {step === 'select' && (
+            <div className="text-center pt-4">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/')}
+                className="text-slate-600 hover:text-slate-900"
               >
-                Ir a página de Login
+                ← Volver al inicio
               </Button>
             </div>
           )}
-
-          <div className="text-center pt-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')}
-              className="text-slate-600 hover:text-slate-900"
-            >
-              ← Volver al inicio
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
@@ -229,5 +349,3 @@ const DemoAuth = () => {
 };
 
 export default DemoAuth;
-
-
