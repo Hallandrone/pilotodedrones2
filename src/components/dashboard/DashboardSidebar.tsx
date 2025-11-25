@@ -12,7 +12,8 @@ import {
   Bell,
   LogOut,
   Home,
-  FileCheck
+  FileCheck,
+  Clock
 } from "lucide-react";
 import {
   Sidebar,
@@ -69,6 +70,12 @@ const menuItems = [
     title: "Certificados",
     url: "/dashboard/certificates",
     icon: FileCheck,
+    roles: ["super_admin", "admin"]
+  },
+  {
+    title: "Vitacoras de Vuelo",
+    url: "/dashboard/flight-logs",
+    icon: Clock,
     roles: ["super_admin", "admin"]
   },
   {

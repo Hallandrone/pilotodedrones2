@@ -11,6 +11,7 @@ import { Pilots } from "@/components/dashboard/Pilots";
 import { Companies } from "@/components/dashboard/Companies";
 import { Configuration } from "@/components/dashboard/Configuration";
 import AdminCertificates from "./AdminCertificates";
+import AdminFlightLogs from "./AdminFlightLogs";
 import UserProfile from "./UserProfile";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
@@ -124,6 +125,7 @@ const Dashboard = () => {
                 <Route path="/pilots" element={<Pilots />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/certificates" element={<AdminCertificates />} />
+                <Route path="/flight-logs" element={<AdminFlightLogs />} />
                 <Route path="/configuracion" element={<Configuration />} />
               </Routes>
             </div>

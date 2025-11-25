@@ -40,11 +40,23 @@ interface PendingCertification {
   } | null;
 }
 
+interface PendingFlightLog {
+  id: string;
+  user_id: string;
+  file_name: string;
+  uploaded_at: string;
+  profiles: {
+    full_name: string;
+    email: string;
+  } | null;
+}
+
 export function DashboardHeader({ user }: DashboardHeaderProps) {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [pendingCertifications, setPendingCertifications] = useState<PendingCertification[]>([]);
+  const [pendingFlightLogs, setPendingFlightLogs] = useState<PendingFlightLog[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   useEffect(() => {
@@ -57,26 +69,23 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     // Solo cargar notificaciones si el usuario es super_admin
     if (userRole?.role === 'super_admin') {
       loadPendingCertifications();
+      loadPendingFlightLogs();
       
-      // Configurar Realtime subscription para escuchar cambios en tiempo real
-      const channel = supabase
+      // Configurar Realtime subscription para escuchar cambios en certificaciones
+      const certsChannel = supabase
         .channel('certifications-changes')
         .on(
           'postgres_changes',
           {
-            event: '*', // Escuchar INSERT, UPDATE, DELETE
+            event: '*',
             schema: 'public',
             table: 'user_certifications'
           },
           (payload) => {
             console.log('Certification change detected:', payload);
-            // Solo recargar si el cambio afecta certificaciones pendientes
             const newStatus = payload.new?.status;
             const oldStatus = payload.old?.status;
             
-            // Recargar si:
-            // - Se insertó un nuevo certificado pendiente
-            // - Se actualizó el status de un certificado (puede afectar el contador)
             if (payload.eventType === 'INSERT' && newStatus === 'pending') {
               loadPendingCertifications();
             } else if (payload.eventType === 'UPDATE' && (newStatus === 'pending' || oldStatus === 'pending')) {
@@ -88,8 +97,35 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         )
         .subscribe();
 
+      // Configurar Realtime subscription para escuchar cambios en flight logs
+      const logsChannel = supabase
+        .channel('flight-logs-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'flight_logs'
+          },
+          (payload) => {
+            console.log('Flight log change detected:', payload);
+            const newStatus = payload.new?.status;
+            const oldStatus = payload.old?.status;
+            
+            if (payload.eventType === 'INSERT' && newStatus === 'pending') {
+              loadPendingFlightLogs();
+            } else if (payload.eventType === 'UPDATE' && (newStatus === 'pending' || oldStatus === 'pending')) {
+              loadPendingFlightLogs();
+            } else if (payload.eventType === 'DELETE' && oldStatus === 'pending') {
+              loadPendingFlightLogs();
+            }
+          }
+        )
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(certsChannel);
+        supabase.removeChannel(logsChannel);
       };
     }
   }, [userRole?.role]);
@@ -164,6 +200,47 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     }
   };
 
+  const loadPendingFlightLogs = async () => {
+    if (!user?.id) return;
+
+    try {
+      // Obtener vitacoras pendientes
+      const { data: logsData, error: logsError } = await supabase
+        .from('flight_logs')
+        .select('id, user_id, file_name, uploaded_at')
+        .eq('status', 'pending')
+        .order('uploaded_at', { ascending: false })
+        .limit(10);
+
+      if (logsError) throw logsError;
+
+      if (!logsData || logsData.length === 0) {
+        setPendingFlightLogs([]);
+        return;
+      }
+
+      // Obtener información de los usuarios
+      const userIds = [...new Set(logsData.map(log => log.user_id))];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', userIds);
+
+      // Combinar vitacoras con perfiles
+      const logsWithProfiles = logsData.map(log => {
+        const profile = profilesData?.find(p => p.id === log.user_id);
+        return {
+          ...log,
+          profiles: profile ? { full_name: profile.full_name || 'Usuario', email: profile.email || '' } : null
+        };
+      });
+
+      setPendingFlightLogs(logsWithProfiles as PendingFlightLog[]);
+    } catch (error) {
+      console.error('Error loading pending flight logs:', error);
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -204,8 +281,12 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     navigate('/dashboard/certificates');
   };
 
+  const handleFlightLogNotificationClick = () => {
+    navigate('/dashboard/flight-logs');
+  };
+
   const isSuperAdmin = userRole?.role === 'super_admin';
-  const notificationCount = pendingCertifications.length;
+  const notificationCount = pendingCertifications.length + pendingFlightLogs.length;
 
   return (
     <header className="h-16 bg-card/50 backdrop-blur-sm border-b flex items-center justify-between px-6">
@@ -255,45 +336,98 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
               </div>
             ) : notificationCount === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
-                No hay certificaciones pendientes
+                No hay notificaciones pendientes
               </div>
             ) : (
               <>
-                {pendingCertifications.map((cert) => (
-                  <DropdownMenuItem
-                    key={cert.id}
-                    className="flex flex-col items-start p-3 cursor-pointer"
-                    onClick={handleNotificationClick}
-                  >
-                    <div className="flex items-start gap-3 w-full">
-                      <div className="h-8 w-8 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="h-4 w-4 text-[#00b3f3]" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {cert.profiles?.full_name || 'Usuario'} envió una certificación
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {cert.file_name}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatDate(cert.uploaded_at)}
-                        </p>
-                      </div>
+                {pendingCertifications.length > 0 && (
+                  <>
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
+                      Certificaciones
                     </div>
-                  </DropdownMenuItem>
-                ))}
+                    {pendingCertifications.map((cert) => (
+                      <DropdownMenuItem
+                        key={cert.id}
+                        className="flex flex-col items-start p-3 cursor-pointer"
+                        onClick={handleNotificationClick}
+                      >
+                        <div className="flex items-start gap-3 w-full">
+                          <div className="h-8 w-8 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText className="h-4 w-4 text-[#00b3f3]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {cert.profiles?.full_name || 'Usuario'} envió una certificación
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {cert.file_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {formatDate(cert.uploaded_at)}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
+                {pendingFlightLogs.length > 0 && (
+                  <>
+                    {pendingCertifications.length > 0 && <DropdownMenuSeparator />}
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
+                      Vitacoras de Vuelo
+                    </div>
+                    {pendingFlightLogs.map((log) => (
+                      <DropdownMenuItem
+                        key={log.id}
+                        className="flex flex-col items-start p-3 cursor-pointer"
+                        onClick={handleFlightLogNotificationClick}
+                      >
+                        <div className="flex items-start gap-3 w-full">
+                          <div className="h-8 w-8 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText className="h-4 w-4 text-orange-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              {log.profiles?.full_name || 'Usuario'} envió una vitacora
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {log.file_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {formatDate(log.uploaded_at)}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
                 {notificationCount > 0 && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-center justify-center cursor-pointer"
-                      onClick={handleNotificationClick}
-                    >
-                      <span className="text-sm font-medium text-[#00b3f3]">
-                        Ver todas las certificaciones
-                      </span>
-                    </DropdownMenuItem>
+                    <div className="flex gap-2 px-2">
+                      {pendingCertifications.length > 0 && (
+                        <DropdownMenuItem
+                          className="flex-1 text-center justify-center cursor-pointer"
+                          onClick={handleNotificationClick}
+                        >
+                          <span className="text-sm font-medium text-[#00b3f3]">
+                            Ver certificaciones
+                          </span>
+                        </DropdownMenuItem>
+                      )}
+                      {pendingFlightLogs.length > 0 && (
+                        <DropdownMenuItem
+                          className="flex-1 text-center justify-center cursor-pointer"
+                          onClick={handleFlightLogNotificationClick}
+                        >
+                          <span className="text-sm font-medium text-orange-500">
+                            Ver vitacoras
+                          </span>
+                        </DropdownMenuItem>
+                      )}
+                    </div>
                   </>
                 )}
               </>

@@ -34,6 +34,16 @@ interface Certification {
   rejection_observations?: string | null;
 }
 
+interface FlightLog {
+  id: string;
+  file_name: string;
+  file_url: string;
+  status: 'pending' | 'validated' | 'rejected';
+  uploaded_at: string;
+  rejection_observations?: string | null;
+  flight_hours?: number | null;
+}
+
 interface Subscription {
   plan_name: string;
   status: 'active' | 'inactive' | 'expired';
@@ -56,6 +66,7 @@ const UserProfile = () => {
     public_profile_slug: ''
   });
   const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [flightLogs, setFlightLogs] = useState<FlightLog[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -138,6 +149,70 @@ const UserProfile = () => {
     };
   }, [user?.id, toast]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Configurar Realtime subscription para escuchar cambios en flight logs
+    const flightLogsChannel = supabase
+      .channel('user-flight-logs-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'flight_logs',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Flight log change detected in user profile:', payload);
+          
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            setFlightLogs(prev => prev.map(log => {
+              if (log.id === payload.new.id) {
+                return {
+                  ...log,
+                  status: payload.new.status as 'pending' | 'validated' | 'rejected',
+                  rejection_observations: payload.new.rejection_observations || null,
+                  flight_hours: payload.new.flight_hours || null
+                };
+              }
+              return log;
+            }));
+            
+            if (payload.new.status === 'rejected' && payload.new.rejection_observations) {
+              toast({
+                title: "Vitacora rechazada",
+                description: "Tu vitacora ha sido rechazada. Revisa las observaciones.",
+                variant: "destructive",
+              });
+            } else if (payload.new.status === 'validated') {
+              toast({
+                title: "Vitacora validada",
+                description: "Tu vitacora ha sido validada exitosamente",
+              });
+            }
+          } else if (payload.eventType === 'INSERT' && payload.new) {
+            setFlightLogs(prev => [...prev, {
+              id: payload.new.id,
+              file_name: payload.new.file_name,
+              file_url: payload.new.file_url,
+              status: payload.new.status as 'pending' | 'validated' | 'rejected',
+              uploaded_at: payload.new.uploaded_at,
+              rejection_observations: payload.new.rejection_observations || null,
+              flight_hours: payload.new.flight_hours || null
+            }]);
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            setFlightLogs(prev => prev.filter(log => log.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(flightLogsChannel);
+    };
+  }, [user?.id, toast]);
+
   const loadUserData = async () => {
     try {
       setLoading(true);
@@ -212,6 +287,29 @@ const UserProfile = () => {
           status: cert.status as 'pending' | 'approved' | 'rejected',
           uploaded_at: cert.uploaded_at,
           rejection_observations: cert.rejection_observations || null
+        })));
+      }
+
+      // Load flight logs
+      const { data: logsData, error: logsError } = await supabase
+        .from('flight_logs')
+        .select('id, file_name, file_url, status, uploaded_at, rejection_observations, flight_hours')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false });
+
+      if (logsError) {
+        console.error('Error loading flight logs:', logsError);
+      }
+
+      if (logsData) {
+        setFlightLogs(logsData.map(log => ({
+          id: log.id,
+          file_name: log.file_name,
+          file_url: log.file_url,
+          status: log.status as 'pending' | 'validated' | 'rejected',
+          uploaded_at: log.uploaded_at,
+          rejection_observations: log.rejection_observations || null,
+          flight_hours: log.flight_hours || null
         })));
       }
 
@@ -643,9 +741,160 @@ const UserProfile = () => {
     }
   };
 
+  const handleFlightLogUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (!allowedTypes.includes(fileExtension)) {
+      toast({
+        title: "Archivo no válido",
+        description: "Solo se permiten archivos PDF, JPG, JPEG y PNG",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Archivo muy grande",
+        description: "El archivo no debe exceder 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Upload file to Supabase Storage
+      const fileName = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('flight-logs')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Save flight log record with file path
+      const { error: dbError } = await supabase
+        .from('flight_logs')
+        .insert({
+          user_id: user.id,
+          file_name: file.name,
+          file_url: fileName,
+          status: 'pending'
+        });
+
+      if (dbError) throw dbError;
+
+      toast({
+        title: "Vitacora subida",
+        description: "Tu vitacora ha sido enviada para revisión",
+      });
+
+      // Reload flight logs
+      const { data: logsData } = await supabase
+        .from('flight_logs')
+        .select('id, file_name, file_url, status, uploaded_at, rejection_observations, flight_hours')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false });
+
+      if (logsData) {
+        setFlightLogs(logsData.map(log => ({
+          id: log.id,
+          file_name: log.file_name,
+          file_url: log.file_url,
+          status: log.status as 'pending' | 'validated' | 'rejected',
+          uploaded_at: log.uploaded_at,
+          rejection_observations: log.rejection_observations || null,
+          flight_hours: log.flight_hours || null
+        })));
+      }
+
+    } catch (error) {
+      console.error('Error uploading flight log:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir la vitacora",
+        variant: "destructive",
+      });
+    }
+
+    // Reset file input
+    event.target.value = '';
+  };
+
+  const handleDeleteFlightLog = async (id: string) => {
+    try {
+      // Get the flight log to delete the file
+      const logToDelete = flightLogs.find(log => log.id === id);
+      
+      if (logToDelete) {
+        // Delete file from storage
+        const { error: storageError } = await supabase.storage
+          .from('flight-logs')
+          .remove([logToDelete.file_url]);
+
+        if (storageError) {
+          console.error('Error deleting file from storage:', storageError);
+        }
+      }
+
+      // Delete record from database
+      const { error } = await supabase
+        .from('flight_logs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setFlightLogs(prev => prev.filter(log => log.id !== id));
+      
+      toast({
+        title: "Vitacora eliminada",
+        description: "La vitacora ha sido eliminada correctamente",
+      });
+    } catch (error) {
+      console.error('Error deleting flight log:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la vitacora",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewFlightLog = async (id: string) => {
+    try {
+      const log = flightLogs.find(l => l.id === id);
+      if (!log) return;
+
+      // Get signed URL for the file
+      const { data, error } = await supabase.storage
+        .from('flight-logs')
+        .createSignedUrl(log.file_url, 3600); // 1 hour expiration
+
+      if (error) throw error;
+
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Error viewing flight log:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo abrir la vitacora",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-800 border-green-200';
+      case 'approved':
+      case 'validated': return 'bg-green-100 text-green-800 border-green-200';
       case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
       case 'expired': return 'bg-red-100 text-red-800 border-red-200';
@@ -656,7 +905,8 @@ const UserProfile = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved': return <Check className="h-3 w-3" />;
+      case 'approved':
+      case 'validated': return <Check className="h-3 w-3" />;
       case 'rejected': return <X className="h-3 w-3" />;
       default: return <Clock className="h-3 w-3" />;
     }
@@ -664,7 +914,8 @@ const UserProfile = () => {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'approved': return 'Aprobado';
+      case 'approved':
+      case 'validated': return 'Validado';
       case 'rejected': return 'Rechazado';
       case 'active': return 'Activo';
       case 'expired': return 'Expirado';
@@ -1236,6 +1487,139 @@ const UserProfile = () => {
                                 {cert.rejection_observations ? (
                                   <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
                                     {cert.rejection_observations}
+                                  </p>
+                                ) : (
+                                  <p className="text-sm text-red-600 dark:text-red-400 italic">
+                                    No se proporcionaron observaciones específicas.
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Flight Logs (Vitacoras) */}
+          <Card className="shadow-xl border-2 border-accent/20 bg-white/95 backdrop-blur-sm">
+            <CardHeader className="border-b border-accent/10 bg-gradient-to-r from-accent/5 to-transparent">
+              <CardTitle className="flex items-center gap-3 text-primary text-2xl">
+                <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                Vitacoras de Vuelo
+              </CardTitle>
+              <CardDescription className="text-base">
+                Sube y gestiona tus vitacoras de vuelo para validación
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {/* Info Message */}
+              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                      Información sobre la validación de vitacoras
+                    </p>
+                    <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
+                      <p>
+                        • Sube tus vitacoras de vuelo para que un administrador las revise y valide.
+                      </p>
+                      <p>
+                        • Esta acción es realizada por un administrador humano que revisa cada vitacora.
+                      </p>
+                      <p>
+                        • Si tu vitacora es válida, las horas de vuelo serán acreditadas en tu perfil y aumentarán tu credibilidad profesional.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Upload Area */}
+              <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
+                <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  Arrastra y suelta tu vitacora aquí, o 
+                </p>
+                <Label htmlFor="flight-log-upload" className="cursor-pointer">
+                  <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
+                  <Input
+                    id="flight-log-upload"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleFlightLogUpload}
+                    className="hidden"
+                  />
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                </p>
+              </div>
+
+              {/* Flight Logs List */}
+              {flightLogs.length > 0 && (
+                <div className="mt-6">
+                  <Separator className="mb-4" />
+                  <h4 className="font-medium text-foreground mb-4">Vitacoras subidas</h4>
+                  <div className="space-y-3">
+                    {flightLogs.map((log) => (
+                      <div key={log.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <FileText className="h-5 w-5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium text-foreground">{log.file_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Subido el {new Date(log.uploaded_at).toLocaleDateString()}
+                              </p>
+                              {log.flight_hours && (
+                                <p className="text-xs text-accent font-medium mt-1">
+                                  {log.flight_hours} horas validadas
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={getStatusColor(log.status)}>
+                              {getStatusIcon(log.status)}
+                              <span className="ml-1">{getStatusText(log.status)}</span>
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewFlightLog(log.id)}
+                              className="text-primary hover:text-primary hover:bg-primary/10"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteFlightLog(log.id)}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        {log.status === 'rejected' && (
+                          <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
+                                  Observaciones del administrador:
+                                </p>
+                                {log.rejection_observations ? (
+                                  <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                                    {log.rejection_observations}
                                   </p>
                                 ) : (
                                   <p className="text-sm text-red-600 dark:text-red-400 italic">
