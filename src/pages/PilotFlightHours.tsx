@@ -18,7 +18,15 @@ import {
   Plane,
   Save,
   Edit,
-  Trash2
+  Trash2,
+  Upload,
+  FileText,
+  Eye,
+  X,
+  XCircle,
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from "lucide-react";
 
 interface FlightRecord {
@@ -31,12 +39,25 @@ interface FlightRecord {
   created_at: string;
 }
 
+interface FlightLogCertificate {
+  id: string;
+  file_name: string;
+  file_url: string;
+  status: 'pending' | 'validated' | 'rejected';
+  uploaded_at: string;
+  rejection_observations?: string | null;
+  flight_hours?: number | null;
+}
+
 const PilotFlightHours = () => {
   const [flightRecords, setFlightRecords] = useState<FlightRecord[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FlightRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [certificates, setCertificates] = useState<FlightLogCertificate[]>([]);
+  const [uploadingCertificate, setUploadingCertificate] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -66,8 +87,25 @@ const PilotFlightHours = () => {
   ];
 
   useEffect(() => {
-    loadFlightRecords();
+    loadUser();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadFlightRecords();
+      loadCertificates();
+      setupRealtimeSubscription();
+    }
+  }, [user]);
+
+  const loadUser = async () => {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      setUser(currentUser);
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
+  };
 
   const loadFlightRecords = async () => {
     try {
@@ -228,6 +266,230 @@ const PilotFlightHours = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const loadCertificates = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('flight_logs')
+        .select('id, file_name, file_url, status, uploaded_at, rejection_observations, flight_hours')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) throw error;
+
+      if (data) {
+        setCertificates(data.map(log => ({
+          id: log.id,
+          file_name: log.file_name,
+          file_url: log.file_url,
+          status: log.status as 'pending' | 'validated' | 'rejected',
+          uploaded_at: log.uploaded_at,
+          rejection_observations: log.rejection_observations || null,
+          flight_hours: log.flight_hours || null
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading certificates:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los certificados",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const setupRealtimeSubscription = () => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('flight-logs-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'flight_logs',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Flight log change detected:', payload);
+          loadCertificates();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const handleCertificateUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
+    const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+    
+    if (!allowedTypes.includes(fileExtension)) {
+      toast({
+        title: "Archivo no válido",
+        description: "Solo se permiten archivos PDF, JPG, JPEG y PNG",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "Archivo muy grande",
+        description: "El archivo no debe exceder 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setUploadingCertificate(true);
+
+      // Upload file to Supabase Storage
+      const fileName = `${user.id}/logs/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('flight-logs')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Save flight log record
+      const { data, error: dbError } = await supabase
+        .from('flight_logs')
+        .insert({
+          user_id: user.id,
+          file_name: file.name,
+          file_url: fileName,
+          status: 'pending'
+        })
+        .select();
+
+      if (dbError) throw dbError;
+
+      // Reload certificates
+      await loadCertificates();
+
+      toast({
+        title: "Certificado subido",
+        description: "Tu certificado de horas de vuelo ha sido enviado para revisión",
+      });
+
+    } catch (error: any) {
+      console.error('Error uploading certificate:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo subir el certificado",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingCertificate(false);
+      // Reset file input
+      event.target.value = '';
+    }
+  };
+
+  const handleViewCertificate = async (id: string) => {
+    try {
+      const certificate = certificates.find(cert => cert.id === id);
+      if (!certificate) return;
+
+      const { data, error } = await supabase.storage
+        .from('flight-logs')
+        .createSignedUrl(certificate.file_url, 3600);
+
+      if (error) throw error;
+
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
+    } catch (error) {
+      console.error('Error viewing certificate:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo abrir el certificado",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteCertificate = async (id: string) => {
+    try {
+      const certificate = certificates.find(cert => cert.id === id);
+      if (!certificate) return;
+
+      // Delete file from storage
+      const { error: storageError } = await supabase.storage
+        .from('flight-logs')
+        .remove([certificate.file_url]);
+
+      if (storageError) throw storageError;
+
+      // Delete record from database
+      const { error: dbError } = await supabase
+        .from('flight_logs')
+        .delete()
+        .eq('id', id);
+
+      if (dbError) throw dbError;
+
+      // Update local state
+      setCertificates(prev => prev.filter(cert => cert.id !== id));
+
+      toast({
+        title: "Certificado eliminado",
+        description: "El certificado ha sido eliminado correctamente",
+      });
+    } catch (error) {
+      console.error('Error deleting certificate:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el certificado",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'validated':
+        return 'bg-green-500/10 text-green-500 border-green-500/30';
+      case 'rejected':
+        return 'bg-red-500/10 text-red-500 border-red-500/30';
+      default:
+        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'validated':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'rejected':
+        return <XCircle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'validated':
+        return 'Validado';
+      case 'rejected':
+        return 'Rechazado';
+      default:
+        return 'Pendiente';
+    }
   };
 
   if (loading) {
@@ -487,6 +749,147 @@ const PilotFlightHours = () => {
             </div>
           </Card>
         )}
+
+        {/* Certificados de Horas de Vuelo Section */}
+        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden mt-6">
+          <div className="bg-gradient-to-r from-blue-500/20 via-indigo-500/10 to-purple-500/20 p-1">
+            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
+              <CardTitle className="flex items-center gap-3 text-xl font-bold text-[#E0E0E0]">
+                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                Certificados de Horas de Vuelo o Itinerarios
+              </CardTitle>
+              <CardDescription className="text-[#B0B0B0] mt-2">
+                Sube certificados o itinerarios de vuelo para validación por el administrador
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-4">
+              {/* Upload Area */}
+              <div className="border-2 border-dashed border-[#333333] rounded-xl p-6 text-center hover:border-[#FF69B4]/50 transition-colors">
+                <Upload className={`mx-auto h-8 w-8 ${uploadingCertificate ? 'text-[#B0B0B0]/50' : 'text-[#B0B0B0]'} mb-2`} />
+                <p className="text-sm text-[#B0B0B0] mb-2">
+                  Arrastra y suelta tu certificado o itinerario aquí, o
+                </p>
+                <Label htmlFor="certificate-upload" className="cursor-pointer">
+                  <span className="text-[#FF69B4] hover:text-[#FF69B4]/80 font-medium">selecciona un archivo</span>
+                  <Input
+                    id="certificate-upload"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleCertificateUpload}
+                    className="hidden"
+                    disabled={uploadingCertificate}
+                  />
+                </Label>
+                <p className="text-xs text-[#B0B0B0] mt-1">
+                  Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                </p>
+                {uploadingCertificate && (
+                  <div className="mt-3 flex items-center justify-center gap-2 text-sm text-[#B0B0B0]">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Subiendo archivo...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Certificates List */}
+              {certificates.length > 0 && (
+                <div className="mt-6 space-y-3">
+                  <h4 className="font-medium text-[#E0E0E0] mb-4">Certificados subidos</h4>
+                  {certificates.map((cert) => (
+                    <div key={cert.id} className="p-4 bg-[#212121] rounded-xl border border-[#333333]">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                            <FileText className="h-5 w-5 text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-[#E0E0E0]">{cert.file_name}</p>
+                            <p className="text-xs text-[#B0B0B0]">
+                              Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
+                            </p>
+                            {cert.flight_hours && (
+                              <p className="text-xs text-blue-500 font-medium mt-1">
+                                {cert.flight_hours} horas validadas
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getStatusColor(cert.status)}>
+                            {getStatusIcon(cert.status)}
+                            <span className="ml-1">{getStatusText(cert.status)}</span>
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewCertificate(cert.id)}
+                            className="text-blue-500 hover:text-blue-400 hover:bg-blue-500/10"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteCertificate(cert.id)}
+                            className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      {cert.rejection_observations && (
+                        <div className={`mt-3 p-3 rounded-lg border ${
+                          cert.status === 'rejected'
+                            ? 'bg-red-500/10 border-red-500/30'
+                            : cert.status === 'validated'
+                            ? 'bg-green-500/10 border-green-500/30'
+                            : 'bg-blue-500/10 border-blue-500/30'
+                        }`}>
+                          <div className="flex items-start gap-2">
+                            {cert.status === 'rejected' ? (
+                              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                            ) : cert.status === 'validated' ? (
+                              <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            ) : (
+                              <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                            )}
+                            <div className="flex-1">
+                              <p className={`text-sm font-semibold mb-1 ${
+                                cert.status === 'rejected'
+                                  ? 'text-red-400'
+                                  : cert.status === 'validated'
+                                  ? 'text-green-400'
+                                  : 'text-blue-400'
+                              }`}>
+                                {cert.status === 'rejected'
+                                  ? 'Observaciones del administrador (Rechazado):'
+                                  : cert.status === 'validated'
+                                  ? 'Observaciones del administrador (Validado):'
+                                  : 'Observaciones del administrador:'
+                                }
+                              </p>
+                              <p className={`text-sm whitespace-pre-wrap ${
+                                cert.status === 'rejected'
+                                  ? 'text-red-300'
+                                  : cert.status === 'validated'
+                                  ? 'text-green-300'
+                                  : 'text-blue-300'
+                              }`}>
+                                {cert.rejection_observations}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </div>
+        </Card>
       </div>
     </div>
   );
