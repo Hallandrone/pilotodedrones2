@@ -553,21 +553,26 @@ const UserProfile = () => {
     if (!slug || !user?.id) return false;
     
     try {
+      // Use maybeSingle() instead of single() to avoid 406 errors
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
         .eq('public_profile_slug', slug)
         .neq('id', user.id)
-        .single();
+        .maybeSingle();
       
-      // If no error and data exists, slug is taken
+      // If data exists, slug is taken
       if (data) return false;
       
-      // If error is "not found", slug is available
-      if (error && error.code === 'PGRST116') return true;
+      // If no data and no error, slug is available
+      if (!data && !error) return true;
       
-      // Other errors
+      // If error, log it but assume slug is available if it's a "not found" type error
       if (error) {
+        // PGRST116 = not found, which means slug is available
+        if (error.code === 'PGRST116') return true;
+        
+        // For other errors, log and return false to be safe
         console.error('Error checking slug availability:', error);
         return false;
       }
