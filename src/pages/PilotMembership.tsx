@@ -20,6 +20,7 @@ import {
   Loader2
 } from "lucide-react";
 import { createSubscription as createFlowSubscription, cancelSubscription as cancelFlowSubscription, type FlowSubscriptionParams } from "@/integrations/flow/client";
+import { getBaseUrl } from "@/lib/getBaseUrl";
 
 interface Membership {
   plan_name: string;
@@ -209,7 +210,7 @@ const PilotMembership = () => {
       }
 
       // Crear suscripción en Flow
-      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+      const appUrl = getBaseUrl();
       // URL del webhook público de Supabase Edge Function
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
       const webhookUrl = supabaseUrl 

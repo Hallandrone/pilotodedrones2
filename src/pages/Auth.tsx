@@ -10,6 +10,7 @@ import { Plane, Mail, Lock, User as UserIcon, Building } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getUserRole } from "@/lib/auth-utils";
+import { getBaseUrl } from "@/lib/getBaseUrl";
 import type { User, Session } from '@supabase/supabase-js';
 
 const Auth = () => {
@@ -321,7 +322,7 @@ const Auth = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`
+        redirectTo: `${getBaseUrl()}/`
       }
     });
 

@@ -197,7 +197,7 @@ Los archivos optimizados se generarán en la carpeta `dist/` y están listos par
 ```env
 VITE_SUPABASE_URL=tu_url_de_supabase_produccion
 VITE_SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase_produccion
-VITE_APP_URL=https://pilotodedrones.com
+VITE_APP_URL=https://pilotodedrones.cl
 ```
 
 ## 🤝 Contribución
