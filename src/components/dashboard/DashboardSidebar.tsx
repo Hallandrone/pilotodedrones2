@@ -14,7 +14,6 @@ import {
   Home,
   FileCheck
 } from "lucide-react";
-import Logo from "@/components/ui/logo";
 import {
   Sidebar,
   SidebarContent,
@@ -123,19 +122,6 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   return (
     <Sidebar className={`${collapsed ? "w-16" : "w-64"} [--sidebar-foreground:0_0%_100%] [--sidebar-accent-foreground:0_0%_100%] [--sidebar-accent:0_0%_100%_/_0.2]`} collapsible="icon">
       <SidebarContent className="bg-[hsl(var(--accent))] backdrop-blur-sm border-r-2 border-[#1a365d]">
-        {/* Logo/Brand */}
-        <div className="p-4 border-b border-[#1a365d]">
-          <div className="flex items-center gap-2">
-            <Logo size="sm" showText={false} />
-            {!collapsed && (
-              <div>
-                <h2 className="font-bold text-white">Admin Panel</h2>
-                <p className="text-xs text-white/80">Piloto de Drones</p>
-              </div>
-            )}
-          </div>
-        </div>
-
         <SidebarGroup>
           <SidebarGroupLabel className="text-white/80">Navegación Principal</SidebarGroupLabel>
           <SidebarGroupContent>
