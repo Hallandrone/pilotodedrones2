@@ -1649,23 +1649,46 @@ const UserProfile = () => {
                             </Button>
                           </div>
                         </div>
-                        {cert.status === 'rejected' && (
-                          <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        {cert.rejection_observations && (
+                          <div className={`mt-3 p-3 rounded-lg border ${
+                            cert.status === 'rejected'
+                              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                              : cert.status === 'validated'
+                              ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+                              : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+                          }`}>
                             <div className="flex items-start gap-2">
-                              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                              {cert.status === 'rejected' ? (
+                                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                              ) : cert.status === 'validated' ? (
+                                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                              ) : (
+                                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                              )}
                               <div className="flex-1">
-                                <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
-                                  Observaciones del administrador:
+                                <p className={`text-sm font-semibold mb-1 ${
+                                  cert.status === 'rejected'
+                                    ? 'text-red-800 dark:text-red-300'
+                                    : cert.status === 'validated'
+                                    ? 'text-green-800 dark:text-green-300'
+                                    : 'text-blue-800 dark:text-blue-300'
+                                }`}>
+                                  {cert.status === 'rejected'
+                                    ? 'Observaciones del administrador (Rechazado):'
+                                    : cert.status === 'validated'
+                                    ? 'Observaciones del administrador (Validado):'
+                                    : 'Observaciones del administrador:'
+                                  }
                                 </p>
-                                {cert.rejection_observations ? (
-                                  <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
-                                    {cert.rejection_observations}
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-red-600 dark:text-red-400 italic">
-                                    No se proporcionaron observaciones específicas.
-                                  </p>
-                                )}
+                                <p className={`text-sm whitespace-pre-wrap ${
+                                  cert.status === 'rejected'
+                                    ? 'text-red-700 dark:text-red-400'
+                                    : cert.status === 'validated'
+                                    ? 'text-green-700 dark:text-green-400'
+                                    : 'text-blue-700 dark:text-blue-400'
+                                }`}>
+                                  {cert.rejection_observations}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1767,23 +1790,46 @@ const UserProfile = () => {
                               </Button>
                             </div>
                           </div>
-                          {log.status === 'rejected' && (
-                            <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+                          {log.rejection_observations && (
+                            <div className={`mt-3 p-3 rounded-lg border ${
+                              log.status === 'rejected'
+                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                                : log.status === 'validated'
+                                ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+                                : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+                            }`}>
                               <div className="flex items-start gap-2">
-                                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                {log.status === 'rejected' ? (
+                                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                ) : log.status === 'validated' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                ) : (
+                                  <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                )}
                                 <div className="flex-1">
-                                  <p className="text-sm font-semibold text-red-800 dark:text-red-300 mb-1">
-                                    Observaciones del administrador:
+                                  <p className={`text-sm font-semibold mb-1 ${
+                                    log.status === 'rejected'
+                                      ? 'text-red-800 dark:text-red-300'
+                                      : log.status === 'validated'
+                                      ? 'text-green-800 dark:text-green-300'
+                                      : 'text-blue-800 dark:text-blue-300'
+                                  }`}>
+                                    {log.status === 'rejected'
+                                      ? 'Observaciones del administrador (Rechazado):'
+                                      : log.status === 'validated'
+                                      ? 'Observaciones del administrador (Validado):'
+                                      : 'Observaciones del administrador:'
+                                    }
                                   </p>
-                                  {log.rejection_observations ? (
-                                    <p className="text-sm text-red-700 dark:text-red-400 whitespace-pre-wrap">
-                                      {log.rejection_observations}
-                                    </p>
-                                  ) : (
-                                    <p className="text-sm text-red-600 dark:text-red-400 italic">
-                                      No se proporcionaron observaciones específicas.
-                                    </p>
-                                  )}
+                                  <p className={`text-sm whitespace-pre-wrap ${
+                                    log.status === 'rejected'
+                                      ? 'text-red-700 dark:text-red-400'
+                                      : log.status === 'validated'
+                                      ? 'text-green-700 dark:text-green-400'
+                                      : 'text-blue-700 dark:text-blue-400'
+                                  }`}>
+                                    {log.rejection_observations}
+                                  </p>
                                 </div>
                               </div>
                             </div>

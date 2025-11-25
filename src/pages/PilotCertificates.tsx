@@ -15,7 +15,9 @@ import {
   Clock, 
   XCircle,
   Eye,
-  Plus
+  Plus,
+  AlertCircle,
+  Info
 } from "lucide-react";
 
 interface Certification {
@@ -25,6 +27,7 @@ interface Certification {
   status: 'pending' | 'validated' | 'rejected';
   uploaded_at: string;
   validated_at: string | null;
+  rejection_observations?: string | null;
 }
 
 const PilotCertificates = () => {
@@ -45,7 +48,7 @@ const PilotCertificates = () => {
 
       const { data, error } = await supabase
         .from('user_certifications')
-        .select('*')
+        .select('id, file_name, file_url, status, uploaded_at, validated_at, rejection_observations')
         .eq('user_id', user.id)
         .order('uploaded_at', { ascending: false });
 
@@ -396,6 +399,52 @@ const PilotCertificates = () => {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
+
+                    {/* Observaciones del administrador */}
+                    {cert.rejection_observations && (
+                      <div className={`mt-4 p-4 rounded-xl border ${
+                        cert.status === 'rejected' 
+                          ? 'bg-red-500/10 border-red-500/30' 
+                          : cert.status === 'validated'
+                          ? 'bg-green-500/10 border-green-500/30'
+                          : 'bg-blue-500/10 border-blue-500/30'
+                      }`}>
+                        <div className="flex items-start gap-3">
+                          {cert.status === 'rejected' ? (
+                            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                          ) : cert.status === 'validated' ? (
+                            <Info className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          ) : (
+                            <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                          )}
+                          <div className="flex-1">
+                            <p className={`text-sm font-semibold mb-1 ${
+                              cert.status === 'rejected'
+                                ? 'text-red-400'
+                                : cert.status === 'validated'
+                                ? 'text-green-400'
+                                : 'text-blue-400'
+                            }`}>
+                              {cert.status === 'rejected' 
+                                ? 'Observaciones del administrador (Rechazado):'
+                                : cert.status === 'validated'
+                                ? 'Observaciones del administrador (Validado):'
+                                : 'Observaciones del administrador:'
+                              }
+                            </p>
+                            <p className={`text-sm whitespace-pre-wrap ${
+                              cert.status === 'rejected'
+                                ? 'text-red-300'
+                                : cert.status === 'validated'
+                                ? 'text-green-300'
+                                : 'text-blue-300'
+                            }`}>
+                              {cert.rejection_observations}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </div>
               </Card>
