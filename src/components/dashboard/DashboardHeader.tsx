@@ -210,7 +210,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
     <header className="h-16 bg-card/50 backdrop-blur-sm border-b flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
-        <SidebarTrigger />
+        <SidebarTrigger className="text-white hover:text-white/80 [&>svg]:text-white [&>svg]:hover:text-white/80" />
         <Logo size="md" className="hidden md:flex" />
         
         <div className="relative max-w-md">
