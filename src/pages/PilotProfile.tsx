@@ -69,6 +69,7 @@ const PilotProfile = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [customSpecialty, setCustomSpecialty] = useState('');
+  const [customDrone, setCustomDrone] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -429,6 +430,33 @@ const PilotProfile = () => {
   // Función para verificar si una especialidad es personalizada (no está en la lista predefinida)
   const isCustomSpecialty = (specialty: string) => {
     return !specialtyOptions.includes(specialty);
+  };
+
+  const handleCustomDrone = (value: string) => {
+    setCustomDrone(value);
+  };
+
+  const addCustomDrone = () => {
+    const trimmed = customDrone.trim();
+    if (trimmed && !profile.drone_types.includes(trimmed)) {
+      setProfile(prev => ({
+        ...prev,
+        drone_types: [...prev.drone_types, trimmed]
+      }));
+      setCustomDrone('');
+      setHasChanges(true);
+    } else if (trimmed && profile.drone_types.includes(trimmed)) {
+      toast({
+        title: "Modelo duplicado",
+        description: "Este modelo de drone ya está agregado",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const isCustomDrone = (drone: string) => {
+    const allDrones = [...basicDrones, ...intermediateDrones, ...professionalDrones];
+    return !allDrones.includes(drone) && drone !== 'Otro';
   };
 
   const toggleDroneType = (droneType: string) => {
@@ -873,24 +901,60 @@ const PilotProfile = () => {
                   </div>
                 </div>
 
-                {/* Otro */}
-                <div>
-                  <Label className="text-[#E0E0E0] text-sm mb-3 block font-semibold">
-                    ⚪ Otro
-                  </Label>
-                  <div className="flex flex-wrap gap-3">
-                    <Badge
-                      variant={profile.drone_types.includes('Otro') ? "default" : "outline"}
-                      className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                        profile.drone_types.includes('Otro')
-                          ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                          : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                      }`}
-                      onClick={() => toggleDroneType('Otro')}
-                    >
-                      Otro
-                    </Badge>
+                {/* Drones personalizados agregados */}
+                {profile.drone_types.filter(isCustomDrone).length > 0 && (
+                  <div className="pt-4 border-t border-[#333333]">
+                    <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
+                      Modelos personalizados:
+                    </Label>
+                    <div className="flex flex-wrap gap-3">
+                      {profile.drone_types.filter(isCustomDrone).map((drone) => (
+                        <Badge
+                          key={drone}
+                          variant="default"
+                          className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                          onClick={() => toggleDroneType(drone)}
+                        >
+                          {drone}
+                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {/* Campo para agregar otro modelo de drone */}
+                <div className="pt-4 border-t border-[#333333]">
+                  <Label htmlFor="custom-drone" className="text-[#E0E0E0] text-sm mb-2 block font-medium">
+                    Otra
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="custom-drone"
+                      type="text"
+                      value={customDrone}
+                      onChange={(e) => handleCustomDrone(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustomDrone();
+                        }
+                      }}
+                      placeholder="Escribe otro modelo de drone..."
+                      className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666]"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addCustomDrone}
+                      disabled={!customDrone.trim() || profile.drone_types.includes(customDrone.trim())}
+                      className="bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Agregar
+                    </Button>
+                  </div>
+                  <p className="text-xs text-[#B0B0B0] mt-2">
+                    Presiona Enter o haz clic en "Agregar" para incluir tu modelo de drone personalizado
+                  </p>
                 </div>
               </div>
             </CardContent>
