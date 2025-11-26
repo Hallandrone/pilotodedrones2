@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plane, Loader2, CheckCircle, AlertCircle, Building2, User, Lock, ArrowLeft } from "lucide-react";
+import { Plane, Loader2, CheckCircle, AlertCircle, Building2, User, Lock, ArrowLeft, Shield } from "lucide-react";
 
 const DemoAuth = () => {
   const [step, setStep] = useState<'select' | 'password'>('select');
-  const [selectedType, setSelectedType] = useState<'pilot' | 'company' | null>(null);
+  const [selectedType, setSelectedType] = useState<'pilot' | 'company' | 'super_admin' | null>(null);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,8 +31,13 @@ const DemoAuth = () => {
   const DEMO_COMPANY_EMAIL = 'demo@empresa.com';
   const DEMO_COMPANY_PASSWORD = 'demoempresa123';
   const DEMO_COMPANY_NAME = 'Empresa Demo';
+  
+  // Credenciales demo super administrador
+  const DEMO_SUPER_ADMIN_EMAIL = 'demo@admin.com';
+  const DEMO_SUPER_ADMIN_PASSWORD = 'demoadmin123';
+  const DEMO_SUPER_ADMIN_NAME = 'Super Admin Demo';
 
-  const handleTypeSelect = (type: 'pilot' | 'company') => {
+  const handleTypeSelect = (type: 'pilot' | 'company' | 'super_admin') => {
     setSelectedType(type);
     setStep('password');
     setPassword('');
@@ -75,17 +80,35 @@ const DemoAuth = () => {
     // Autenticar según el tipo seleccionado
     if (selectedType === 'pilot') {
       await authenticateDemo('pilot');
-    } else {
+    } else if (selectedType === 'company') {
       await authenticateDemo('company');
+    } else {
+      await authenticateDemo('super_admin');
     }
   };
 
-  const authenticateDemo = async (type: 'pilot' | 'company') => {
+  const authenticateDemo = async (type: 'pilot' | 'company' | 'super_admin') => {
     try {
-      const email = type === 'pilot' ? DEMO_PILOT_EMAIL : DEMO_COMPANY_EMAIL;
-      const password = type === 'pilot' ? DEMO_PILOT_PASSWORD : DEMO_COMPANY_PASSWORD;
-      const name = type === 'pilot' ? DEMO_PILOT_NAME : DEMO_COMPANY_NAME;
-      const redirectPath = type === 'pilot' ? '/pilot' : '/company-profile';
+      const email = type === 'pilot' 
+        ? DEMO_PILOT_EMAIL 
+        : type === 'company' 
+          ? DEMO_COMPANY_EMAIL 
+          : DEMO_SUPER_ADMIN_EMAIL;
+      const password = type === 'pilot' 
+        ? DEMO_PILOT_PASSWORD 
+        : type === 'company' 
+          ? DEMO_COMPANY_PASSWORD 
+          : DEMO_SUPER_ADMIN_PASSWORD;
+      const name = type === 'pilot' 
+        ? DEMO_PILOT_NAME 
+        : type === 'company' 
+          ? DEMO_COMPANY_NAME 
+          : DEMO_SUPER_ADMIN_NAME;
+      const redirectPath = type === 'pilot' 
+        ? '/pilot' 
+        : type === 'company' 
+          ? '/company-profile' 
+          : '/dashboard';
 
       // Intentar iniciar sesión primero
       const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
@@ -102,7 +125,9 @@ const DemoAuth = () => {
           title: "¡Sesión iniciada!",
           description: type === 'pilot' 
             ? "Bienvenido al panel de piloto demo" 
-            : "Bienvenido al panel de empresa demo",
+            : type === 'company'
+              ? "Bienvenido al panel de empresa demo"
+              : "Bienvenido al dashboard de super administrador",
         });
 
         setTimeout(() => {
@@ -145,12 +170,12 @@ const DemoAuth = () => {
       }
 
       if (signupData.user) {
+        // Esperar un momento para que se cree el perfil
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
         // Si es empresa, crear el registro en la tabla companies
         if (type === 'company') {
           try {
-            // Esperar un momento para que se cree el perfil
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
             const { error: companyError } = await supabase
               .from('companies')
               .insert({
@@ -164,6 +189,22 @@ const DemoAuth = () => {
             }
           } catch (error) {
             console.error('Error al crear registro de empresa:', error);
+          }
+        }
+        
+        // Si es super admin, actualizar el rol en user_roles
+        if (type === 'super_admin') {
+          try {
+            const { error: roleError } = await supabase
+              .from('user_roles')
+              .update({ role: 'super_admin' })
+              .eq('id', signupData.user.id);
+
+            if (roleError && !roleError.message.includes('duplicate')) {
+              console.error('Error actualizando rol de super admin:', roleError);
+            }
+          } catch (error) {
+            console.error('Error al actualizar rol de super admin:', error);
           }
         }
 
@@ -206,7 +247,13 @@ const DemoAuth = () => {
           </div>
           <div>
             <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              {step === 'select' ? 'Acceso Demo' : selectedType === 'pilot' ? 'Perfil Usuario Demo' : 'Perfil Demo Empresa'}
+              {step === 'select' 
+                ? 'Acceso Demo' 
+                : selectedType === 'pilot' 
+                  ? 'Perfil Usuario Demo' 
+                  : selectedType === 'company'
+                    ? 'Perfil Demo Empresa'
+                    : 'Dashboard Super Administrador'}
             </CardTitle>
             <CardDescription className="text-base mt-2">
               {step === 'select' 
@@ -239,6 +286,17 @@ const DemoAuth = () => {
                 <div className="flex items-center justify-center gap-3">
                   <Building2 className="h-6 w-6" />
                   <span>Perfil Demo Empresa</span>
+                </div>
+              </Button>
+
+              <Button
+                onClick={() => handleTypeSelect('super_admin')}
+                className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold py-8 text-lg h-auto"
+                size="lg"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <Shield className="h-6 w-6" />
+                  <span>Dashboard Super Administrador</span>
                 </div>
               </Button>
             </div>
