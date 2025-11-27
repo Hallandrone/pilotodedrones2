@@ -1069,8 +1069,8 @@ export default function CompanyProfile() {
 
       {/* Dashboard Grid */}
       <div className="p-6 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Información Básica */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Información Básica y Ubicación */}
           <Card 
             className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
             onClick={() => setOpenModal('basic')}
@@ -1079,26 +1079,12 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
                 <Building2 className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">Información Básica</CardTitle>
-              <CardDescription className="text-white/70">Logo, nombre, contacto y descripción</CardDescription>
+              <CardTitle className="text-xl font-bold text-white">Información y Ubicación</CardTitle>
+              <CardDescription className="text-white/70">Datos de contacto, ubicación y experiencia</CardDescription>
             </CardContent>
           </Card>
 
-          {/* Ubicación */}
-          <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
-            onClick={() => setOpenModal('location')}
-          >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
-                <MapPin className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-xl font-bold text-white">Ubicación</CardTitle>
-              <CardDescription className="text-white/70">Región, ciudad y años de experiencia</CardDescription>
-            </CardContent>
-          </Card>
-
-          {/* Servicios */}
+          {/* Servicios y Tipos de Drones */}
           <Card 
             className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
             onClick={() => setOpenModal('services')}
@@ -1107,22 +1093,8 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
                 <Briefcase className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">Servicios</CardTitle>
-              <CardDescription className="text-white/70">Servicios que ofrece tu empresa</CardDescription>
-            </CardContent>
-          </Card>
-
-          {/* Tipos de Drones */}
-          <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
-            onClick={() => setOpenModal('drones')}
-          >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
-                <Camera className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-xl font-bold text-white">Tipos de Drones</CardTitle>
-              <CardDescription className="text-white/70">Modelos de drones con los que trabajas</CardDescription>
+              <CardTitle className="text-xl font-bold text-white">Servicios y Drones</CardTitle>
+              <CardDescription className="text-white/70">Servicios y modelos de drones</CardDescription>
             </CardContent>
           </Card>
 
@@ -1185,15 +1157,15 @@ export default function CompanyProfile() {
       </div>
 
       {/* Modals */}
-      {/* Basic Information Modal */}
+      {/* Basic Information and Location Modal */}
       <Dialog open={openModal === 'basic'} onOpenChange={(open) => !open && setOpenModal(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
               <Building2 className="h-6 w-6" />
-              Información Básica
+              Información Básica y Ubicación
             </DialogTitle>
-            <DialogDescription>Actualiza la información básica de tu empresa</DialogDescription>
+            <DialogDescription>Actualiza la información básica, contacto y ubicación de tu empresa</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 mt-4">
             {/* Logo Section */}
@@ -1305,86 +1277,59 @@ export default function CompanyProfile() {
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => setOpenModal(null)}>
-                Cancelar
-              </Button>
-              <Button onClick={async () => {
-                await handleSave();
-                setOpenModal(null);
-              }} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Guardar
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+            {/* Location Section */}
+            <div className="pt-6 border-t border-border/50">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Ubicación y Zona de Trabajo
+              </h3>
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="region_modal" className="text-base font-semibold">
+                    Región *
+                  </Label>
+                  <Select value={formData.region} onValueChange={(value) => handleInputChange('region', value)}>
+                    <SelectTrigger className="h-14 rounded-xl border-2">
+                      <SelectValue placeholder="Selecciona tu región" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {regions.map((region) => (
+                        <SelectItem key={region} value={region}>
+                          {region}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-      {/* Location Modal */}
-      <Dialog open={openModal === 'location'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <MapPin className="h-6 w-6" />
-              Ubicación y Zona de Trabajo
-            </DialogTitle>
-            <DialogDescription>Actualiza la ubicación y experiencia de tu empresa</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 mt-4">
-            <div className="space-y-3">
-              <Label htmlFor="region_modal" className="text-base font-semibold">
-                Región *
-              </Label>
-              <Select value={formData.region} onValueChange={(value) => handleInputChange('region', value)}>
-                <SelectTrigger className="h-14 rounded-xl border-2">
-                  <SelectValue placeholder="Selecciona tu región" />
-                </SelectTrigger>
-                <SelectContent>
-                  {regions.map((region) => (
-                    <SelectItem key={region} value={region}>
-                      {region}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-3">
+                  <Label htmlFor="location_modal" className="text-base font-semibold flex items-center gap-2">
+                    <Map className="h-5 w-5" />
+                    Ciudad/Comuna
+                  </Label>
+                  <Input
+                    id="location_modal"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange('location', e.target.value)}
+                    placeholder="Ej: Santiago, Las Condes"
+                    className="h-14 rounded-xl border-2"
+                  />
+                </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="location_modal" className="text-base font-semibold flex items-center gap-2">
-                <Map className="h-5 w-5" />
-                Ciudad/Comuna
-              </Label>
-              <Input
-                id="location_modal"
-                value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="Ej: Santiago, Las Condes"
-                className="h-14 rounded-xl border-2"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="experience_years_modal" className="text-base font-semibold">
-                Años de Experiencia Operando
-              </Label>
-              <Input
-                id="experience_years_modal"
-                type="number"
-                value={formData.experience_years}
-                onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
-                placeholder="0"
-                className="h-14 rounded-xl border-2"
-              />
+                <div className="space-y-3">
+                  <Label htmlFor="experience_years_modal" className="text-base font-semibold">
+                    Años de Experiencia Operando
+                  </Label>
+                  <Input
+                    id="experience_years_modal"
+                    type="number"
+                    value={formData.experience_years}
+                    onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
+                    placeholder="0"
+                    className="h-14 rounded-xl border-2"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
@@ -1412,15 +1357,15 @@ export default function CompanyProfile() {
         </DialogContent>
       </Dialog>
 
-      {/* Services Modal */}
+      {/* Services and Drones Modal */}
       <Dialog open={openModal === 'services'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
               <Briefcase className="h-6 w-6" />
-              Servicios que Ofrecemos
+              Servicios y Tipos de Drones
             </DialogTitle>
-            <DialogDescription>Selecciona los servicios que ofrece tu empresa</DialogDescription>
+            <DialogDescription>Selecciona los servicios y modelos de drones con los que trabaja tu empresa</DialogDescription>
           </DialogHeader>
           <div className="space-y-6 mt-4">
             <div className="flex flex-wrap gap-3">
@@ -1491,203 +1436,176 @@ export default function CompanyProfile() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => setOpenModal(null)}>
-                Cancelar
-              </Button>
-              <Button onClick={async () => {
-                await handleSave();
-                setOpenModal(null);
-              }} disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Guardar
-                  </>
+            {/* Drones Section */}
+            <div className="pt-6 border-t border-border/50">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Camera className="h-5 w-5" />
+                Tipos de Drones
+              </h3>
+              <div className="space-y-6">
+                {formData.drone_types.length > 0 && (
+                  <div className="pb-4 border-b border-border/50">
+                    <Label className="text-sm mb-3 block font-medium">
+                      Drones seleccionados ({formData.drone_types.length}):
+                    </Label>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.drone_types.map((drone) => (
+                        <Badge
+                          key={drone}
+                          variant="default"
+                          className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                          onClick={() => toggleDroneType(drone)}
+                        >
+                          {drone}
+                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
-      {/* Drones Modal */}
-      <Dialog open={openModal === 'drones'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <Camera className="h-6 w-6" />
-              Tipos de Drones
-            </DialogTitle>
-            <DialogDescription>Selecciona los modelos de drones con los que trabaja tu empresa</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 mt-4">
-            {formData.drone_types.length > 0 && (
-              <div className="pb-4 border-b border-border/50">
-                <Label className="text-sm mb-3 block font-medium">
-                  Drones seleccionados ({formData.drone_types.length}):
-                </Label>
-                <div className="flex flex-wrap gap-2">
-                  {formData.drone_types.map((drone) => (
-                    <Badge
-                      key={drone}
-                      variant="default"
-                      className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                      onClick={() => toggleDroneType(drone)}
+                <Accordion type="multiple" className="w-full space-y-2">
+                  <AccordionItem value="basic" className="border-border/50">
+                    <AccordionTrigger className="hover:no-underline py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🟢</span>
+                        <span className="font-semibold">Nivel Básico/Principiante</span>
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {basicDrones.filter(d => formData.drone_types.includes(d)).length}/{basicDrones.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                      <div className="flex flex-wrap gap-3">
+                        {basicDrones.map((drone) => (
+                          <Badge
+                            key={drone}
+                            variant={formData.drone_types.includes(drone) ? "default" : "outline"}
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                              formData.drone_types.includes(drone)
+                                ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
+                                : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
+                            }`}
+                            onClick={() => toggleDroneType(drone)}
+                          >
+                            {drone}
+                          </Badge>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="intermediate" className="border-border/50">
+                    <AccordionTrigger className="hover:no-underline py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🟡</span>
+                        <span className="font-semibold">Nivel Intermedio</span>
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {intermediateDrones.filter(d => formData.drone_types.includes(d)).length}/{intermediateDrones.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                      <div className="flex flex-wrap gap-3">
+                        {intermediateDrones.map((drone) => (
+                          <Badge
+                            key={drone}
+                            variant={formData.drone_types.includes(drone) ? "default" : "outline"}
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                              formData.drone_types.includes(drone)
+                                ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
+                                : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
+                            }`}
+                            onClick={() => toggleDroneType(drone)}
+                          >
+                            {drone}
+                          </Badge>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="professional" className="border-border/50">
+                    <AccordionTrigger className="hover:no-underline py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🔴</span>
+                        <span className="font-semibold">Nivel Profesional</span>
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {professionalDrones.filter(d => formData.drone_types.includes(d)).length}/{professionalDrones.length}
+                        </Badge>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                      <div className="flex flex-wrap gap-3">
+                        {professionalDrones.map((drone) => (
+                          <Badge
+                            key={drone}
+                            variant={formData.drone_types.includes(drone) ? "default" : "outline"}
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                              formData.drone_types.includes(drone)
+                                ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
+                                : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
+                            }`}
+                            onClick={() => toggleDroneType(drone)}
+                          >
+                            {drone}
+                          </Badge>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+
+                {formData.drone_types.filter(isCustomDrone).length > 0 && (
+                  <div className="pt-4 border-t border-border/50">
+                    <Label className="text-sm mb-3 block font-medium">
+                      Modelos personalizados:
+                    </Label>
+                    <div className="flex flex-wrap gap-3">
+                      {formData.drone_types.filter(isCustomDrone).map((drone) => (
+                        <Badge
+                          key={drone}
+                          variant="default"
+                          className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                          onClick={() => toggleDroneType(drone)}
+                        >
+                          {drone}
+                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="pt-4 border-t border-border/50">
+                  <Label htmlFor="custom-drone-modal" className="text-sm mb-2 block font-medium">
+                    Otra
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="custom-drone-modal"
+                      type="text"
+                      value={customDrone}
+                      onChange={(e) => handleCustomDrone(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustomDrone();
+                        }
+                      }}
+                      placeholder="Escribe otro modelo de drone..."
+                      className="border-2"
+                    />
+                    <Button
+                      type="button"
+                      onClick={addCustomDrone}
+                      disabled={!customDrone.trim() || formData.drone_types.includes(customDrone.trim())}
+                      className="bg-accent hover:bg-accent/90 text-white"
                     >
-                      {drone}
-                      <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                    </Badge>
-                  ))}
+                      Agregar
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            <Accordion type="multiple" className="w-full space-y-2">
-              <AccordionItem value="basic" className="border-border/50">
-                <AccordionTrigger className="hover:no-underline py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🟢</span>
-                    <span className="font-semibold">Nivel Básico/Principiante</span>
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {basicDrones.filter(d => formData.drone_types.includes(d)).length}/{basicDrones.length}
-                    </Badge>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-4">
-                  <div className="flex flex-wrap gap-3">
-                    {basicDrones.map((drone) => (
-                      <Badge
-                        key={drone}
-                        variant={formData.drone_types.includes(drone) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                          formData.drone_types.includes(drone)
-                            ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
-                            : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
-                        }`}
-                        onClick={() => toggleDroneType(drone)}
-                      >
-                        {drone}
-                      </Badge>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="intermediate" className="border-border/50">
-                <AccordionTrigger className="hover:no-underline py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🟡</span>
-                    <span className="font-semibold">Nivel Intermedio</span>
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {intermediateDrones.filter(d => formData.drone_types.includes(d)).length}/{intermediateDrones.length}
-                    </Badge>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-4">
-                  <div className="flex flex-wrap gap-3">
-                    {intermediateDrones.map((drone) => (
-                      <Badge
-                        key={drone}
-                        variant={formData.drone_types.includes(drone) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                          formData.drone_types.includes(drone)
-                            ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
-                            : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
-                        }`}
-                        onClick={() => toggleDroneType(drone)}
-                      >
-                        {drone}
-                      </Badge>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="professional" className="border-border/50">
-                <AccordionTrigger className="hover:no-underline py-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">🔴</span>
-                    <span className="font-semibold">Nivel Profesional</span>
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {professionalDrones.filter(d => formData.drone_types.includes(d)).length}/{professionalDrones.length}
-                    </Badge>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="pt-4">
-                  <div className="flex flex-wrap gap-3">
-                    {professionalDrones.map((drone) => (
-                      <Badge
-                        key={drone}
-                        variant={formData.drone_types.includes(drone) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                          formData.drone_types.includes(drone)
-                            ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
-                            : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
-                        }`}
-                        onClick={() => toggleDroneType(drone)}
-                      >
-                        {drone}
-                      </Badge>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            {formData.drone_types.filter(isCustomDrone).length > 0 && (
-              <div className="pt-4 border-t border-border/50">
-                <Label className="text-sm mb-3 block font-medium">
-                  Modelos personalizados:
-                </Label>
-                <div className="flex flex-wrap gap-3">
-                  {formData.drone_types.filter(isCustomDrone).map((drone) => (
-                    <Badge
-                      key={drone}
-                      variant="default"
-                      className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                      onClick={() => toggleDroneType(drone)}
-                    >
-                      {drone}
-                      <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="pt-4 border-t border-border/50">
-              <Label htmlFor="custom-drone-modal" className="text-sm mb-2 block font-medium">
-                Otra
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  id="custom-drone-modal"
-                  type="text"
-                  value={customDrone}
-                  onChange={(e) => handleCustomDrone(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addCustomDrone();
-                    }
-                  }}
-                  placeholder="Escribe otro modelo de drone..."
-                  className="border-2"
-                />
-                <Button
-                  type="button"
-                  onClick={addCustomDrone}
-                  disabled={!customDrone.trim() || formData.drone_types.includes(customDrone.trim())}
-                  className="bg-accent hover:bg-accent/90 text-white"
-                >
-                  Agregar
-                </Button>
               </div>
             </div>
 
