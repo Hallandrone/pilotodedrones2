@@ -88,11 +88,22 @@ const CompanyDashboard = () => {
       setUser(session.user);
 
       // Check if user is a company
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('user_type')
         .eq('id', session.user.id)
         .single();
+
+      if (profileError) {
+        console.error('Error loading profile:', profileError);
+        toast({
+          title: "Error",
+          description: "No se pudo verificar el tipo de usuario",
+          variant: "destructive",
+        });
+        navigate('/auth');
+        return;
+      }
 
       if (profile?.user_type !== 'company') {
         toast({
@@ -100,7 +111,12 @@ const CompanyDashboard = () => {
           description: "Esta área es solo para empresas",
           variant: "destructive",
         });
-        navigate('/pilot');
+        // Redirigir según el tipo de usuario
+        if (profile?.user_type === 'pilot') {
+          navigate('/pilot');
+        } else {
+          navigate('/');
+        }
         return;
       }
 

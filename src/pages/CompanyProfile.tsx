@@ -222,7 +222,12 @@ export default function CompanyProfile() {
       .single();
 
     if (profile?.user_type !== "company") {
-      navigate("/pilot");
+      // Redirigir según el tipo de usuario
+      if (profile?.user_type === "pilot") {
+        navigate("/pilot");
+      } else {
+        navigate("/");
+      }
       return;
     }
 

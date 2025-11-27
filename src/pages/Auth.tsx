@@ -300,7 +300,7 @@ const Auth = () => {
       } else if (roleData.role === 'pilot') {
         navigate('/pilot');
       } else if (roleData.role === 'company') {
-        navigate('/company-profile');
+        navigate('/company');
       } else {
         // Por defecto, redirigir a access-fix
         navigate('/access-fix');
