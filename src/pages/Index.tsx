@@ -405,123 +405,123 @@ const Index = () => {
 
       {/* Main Content with Sidebar Layout */}
       <div className="container mx-auto px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
-          {/* Main Content */}
-          <div className="min-w-0">
-            {/* Advertisement Banners */}
-            {banners.length > 0 && (
-              <section className="py-8 bg-secondary/30">
-                <div className="space-y-6">
-                  {banners.map((banner) => (
-                    <a
-                      key={banner.id}
-                      href={formatBannerUrl(banner.redirect_url)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
-                    >
-                      <img
-                        src={banner.image_url}
-                        alt={banner.title}
-                        className="w-full h-auto object-cover"
-                        style={{ maxHeight: '300px' }}
-                      />
-                    </a>
-                  ))}
+        {sidebarBanners.length > 0 ? (
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
+            {/* Main Content */}
+            <div className="min-w-0">
+              {/* Advertisement Banners */}
+              {banners.length > 0 && (
+                <section className="py-8 bg-secondary/30">
+                  <div className="space-y-6">
+                    {banners.map((banner) => (
+                      <a
+                        key={banner.id}
+                        href={formatBannerUrl(banner.redirect_url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                      >
+                        <img
+                          src={banner.image_url}
+                          alt={banner.title}
+                          className="w-full h-auto object-cover"
+                          style={{ maxHeight: '300px' }}
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* CTA Section: solo si no hay resultados */}
+              {results.length === 0 && (
+                <section className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
+                  <div className="text-center relative z-10">
+                    <div className="max-w-3xl mx-auto">
+                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                        ¿Eres piloto o empresa?
+                      </h3>
+                      <p className="text-xl text-white/90 mb-8 leading-relaxed">
+                        Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
+                      </p>
+                      <Button 
+                        variant="secondary" 
+                        size="lg"
+                        className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
+                      >
+                        Publicar Perfil Profesional
+                      </Button>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Features */}
+              <section className="py-20 lg:py-28 bg-white">
+                <div className="max-w-6xl mx-auto">
+                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                    ¿Por qué elegir Piloto de Drones?
+                  </h3>
+                  <div className="grid md:grid-cols-3 gap-12">
+                    <div className="text-center group">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-2xl font-bold mb-4 text-primary">Pilotos Certificados</h4>
+                      <p className="text-lg text-muted-foreground leading-relaxed">
+                        Todos nuestros pilotos están validados y cuentan con las certificaciones requeridas
+                      </p>
+                    </div>
+                    <div className="text-center group">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-2xl font-bold mb-4 text-primary">Red Profesional</h4>
+                      <p className="text-lg text-muted-foreground leading-relaxed">
+                        Conecta con una amplia red de pilotos y empresas especializadas
+                      </p>
+                    </div>
+                    <div className="text-center group">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-2xl font-bold mb-4 text-primary">Calidad Garantizada</h4>
+                      <p className="text-lg text-muted-foreground leading-relaxed">
+                        Sistema de reseñas y evaluaciones para garantizar la mejor experiencia
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </section>
-            )}
 
-            {/* CTA Section: solo si no hay resultados */}
-            {results.length === 0 && (
-              <section className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
-                <div className="text-center relative z-10">
-                  <div className="max-w-3xl mx-auto">
-                    <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                      ¿Eres piloto o empresa?
-                    </h3>
-                    <p className="text-xl text-white/90 mb-8 leading-relaxed">
-                      Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
-                    </p>
-                    <Button 
-                      variant="secondary" 
-                      size="lg"
-                      className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
-                    >
-                      Publicar Perfil Profesional
-                    </Button>
+              {/* Resultados / Destacados */}
+              <section className="py-20 lg:py-28 bg-secondary">
+                <div className="max-w-7xl mx-auto">
+                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                    {results.length ? "Resultados de Búsqueda" : "Pilotos Destacados"}
+                  </h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {listToRender.map((pilot) => (
+                      <PilotCard key={pilot.id} pilot={pilot} />
+                    ))}
                   </div>
+                  {!results.length && (
+                    <div className="text-center mt-12">
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
+                      >
+                        Ver Todos los Pilotos
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </section>
-            )}
+            </div>
 
-            {/* Features */}
-            <section className="py-20 lg:py-28 bg-white">
-              <div className="max-w-6xl mx-auto">
-                <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
-                  ¿Por qué elegir Piloto de Drones?
-                </h3>
-                <div className="grid md:grid-cols-3 gap-12">
-                  <div className="text-center group">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
-                      <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
-                    </div>
-                    <h4 className="text-2xl font-bold mb-4 text-primary">Pilotos Certificados</h4>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                      Todos nuestros pilotos están validados y cuentan con las certificaciones requeridas
-                    </p>
-                  </div>
-                  <div className="text-center group">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
-                      <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
-                    </div>
-                    <h4 className="text-2xl font-bold mb-4 text-primary">Red Profesional</h4>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                      Conecta con una amplia red de pilotos y empresas especializadas
-                    </p>
-                  </div>
-                  <div className="text-center group">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
-                      <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
-                    </div>
-                    <h4 className="text-2xl font-bold mb-4 text-primary">Calidad Garantizada</h4>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                      Sistema de reseñas y evaluaciones para garantizar la mejor experiencia
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Resultados / Destacados */}
-            <section className="py-20 lg:py-28 bg-secondary">
-              <div className="max-w-7xl mx-auto">
-                <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
-                  {results.length ? "Resultados de Búsqueda" : "Pilotos Destacados"}
-                </h3>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {listToRender.map((pilot) => (
-                    <PilotCard key={pilot.id} pilot={pilot} />
-                  ))}
-                </div>
-                {!results.length && (
-                  <div className="text-center mt-12">
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
-                    >
-                      Ver Todos los Pilotos
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
-
-          {/* Sidebar - Solo Desktop */}
-          {sidebarBanners.length > 0 && (
+            {/* Sidebar - Solo Desktop */}
             <aside className="hidden lg:block">
               <div className="sticky top-24 space-y-6">
                 {sidebarBanners.map((banner) => (
@@ -542,8 +542,124 @@ const Index = () => {
                 ))}
               </div>
             </aside>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="max-w-7xl mx-auto">
+            {/* Main Content sin sidebar */}
+            <div className="min-w-0">
+              {/* Advertisement Banners */}
+              {banners.length > 0 && (
+                <section className="py-8 bg-secondary/30">
+                  <div className="space-y-6">
+                    {banners.map((banner) => (
+                      <a
+                        key={banner.id}
+                        href={formatBannerUrl(banner.redirect_url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                      >
+                        <img
+                          src={banner.image_url}
+                          alt={banner.title}
+                          className="w-full h-auto object-cover"
+                          style={{ maxHeight: '300px' }}
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* CTA Section: solo si no hay resultados */}
+              {results.length === 0 && (
+                <section className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
+                  <div className="text-center relative z-10">
+                    <div className="max-w-3xl mx-auto">
+                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                        ¿Eres piloto o empresa?
+                      </h3>
+                      <p className="text-xl text-white/90 mb-8 leading-relaxed">
+                        Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
+                      </p>
+                      <Button 
+                        variant="secondary" 
+                        size="lg"
+                        className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
+                      >
+                        Publicar Perfil Profesional
+                      </Button>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Features */}
+              <section className="py-20 lg:py-28 bg-white">
+                <div className="max-w-6xl mx-auto">
+                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                    ¿Por qué elegir Piloto de Drones?
+                  </h3>
+                  <div className="grid md:grid-cols-3 gap-12">
+                    <div className="text-center group">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-2xl font-bold mb-4 text-primary">Pilotos Certificados</h4>
+                      <p className="text-lg text-muted-foreground leading-relaxed">
+                        Todos nuestros pilotos están validados y cuentan con las certificaciones requeridas
+                      </p>
+                    </div>
+                    <div className="text-center group">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-2xl font-bold mb-4 text-primary">Red Profesional</h4>
+                      <p className="text-lg text-muted-foreground leading-relaxed">
+                        Conecta con una amplia red de pilotos y empresas especializadas
+                      </p>
+                    </div>
+                    <div className="text-center group">
+                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-2xl font-bold mb-4 text-primary">Calidad Garantizada</h4>
+                      <p className="text-lg text-muted-foreground leading-relaxed">
+                        Sistema de reseñas y evaluaciones para garantizar la mejor experiencia
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Resultados / Destacados */}
+              <section className="py-20 lg:py-28 bg-secondary">
+                <div className="max-w-7xl mx-auto">
+                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                    {results.length ? "Resultados de Búsqueda" : "Pilotos Destacados"}
+                  </h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {listToRender.map((pilot) => (
+                      <PilotCard key={pilot.id} pilot={pilot} />
+                    ))}
+                  </div>
+                  {!results.length && (
+                    <div className="text-center mt-12">
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
+                      >
+                        Ver Todos los Pilotos
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
