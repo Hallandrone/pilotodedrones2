@@ -578,27 +578,38 @@ export default function CompanyProfile() {
   const handleLogoCropComplete = async (croppedImageUrl: string) => {
     try {
       setUploadingLogo(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("No se pudo obtener el usuario");
+        return;
+      }
 
       // Convertir la URL del blob a File
       const response = await fetch(croppedImageUrl);
       const blob = await response.blob();
       const file = new File([blob], `logo-${user.id}.jpg`, { type: 'image/jpeg' });
 
-      // Subir a Supabase Storage
+      // Subir a Supabase Storage (bucket avatars)
       const filePath = `${user.id}/logo.jpg`;
-    const { error: uploadError } = await supabase.storage
-      .from("certifications")
-      .upload(filePath, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from("certifications")
-      .getPublicUrl(filePath);
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
 
-    await handleSave({ logo_url: publicUrl });
+      // Guardar el logo_url en la base de datos
+      await handleSave({ logo_url: publicUrl });
+      
+      // Actualizar el estado de la empresa con el nuevo logo
+      setCompany(prev => prev ? { ...prev, logo_url: publicUrl } : null);
+      
       toast.success("Logo actualizado correctamente");
     } catch (error: any) {
       console.error('Error uploading logo:', error);
@@ -644,13 +655,18 @@ export default function CompanyProfile() {
         linkedinUrlFinal = buildLinkedInUrl(cleaned);
       }
 
-      const finalUpdateData = {
+      const finalUpdateData: any = {
         ...updateData,
         instagram_username: instagramUsernameFinal,
         instagram_url: instagramUrlFinal,
         linkedin_username: linkedinUsernameFinal,
         linkedin_url: linkedinUrlFinal,
       };
+      
+      // Asegurar que logo_url se incluya si está en additionalData
+      if (additionalData && 'logo_url' in additionalData && additionalData.logo_url) {
+        finalUpdateData.logo_url = additionalData.logo_url;
+      }
 
     if (company) {
       const { error } = await supabase
