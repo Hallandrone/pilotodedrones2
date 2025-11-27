@@ -26,6 +26,7 @@ import AccessFix from "./pages/AccessFix";
 import UserProfile from "./pages/UserProfile";
 import PublicPilotProfile from "./pages/PublicPilotProfile";
 import CompanyProfile from "./pages/CompanyProfile";
+import CompanyDashboard from "./pages/CompanyDashboard";
 import NotFound from "./pages/NotFound";
 import "./lib/debug-auth"; // Importar funciones de debug
 import "./lib/force-create-role"; // Importar función para crear rol
@@ -55,7 +56,12 @@ const App = () => (
             <Route path="/pilot/flight-hours" element={<div className="dark"><PilotFlightHours /></div>} />
             <Route path="/pilot/qr" element={<div className="dark"><PilotQR /></div>} />
             <Route path="/pilot/membership" element={<div className="dark"><PilotMembership /></div>} />
+            <Route path="/company" element={<div className="dark"><CompanyDashboard /></div>} />
+            <Route path="/company/profile" element={<div className="dark"><CompanyProfile /></div>} />
             <Route path="/company-profile" element={<div className="dark"><CompanyProfile /></div>} />
+            <Route path="/company/certificates" element={<div className="dark"><PilotCertificates /></div>} />
+            <Route path="/company/qr" element={<div className="dark"><PilotQR /></div>} />
+            <Route path="/company/membership" element={<div className="dark"><PilotMembership /></div>} />
             <Route path="/admin/certificates" element={<div className="dark"><AdminCertificates /></div>} />
             
             {/* Rutas de debug/fix */}

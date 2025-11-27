@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { getUserRole, isPilot } from "@/lib/auth-utils";
+import { getUserRole } from "@/lib/auth-utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/ui/logo";
 import { 
-  Plane, 
+  Building2,
   MapPin, 
-  Clock, 
+  Calendar, 
   FileText, 
   QrCode, 
   Settings, 
@@ -19,15 +19,12 @@ import {
   CheckCircle, 
   AlertCircle,
   XCircle,
-  Upload,
-  Download,
   Phone,
   Mail,
-  Calendar,
-  Star,
   Shield,
   CreditCard,
-  HelpCircle
+  HelpCircle,
+  Briefcase
 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
 import { 
@@ -37,43 +34,39 @@ import {
   type CertificationStatus 
 } from "@/utils/certificationHelpers";
 
-interface PilotData {
+interface CompanyData {
   id: string;
   user_id: string;
+  company_name: string;
+  logo_url: string | null;
+  description: string | null;
+  website: string | null;
   phone: string | null;
-  certifications: string[] | null;
-  certification_status: boolean;
-  certification_validated_at: string | null;
-  certification_expires_at: string | null;
-  status: string;
+  email: string | null;
+  location: string | null;
+  region: string | null;
+  experience_years: number | null;
+  services: string[] | null;
+  drone_types: string[] | null;
   created_at: string;
   profiles: {
     full_name: string | null;
     email: string | null;
     avatar_url: string | null;
   };
-  pilot_services: Array<{
-    id: string;
-    service_type: string;
-    description: string | null;
-    price_per_hour: number | null;
-    is_published: boolean;
-  }>;
 }
 
-interface FlightHours {
-  total_hours: number;
-  this_month: number;
-  last_flight: string | null;
+interface CompanyMetrics {
+  experience_years: number;
+  services_count: number;
 }
 
-const PilotDashboard = () => {
+const CompanyDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [pilotData, setPilotData] = useState<PilotData | null>(null);
-  const [flightHours, setFlightHours] = useState<FlightHours>({
-    total_hours: 0,
-    this_month: 0,
-    last_flight: null
+  const [companyData, setCompanyData] = useState<CompanyData | null>(null);
+  const [metrics, setMetrics] = useState<CompanyMetrics>({
+    experience_years: 0,
+    services_count: 0
   });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -94,20 +87,24 @@ const PilotDashboard = () => {
 
       setUser(session.user);
 
-      // Check if user is a pilot (with automatic role creation if needed)
-      const isUserPilot = await isPilot(session.user.id);
+      // Check if user is a company
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', session.user.id)
+        .single();
 
-      if (!isUserPilot) {
+      if (profile?.user_type !== 'company') {
         toast({
           title: "Acceso denegado",
-          description: "Esta área es solo para pilotos",
+          description: "Esta área es solo para empresas",
           variant: "destructive",
         });
-        navigate('/access-fix');
+        navigate('/pilot');
         return;
       }
 
-      await loadPilotData(session.user.id);
+      await loadCompanyData(session.user.id);
     } catch (error) {
       console.error('Error checking auth:', error);
       navigate('/auth');
@@ -116,9 +113,9 @@ const PilotDashboard = () => {
     }
   };
 
-  const loadPilotData = async (userId: string) => {
+  const loadCompanyData = async (userId: string) => {
     try {
-      console.log('Loading pilot data for user:', userId);
+      console.log('Loading company data for user:', userId);
       
       // First, get user profile
       const { data: profileData, error: profileError } = await supabase
@@ -134,92 +131,82 @@ const PilotDashboard = () => {
 
       console.log('Profile loaded:', profileData);
 
-      // Try to get pilot data, but don't fail if it doesn't exist
-      const { data: pilotData, error: pilotError } = await supabase
-        .from('pilots')
-        .select(`
-          *,
-          pilot_services (*)
-        `)
+      // Try to get company data
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('*')
         .eq('user_id', userId)
         .single();
 
-      if (pilotError && pilotError.code !== 'PGRST116') {
-        console.error('Error loading pilot data:', pilotError);
-        throw pilotError;
+      if (companyError && companyError.code !== 'PGRST116') {
+        console.error('Error loading company data:', companyError);
+        throw companyError;
       }
 
-      // If pilot data doesn't exist, create it
-      let pilotInfo = pilotData;
+      // If company data doesn't exist, create it
+      let companyInfo = companyData;
       
-      if (!pilotData) {
-        console.log('Creating pilot record...');
-        const { data: newPilotData, error: createPilotError } = await supabase
-          .from('pilots')
+      if (!companyData) {
+        console.log('Creating company record...');
+        const { data: newCompanyData, error: createCompanyError } = await supabase
+          .from('companies')
           .insert({
             user_id: userId,
-            status: 'active',
+            company_name: profileData.full_name || 'Mi Empresa',
             created_at: new Date().toISOString()
           })
           .select()
           .single();
 
-        if (createPilotError) {
-          console.error('Error creating pilot record:', createPilotError);
+        if (createCompanyError) {
+          console.error('Error creating company record:', createCompanyError);
           // Use fallback structure if creation fails
-          pilotInfo = {
+          companyInfo = {
             id: '',
             user_id: userId,
+            company_name: profileData.full_name || 'Mi Empresa',
+            logo_url: null,
+            description: null,
+            website: null,
             phone: null,
-            certifications: null,
-            certification_status: false,
-            certification_academy: null,
-            certification_validated_at: null,
-            certification_expires_at: null,
-            status: 'active',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            pilot_services: []
+            email: null,
+            location: null,
+            region: null,
+            experience_years: null,
+            services: null,
+            drone_types: null,
+            created_at: new Date().toISOString()
           };
         } else {
-          pilotInfo = {
-            ...newPilotData,
-            pilot_services: []
-          };
-          console.log('Pilot record created:', pilotInfo);
+          companyInfo = newCompanyData;
+          console.log('Company record created:', companyInfo);
         }
       }
 
-      // Combine profile and pilot data
+      // Combine profile and company data
       const combinedData = {
-        ...pilotInfo,
+        ...companyInfo,
         profiles: profileData
       };
 
-      console.log('Combined pilot data:', combinedData);
-      setPilotData(combinedData);
+      console.log('Combined company data:', combinedData);
+      setCompanyData(combinedData);
 
-      // Load flight hours (mock data for now)
-      setFlightHours({
-        total_hours: 150,
-        this_month: 12,
-        last_flight: '2024-01-15'
+      // Set metrics
+      setMetrics({
+        experience_years: companyInfo?.experience_years || 0,
+        services_count: companyInfo?.services?.length || 0
       });
 
-      console.log('Pilot data loaded successfully');
+      console.log('Company data loaded successfully');
 
     } catch (error) {
-      console.error('Error loading pilot data:', error);
+      console.error('Error loading company data:', error);
       toast({
         title: "Error",
-        description: "No se pudieron cargar los datos del piloto",
+        description: "No se pudieron cargar los datos de la empresa",
         variant: "destructive",
       });
-      
-      // Redirect to fix page after showing error
-      setTimeout(() => {
-        navigate('/pilot-data-fix');
-      }, 2000);
     }
   };
 
@@ -249,26 +236,55 @@ const PilotDashboard = () => {
             <span className="text-xs font-semibold">Activo</span>
           </div>
         );
-      case 'pending':
-        return (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 rounded-full border border-yellow-200 shadow-sm">
-            <Clock className="h-3 w-3" />
-            <span className="text-xs font-semibold">Pendiente</span>
-          </div>
-        );
-      case 'suspended':
-        return (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-red-100 to-rose-100 text-red-800 rounded-full border border-red-200 shadow-sm">
-            <AlertCircle className="h-3 w-3" />
-            <span className="text-xs font-semibold">Suspendido</span>
-          </div>
-        );
       default:
         return (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 rounded-full border border-gray-200 shadow-sm">
-            <span className="text-xs font-semibold">Desconocido</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full border border-green-200 shadow-sm">
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-semibold">Activo</span>
           </div>
         );
+    }
+  };
+
+  // Load certifications for AOC/CEO
+  const [certifications, setCertifications] = useState<any[]>([]);
+  const [certificationStatus, setCertificationStatus] = useState<'valid' | 'expiring_soon' | 'expired' | 'not_validated'>('not_validated');
+
+  useEffect(() => {
+    if (user?.id) {
+      loadCertifications();
+    }
+  }, [user?.id]);
+
+  const loadCertifications = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_certifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('certificate_type', ['AOC', 'CEO'])
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading certifications:', error);
+        return;
+      }
+
+      setCertifications(data || []);
+
+      // Determine certification status
+      const validated = data?.filter(c => c.status === 'validated') || [];
+      if (validated.length > 0) {
+        setCertificationStatus('valid');
+      } else if (data && data.length > 0) {
+        setCertificationStatus('not_validated');
+      } else {
+        setCertificationStatus('not_validated');
+      }
+    } catch (error) {
+      console.error('Error loading certifications:', error);
     }
   };
 
@@ -318,9 +334,9 @@ const PilotDashboard = () => {
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-4 sm:mb-8">
                 <div className="relative">
                   <Avatar className="relative h-20 w-20 sm:h-28 sm:w-28 ring-4 ring-[#00b3f3]/50 shadow-2xl">
-                    <AvatarImage src={pilotData?.profiles.avatar_url || ''} />
+                    <AvatarImage src={companyData?.logo_url || companyData?.profiles.avatar_url || ''} />
                     <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-2xl sm:text-3xl">
-                      {pilotData?.profiles.full_name?.charAt(0) || 'P'}
+                      {companyData?.company_name?.charAt(0) || 'E'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="absolute -bottom-1 -right-1 h-6 w-6 sm:h-8 sm:w-8 bg-green-500 rounded-full border-4 border-[#083b4e] flex items-center justify-center shadow-lg">
@@ -329,14 +345,14 @@ const PilotDashboard = () => {
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="text-xl sm:text-3xl font-semibold text-white mb-2 tracking-tight">
-                    {pilotData?.profiles.full_name || 'Piloto'}
+                    {companyData?.company_name || 'Mi Empresa'}
                   </h2>
                   <p className="text-white/80 flex items-center justify-center sm:justify-start gap-2 mb-3 sm:mb-4 text-sm sm:text-base break-all">
                     <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-[#00b3f3] flex-shrink-0" />
-                    <span className="truncate">{pilotData?.profiles.email}</span>
+                    <span className="truncate">{companyData?.email || companyData?.profiles.email}</span>
                   </p>
                   <div className="flex justify-center sm:justify-start">
-                    {getStatusBadge(pilotData?.status || 'pending')}
+                    {getStatusBadge('active')}
                   </div>
                 </div>
               </div>
@@ -346,20 +362,20 @@ const PilotDashboard = () => {
                   <div className="absolute inset-0 bg-[#00b3f3]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   <div className="relative">
                     <div className="text-3xl sm:text-5xl font-semibold text-[#00b3f3] mb-1 sm:mb-3 flex items-baseline gap-1 sm:gap-2">
-                      {flightHours.total_hours}
-                      <span className="text-sm sm:text-lg text-[#00b3f3]/60">hrs</span>
+                      {metrics.experience_years}
+                      <span className="text-sm sm:text-lg text-[#00b3f3]/60">años</span>
                     </div>
-                    <div className="text-xs sm:text-base text-white/90">Horas Totales</div>
+                    <div className="text-xs sm:text-base text-white/90">Años de Experiencia</div>
                   </div>
                 </div>
                 <div className="relative group overflow-hidden bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-[#00b3f3]/30 hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,179,243,0.3)] hover:scale-105">
                   <div className="absolute inset-0 bg-[#00b3f3]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   <div className="relative">
                     <div className="text-3xl sm:text-5xl font-semibold text-[#00b3f3] mb-1 sm:mb-3 flex items-baseline gap-1 sm:gap-2">
-                      {flightHours.this_month}
-                      <span className="text-sm sm:text-lg text-[#00b3f3]/60">hrs</span>
+                      {metrics.services_count}
+                      <span className="text-sm sm:text-lg text-[#00b3f3]/60">servicios</span>
                     </div>
-                    <div className="text-xs sm:text-base text-white/90">Este Mes</div>
+                    <div className="text-xs sm:text-base text-white/90">Servicios Ofrecidos</div>
                   </div>
                 </div>
               </div>
@@ -373,7 +389,7 @@ const PilotDashboard = () => {
             variant="outline" 
             size="lg"
             className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/pilot/profile')}
+            onClick={() => navigate('/company/profile')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
@@ -385,7 +401,7 @@ const PilotDashboard = () => {
             variant="outline" 
             size="lg"
             className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/pilot/certificates')}
+            onClick={() => navigate('/company/certificates')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
@@ -397,19 +413,19 @@ const PilotDashboard = () => {
             variant="outline" 
             size="lg"
             className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/pilot/flight-hours')}
+            onClick={() => navigate('/company/profile')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-              <Clock className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+              <Briefcase className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Horas de Vuelo</span>
+            <span className="relative text-xs sm:text-base text-white px-1">Servicios</span>
           </Button>
           <Button 
             variant="outline" 
             size="lg"
             className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/pilot/qr')}
+            onClick={() => navigate('/company/qr')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
@@ -425,118 +441,69 @@ const PilotDashboard = () => {
           <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
             <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-emerald-500/10 p-1">
               <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-                {(() => {
-                  const certStatus = getCertificationStatus(
-                    pilotData?.certification_status || false,
-                    pilotData?.certification_expires_at || null
-                  );
-                  const daysUntilExpiration = getDaysUntilExpiration(pilotData?.certification_expires_at || null);
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${
+                      certificationStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
+                      certificationStatus === 'expiring_soon' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
+                      certificationStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
+                      'bg-gradient-to-br from-gray-500 to-gray-600'
+                    }`}>
+                      <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                    </div>
+                    <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
+                  </div>
+                  {certificationStatus === 'valid' ? (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-400" />
+                    </div>
+                  ) : certificationStatus === 'expiring_soon' ? (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
+                    </div>
+                  ) : certificationStatus === 'expired' ? (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-red-500/20 border-2 border-red-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <XCircle className="h-5 w-5 sm:h-7 sm:w-7 text-red-400" />
+                    </div>
+                  ) : (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                  {certificationStatus === 'valid' && (
+                    <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
+                      <p className="text-white text-sm sm:text-base font-medium mb-1">
+                        ✓ Certificación Vigente
+                      </p>
+                      <p className="text-white/80 text-xs sm:text-sm">
+                        Tienes certificados AOC/CEO validados
+                      </p>
+                    </div>
+                  )}
                   
-                  return (
-                    <>
-                      <div className="flex items-center justify-between mb-4 sm:mb-6">
-                        <div className="flex items-center gap-2 sm:gap-4">
-                          <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${
-                            certStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
-                            certStatus === 'expiring_soon' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
-                            certStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
-                            'bg-gradient-to-br from-gray-500 to-gray-600'
-                          }`}>
-                            <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-                          </div>
-                          <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
-                        </div>
-                        {certStatus === 'valid' ? (
-                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                            <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-400" />
-                          </div>
-                        ) : certStatus === 'expiring_soon' ? (
-                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
-                          </div>
-                        ) : certStatus === 'expired' ? (
-                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-red-500/20 border-2 border-red-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                            <XCircle className="h-5 w-5 sm:h-7 sm:w-7 text-red-400" />
-                          </div>
-                        ) : (
-                          <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                            <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-                        {certStatus === 'valid' && (
-                          <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
-                            <p className="text-white text-sm sm:text-base font-medium mb-1">
-                              ✓ Certificación Vigente
-                            </p>
-                            <p className="text-white/80 text-xs sm:text-sm">
-                              Válida hasta: {formatExpirationDate(pilotData?.certification_expires_at || null)}
-                            </p>
-                            {daysUntilExpiration !== null && (
-                              <p className="text-white/70 text-xs mt-1">
-                                {daysUntilExpiration} días restantes
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        
-                        {certStatus === 'expiring_soon' && (
-                          <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-3 sm:p-4">
-                            <p className="text-white text-sm sm:text-base font-medium mb-1 flex items-center gap-2">
-                              <AlertCircle className="h-4 w-4" />
-                              Certificación por Vencer
-                            </p>
-                            <p className="text-white/80 text-xs sm:text-sm">
-                              Vence el: {formatExpirationDate(pilotData?.certification_expires_at || null)}
-                            </p>
-                            {daysUntilExpiration !== null && (
-                              <p className="text-yellow-300 text-xs sm:text-sm font-semibold mt-1">
-                                ⚠️ Quedan {daysUntilExpiration} días. Debes renovar tu validación.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                        
-                        {certStatus === 'expired' && (
-                          <div className="bg-red-500/20 border border-red-400/30 rounded-lg p-3 sm:p-4">
-                            <p className="text-white text-sm sm:text-base font-medium mb-1 flex items-center gap-2">
-                              <XCircle className="h-4 w-4" />
-                              Certificación Vencida
-                            </p>
-                            <p className="text-white/80 text-xs sm:text-sm">
-                              Venció el: {formatExpirationDate(pilotData?.certification_expires_at || null)}
-                            </p>
-                            <p className="text-red-300 text-xs sm:text-sm font-semibold mt-1">
-                              ⚠️ Debes renovar tu validación para continuar operando.
-                            </p>
-                          </div>
-                        )}
-                        
-                        {certStatus === 'not_validated' && (
-                          <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-                            Pendiente de validación de certificaciones
-                          </p>
-                        )}
-                      </div>
-                      
-                      <Button 
-                        size="lg" 
-                        onClick={() => navigate('/pilot/certificates')}
-                        className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${
-                          certStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
-                          certStatus === 'expiring_soon' || certStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
-                          'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
-                        }`}
-                      >
-                        {certStatus === 'not_validated' ? 'Subir Certificados' : 
-                         certStatus === 'expired' ? 'Renovar Certificación' : 
-                         'Ver Certificados'}
-                      </Button>
-                    </>
-                  );
-                })()}
+                  {certificationStatus === 'not_validated' && (
+                    <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+                      Pendiente de validación de certificaciones AOC/CEO
+                    </p>
+                  )}
+                </div>
+                
+                <Button 
+                  size="lg" 
+                  onClick={() => navigate('/company/certificates')}
+                  className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${
+                    certificationStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
+                    certificationStatus === 'expiring_soon' || certificationStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
+                    'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+                  }`}
+                >
+                  {certificationStatus === 'not_validated' ? 'Subir Certificados AOC/CEO' : 
+                   certificationStatus === 'expired' ? 'Renovar Certificación' : 
+                   'Ver Certificados'}
+                </Button>
               </CardContent>
             </div>
           </Card>
@@ -561,7 +528,7 @@ const PilotDashboard = () => {
                 </p>
                 <Button 
                   size="lg" 
-                  onClick={() => navigate('/pilot/membership')}
+                  onClick={() => navigate('/company/membership')}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
                 >
                   Gestionar Membresía
@@ -569,45 +536,46 @@ const PilotDashboard = () => {
               </CardContent>
             </div>
           </Card>
-        </div>
 
-        {/* Support Section */}
-        <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] animate-fade-in" style={{ animationDelay: '0.4s' }}>
-          <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
-            <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-              <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-                <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <HelpCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+          {/* Support Section */}
+          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
+              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+                <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <HelpCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                  </div>
+                  <span className="text-white text-sm sm:text-xl">Soporte</span>
                 </div>
-                <span className="text-white text-sm sm:text-xl">Soporte</span>
-              </div>
-              <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                ¿Necesitas ayuda? Nuestro equipo está aquí para asistirte.
-              </p>
-              <div className="space-y-3 sm:space-y-4">
-                <Button 
-                  size="lg" 
-                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                  onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
-                >
-                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  Enviar Email
-                </Button>
-                <Button 
-                  size="lg" 
-                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                  onClick={() => window.open('https://wa.me/56912345678')}
-                >
-                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  Soporte WhatsApp
-                </Button>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
+                <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
+                  ¿Necesitas ayuda? Nuestro equipo está aquí para asistirte.
+                </p>
+                <div className="space-y-3 sm:space-y-4">
+                  <Button 
+                    size="lg" 
+                    className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                    onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
+                  >
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                    Enviar Email
+                  </Button>
+                  <Button 
+                    size="lg" 
+                    className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                    onClick={() => window.open('https://wa.me/56912345678')}
+                  >
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                    Soporte WhatsApp
+                  </Button>
+                </div>
+              </CardContent>
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );
 };
 
-export default PilotDashboard;
+export default CompanyDashboard;
+

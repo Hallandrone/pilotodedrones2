@@ -47,7 +47,7 @@ const Auth = () => {
             }
 
             if (profile?.user_type === 'company') {
-              navigate('/company-profile');
+              navigate('/company');
             } else {
               navigate('/dashboard');
             }
@@ -86,7 +86,7 @@ const Auth = () => {
           }
 
           if (profile?.user_type === 'company') {
-            navigate('/company-profile');
+            navigate('/company');
           } else {
             navigate('/dashboard');
           }
@@ -209,7 +209,7 @@ const Auth = () => {
         
         // Redirigir según el tipo de usuario
         if (profile?.user_type === 'company') {
-          navigate('/company-profile');
+          navigate('/company');
         } else {
           navigate('/dashboard');
         }

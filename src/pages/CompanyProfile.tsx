@@ -1043,7 +1043,7 @@ export default function CompanyProfile() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/company-profile')}
+              onClick={() => navigate('/company')}
               className="h-12 w-12 rounded-full hover:bg-accent/10 hover:scale-105 transition-all duration-200 text-white"
             >
               <ArrowLeft className="h-6 w-6" />

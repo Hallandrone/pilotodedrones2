@@ -107,7 +107,7 @@ const DemoAuth = () => {
       const redirectPath = type === 'pilot' 
         ? '/pilot' 
         : type === 'company' 
-          ? '/company-profile' 
+          ? '/company' 
           : '/dashboard';
 
       // Intentar iniciar sesión primero
