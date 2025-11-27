@@ -17,6 +17,7 @@ import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, Alert
 import { Badge } from "@/components/ui/badge";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
+import Logo from "@/components/ui/logo";
 
 interface Company {
   id: string;
@@ -1047,6 +1048,7 @@ export default function CompanyProfile() {
             >
               <ArrowLeft className="h-6 w-6" />
             </Button>
+            <Logo size="xl" className="flex-shrink-0 [&>div]:h-24 [&>div]:w-24" showText={false} />
             <div>
               <h1 className="text-2xl font-bold text-white">
                 Editar Perfil de Empresa

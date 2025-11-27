@@ -796,7 +796,14 @@ const PilotProfile = () => {
     try {
       setUploadingAvatar(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "No se pudo obtener el usuario",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Convertir la URL del blob a File
       const response = await fetch(croppedImageUrl);
@@ -809,9 +816,12 @@ const PilotProfile = () => {
         .from('avatars')
         .upload(filePath, file, { upsert: true });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
-      // Obtener URL pública
+      // Obtener URL pública con parámetro de caché para forzar actualización
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
@@ -822,9 +832,17 @@ const PilotProfile = () => {
         .update({ avatar_url: publicUrl })
         .eq('id', user.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Update error:', updateError);
+        throw updateError;
+      }
 
-      setAvatarUrl(publicUrl);
+      // Recargar el perfil completo para asegurar sincronización
+      await loadProfile();
+      
+      // Forzar actualización del avatar agregando parámetro de caché
+      setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
+      
       toast({
         title: "Avatar actualizado",
         description: "Tu foto de perfil ha sido actualizada correctamente",
@@ -833,7 +851,7 @@ const PilotProfile = () => {
       console.error('Error uploading avatar:', error);
       toast({
         title: "Error",
-        description: "No se pudo subir el avatar. Intenta nuevamente.",
+        description: error.message || "No se pudo subir el avatar. Intenta nuevamente.",
         variant: "destructive",
       });
     } finally {
@@ -1004,7 +1022,20 @@ const PilotProfile = () => {
             {/* Avatar Section */}
             <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
               <Avatar className="h-32 w-32 ring-4 ring-accent/50">
-                <AvatarImage src={avatarUrl || ''} />
+                <AvatarImage 
+                  src={avatarUrl || ''} 
+                  key={avatarUrl} // Forzar re-render cuando cambie la URL
+                  onError={(e) => {
+                    // Si falla la carga, intentar recargar sin parámetros de caché
+                    const target = e.target as HTMLImageElement;
+                    if (avatarUrl) {
+                      const baseUrl = avatarUrl.split('?')[0];
+                      if (target.src !== baseUrl) {
+                        target.src = baseUrl;
+                      }
+                    }
+                  }}
+                />
                 <AvatarFallback className="bg-accent text-white text-3xl">
                   {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
                 </AvatarFallback>
