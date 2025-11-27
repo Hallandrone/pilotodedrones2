@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { 
-  Users, 
   User2,
   Plane, 
   Settings, 
@@ -46,12 +45,6 @@ const menuItems = [
     url: "/dashboard/profile",
     icon: User2,
     roles: ["admin", "pilot", "user"] // Super admin no tiene perfil personal
-  },
-  {
-    title: "Gestión de Usuarios",
-    url: "/dashboard/users",
-    icon: Users,
-    roles: ["super_admin", "admin"]
   },
   {
     title: "Pilotos",
