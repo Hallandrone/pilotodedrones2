@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Building2, Upload, UserPlus, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
+import { Building2, Upload, UserPlus, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ImageCropper } from "@/components/ui/ImageCropper";
 
 interface Company {
   id: string;
@@ -48,6 +49,9 @@ export default function CompanyProfile() {
   const [associatedPilots, setAssociatedPilots] = useState<AssociatedPilot[]>([]);
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [formData, setFormData] = useState({
     company_name: "",
     description: "",
@@ -153,30 +157,65 @@ export default function CompanyProfile() {
     setAssociatedPilots(data || []);
   };
 
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const fileExt = file.name.split(".").pop();
-    const filePath = `${user.id}/logo.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("certifications")
-      .upload(filePath, file, { upsert: true });
-
-    if (uploadError) {
-      toast.error("Error al subir logo");
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast.error("Solo se permiten archivos de imagen");
       return;
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from("certifications")
-      .getPublicUrl(filePath);
+    // Validar tamaño (máx 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("La imagen no puede ser mayor a 5MB");
+      return;
+    }
 
-    await handleSave({ logo_url: publicUrl });
+    // Crear URL temporal para el cropper
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      setImageToCrop(imageUrl);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoCropComplete = async (croppedImageUrl: string) => {
+    try {
+      setUploadingLogo(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Convertir la URL del blob a File
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `logo-${user.id}.jpg`, { type: 'image/jpeg' });
+
+      // Subir a Supabase Storage
+      const filePath = `${user.id}/logo.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from("certifications")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("certifications")
+        .getPublicUrl(filePath);
+
+      await handleSave({ logo_url: publicUrl });
+      toast.success("Logo actualizado correctamente");
+    } catch (error: any) {
+      console.error('Error uploading logo:', error);
+      toast.error("No se pudo subir el logo. Intenta nuevamente.");
+    } finally {
+      setUploadingLogo(false);
+      setCropperOpen(false);
+      setImageToCrop(null);
+    }
   };
 
   const handleSave = async (additionalData = {}) => {
@@ -421,8 +460,17 @@ export default function CompanyProfile() {
             <div>
               <Label htmlFor="logo-upload" className="cursor-pointer">
                 <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-                  <Upload className="h-4 w-4" />
-                  Subir Logo
+                  {uploadingLogo ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Subiendo...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Camera className="h-4 w-4" />
+                      <span>{company?.logo_url ? 'Cambiar Logo' : 'Subir Logo'}</span>
+                    </>
+                  )}
                 </div>
               </Label>
               <Input
@@ -430,8 +478,12 @@ export default function CompanyProfile() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={handleLogoUpload}
+                onChange={handleLogoSelect}
+                disabled={uploadingLogo}
               />
+              <p className="text-xs text-muted-foreground mt-2">
+                JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+              </p>
             </div>
           </div>
 
@@ -619,6 +671,18 @@ export default function CompanyProfile() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Image Cropper Modal */}
+      {imageToCrop && (
+        <ImageCropper
+          open={cropperOpen}
+          onOpenChange={setCropperOpen}
+          imageSrc={imageToCrop}
+          onCropComplete={handleLogoCropComplete}
+          aspect={1}
+          title="Recortar logo de empresa"
+        />
+      )}
     </div>
   );
 }

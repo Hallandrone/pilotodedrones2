@@ -10,7 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2, CheckCircle } from "lucide-react";
+import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2, CheckCircle, Camera } from "lucide-react";
+import { ImageCropper } from "@/components/ui/ImageCropper";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { User } from '@supabase/supabase-js';
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
 
@@ -102,6 +104,10 @@ const UserProfile = () => {
   const [slugFeedback, setSlugFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [useInstagramUrl, setUseInstagramUrl] = useState(false);
   const [useLinkedInUrl, setUseLinkedInUrl] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -316,6 +322,7 @@ const UserProfile = () => {
         
         setUseInstagramUrl(hasInstagramUrl);
         setUseLinkedInUrl(hasLinkedInUrl);
+        setAvatarUrl(profileData.avatar_url || null);
 
         if (profileData.public_profile_slug) {
           setSlugAvailable(true);
@@ -639,6 +646,90 @@ const UserProfile = () => {
         type: 'error',
         text: 'Este nombre ya está en uso. Por favor, elige otro.'
       });
+    }
+  };
+
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Solo se permiten archivos de imagen",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar tamaño (máx 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "La imagen no puede ser mayor a 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Crear URL temporal para el cropper
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      setImageToCrop(imageUrl);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarCropComplete = async (croppedImageUrl: string) => {
+    try {
+      setUploadingAvatar(true);
+      if (!user) return;
+
+      // Convertir la URL del blob a File
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `avatar-${user.id}.jpg`, { type: 'image/jpeg' });
+
+      // Subir a Supabase Storage
+      const filePath = `${user.id}/avatar.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Obtener URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Actualizar perfil
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast({
+        title: "Avatar actualizado",
+        description: "Tu foto de perfil ha sido actualizada correctamente",
+      });
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el avatar. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAvatar(false);
+      setCropperOpen(false);
+      setImageToCrop(null);
     }
   };
 
@@ -1224,6 +1315,44 @@ const UserProfile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
+              {/* Avatar Section */}
+              <div className="flex flex-col items-center gap-4 pb-6 mb-6 border-b border-border/50">
+                <Avatar className="h-32 w-32 ring-4 ring-accent/50">
+                  <AvatarImage src={avatarUrl || ''} />
+                  <AvatarFallback className="bg-accent text-white text-3xl">
+                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-center gap-2">
+                  <Label htmlFor="avatar-upload" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
+                      {uploadingAvatar ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Subiendo...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="h-4 w-4" />
+                          <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
+                        </>
+                      )}
+                    </div>
+                  </Label>
+                  <Input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarSelect}
+                    disabled={uploadingAvatar}
+                  />
+                  <p className="text-xs text-muted-foreground text-center">
+                    JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+                  </p>
+                </div>
+              </div>
+
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="full_name" className="text-foreground font-medium">
@@ -1929,6 +2058,18 @@ const UserProfile = () => {
           )}
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {imageToCrop && (
+        <ImageCropper
+          open={cropperOpen}
+          onOpenChange={setCropperOpen}
+          imageSrc={imageToCrop}
+          onCropComplete={handleAvatarCropComplete}
+          aspect={1}
+          title="Recortar foto de perfil"
+        />
+      )}
     </div>
   );
 };

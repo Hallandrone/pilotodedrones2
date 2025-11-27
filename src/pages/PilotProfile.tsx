@@ -28,6 +28,8 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react";
+import { ImageCropper } from "@/components/ui/ImageCropper";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface ProfileData {
   full_name: string;
@@ -89,6 +91,10 @@ const PilotProfile = () => {
   const [checkingSlug, setCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [slugFeedback, setSlugFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -440,6 +446,7 @@ const PilotProfile = () => {
               drone_types: data.drone_types || [],
               public_profile_slug: data.public_profile_slug || ''
             });
+            setAvatarUrl(data.avatar_url || null);
           }
         } else {
           throw profileError;
@@ -460,6 +467,7 @@ const PilotProfile = () => {
           drone_types: data.drone_types || [],
           public_profile_slug: data.public_profile_slug || ''
         });
+        setAvatarUrl(data.avatar_url || null);
       }
     } catch (error: any) {
       console.error('Error loading profile:', error);
@@ -750,6 +758,91 @@ const PilotProfile = () => {
     setHasChanges(true);
   };
 
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Solo se permiten archivos de imagen",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar tamaño (máx 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "La imagen no puede ser mayor a 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Crear URL temporal para el cropper
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageUrl = e.target?.result as string;
+      setImageToCrop(imageUrl);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarCropComplete = async (croppedImageUrl: string) => {
+    try {
+      setUploadingAvatar(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Convertir la URL del blob a File
+      const response = await fetch(croppedImageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `avatar-${user.id}.jpg`, { type: 'image/jpeg' });
+
+      // Subir a Supabase Storage
+      const filePath = `${user.id}/avatar.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Obtener URL pública
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Actualizar perfil
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      toast({
+        title: "Avatar actualizado",
+        description: "Tu foto de perfil ha sido actualizada correctamente",
+      });
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo subir el avatar. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAvatar(false);
+      setCropperOpen(false);
+      setImageToCrop(null);
+    }
+  };
+
   const handleAutoSave = async () => {
     if (!hasChanges) return;
     
@@ -908,6 +1001,44 @@ const PilotProfile = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 bg-card rounded-xl space-y-6">
+            {/* Avatar Section */}
+            <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
+              <Avatar className="h-32 w-32 ring-4 ring-accent/50">
+                <AvatarImage src={avatarUrl || ''} />
+                <AvatarFallback className="bg-accent text-white text-3xl">
+                  {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-center gap-2">
+                <Label htmlFor="avatar-upload" className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
+                    {uploadingAvatar ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Subiendo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-4 w-4" />
+                        <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
+                      </>
+                    )}
+                  </div>
+                </Label>
+                <Input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarSelect}
+                  disabled={uploadingAvatar}
+                />
+                <p className="text-xs text-white/60 text-center">
+                  JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-3">
               <Label htmlFor="full_name" className="text-base font-semibold text-white">
                 Nombre completo *
@@ -1458,6 +1589,18 @@ const PilotProfile = () => {
           </Button>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {imageToCrop && (
+        <ImageCropper
+          open={cropperOpen}
+          onOpenChange={setCropperOpen}
+          imageSrc={imageToCrop}
+          onCropComplete={handleAvatarCropComplete}
+          aspect={1}
+          title="Recortar foto de perfil"
+        />
+      )}
     </div>
   );
 };
