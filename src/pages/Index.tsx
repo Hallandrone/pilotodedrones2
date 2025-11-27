@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import SearchForm from "@/components/ui/search-form";
 import PilotCard from "@/components/ui/pilot-card";
 import Logo from "@/components/ui/logo";
-import { Plane, Shield, Users, Star, LogIn, User } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Plane, Shield, Users, Star, LogIn, User, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ const Index = () => {
   const [mobileBanners, setMobileBanners] = useState<AdBanner[]>([]);
   const [featuredPilots, setFeaturedPilots] = useState<any[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadActiveBanners();
@@ -300,7 +302,9 @@ const Index = () => {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
           <div className="flex items-center justify-between gap-4 w-full">
             <Logo size="xl" className="hover:scale-105 transition-transform duration-200 flex-shrink-0" />
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
+            
+            {/* Desktop Menu - Visible solo en md y superior */}
+            <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
               {user ? (
                 <>
                   <Button 
@@ -348,6 +352,81 @@ const Index = () => {
                   </Button>
                 </>
               )}
+            </div>
+
+            {/* Mobile Menu - Hamburger Button */}
+            <div className="md:hidden">
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-10 w-10 p-0"
+                    aria-label="Abrir menú"
+                  >
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+                  <SheetHeader>
+                    <SheetTitle>Menú</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-3">
+                    {user ? (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="lg"
+                          className="w-full justify-start hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            navigate('/dashboard');
+                          }}
+                        >
+                          <User className="h-5 w-5 mr-3" />
+                          Mi Cuenta
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="lg"
+                          className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            handleLogout();
+                          }}
+                        >
+                          Cerrar Sesión
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="lg"
+                          className="w-full justify-start hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            navigate('/demo');
+                          }}
+                        >
+                          Usuario Demo
+                        </Button>
+                        <Button 
+                          size="lg"
+                          className="w-full justify-start bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            navigate('/auth');
+                          }}
+                        >
+                          <LogIn className="h-5 w-5 mr-3" />
+                          Ingresar/Registrarse
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
