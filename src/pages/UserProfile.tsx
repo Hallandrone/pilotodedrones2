@@ -727,6 +727,55 @@ const UserProfile = () => {
         ? cleanSlug(profile.public_profile_slug) 
         : null;
       
+      // Check if slug has changed and update history
+      if (cleanedSlug) {
+        const { data: currentProfile } = await supabase
+          .from('profiles')
+          .select('public_profile_slug')
+          .eq('id', user.id)
+          .single();
+
+        const oldSlug = currentProfile?.public_profile_slug;
+        const newSlug = cleanedSlug;
+
+        // If slug has changed, update history
+        if (oldSlug && oldSlug !== newSlug) {
+          // Deactivate all current slugs for this user (should only be one, but be safe)
+          await supabase
+            .from('profile_slug_history')
+            .update({ 
+              is_current: false, 
+              deactivated_at: new Date().toISOString() 
+            })
+            .eq('user_id', user.id)
+            .eq('is_current', true);
+
+          // Insert new slug in history (or update if it already exists)
+          await supabase
+            .from('profile_slug_history')
+            .upsert({
+              user_id: user.id,
+              slug: newSlug,
+              is_current: true,
+              deactivated_at: null
+            }, {
+              onConflict: 'user_id,slug'
+            });
+        } else if (!oldSlug && newSlug) {
+          // First time setting a slug
+          await supabase
+            .from('profile_slug_history')
+            .upsert({
+              user_id: user.id,
+              slug: newSlug,
+              is_current: true,
+              deactivated_at: null
+            }, {
+              onConflict: 'user_id,slug'
+            });
+        }
+      }
+      
       const { error } = await supabase
         .from('profiles')
         .upsert({

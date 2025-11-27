@@ -42,7 +42,8 @@ const PilotQR = () => {
       if (profileData) {
         setPilotData(profileData);
         
-        // Generate QR code URL - use slug if available, otherwise use ID
+        // Generate QR code URL - use current slug if available, otherwise use ID
+        // The slug will always work because old slugs redirect to current one
         const profileSlug = profileData.public_profile_slug;
         const profileUrl = profileSlug 
           ? `${window.location.origin}/${profileSlug}`
@@ -108,7 +109,7 @@ const PilotQR = () => {
   const handleShare = async () => {
     const profileSlug = pilotData?.public_profile_slug;
     const profileUrl = profileSlug 
-      ? `${window.location.origin}/pilot/${profileSlug}`
+      ? `${window.location.origin}/${profileSlug}`
       : `${window.location.origin}/pilot/${pilotData?.id}`;
     
     if (navigator.share) {
@@ -134,7 +135,7 @@ const PilotQR = () => {
   const handleCopyLink = () => {
     const profileSlug = pilotData?.public_profile_slug;
     const profileUrl = profileSlug 
-      ? `${window.location.origin}/pilot/${profileSlug}`
+      ? `${window.location.origin}/${profileSlug}`
       : `${window.location.origin}/pilot/${pilotData?.id}`;
     navigator.clipboard.writeText(profileUrl);
     toast({

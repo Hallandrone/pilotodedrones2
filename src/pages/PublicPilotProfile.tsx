@@ -97,18 +97,58 @@ const PublicPilotProfile = () => {
       // UUIDs have format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars with hyphens)
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pilotId || '');
       
-      // If it's not a UUID, try to find by slug first
+      // If it's not a UUID, try to find by slug in history table first
       if (!isUUID) {
-        const { data: slugData, error: slugError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('public_profile_slug', pilotId)
+        // Check slug history to see if this slug exists (current or old)
+        const { data: slugHistory, error: historyError } = await supabase
+          .from('profile_slug_history')
+          .select('user_id, is_current, slug')
+          .eq('slug', pilotId)
           .single();
 
-        if (slugData && !slugError) {
-          profileData = slugData;
-          userId = slugData.id;
-          setProfileSlug(pilotId);
+        if (slugHistory && !historyError) {
+          userId = slugHistory.user_id;
+          
+          // If this is not the current slug, redirect to current slug
+          if (!slugHistory.is_current) {
+            const { data: currentSlug } = await supabase
+              .from('profile_slug_history')
+              .select('slug')
+              .eq('user_id', userId)
+              .eq('is_current', true)
+              .single();
+            
+            if (currentSlug) {
+              // Redirect to current slug
+              navigate(`/${currentSlug.slug}`, { replace: true });
+              return;
+            }
+          }
+          
+          // Load profile by user_id
+          const { data: profileByUserId } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single();
+
+          if (profileByUserId) {
+            profileData = profileByUserId;
+            setProfileSlug(slugHistory.is_current ? pilotId : profileByUserId.public_profile_slug);
+          }
+        } else {
+          // Try direct lookup in profiles table (for backward compatibility)
+          const { data: slugData, error: slugError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('public_profile_slug', pilotId)
+            .single();
+
+          if (slugData && !slugError) {
+            profileData = slugData;
+            userId = slugData.id;
+            setProfileSlug(pilotId);
+          }
         }
       }
 
