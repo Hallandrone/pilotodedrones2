@@ -10,8 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Building2, Upload, UserPlus, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map, Link, Crown } from "lucide-react";
+import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map, Link, Crown, Lock, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
@@ -35,17 +37,6 @@ interface Company {
   linkedin_url?: string | null;
 }
 
-interface AssociatedPilot {
-  id: string;
-  pilot_id: string;
-  pilot: {
-    user_id: string;
-    profile: {
-      full_name: string;
-      avatar_url: string | null;
-    };
-  };
-}
 
 interface Certification {
   id: string;
@@ -61,7 +52,6 @@ export default function CompanyProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<Company | null>(null);
-  const [associatedPilots, setAssociatedPilots] = useState<AssociatedPilot[]>([]);
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [uploading, setUploading] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
@@ -94,7 +84,15 @@ export default function CompanyProfile() {
     instagram_url: "",
     linkedin_url: "",
   });
-  const [newPilotEmail, setNewPilotEmail] = useState("");
+  const [openModal, setOpenModal] = useState<string | null>(null);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
+  const [passwordForEmailChange, setPasswordForEmailChange] = useState("");
   
   const appBaseUrl = getBaseUrlClean();
 
@@ -282,7 +280,6 @@ export default function CompanyProfile() {
           });
         }
 
-        await loadAssociatedPilots(companyData.id);
         await loadCertifications();
       }
     } catch (error: any) {
@@ -551,29 +548,6 @@ export default function CompanyProfile() {
     setCertifications((data || []) as Certification[]);
   };
 
-  const loadAssociatedPilots = async (companyId: string) => {
-    const { data, error } = await supabase
-      .from("company_pilots")
-      .select(`
-        id,
-        pilot_id,
-        pilot:pilots!inner (
-          user_id,
-          profile:profiles!inner (
-            full_name,
-            avatar_url
-          )
-        )
-      `)
-      .eq("company_id", companyId);
-
-    if (error) {
-      console.error("Error loading pilots:", error);
-      return;
-    }
-
-    setAssociatedPilots(data || []);
-  };
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -907,66 +881,129 @@ export default function CompanyProfile() {
     }
   };
 
-  const handleAddPilot = async () => {
-    if (!newPilotEmail || !company) return;
-
-    const { data: pilotProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("email", newPilotEmail)
-      .eq("user_type", "pilot")
-      .maybeSingle();
-
-    if (!pilotProfile) {
-      toast.error("No se encontró un piloto con ese email");
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Por favor completa todos los campos");
       return;
     }
 
-    const { data: pilot } = await supabase
-      .from("pilots")
-      .select("id")
-      .eq("user_id", pilotProfile.id)
-      .maybeSingle();
-
-    if (!pilot) {
-      toast.error("El usuario no tiene perfil de piloto");
+    if (newPassword !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
       return;
     }
 
-    const { error } = await supabase
-      .from("company_pilots")
-      .insert({
-        company_id: company.id,
-        pilot_id: pilot.id,
+    if (newPassword.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      
+      // Verificar contraseña actual re-autenticando
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        toast.error("No se pudo obtener la información del usuario");
+        return;
+      }
+
+      // Re-autenticar con la contraseña actual
+      const { error: reAuthError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword,
       });
 
-    if (error) {
-      if (error.code === "23505") {
-        toast.error("Este piloto ya está asociado a la empresa");
-      } else {
-        toast.error("Error al asociar piloto");
+      if (reAuthError) {
+        toast.error("Contraseña actual incorrecta");
+        return;
       }
-      return;
-    }
 
-    toast.success("Piloto asociado correctamente");
-    setNewPilotEmail("");
-    await loadAssociatedPilots(company.id);
+      // Actualizar contraseña
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        toast.error(updateError.message || "Error al cambiar la contraseña");
+        return;
+      }
+
+      toast.success("Contraseña actualizada correctamente");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setOpenModal(null);
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      toast.error("Error al cambiar la contraseña");
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
-  const handleRemovePilot = async (associationId: string) => {
-    const { error } = await supabase
-      .from("company_pilots")
-      .delete()
-      .eq("id", associationId);
-
-    if (error) {
-      toast.error("Error al eliminar asociación");
+  const handleChangeEmail = async () => {
+    if (!newEmail || !confirmEmail || !passwordForEmailChange) {
+      toast.error("Por favor completa todos los campos");
       return;
     }
 
-    toast.success("Piloto desasociado correctamente");
-    if (company) await loadAssociatedPilots(company.id);
+    if (newEmail !== confirmEmail) {
+      toast.error("Los emails no coinciden");
+      return;
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmail)) {
+      toast.error("Por favor ingresa un email válido");
+      return;
+    }
+
+    try {
+      setChangingEmail(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        toast.error("No se pudo obtener la información del usuario");
+        return;
+      }
+
+      // Re-autenticar con la contraseña
+      const { error: reAuthError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passwordForEmailChange,
+      });
+
+      if (reAuthError) {
+        toast.error("Contraseña incorrecta");
+        return;
+      }
+
+      // Actualizar email
+      const { error: updateError } = await supabase.auth.updateUser({
+        email: newEmail,
+      });
+
+      if (updateError) {
+        if (updateError.message.includes("already registered")) {
+          toast.error("Este email ya está en uso");
+        } else {
+          toast.error(updateError.message || "Error al cambiar el email");
+        }
+        return;
+      }
+
+      toast.success("Email actualizado correctamente. Revisa tu nuevo email para confirmar el cambio.");
+      setNewEmail("");
+      setConfirmEmail("");
+      setPasswordForEmailChange("");
+      setOpenModal(null);
+    } catch (error: any) {
+      console.error("Error changing email:", error);
+      toast.error("Error al cambiar el email");
+    } finally {
+      setChangingEmail(false);
+    }
   };
 
   if (loading) {
@@ -1030,879 +1067,1166 @@ export default function CompanyProfile() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-6 space-y-6 pb-20 max-w-5xl mx-auto">
-        {/* Basic Information */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-white" />
-                </div>
-                Información Básica
-              </CardTitle>
-        </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
-              {/* Logo Section */}
-              <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
-                <Avatar className="h-32 w-32 ring-4 ring-accent/50">
-                  <AvatarImage src={company?.logo_url || ''} />
-                  <AvatarFallback className="bg-accent text-white text-3xl">
-                    {formData.company_name?.charAt(0)?.toUpperCase() || 'E'}
-              </AvatarFallback>
-            </Avatar>
-                <div className="flex flex-col items-center gap-2">
-              <Label htmlFor="logo-upload" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
-                      {uploadingLogo ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Subiendo...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Camera className="h-4 w-4" />
-                          <span>{company?.logo_url ? 'Cambiar logo' : 'Subir logo'}</span>
-                        </>
-                      )}
-                </div>
+      {/* Dashboard Grid */}
+      <div className="p-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Información Básica */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('basic')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <Building2 className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">Información Básica</CardTitle>
+              <CardDescription className="text-white/70">Logo, nombre, contacto y descripción</CardDescription>
+            </CardContent>
+          </Card>
+
+          {/* Ubicación */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('location')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <MapPin className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">Ubicación</CardTitle>
+              <CardDescription className="text-white/70">Región, ciudad y años de experiencia</CardDescription>
+            </CardContent>
+          </Card>
+
+          {/* Servicios */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('services')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <Briefcase className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">Servicios</CardTitle>
+              <CardDescription className="text-white/70">Servicios que ofrece tu empresa</CardDescription>
+            </CardContent>
+          </Card>
+
+          {/* Tipos de Drones */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('drones')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <Camera className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">Tipos de Drones</CardTitle>
+              <CardDescription className="text-white/70">Modelos de drones con los que trabajas</CardDescription>
+            </CardContent>
+          </Card>
+
+          {/* Redes Sociales */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('social')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <Link className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">Redes Sociales</CardTitle>
+              <CardDescription className="text-white/70">Instagram y LinkedIn</CardDescription>
+            </CardContent>
+          </Card>
+
+          {/* URL Personalizada */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('url')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <Crown className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">URL Personalizada</CardTitle>
+              <CardDescription className="text-white/70">Personaliza la URL de tu perfil</CardDescription>
+            </CardContent>
+          </Card>
+
+          {/* Certificados */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('certificates')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <FileText className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">Certificados</CardTitle>
+              <CardDescription className="text-white/70">AOC y CEO</CardDescription>
+            </CardContent>
+          </Card>
+
+          {/* Seguridad */}
+          <Card 
+            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            onClick={() => setOpenModal('security')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+                <Lock className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-white">Seguridad</CardTitle>
+              <CardDescription className="text-white/70">Cambiar contraseña y email</CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Modals */}
+      {/* Basic Information Modal */}
+      <Dialog open={openModal === 'basic'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <Building2 className="h-6 w-6" />
+              Información Básica
+            </DialogTitle>
+            <DialogDescription>Actualiza la información básica de tu empresa</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            {/* Logo Section */}
+            <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
+              <Avatar className="h-32 w-32 ring-4 ring-accent/50">
+                <AvatarImage src={company?.logo_url || ''} />
+                <AvatarFallback className="bg-accent text-white text-3xl">
+                  {formData.company_name?.charAt(0)?.toUpperCase() || 'E'}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-center gap-2">
+                <Label htmlFor="logo-upload-modal" className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
+                    {uploadingLogo ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Subiendo...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-4 w-4" />
+                        <span>{company?.logo_url ? 'Cambiar logo' : 'Subir logo'}</span>
+                      </>
+                    )}
+                  </div>
+                </Label>
+                <Input
+                  id="logo-upload-modal"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleLogoSelect}
+                  disabled={uploadingLogo}
+                />
+                <p className="text-xs text-muted-foreground text-center">
+                  JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="company_name_modal" className="text-base font-semibold">
+                Nombre de la Empresa *
               </Label>
               <Input
-                id="logo-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                    onChange={handleLogoSelect}
-                    disabled={uploadingLogo}
+                id="company_name_modal"
+                value={formData.company_name}
+                onChange={(e) => handleInputChange('company_name', e.target.value)}
+                placeholder="Nombre de tu empresa"
+                className="h-14 rounded-xl border-2"
               />
-                  <p className="text-xs text-white/60 text-center">
-                    JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
-                  </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <Label htmlFor="email_modal" className="text-base font-semibold">
+                  Email de Contacto
+                </Label>
+                <Input
+                  id="email_modal"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="contacto@empresa.cl"
+                  className="h-14 rounded-xl border-2"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="phone_modal" className="text-base font-semibold flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  Teléfono
+                </Label>
+                <Input
+                  id="phone_modal"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="+56 9 1234 5678"
+                  className="h-14 rounded-xl border-2"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="website_modal" className="text-base font-semibold">
+                Sitio Web
+              </Label>
+              <Input
+                id="website_modal"
+                type="url"
+                value={formData.website}
+                onChange={(e) => handleInputChange('website', e.target.value)}
+                placeholder="https://www.empresa.cl"
+                className="h-14 rounded-xl border-2"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="description_modal" className="text-base font-semibold">
+                Descripción
+              </Label>
+              <Textarea
+                id="description_modal"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Describe los servicios que ofrece tu empresa..."
+                className="rounded-xl border-2 resize-none min-h-[120px]"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setOpenModal(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={async () => {
+                await handleSave();
+                setOpenModal(null);
+              }} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
+                  </>
+                )}
+              </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
 
-              <div className="space-y-3">
-                <Label htmlFor="company_name" className="text-base font-semibold text-white">
-                  Nombre de la Empresa *
-                </Label>
-            <Input
-              id="company_name"
-              value={formData.company_name}
-                  onChange={(e) => handleInputChange('company_name', e.target.value)}
-                  placeholder="Nombre de tu empresa"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-            />
+      {/* Location Modal */}
+      <Dialog open={openModal === 'location'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <MapPin className="h-6 w-6" />
+              Ubicación y Zona de Trabajo
+            </DialogTitle>
+            <DialogDescription>Actualiza la ubicación y experiencia de tu empresa</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            <div className="space-y-3">
+              <Label htmlFor="region_modal" className="text-base font-semibold">
+                Región *
+              </Label>
+              <Select value={formData.region} onValueChange={(value) => handleInputChange('region', value)}>
+                <SelectTrigger className="h-14 rounded-xl border-2">
+                  <SelectValue placeholder="Selecciona tu región" />
+                </SelectTrigger>
+                <SelectContent>
+                  {regions.map((region) => (
+                    <SelectItem key={region} value={region}>
+                      {region}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="location_modal" className="text-base font-semibold flex items-center gap-2">
+                <Map className="h-5 w-5" />
+                Ciudad/Comuna
+              </Label>
+              <Input
+                id="location_modal"
+                value={formData.location}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+                placeholder="Ej: Santiago, Las Condes"
+                className="h-14 rounded-xl border-2"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="experience_years_modal" className="text-base font-semibold">
+                Años de Experiencia Operando
+              </Label>
+              <Input
+                id="experience_years_modal"
+                type="number"
+                value={formData.experience_years}
+                onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
+                placeholder="0"
+                className="h-14 rounded-xl border-2"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setOpenModal(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={async () => {
+                await handleSave();
+                setOpenModal(null);
+              }} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
+        </DialogContent>
+      </Dialog>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <Label htmlFor="email" className="text-base font-semibold text-white">
-                    Email de Contacto
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="contacto@empresa.cl"
-                    className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-                  />
-                </div>
+      {/* Services Modal */}
+      <Dialog open={openModal === 'services'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <Briefcase className="h-6 w-6" />
+              Servicios que Ofrecemos
+            </DialogTitle>
+            <DialogDescription>Selecciona los servicios que ofrece tu empresa</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            <div className="flex flex-wrap gap-3">
+              {serviceOptions.map((service) => (
+                <Badge
+                  key={service}
+                  variant={formData.services.includes(service) ? "default" : "outline"}
+                  className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                    formData.services.includes(service)
+                      ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
+                      : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
+                  }`}
+                  onClick={() => toggleService(service)}
+                >
+                  {service}
+                </Badge>
+              ))}
+            </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="phone" className="text-base font-semibold text-white flex items-center gap-2">
-                    <Phone className="h-5 w-5" />
-                    Teléfono
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="+56 9 1234 5678"
-                    className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="website" className="text-base font-semibold text-white">
-                  Sitio Web
+            {formData.services.filter(isCustomService).length > 0 && (
+              <div className="pt-4 border-t border-border/50">
+                <Label className="text-sm mb-3 block font-medium">
+                  Servicios personalizados:
                 </Label>
-            <Input
-              id="website"
-              type="url"
-              value={formData.website}
-                  onChange={(e) => handleInputChange('website', e.target.value)}
-                  placeholder="https://www.empresa.cl"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-            />
-          </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="description" className="text-base font-semibold text-white">
-                  Descripción
-                </Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe los servicios que ofrece tu empresa..."
-                  className="rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 resize-none min-h-[120px] text-base"
-            />
-          </div>
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* Location Information */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-white" />
-                </div>
-                Ubicación y Zona de Trabajo
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
-              <div className="space-y-3">
-                <Label htmlFor="region" className="text-base font-semibold text-white">
-                  Región *
-                </Label>
-                <Select value={formData.region} onValueChange={(value) => handleInputChange('region', value)}>
-                  <SelectTrigger className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base">
-                    <SelectValue placeholder="Selecciona tu región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions.map((region) => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="location" className="text-base font-semibold text-white flex items-center gap-2">
-                  <Map className="h-5 w-5" />
-                  Ciudad/Comuna
-                </Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="Ej: Santiago, Las Condes"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="experience_years" className="text-base font-semibold text-white">
-                  Años de Experiencia Operando
-                </Label>
-                <Input
-                  id="experience_years"
-                  type="number"
-                  value={formData.experience_years}
-                  onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
-                  placeholder="0"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-                />
-              </div>
-        </CardContent>
-          </div>
-      </Card>
-
-        {/* Services */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-white" />
-                </div>
-                Servicios que Ofrecemos
-              </CardTitle>
-              <CardDescription className="text-white/70 font-medium">
-                Selecciona los servicios que ofrece tu empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl">
-              <div className="space-y-4">
                 <div className="flex flex-wrap gap-3">
-                  {serviceOptions.map((service) => (
+                  {formData.services.filter(isCustomService).map((service) => (
                     <Badge
                       key={service}
-                      variant={formData.services.includes(service) ? "default" : "outline"}
-                      className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                        formData.services.includes(service)
-                          ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
-                          : 'bg-card border-border text-white hover:bg-accent/10 hover:border-accent hover:text-accent'
-                      }`}
+                      variant="default"
+                      className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
                       onClick={() => toggleService(service)}
                     >
                       {service}
+                      <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
                     </Badge>
                   ))}
                 </div>
+              </div>
+            )}
 
-                {formData.services.filter(isCustomService).length > 0 && (
-                  <div className="pt-4 border-t border-border/50">
-                    <Label className="text-white/70 text-sm mb-3 block font-medium">
-                      Servicios personalizados:
-                    </Label>
-                    <div className="flex flex-wrap gap-3">
-                      {formData.services.filter(isCustomService).map((service) => (
-                        <Badge
-                          key={service}
-                          variant="default"
-                          className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                          onClick={() => toggleService(service)}
-                        >
-                          {service}
-                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+            <div className="pt-4 border-t border-border/50">
+              <Label htmlFor="custom-service-modal" className="text-sm mb-2 block font-medium">
+                Otra
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="custom-service-modal"
+                  type="text"
+                  value={customService}
+                  onChange={(e) => handleCustomService(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomService();
+                    }
+                  }}
+                  placeholder="Escribe otro servicio..."
+                  className="border-2"
+                />
+                <Button
+                  type="button"
+                  onClick={addCustomService}
+                  disabled={!customService.trim() || formData.services.includes(customService.trim())}
+                  className="bg-accent hover:bg-accent/90 text-white"
+                >
+                  Agregar
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setOpenModal(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={async () => {
+                await handleSave();
+                setOpenModal(null);
+              }} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
+                  </>
                 )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-                <div className="pt-4 border-t border-border/50">
-                  <Label htmlFor="custom-service" className="text-white text-sm mb-2 block font-medium">
-                    Otra
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="custom-service"
-                      type="text"
-                      value={customService}
-                      onChange={(e) => handleCustomService(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addCustomService();
-                        }
-                      }}
-                      placeholder="Escribe otro servicio..."
-                      className="bg-input border-border text-foreground focus:border-accent"
-                    />
-                    <Button
-                      type="button"
-                      onClick={addCustomService}
-                      disabled={!customService.trim() || formData.services.includes(customService.trim())}
-                      className="bg-accent hover:bg-accent/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+      {/* Drones Modal */}
+      <Dialog open={openModal === 'drones'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <Camera className="h-6 w-6" />
+              Tipos de Drones
+            </DialogTitle>
+            <DialogDescription>Selecciona los modelos de drones con los que trabaja tu empresa</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            {formData.drone_types.length > 0 && (
+              <div className="pb-4 border-b border-border/50">
+                <Label className="text-sm mb-3 block font-medium">
+                  Drones seleccionados ({formData.drone_types.length}):
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {formData.drone_types.map((drone) => (
+                    <Badge
+                      key={drone}
+                      variant="default"
+                      className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                      onClick={() => toggleDroneType(drone)}
                     >
-                      Agregar
-                    </Button>
-                  </div>
+                      {drone}
+                      <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                    </Badge>
+                  ))}
                 </div>
               </div>
-            </CardContent>
-          </div>
-        </Card>
+            )}
 
-        {/* Drone Types */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <Camera className="h-6 w-6 text-white" />
-                </div>
-                Tipos de Drones
-              </CardTitle>
-              <CardDescription className="text-white/70 font-medium">
-                Selecciona los modelos de drones con los que trabaja tu empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl">
-              <div className="space-y-6">
-                {formData.drone_types.length > 0 && (
-                  <div className="pb-4 border-b border-border/50">
-                    <Label className="text-white/70 text-sm mb-3 block font-medium">
-                      Drones seleccionados ({formData.drone_types.length}):
-                    </Label>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.drone_types.map((drone) => (
-                        <Badge
-                          key={drone}
-                          variant="default"
-                          className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                          onClick={() => toggleDroneType(drone)}
-                        >
-                          {drone}
-                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </Badge>
-                      ))}
-                    </div>
+            <Accordion type="multiple" className="w-full space-y-2">
+              <AccordionItem value="basic" className="border-border/50">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🟢</span>
+                    <span className="font-semibold">Nivel Básico/Principiante</span>
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {basicDrones.filter(d => formData.drone_types.includes(d)).length}/{basicDrones.length}
+                    </Badge>
                   </div>
-                )}
-
-                <Accordion type="multiple" className="w-full space-y-2">
-                  <AccordionItem value="basic" className="border-border/50">
-                    <AccordionTrigger className="text-white hover:text-accent hover:no-underline py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🟢</span>
-                        <span className="font-semibold">Nivel Básico/Principiante</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-border text-white/70 bg-card">
-                          {basicDrones.filter(d => formData.drone_types.includes(d)).length}/{basicDrones.length}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4">
-                      <div className="flex flex-wrap gap-3">
-                        {basicDrones.map((drone) => (
-                          <Badge
-                            key={drone}
-                            variant={formData.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                              formData.drone_types.includes(drone)
-                                ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
-                                : 'bg-card border-border text-white hover:bg-accent/10 hover:border-accent hover:text-accent'
-                            }`}
-                            onClick={() => toggleDroneType(drone)}
-                          >
-                            {drone}
-                          </Badge>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="intermediate" className="border-border/50">
-                    <AccordionTrigger className="text-white hover:text-accent hover:no-underline py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🟡</span>
-                        <span className="font-semibold">Nivel Intermedio</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-border text-white/70 bg-card">
-                          {intermediateDrones.filter(d => formData.drone_types.includes(d)).length}/{intermediateDrones.length}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4">
-                      <div className="flex flex-wrap gap-3">
-                        {intermediateDrones.map((drone) => (
-                          <Badge
-                            key={drone}
-                            variant={formData.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                              formData.drone_types.includes(drone)
-                                ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
-                                : 'bg-card border-border text-white hover:bg-accent/10 hover:border-accent hover:text-accent'
-                            }`}
-                            onClick={() => toggleDroneType(drone)}
-                          >
-                            {drone}
-                          </Badge>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="professional" className="border-border/50">
-                    <AccordionTrigger className="text-white hover:text-accent hover:no-underline py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🔴</span>
-                        <span className="font-semibold">Nivel Profesional</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-border text-white/70 bg-card">
-                          {professionalDrones.filter(d => formData.drone_types.includes(d)).length}/{professionalDrones.length}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4">
-                      <div className="flex flex-wrap gap-3">
-                        {professionalDrones.map((drone) => (
-                          <Badge
-                            key={drone}
-                            variant={formData.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                              formData.drone_types.includes(drone)
-                                ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
-                                : 'bg-card border-border text-white hover:bg-accent/10 hover:border-accent hover:text-accent'
-                            }`}
-                            onClick={() => toggleDroneType(drone)}
-                          >
-                            {drone}
-                          </Badge>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-
-                {formData.drone_types.filter(isCustomDrone).length > 0 && (
-                  <div className="pt-4 border-t border-border/50">
-                    <Label className="text-white/70 text-sm mb-3 block font-medium">
-                      Modelos personalizados:
-                    </Label>
-                    <div className="flex flex-wrap gap-3">
-                      {formData.drone_types.filter(isCustomDrone).map((drone) => (
-                        <Badge
-                          key={drone}
-                          variant="default"
-                          className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                          onClick={() => toggleDroneType(drone)}
-                        >
-                          {drone}
-                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </Badge>
-                      ))}
-                    </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4">
+                  <div className="flex flex-wrap gap-3">
+                    {basicDrones.map((drone) => (
+                      <Badge
+                        key={drone}
+                        variant={formData.drone_types.includes(drone) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                          formData.drone_types.includes(drone)
+                            ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
+                            : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
+                        }`}
+                        onClick={() => toggleDroneType(drone)}
+                      >
+                        {drone}
+                      </Badge>
+                    ))}
                   </div>
-                )}
+                </AccordionContent>
+              </AccordionItem>
 
-                <div className="pt-4 border-t border-border/50">
-                  <Label htmlFor="custom-drone" className="text-white text-sm mb-2 block font-medium">
-                    Otra
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="custom-drone"
-                      type="text"
-                      value={customDrone}
-                      onChange={(e) => handleCustomDrone(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addCustomDrone();
-                        }
-                      }}
-                      placeholder="Escribe otro modelo de drone..."
-                      className="bg-input border-border text-foreground focus:border-accent"
-                    />
-                    <Button
-                      type="button"
-                      onClick={addCustomDrone}
-                      disabled={!customDrone.trim() || formData.drone_types.includes(customDrone.trim())}
-                      className="bg-accent hover:bg-accent/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              <AccordionItem value="intermediate" className="border-border/50">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🟡</span>
+                    <span className="font-semibold">Nivel Intermedio</span>
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {intermediateDrones.filter(d => formData.drone_types.includes(d)).length}/{intermediateDrones.length}
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4">
+                  <div className="flex flex-wrap gap-3">
+                    {intermediateDrones.map((drone) => (
+                      <Badge
+                        key={drone}
+                        variant={formData.drone_types.includes(drone) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                          formData.drone_types.includes(drone)
+                            ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
+                            : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
+                        }`}
+                        onClick={() => toggleDroneType(drone)}
+                      >
+                        {drone}
+                      </Badge>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="professional" className="border-border/50">
+                <AccordionTrigger className="hover:no-underline py-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">🔴</span>
+                    <span className="font-semibold">Nivel Profesional</span>
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {professionalDrones.filter(d => formData.drone_types.includes(d)).length}/{professionalDrones.length}
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-4">
+                  <div className="flex flex-wrap gap-3">
+                    {professionalDrones.map((drone) => (
+                      <Badge
+                        key={drone}
+                        variant={formData.drone_types.includes(drone) ? "default" : "outline"}
+                        className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
+                          formData.drone_types.includes(drone)
+                            ? 'bg-accent text-white border-accent shadow-lg hover:shadow-xl hover:scale-105'
+                            : 'bg-card border-border hover:bg-accent/10 hover:border-accent'
+                        }`}
+                        onClick={() => toggleDroneType(drone)}
+                      >
+                        {drone}
+                      </Badge>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            {formData.drone_types.filter(isCustomDrone).length > 0 && (
+              <div className="pt-4 border-t border-border/50">
+                <Label className="text-sm mb-3 block font-medium">
+                  Modelos personalizados:
+                </Label>
+                <div className="flex flex-wrap gap-3">
+                  {formData.drone_types.filter(isCustomDrone).map((drone) => (
+                    <Badge
+                      key={drone}
+                      variant="default"
+                      className="bg-accent text-white border-accent shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                      onClick={() => toggleDroneType(drone)}
                     >
-                      Agregar
-                    </Button>
-                  </div>
+                      {drone}
+                      <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                    </Badge>
+                  ))}
                 </div>
               </div>
-            </CardContent>
+            )}
+
+            <div className="pt-4 border-t border-border/50">
+              <Label htmlFor="custom-drone-modal" className="text-sm mb-2 block font-medium">
+                Otra
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="custom-drone-modal"
+                  type="text"
+                  value={customDrone}
+                  onChange={(e) => handleCustomDrone(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomDrone();
+                    }
+                  }}
+                  placeholder="Escribe otro modelo de drone..."
+                  className="border-2"
+                />
+                <Button
+                  type="button"
+                  onClick={addCustomDrone}
+                  disabled={!customDrone.trim() || formData.drone_types.includes(customDrone.trim())}
+                  className="bg-accent hover:bg-accent/90 text-white"
+                >
+                  Agregar
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setOpenModal(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={async () => {
+                await handleSave();
+                setOpenModal(null);
+              }} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        </Card>
+        </DialogContent>
+      </Dialog>
 
-        {/* URL Personalizada */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <Crown className="h-6 w-6 text-white" />
-                </div>
-                URL Personalizada del Perfil Público
-              </CardTitle>
-              <CardDescription className="text-white/70 font-medium">
-                Personaliza la URL de tu perfil público
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl">
-              <div className="space-y-4">
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-amber-400 mb-1">
-                        ⚠️ Importante sobre cambios de URL
-                      </p>
-                      <p className="text-sm text-amber-300/90 leading-relaxed">
-                        Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio. 
-                        Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="public_profile_slug" className="text-white font-medium flex items-center gap-2">
-                    <Link className="h-4 w-4" />
-                    Nombre de usuario para tu perfil
+      {/* Social Media Modal */}
+      <Dialog open={openModal === 'social'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <Link className="h-6 w-6" />
+              Redes Sociales
+            </DialogTitle>
+            <DialogDescription>Agrega tus redes sociales. Puedes ingresar solo tu alias o la URL completa.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            {/* Instagram */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="instagram_modal" className="font-medium">
+                  <span className="inline-block mr-1">📷</span>
+                  Instagram
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="instagram-url-toggle-modal" className="text-xs text-muted-foreground cursor-pointer">
+                    Usar URL completa
                   </Label>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <div className="relative flex-1">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 text-sm">
-                        /
-                      </div>
-                      <Input
-                        id="public_profile_slug"
-                        type="text"
-                        value={publicProfileSlug}
-                        onChange={(e) => handleSlugChange(e.target.value)}
-                        className="bg-input border-border text-foreground focus:border-accent pl-8"
-                        placeholder="nombreempresa"
-                      />
-                    </div>
-                    <Button
-                      onClick={handleSlugVerification}
-                      disabled={checkingSlug || !publicProfileSlug}
-                      className="bg-accent hover:bg-accent/90 text-white"
-                    >
-                      {checkingSlug ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Verificando...
-                        </>
-                      ) : (
-                        'Verificar disponibilidad'
-                      )}
-                    </Button>
-                  </div>
-                  {slugFeedback && (
-                    <p
-                      className={`text-xs flex items-center gap-1 ${
-                        slugFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
-                      }`}
-                    >
-                      {slugFeedback.type === 'success' ? (
-                        <CheckCircle className="h-3 w-3" />
-                      ) : (
-                        <AlertCircle className="h-3 w-3" />
-                      )}
-                      {slugFeedback.text}
-                    </p>
-                  )}
-                  <p className="text-xs text-white/60">
-                    Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
+                  <Switch
+                    id="instagram-url-toggle-modal"
+                    checked={useInstagramUrl}
+                    onCheckedChange={(checked) => {
+                      setUseInstagramUrl(checked);
+                      if (checked && formData.instagram_username && !formData.instagram_url) {
+                        handleInputChange('instagram_url', buildInstagramUrl(formData.instagram_username));
+                      }
+                      if (!checked && formData.instagram_url) {
+                        const username = extractInstagramUsername(formData.instagram_url);
+                        handleInputChange('instagram_username', username);
+                        handleInputChange('instagram_url', '');
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              {useInstagramUrl ? (
+                <Input
+                  id="instagram_modal"
+                  type="text"
+                  value={formData.instagram_url || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleInputChange('instagram_url', value);
+                    if (value && isUrl(value)) {
+                      const username = extractInstagramUsername(value);
+                      handleInputChange('instagram_username', username);
+                    }
+                  }}
+                  className="border-2"
+                  placeholder="https://instagram.com/empresa"
+                />
+              ) : (
+                <Input
+                  id="instagram_modal"
+                  type="text"
+                  value={formData.instagram_username || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (isUrl(value)) {
+                      const username = extractInstagramUsername(value);
+                      handleInputChange('instagram_username', username);
+                    } else {
+                      const cleaned = cleanSocialUsername(value);
+                      handleInputChange('instagram_username', cleaned);
+                    }
+                  }}
+                  className="border-2"
+                  placeholder="empresa_drones"
+                />
+              )}
+            </div>
+
+            {/* LinkedIn */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="linkedin_modal" className="font-medium">
+                  <span className="inline-block mr-1">💼</span>
+                  LinkedIn
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="linkedin-url-toggle-modal" className="text-xs text-muted-foreground cursor-pointer">
+                    Usar URL completa
+                  </Label>
+                  <Switch
+                    id="linkedin-url-toggle-modal"
+                    checked={useLinkedInUrl}
+                    onCheckedChange={(checked) => {
+                      setUseLinkedInUrl(checked);
+                      if (checked && formData.linkedin_username && !formData.linkedin_url) {
+                        handleInputChange('linkedin_url', buildLinkedInUrl(formData.linkedin_username));
+                      }
+                      if (!checked && formData.linkedin_url) {
+                        const username = extractLinkedInUsername(formData.linkedin_url);
+                        handleInputChange('linkedin_username', username);
+                        handleInputChange('linkedin_url', '');
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              {useLinkedInUrl ? (
+                <Input
+                  id="linkedin_modal"
+                  type="text"
+                  value={formData.linkedin_url || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    handleInputChange('linkedin_url', value);
+                    if (value && isUrl(value)) {
+                      const username = extractLinkedInUsername(value);
+                      handleInputChange('linkedin_username', username);
+                    }
+                  }}
+                  className="border-2"
+                  placeholder="https://linkedin.com/company/empresa"
+                />
+              ) : (
+                <Input
+                  id="linkedin_modal"
+                  type="text"
+                  value={formData.linkedin_username || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (isUrl(value)) {
+                      const username = extractLinkedInUsername(value);
+                      handleInputChange('linkedin_username', username);
+                    } else {
+                      const cleaned = cleanSocialUsername(value);
+                      handleInputChange('linkedin_username', cleaned);
+                    }
+                  }}
+                  className="border-2"
+                  placeholder="empresa-drones"
+                />
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setOpenModal(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={async () => {
+                await handleSave();
+                setOpenModal(null);
+              }} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* URL Modal */}
+      <Dialog open={openModal === 'url'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <Crown className="h-6 w-6" />
+              URL Personalizada del Perfil Público
+            </DialogTitle>
+            <DialogDescription>Personaliza la URL de tu perfil público</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-amber-400 mb-1">
+                    ⚠️ Importante sobre cambios de URL
+                  </p>
+                  <p className="text-sm text-amber-300/90 leading-relaxed">
+                    Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio. 
+                    Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
                   </p>
                 </div>
               </div>
-            </CardContent>
-          </div>
-        </Card>
+            </div>
 
-        {/* Redes Sociales */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <Link className="h-6 w-6 text-white" />
-                </div>
-                Redes Sociales
-              </CardTitle>
-              <CardDescription className="text-white/70 font-medium">
-                Agrega tus redes sociales. Puedes ingresar solo tu alias o la URL completa.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
-              {/* Instagram */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="instagram" className="text-white font-medium">
-                    <span className="inline-block mr-1">📷</span>
-                    Instagram
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="instagram-url-toggle" className="text-xs text-white/60 cursor-pointer">
-                      Usar URL completa
-                    </Label>
-                    <Switch
-                      id="instagram-url-toggle"
-                      checked={useInstagramUrl}
-                      onCheckedChange={(checked) => {
-                        setUseInstagramUrl(checked);
-                        if (checked && formData.instagram_username && !formData.instagram_url) {
-                          handleInputChange('instagram_url', buildInstagramUrl(formData.instagram_username));
-                        }
-                        if (!checked && formData.instagram_url) {
-                          const username = extractInstagramUsername(formData.instagram_url);
-                          handleInputChange('instagram_username', username);
-                          handleInputChange('instagram_url', '');
-                        }
-                      }}
-                    />
+            <div className="space-y-2">
+              <Label htmlFor="public_profile_slug_modal" className="font-medium flex items-center gap-2">
+                <Link className="h-4 w-4" />
+                Nombre de usuario para tu perfil
+              </Label>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                <div className="relative flex-1">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                    /
                   </div>
+                  <Input
+                    id="public_profile_slug_modal"
+                    type="text"
+                    value={publicProfileSlug}
+                    onChange={(e) => handleSlugChange(e.target.value)}
+                    className="border-2 pl-8"
+                    placeholder="nombreempresa"
+                  />
                 </div>
-                {useInstagramUrl ? (
-                  <Input
-                    id="instagram"
-                    type="text"
-                    value={formData.instagram_url || ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      handleInputChange('instagram_url', value);
-                      if (value && isUrl(value)) {
-                        const username = extractInstagramUsername(value);
-                        handleInputChange('instagram_username', username);
-                      }
-                    }}
-                    className="bg-input border-border text-foreground focus:border-accent"
-                    placeholder="https://instagram.com/empresa"
-                  />
+                <Button
+                  onClick={handleSlugVerification}
+                  disabled={checkingSlug || !publicProfileSlug}
+                  className="bg-accent hover:bg-accent/90 text-white"
+                >
+                  {checkingSlug ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Verificando...
+                    </>
+                  ) : (
+                    'Verificar disponibilidad'
+                  )}
+                </Button>
+              </div>
+              {slugFeedback && (
+                <p
+                  className={`text-xs flex items-center gap-1 ${
+                    slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
+                  }`}
+                >
+                  {slugFeedback.type === 'success' ? (
+                    <CheckCircle className="h-3 w-3" />
+                  ) : (
+                    <AlertCircle className="h-3 w-3" />
+                  )}
+                  {slugFeedback.text}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setOpenModal(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={async () => {
+                await handleSave();
+                setOpenModal(null);
+              }} disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
                 ) : (
-                  <Input
-                    id="instagram"
-                    type="text"
-                    value={formData.instagram_username || ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (isUrl(value)) {
-                        const username = extractInstagramUsername(value);
-                        handleInputChange('instagram_username', username);
-                      } else {
-                        const cleaned = cleanSocialUsername(value);
-                        handleInputChange('instagram_username', cleaned);
-                      }
-                    }}
-                    className="bg-input border-border text-foreground focus:border-accent"
-                    placeholder="empresa_drones"
-                  />
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Guardar
+                  </>
                 )}
-              </div>
-
-              {/* LinkedIn */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="linkedin" className="text-white font-medium">
-                    <span className="inline-block mr-1">💼</span>
-                    LinkedIn
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="linkedin-url-toggle" className="text-xs text-white/60 cursor-pointer">
-                      Usar URL completa
-                    </Label>
-                    <Switch
-                      id="linkedin-url-toggle"
-                      checked={useLinkedInUrl}
-                      onCheckedChange={(checked) => {
-                        setUseLinkedInUrl(checked);
-                        if (checked && formData.linkedin_username && !formData.linkedin_url) {
-                          handleInputChange('linkedin_url', buildLinkedInUrl(formData.linkedin_username));
-                        }
-                        if (!checked && formData.linkedin_url) {
-                          const username = extractLinkedInUsername(formData.linkedin_url);
-                          handleInputChange('linkedin_username', username);
-                          handleInputChange('linkedin_url', '');
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-                {useLinkedInUrl ? (
-                  <Input
-                    id="linkedin"
-                    type="text"
-                    value={formData.linkedin_url || ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      handleInputChange('linkedin_url', value);
-                      if (value && isUrl(value)) {
-                        const username = extractLinkedInUsername(value);
-                        handleInputChange('linkedin_username', username);
-                      }
-                    }}
-                    className="bg-input border-border text-foreground focus:border-accent"
-                    placeholder="https://linkedin.com/company/empresa"
-                  />
-                ) : (
-                  <Input
-                    id="linkedin"
-                    type="text"
-                    value={formData.linkedin_username || ''}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (isUrl(value)) {
-                        const username = extractLinkedInUsername(value);
-                        handleInputChange('linkedin_username', username);
-                      } else {
-                        const cleaned = cleanSocialUsername(value);
-                        handleInputChange('linkedin_username', cleaned);
-                      }
-                    }}
-                    className="bg-input border-border text-foreground focus:border-accent"
-                    placeholder="empresa-drones"
-                  />
-                )}
-              </div>
-            </CardContent>
+              </Button>
+            </div>
           </div>
-        </Card>
+        </DialogContent>
+      </Dialog>
 
-      <Card className="mb-6 bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-          <CardHeader className="p-8 bg-card rounded-xl">
-            <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-              <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                <FileText className="h-6 w-6 text-white" />
-              </div>
-              Certificados de Empresa</CardTitle>
-            <CardDescription className="text-white/70 font-medium">Sube tus certificados AOC o CEO</CardDescription>
-          </CardHeader>
-          <CardContent className="p-8 bg-card rounded-xl space-y-6">
-          {/* AOC Certificate */}
-          <div className="space-y-2">
-            <Label htmlFor="aoc-certificate">Certificado AOC</Label>
-            <Input
-              id="aoc-certificate"
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => handleCertificateUpload(e, 'AOC')}
-              disabled={uploading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Sube tu certificado AOC (Air Operator Certificate)
-            </p>
-          </div>
+      {/* Certificates Modal */}
+      <Dialog open={openModal === 'certificates'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <FileText className="h-6 w-6" />
+              Certificados de Empresa
+            </DialogTitle>
+            <DialogDescription>Sube tus certificados AOC o CEO</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            {/* AOC Certificate */}
+            <div className="space-y-2">
+              <Label htmlFor="aoc-certificate-modal">Certificado AOC</Label>
+              <Input
+                id="aoc-certificate-modal"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleCertificateUpload(e, 'AOC')}
+                disabled={uploading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Sube tu certificado AOC (Air Operator Certificate)
+              </p>
+            </div>
 
-          {/* CEO Certificate */}
-          <div className="space-y-2">
-            <Label htmlFor="ceo-certificate">Certificado CEO</Label>
-            <Input
-              id="ceo-certificate"
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              onChange={(e) => handleCertificateUpload(e, 'CEO')}
-              disabled={uploading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Sube tu certificado CEO (Chief Executive Officer)
-            </p>
-          </div>
+            {/* CEO Certificate */}
+            <div className="space-y-2">
+              <Label htmlFor="ceo-certificate-modal">Certificado CEO</Label>
+              <Input
+                id="ceo-certificate-modal"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => handleCertificateUpload(e, 'CEO')}
+                disabled={uploading}
+              />
+              <p className="text-xs text-muted-foreground">
+                Sube tu certificado CEO (Chief Executive Officer)
+              </p>
+            </div>
 
-          {/* Lista de certificados subidos */}
-          {certifications.length > 0 && (
-            <div className="space-y-2 pt-4 border-t">
-              <Label>Certificados Subidos</Label>
-              <div className="space-y-2">
-                {certifications.map((cert) => (
-                  <div key={cert.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center gap-3 flex-1">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium">{cert.file_name}</p>
-                          <Badge className={getStatusColor(cert.status)}>
-                            {getStatusIcon(cert.status)}
-                            <span className="ml-1">{getStatusText(cert.status)}</span>
-                          </Badge>
-                          <Badge variant="outline">{cert.certificate_type}</Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
-                        </p>
-                        {cert.status === 'rejected' && cert.rejection_observations && (
-                          <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded text-xs">
-                            <div className="flex items-start gap-2">
-                              <AlertCircle className="h-3 w-3 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="font-semibold text-red-800 dark:text-red-300 mb-1">
-                                  Observaciones:
-                                </p>
-                                <p className="text-red-700 dark:text-red-400 whitespace-pre-wrap">
-                                  {cert.rejection_observations}
-                                </p>
+            {/* Lista de certificados subidos */}
+            {certifications.length > 0 && (
+              <div className="space-y-2 pt-4 border-t">
+                <Label>Certificados Subidos</Label>
+                <div className="space-y-2">
+                  {certifications.map((cert) => (
+                    <div key={cert.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3 flex-1">
+                        <FileText className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium">{cert.file_name}</p>
+                            <Badge className={getStatusColor(cert.status)}>
+                              {getStatusIcon(cert.status)}
+                              <span className="ml-1">{getStatusText(cert.status)}</span>
+                            </Badge>
+                            <Badge variant="outline">{cert.certificate_type}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
+                          </p>
+                          {cert.status === 'rejected' && cert.rejection_observations && (
+                            <div className="mt-2 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded text-xs">
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className="h-3 w-3 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                <div>
+                                  <p className="font-semibold text-red-800 dark:text-red-300 mb-1">
+                                    Observaciones:
+                                  </p>
+                                  <p className="text-red-700 dark:text-red-400 whitespace-pre-wrap">
+                                    {cert.rejection_observations}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleViewCertification(cert.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleDeleteCertification(cert.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleViewCertification(cert.id)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleDeleteCertification(cert.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          </CardContent>
-        </div>
-      </Card>
-
-      <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
-        <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-          <CardHeader className="p-8 bg-card rounded-xl">
-            <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-              <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                <UserPlus className="h-6 w-6 text-white" />
-              </div>
-              Pilotos Asociados</CardTitle>
-            <CardDescription className="text-white/70 font-medium">Administra los pilotos de tu empresa</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Email del piloto"
-              value={newPilotEmail}
-              onChange={(e) => setNewPilotEmail(e.target.value)}
-            />
-            <Button onClick={handleAddPilot}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Agregar
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            {associatedPilots.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                No hay pilotos asociados aún
-              </p>
-            ) : (
-              associatedPilots.map((association) => (
-                <div
-                  key={association.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={association.pilot.profile.avatar_url || ""} />
-                      <AvatarFallback>
-                        {association.pilot.profile.full_name?.charAt(0) || "P"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">
-                      {association.pilot.profile.full_name || "Sin nombre"}
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemovePilot(association.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  ))}
                 </div>
-              ))
+              </div>
             )}
-          </div>
-        </CardContent>
-        </div>
-      </Card>
-      </div>
 
-      {/* Save Button */}
-      <div className="sticky bottom-0 bg-primary/95 backdrop-blur-sm border-t border-border p-4 -mx-6 -mb-6">
-        <div className="max-w-5xl mx-auto">
-          <Button
-            onClick={() => handleSave()}
-            disabled={saving || !hasChanges}
-            className="w-full h-16 text-lg font-bold rounded-2xl bg-accent hover:bg-accent/90 text-white shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            <Save className="h-6 w-6 mr-3" />
-            {saving ? 'Guardando...' : hasChanges ? 'Guardar Cambios' : 'Perfil Actualizado'}
-          </Button>
-        </div>
-      </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setOpenModal(null)}>
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Security Modal */}
+      <Dialog open={openModal === 'security'} onOpenChange={(open) => !open && setOpenModal(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
+              <Lock className="h-6 w-6" />
+              Seguridad
+            </DialogTitle>
+            <DialogDescription>Cambia tu contraseña o email de acceso</DialogDescription>
+          </DialogHeader>
+          <Tabs defaultValue="password" className="mt-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="password">Cambiar Contraseña</TabsTrigger>
+              <TabsTrigger value="email">Cambiar Email</TabsTrigger>
+            </TabsList>
+            <TabsContent value="password" className="space-y-4 mt-4">
+              <div className="space-y-3">
+                <Label htmlFor="current-password">Contraseña Actual</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Ingresa tu contraseña actual"
+                  className="border-2"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="new-password">Nueva Contraseña</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  className="border-2"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="confirm-password">Confirmar Nueva Contraseña</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirma tu nueva contraseña"
+                  className="border-2"
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => {
+                  setCurrentPassword("");
+                  setNewPassword("");
+                  setConfirmPassword("");
+                  setOpenModal(null);
+                }}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleChangePassword} disabled={changingPassword}>
+                  {changingPassword ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Cambiando...
+                    </>
+                  ) : (
+                    'Cambiar Contraseña'
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+            <TabsContent value="email" className="space-y-4 mt-4">
+              <div className="space-y-3">
+                <Label htmlFor="new-email">Nuevo Email</Label>
+                <Input
+                  id="new-email"
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="nuevo@email.com"
+                  className="border-2"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="confirm-email">Confirmar Nuevo Email</Label>
+                <Input
+                  id="confirm-email"
+                  type="email"
+                  value={confirmEmail}
+                  onChange={(e) => setConfirmEmail(e.target.value)}
+                  placeholder="Confirma el nuevo email"
+                  className="border-2"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="password-for-email">Contraseña Actual</Label>
+                <Input
+                  id="password-for-email"
+                  type="password"
+                  value={passwordForEmailChange}
+                  onChange={(e) => setPasswordForEmailChange(e.target.value)}
+                  placeholder="Ingresa tu contraseña para confirmar"
+                  className="border-2"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Necesitamos tu contraseña actual para cambiar el email
+                </p>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button variant="outline" onClick={() => {
+                  setNewEmail("");
+                  setConfirmEmail("");
+                  setPasswordForEmailChange("");
+                  setOpenModal(null);
+                }}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleChangeEmail} disabled={changingEmail}>
+                  {changingEmail ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Cambiando...
+                    </>
+                  ) : (
+                    'Cambiar Email'
+                  )}
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
 
       {/* Image Cropper Modal */}
       {imageToCrop && (
