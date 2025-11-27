@@ -50,7 +50,9 @@ interface PilotService {
 }
 
 const PublicPilotProfile = () => {
-  const { pilotId } = useParams();
+  const params = useParams();
+  // Obtener el parámetro de cualquiera de las dos rutas: /pilot/:pilotId o /:slug
+  const pilotId = params.pilotId || params.slug;
   const navigate = useNavigate();
   const location = useLocation();
   const [profile, setProfile] = useState<PilotProfile | null>(null);
@@ -91,6 +93,11 @@ const PublicPilotProfile = () => {
 
   const loadPilotProfile = async () => {
     try {
+      // Validar que tenemos un parámetro válido
+      if (!pilotId || pilotId === 'undefined' || pilotId.trim() === '') {
+        throw new Error('Parámetro de perfil no válido');
+      }
+
       let profileData = null;
       let userId = null;
 

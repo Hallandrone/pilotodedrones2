@@ -1331,6 +1331,22 @@ const PilotProfile = () => {
             </CardHeader>
             <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
               <div className="space-y-4">
+                {/* Mensaje de advertencia */}
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-amber-400 mb-1">
+                        ⚠️ Importante sobre cambios de URL
+                      </p>
+                      <p className="text-sm text-amber-300/90 leading-relaxed">
+                        Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio. 
+                        Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="public_profile_slug" className="text-[#E0E0E0] font-medium flex items-center gap-2">
                     <Link className="h-4 w-4" />

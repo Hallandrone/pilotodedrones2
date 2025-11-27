@@ -1469,6 +1469,22 @@ const UserProfile = () => {
                     Personaliza la URL de tu perfil público.
                   </p>
                   
+                  {/* Mensaje de advertencia */}
+                  <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                          ⚠️ Importante sobre cambios de URL
+                        </p>
+                        <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">
+                          Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio. 
+                          Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="space-y-2">
                     <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
                       <Link className="inline h-4 w-4 mr-1" />
