@@ -1888,6 +1888,7 @@ export default function CompanyProfile() {
         </CardContent>
         </div>
       </Card>
+      </div>
 
       {/* Save Button */}
       <div className="sticky bottom-0 bg-primary/95 backdrop-blur-sm border-t border-border p-4 -mx-6 -mb-6">
