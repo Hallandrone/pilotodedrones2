@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,7 +49,9 @@ const PilotMembership = () => {
   const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [userType, setUserType] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   // Planes disponibles
@@ -116,6 +118,25 @@ const PilotMembership = () => {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
+
+  const checkUserType = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserType(profile.user_type);
+      }
+    } catch (error) {
+      console.error('Error checking user type:', error);
+    }
+  };
 
   const loadMembership = async () => {
     try {
@@ -392,7 +413,11 @@ const PilotMembership = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/pilot')}
+              onClick={() => {
+                // Detectar si viene de /company o /pilot basado en la ruta o user_type
+                const isCompany = location.pathname.includes('/company') || userType === 'company';
+                navigate(isCompany ? '/company' : '/pilot');
+              }}
               className="h-10 w-10 rounded-full hover:bg-blue-50 hover:scale-105 transition-all duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
