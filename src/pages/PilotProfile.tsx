@@ -26,7 +26,8 @@ import {
   Link,
   Loader2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from "lucide-react";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -1000,6 +1001,24 @@ const PilotProfile = () => {
                 Editar Perfil
               </h1>
               <p className="text-base text-white/70 font-medium">Actualiza tu información personal</p>
+            </div>
+            <div className="ml-auto">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const profileUrl = profile.public_profile_slug 
+                      ? `${window.location.origin}/${profile.public_profile_slug}`
+                      : `${window.location.origin}/pilot/${user.id}`;
+                    window.open(profileUrl, '_blank');
+                  }
+                }}
+                className="bg-[#00b3f3]/20 hover:bg-[#00b3f3]/30 text-white border-[#00b3f3]/50"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Vista Previa
+              </Button>
             </div>
           </div>
         </div>

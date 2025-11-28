@@ -1066,32 +1066,50 @@ export default function CompanyProfile() {
               </h1>
               <p className="text-sm sm:text-base text-white/70 font-medium">Actualiza la información de tu empresa</p>
             </div>
-            {hasChanges && (
-              <div className="ml-auto flex items-center gap-2">
-                {lastSaved && (
-                  <span className="text-xs text-white/60">
-                    Guardado: {lastSaved.toLocaleTimeString()}
-                  </span>
-                )}
-                <Button
-                  onClick={() => handleSave()}
-                  disabled={saving}
-                  className="bg-[#00b3f3] hover:bg-[#0099cc] text-white"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Guardar Cambios
-                    </>
+            <div className="ml-auto flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const profileUrl = publicProfileSlug 
+                      ? `${window.location.origin}/${publicProfileSlug}`
+                      : `${window.location.origin}/company/${user.id}`;
+                    window.open(profileUrl, '_blank');
+                  }
+                }}
+                className="bg-[#00b3f3]/20 hover:bg-[#00b3f3]/30 text-white border-[#00b3f3]/50"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Vista Previa
+              </Button>
+              {hasChanges && (
+                <>
+                  {lastSaved && (
+                    <span className="text-xs text-white/60">
+                      Guardado: {lastSaved.toLocaleTimeString()}
+                    </span>
                   )}
-                </Button>
-              </div>
-            )}
+                  <Button
+                    onClick={() => handleSave()}
+                    disabled={saving}
+                    className="bg-[#00b3f3] hover:bg-[#0099cc] text-white"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Guardar Cambios
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

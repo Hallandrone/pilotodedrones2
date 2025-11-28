@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,13 +20,35 @@ const PilotQR = () => {
   const [pilotData, setPilotData] = useState<any>(null);
   const [qrCode, setQrCode] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [userType, setUserType] = useState<string | null>(null);
   const qrRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
+    checkUserType();
     loadPilotData();
   }, []);
+
+  const checkUserType = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserType(profile.user_type);
+      }
+    } catch (error) {
+      console.error('Error checking user type:', error);
+    }
+  };
 
   const loadPilotData = async () => {
     try {
@@ -42,11 +64,13 @@ const PilotQR = () => {
       if (profileData) {
         setPilotData(profileData);
         
-        // Generate QR code URL - use current slug if available, otherwise use ID
-        // The slug will always work because old slugs redirect to current one
-        const profileSlug = profileData.public_profile_slug;
-        const profileUrl = profileSlug 
-          ? `${window.location.origin}/${profileSlug}`
+        // Generate QR code URL - ALWAYS use user ID to ensure QR never changes
+        // The QR code should remain constant even if user changes their custom slug
+        // This ensures the QR code works forever regardless of URL changes
+        // Use /company/ for companies, /pilot/ for pilots
+        const isCompany = profileData.user_type === 'company';
+        const profileUrl = isCompany 
+          ? `${window.location.origin}/company/${user.id}`
           : `${window.location.origin}/pilot/${user.id}`;
         setQrCode(profileUrl);
       }
@@ -107,16 +131,23 @@ const PilotQR = () => {
   };
 
   const handleShare = async () => {
-    const profileSlug = pilotData?.public_profile_slug;
-    const profileUrl = profileSlug 
-      ? `${window.location.origin}/${profileSlug}`
-      : `${window.location.origin}/pilot/${pilotData?.id}`;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    // Always use user ID for QR, not the slug - ensures QR never changes
+    // Use /company/ for companies, /pilot/ for pilots
+    const isCompany = userType === 'company';
+    const profileUrl = isCompany 
+      ? `${window.location.origin}/company/${user.id}`
+      : `${window.location.origin}/pilot/${user.id}`;
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Mi Perfil de Piloto',
-          text: `Soy ${pilotData?.full_name}, piloto certificado de drones`,
+          title: isCompany ? 'Mi Perfil de Empresa' : 'Mi Perfil de Piloto',
+          text: isCompany 
+            ? `Soy ${pilotData?.full_name || 'una empresa'}, empresa certificada de drones`
+            : `Soy ${pilotData?.full_name}, piloto certificado de drones`,
           url: profileUrl
         });
       } catch (error) {
@@ -132,11 +163,16 @@ const PilotQR = () => {
     }
   };
 
-  const handleCopyLink = () => {
-    const profileSlug = pilotData?.public_profile_slug;
-    const profileUrl = profileSlug 
-      ? `${window.location.origin}/${profileSlug}`
-      : `${window.location.origin}/pilot/${pilotData?.id}`;
+  const handleCopyLink = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    // Always use user ID for QR, not the slug - ensures QR never changes
+    // Use /company/ for companies, /pilot/ for pilots
+    const isCompany = userType === 'company';
+    const profileUrl = isCompany 
+      ? `${window.location.origin}/company/${user.id}`
+      : `${window.location.origin}/pilot/${user.id}`;
     navigator.clipboard.writeText(profileUrl);
     toast({
       title: "Enlace copiado",
@@ -164,7 +200,11 @@ const PilotQR = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/pilot')}
+              onClick={() => {
+                // Detectar si viene de /company o /pilot basado en la ruta o user_type
+                const isCompany = location.pathname.includes('/company') || userType === 'company';
+                navigate(isCompany ? '/company' : '/pilot');
+              }}
               className="h-10 w-10 rounded-full hover:bg-[#FF69B4]/10 hover:scale-105 transition-all duration-200"
             >
               <ArrowLeft className="h-5 w-5" />
