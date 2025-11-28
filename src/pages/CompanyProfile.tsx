@@ -903,6 +903,25 @@ export default function CompanyProfile() {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full border border-green-200 shadow-sm">
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-semibold">Activo</span>
+          </div>
+        );
+      default:
+        return (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full border border-green-200 shadow-sm">
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-semibold">Activo</span>
+          </div>
+        );
+    }
+  };
+
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       toast.error("Por favor completa todos los campos");
@@ -1067,22 +1086,6 @@ export default function CompanyProfile() {
               <p className="text-sm sm:text-base text-white/70 font-medium">Actualiza la información de tu empresa</p>
             </div>
             <div className="ml-auto flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  const { data: { user } } = await supabase.auth.getUser();
-                  if (user) {
-                    const profileUrl = publicProfileSlug 
-                      ? `${window.location.origin}/${publicProfileSlug}`
-                      : `${window.location.origin}/company/${user.id}`;
-                    window.open(profileUrl, '_blank');
-                  }
-                }}
-                className="bg-[#00b3f3]/20 hover:bg-[#00b3f3]/30 text-white border-[#00b3f3]/50"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Vista Previa
-              </Button>
               {hasChanges && (
                 <>
                   {lastSaved && (
@@ -1114,8 +1117,53 @@ export default function CompanyProfile() {
         </div>
       </div>
 
-      {/* Dashboard Grid */}
+      {/* Status and Preview Section */}
       <div className="p-3 sm:p-6 max-w-7xl mx-auto relative">
+        <div className="mb-6 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 rounded-2xl p-4 sm:p-6">
+          <div className="flex items-center gap-4">
+            {getStatusBadge('active')}
+            <div>
+              <h3 className="text-lg font-semibold text-white">Perfil Activo</h3>
+              <p className="text-sm text-white/70">Tu perfil está visible públicamente</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                  toast.error("No se pudo obtener el usuario");
+                  return;
+                }
+                
+                // Obtener el slug actual del perfil
+                const { data: profileData } = await supabase
+                  .from('profiles')
+                  .select('public_profile_slug')
+                  .eq('id', user.id)
+                  .single();
+                
+                // Usar el slug si está disponible, de lo contrario usar el ID con la ruta genérica
+                // La ruta /:slug o /pilot/:id funciona para ambos tipos de perfiles
+                const profileUrl = profileData?.public_profile_slug 
+                  ? `${window.location.origin}/${profileData.public_profile_slug}`
+                  : `${window.location.origin}/pilot/${user.id}`;
+                
+                window.open(profileUrl, '_blank');
+              } catch (error) {
+                console.error('Error opening preview:', error);
+                toast.error("No se pudo abrir la vista previa");
+              }
+            }}
+            className="bg-[#00b3f3]/20 hover:bg-[#00b3f3]/30 text-white border-[#00b3f3]/50"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Vista Previa
+          </Button>
+        </div>
+
+        {/* Dashboard Grid */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Información Básica y Ubicación */}
           <Card 
