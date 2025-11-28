@@ -106,3 +106,4 @@ COMMENT ON COLUMN public.flight_logs.flight_hours IS 'Horas de vuelo validadas e
 COMMENT ON COLUMN public.flight_logs.rejection_observations IS 'Observaciones del administrador al rechazar la vitacora';
 COMMENT ON COLUMN public.flight_logs.validated_by IS 'ID del administrador que validó la vitacora';
 
+

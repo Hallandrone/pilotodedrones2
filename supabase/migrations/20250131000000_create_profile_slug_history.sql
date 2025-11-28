@@ -63,3 +63,4 @@ COMMENT ON TABLE public.profile_slug_history IS 'Tracks all custom URL slugs use
 COMMENT ON COLUMN public.profile_slug_history.is_current IS 'Indicates if this is the currently active slug for the user';
 COMMENT ON COLUMN public.profile_slug_history.deactivated_at IS 'Timestamp when the slug was deactivated (when user changed to a new slug)';
 
+
