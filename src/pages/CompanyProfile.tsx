@@ -1840,14 +1840,14 @@ export default function CompanyProfile() {
             <DialogDescription>Personaliza la URL de tu perfil público</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+            <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <AlertCircle className="h-5 w-5 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-amber-400 mb-1">
+                  <p className="font-semibold text-amber-900 dark:text-amber-200 mb-1">
                     ⚠️ Importante sobre cambios de URL
                   </p>
-                  <p className="text-sm text-amber-300/90 leading-relaxed">
+                  <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
                     Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio. 
                     Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
                   </p>
