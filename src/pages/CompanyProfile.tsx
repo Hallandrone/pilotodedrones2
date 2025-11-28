@@ -1040,25 +1040,31 @@ export default function CompanyProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-primary">
+    <div className="min-h-screen bg-[#083b4e] relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
+
       {/* Header */}
-      <div className="bg-primary border-b border-border shadow-sm sticky top-0 z-50">
-        <div className="px-6 py-5">
-          <div className="flex items-center gap-4 max-w-5xl mx-auto">
+      <div className="bg-[#083b4e]/80 backdrop-blur-lg border-b border-[#00b3f3]/20 shadow-lg sticky top-0 z-50 relative">
+        <div className="px-3 sm:px-6 py-3 sm:py-5">
+          <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/company')}
-              className="h-12 w-12 rounded-full hover:bg-accent/10 hover:scale-105 transition-all duration-200 text-white"
+              className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-105 transition-all duration-200 text-white"
             >
               <ArrowLeft className="h-6 w-6" />
             </Button>
-            <Logo size="lg" className="flex-shrink-0 [&>div]:h-16 [&>div]:w-16" showText={false} />
+            <Logo size="lg" className="flex-shrink-0 [&>div]:h-16 [&>div]:w-16 hover:scale-110 transition-all duration-300 filter drop-shadow-lg" showText={false} />
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-xl sm:text-2xl font-bold text-white">
                 Editar Perfil de Empresa
               </h1>
-              <p className="text-base text-white/70 font-medium">Actualiza la información de tu empresa</p>
+              <p className="text-sm sm:text-base text-white/70 font-medium">Actualiza la información de tu empresa</p>
             </div>
             {hasChanges && (
               <div className="ml-auto flex items-center gap-2">
@@ -1070,7 +1076,7 @@ export default function CompanyProfile() {
                 <Button
                   onClick={() => handleSave()}
                   disabled={saving}
-                  className="bg-accent hover:bg-accent/90 text-white"
+                  className="bg-[#00b3f3] hover:bg-[#0099cc] text-white"
                 >
                   {saving ? (
                     <>
@@ -1091,15 +1097,15 @@ export default function CompanyProfile() {
       </div>
 
       {/* Dashboard Grid */}
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto relative">
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Información Básica y Ubicación */}
           <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('basic')}
           >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Building2 className="h-8 w-8 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white">Información y Ubicación</CardTitle>
@@ -1109,11 +1115,11 @@ export default function CompanyProfile() {
 
           {/* Servicios y Tipos de Drones */}
           <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('services')}
           >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Briefcase className="h-8 w-8 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white">Servicios y Drones</CardTitle>
@@ -1123,11 +1129,11 @@ export default function CompanyProfile() {
 
           {/* Redes Sociales */}
           <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('social')}
           >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Link className="h-8 w-8 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white">Redes Sociales</CardTitle>
@@ -1137,11 +1143,11 @@ export default function CompanyProfile() {
 
           {/* URL Personalizada */}
           <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('url')}
           >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Crown className="h-8 w-8 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white">URL Personalizada</CardTitle>
@@ -1151,11 +1157,11 @@ export default function CompanyProfile() {
 
           {/* Certificados */}
           <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('certificates')}
           >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <FileText className="h-8 w-8 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white">Certificados</CardTitle>
@@ -1165,11 +1171,11 @@ export default function CompanyProfile() {
 
           {/* Seguridad */}
           <Card 
-            className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 hover:border-accent/40"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('security')}
           >
-            <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-accent rounded-xl flex items-center justify-center">
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Lock className="h-8 w-8 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white">Seguridad</CardTitle>
