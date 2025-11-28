@@ -1108,8 +1108,8 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Building2 className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">Información y Ubicación</CardTitle>
-              <CardDescription className="text-white/70">Datos de contacto, ubicación y experiencia</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Información y Ubicación</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Datos de contacto, ubicación y experiencia</CardDescription>
             </CardContent>
           </Card>
 
@@ -1122,8 +1122,8 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Briefcase className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">Servicios y Drones</CardTitle>
-              <CardDescription className="text-white/70">Servicios y modelos de drones</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Servicios y Drones</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Servicios y modelos de drones</CardDescription>
             </CardContent>
           </Card>
 
@@ -1136,8 +1136,8 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Link className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">Redes Sociales</CardTitle>
-              <CardDescription className="text-white/70">Instagram y LinkedIn</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Redes Sociales</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Instagram y LinkedIn</CardDescription>
             </CardContent>
           </Card>
 
@@ -1150,8 +1150,8 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Crown className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">URL Personalizada</CardTitle>
-              <CardDescription className="text-white/70">Personaliza la URL de tu perfil</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">URL Personalizada</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Personaliza la URL de tu perfil</CardDescription>
             </CardContent>
           </Card>
 
@@ -1164,8 +1164,8 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <FileText className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">Certificados</CardTitle>
-              <CardDescription className="text-white/70">AOC y CEO</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Certificados</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">AOC y CEO</CardDescription>
             </CardContent>
           </Card>
 
@@ -1178,8 +1178,8 @@ export default function CompanyProfile() {
               <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
                 <Lock className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white">Seguridad</CardTitle>
-              <CardDescription className="text-white/70">Cambiar contraseña y email</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Seguridad</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Cambiar contraseña y email</CardDescription>
             </CardContent>
           </Card>
         </div>
