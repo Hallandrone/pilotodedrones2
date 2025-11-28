@@ -705,7 +705,7 @@ export default function CompanyProfile() {
           const newSlug = cleanedSlug;
 
           if (oldSlug && oldSlug !== newSlug) {
-            await supabase
+            await (supabase as any)
               .from('profile_slug_history')
               .update({ 
                 is_current: false, 
@@ -714,7 +714,7 @@ export default function CompanyProfile() {
               .eq('user_id', user.id)
               .eq('is_current', true);
 
-            await supabase
+            await (supabase as any)
               .from('profile_slug_history')
               .upsert({
                 user_id: user.id,
@@ -725,7 +725,7 @@ export default function CompanyProfile() {
                 onConflict: 'user_id,slug'
               });
           } else if (!oldSlug && newSlug) {
-            await supabase
+            await (supabase as any)
               .from('profile_slug_history')
               .upsert({
                 user_id: user.id,
@@ -1053,7 +1053,7 @@ export default function CompanyProfile() {
             >
               <ArrowLeft className="h-6 w-6" />
             </Button>
-            <Logo size="xl" className="flex-shrink-0 [&>div]:h-24 [&>div]:w-24" showText={false} />
+            <Logo size="lg" className="flex-shrink-0 [&>div]:h-16 [&>div]:w-16" showText={false} />
             <div>
               <h1 className="text-2xl font-bold text-white">
                 Editar Perfil de Empresa
@@ -1182,10 +1182,10 @@ export default function CompanyProfile() {
       {/* Modals */}
       {/* Basic Information and Location Modal */}
       <Dialog open={openModal === 'basic'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <Building2 className="h-6 w-6" />
+            <DialogTitle className="flex items-center gap-2 sm:gap-3 text-xl sm:text-2xl font-bold">
+              <Building2 className="h-5 w-5 sm:h-6 sm:w-6" />
               Información Básica y Ubicación
             </DialogTitle>
             <DialogDescription>Actualiza la información básica, contacto y ubicación de tu empresa</DialogDescription>
@@ -1193,7 +1193,7 @@ export default function CompanyProfile() {
           <div className="space-y-6 mt-4">
             {/* Logo Section */}
             <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
-              <Avatar className="h-32 w-32 ring-4 ring-accent/50">
+              <Avatar className="h-24 w-24 sm:h-32 sm:w-32 ring-4 ring-accent/50">
                 <AvatarImage src={company?.logo_url || ''} />
                 <AvatarFallback className="bg-accent text-white text-3xl">
                   {formData.company_name?.charAt(0)?.toUpperCase() || 'E'}
@@ -1238,7 +1238,7 @@ export default function CompanyProfile() {
                 value={formData.company_name}
                 onChange={(e) => handleInputChange('company_name', e.target.value)}
                 placeholder="Nombre de tu empresa"
-                className="h-14 rounded-xl border-2"
+                className="h-12 sm:h-14 rounded-xl border-2"
               />
             </div>
 
@@ -1253,7 +1253,7 @@ export default function CompanyProfile() {
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="contacto@empresa.cl"
-                  className="h-14 rounded-xl border-2"
+                  className="h-12 sm:h-14 rounded-xl border-2"
                 />
               </div>
 
@@ -1268,7 +1268,7 @@ export default function CompanyProfile() {
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="+56 9 1234 5678"
-                  className="h-14 rounded-xl border-2"
+                  className="h-12 sm:h-14 rounded-xl border-2"
                 />
               </div>
             </div>
@@ -1283,7 +1283,7 @@ export default function CompanyProfile() {
                 value={formData.website}
                 onChange={(e) => handleInputChange('website', e.target.value)}
                 placeholder="https://www.empresa.cl"
-                className="h-14 rounded-xl border-2"
+                className="h-12 sm:h-14 rounded-xl border-2"
               />
             </div>
 
@@ -1312,7 +1312,7 @@ export default function CompanyProfile() {
                     Región *
                   </Label>
                   <Select value={formData.region} onValueChange={(value) => handleInputChange('region', value)}>
-                    <SelectTrigger className="h-14 rounded-xl border-2">
+                    <SelectTrigger className="h-12 sm:h-14 rounded-xl border-2">
                       <SelectValue placeholder="Selecciona tu región" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1335,7 +1335,7 @@ export default function CompanyProfile() {
                     value={formData.location}
                     onChange={(e) => handleInputChange('location', e.target.value)}
                     placeholder="Ej: Santiago, Las Condes"
-                    className="h-14 rounded-xl border-2"
+                    className="h-12 sm:h-14 rounded-xl border-2"
                   />
                 </div>
 
@@ -1349,7 +1349,7 @@ export default function CompanyProfile() {
                     value={formData.experience_years}
                     onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
                     placeholder="0"
-                    className="h-14 rounded-xl border-2"
+                    className="h-12 sm:h-14 rounded-xl border-2"
                   />
                 </div>
               </div>
@@ -1382,10 +1382,10 @@ export default function CompanyProfile() {
 
       {/* Services and Drones Modal */}
       <Dialog open={openModal === 'services'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <Briefcase className="h-6 w-6" />
+            <DialogTitle className="flex items-center gap-2 sm:gap-3 text-xl sm:text-2xl font-bold">
+              <Briefcase className="h-5 w-5 sm:h-6 sm:w-6" />
               Servicios y Tipos de Drones
             </DialogTitle>
             <DialogDescription>Selecciona los servicios y modelos de drones con los que trabaja tu empresa</DialogDescription>
@@ -1659,10 +1659,10 @@ export default function CompanyProfile() {
 
       {/* Social Media Modal */}
       <Dialog open={openModal === 'social'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <Link className="h-6 w-6" />
+            <DialogTitle className="flex items-center gap-2 sm:gap-3 text-xl sm:text-2xl font-bold">
+              <Link className="h-5 w-5 sm:h-6 sm:w-6" />
               Redes Sociales
             </DialogTitle>
             <DialogDescription>Agrega tus redes sociales. Puedes ingresar solo tu alias o la URL completa.</DialogDescription>
@@ -1709,7 +1709,7 @@ export default function CompanyProfile() {
                       handleInputChange('instagram_username', username);
                     }
                   }}
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                   placeholder="https://instagram.com/empresa"
                 />
               ) : (
@@ -1727,7 +1727,7 @@ export default function CompanyProfile() {
                       handleInputChange('instagram_username', cleaned);
                     }
                   }}
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                   placeholder="empresa_drones"
                 />
               )}
@@ -1774,7 +1774,7 @@ export default function CompanyProfile() {
                       handleInputChange('linkedin_username', username);
                     }
                   }}
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                   placeholder="https://linkedin.com/company/empresa"
                 />
               ) : (
@@ -1792,7 +1792,7 @@ export default function CompanyProfile() {
                       handleInputChange('linkedin_username', cleaned);
                     }
                   }}
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                   placeholder="empresa-drones"
                 />
               )}
@@ -1825,10 +1825,10 @@ export default function CompanyProfile() {
 
       {/* URL Modal */}
       <Dialog open={openModal === 'url'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <Crown className="h-6 w-6" />
+            <DialogTitle className="flex items-center gap-2 sm:gap-3 text-xl sm:text-2xl font-bold">
+              <Crown className="h-5 w-5 sm:h-6 sm:w-6" />
               URL Personalizada del Perfil Público
             </DialogTitle>
             <DialogDescription>Personaliza la URL de tu perfil público</DialogDescription>
@@ -1864,7 +1864,7 @@ export default function CompanyProfile() {
                     type="text"
                     value={publicProfileSlug}
                     onChange={(e) => handleSlugChange(e.target.value)}
-                    className="border-2 pl-8"
+                    className="h-12 sm:h-14 border-2 pl-8"
                     placeholder="nombreempresa"
                   />
                 </div>
@@ -1929,10 +1929,10 @@ export default function CompanyProfile() {
 
       {/* Certificates Modal */}
       <Dialog open={openModal === 'certificates'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <FileText className="h-6 w-6" />
+            <DialogTitle className="flex items-center gap-2 sm:gap-3 text-xl sm:text-2xl font-bold">
+              <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
               Certificados de Empresa
             </DialogTitle>
             <DialogDescription>Sube tus certificados AOC o CEO</DialogDescription>
@@ -2039,10 +2039,10 @@ export default function CompanyProfile() {
 
       {/* Security Modal */}
       <Dialog open={openModal === 'security'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-              <Lock className="h-6 w-6" />
+            <DialogTitle className="flex items-center gap-2 sm:gap-3 text-xl sm:text-2xl font-bold">
+              <Lock className="h-5 w-5 sm:h-6 sm:w-6" />
               Seguridad
             </DialogTitle>
             <DialogDescription>Cambia tu contraseña o email de acceso</DialogDescription>
@@ -2061,7 +2061,7 @@ export default function CompanyProfile() {
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Ingresa tu contraseña actual"
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                 />
               </div>
               <div className="space-y-3">
@@ -2072,7 +2072,7 @@ export default function CompanyProfile() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Mínimo 6 caracteres"
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                 />
               </div>
               <div className="space-y-3">
@@ -2083,7 +2083,7 @@ export default function CompanyProfile() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirma tu nueva contraseña"
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                 />
               </div>
               <div className="flex justify-end gap-3 pt-4">
@@ -2116,7 +2116,7 @@ export default function CompanyProfile() {
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   placeholder="nuevo@email.com"
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                 />
               </div>
               <div className="space-y-3">
@@ -2127,7 +2127,7 @@ export default function CompanyProfile() {
                   value={confirmEmail}
                   onChange={(e) => setConfirmEmail(e.target.value)}
                   placeholder="Confirma el nuevo email"
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                 />
               </div>
               <div className="space-y-3">
@@ -2138,7 +2138,7 @@ export default function CompanyProfile() {
                   value={passwordForEmailChange}
                   onChange={(e) => setPasswordForEmailChange(e.target.value)}
                   placeholder="Ingresa tu contraseña para confirmar"
-                  className="border-2"
+                  className="h-12 sm:h-14 border-2"
                 />
                 <p className="text-xs text-muted-foreground">
                   Necesitamos tu contraseña actual para cambiar el email

@@ -57,6 +57,17 @@ export type Database = {
           updated_at: string | null
           user_id: string
           website: string | null
+          phone: string | null
+          email: string | null
+          location: string | null
+          region: string | null
+          experience_years: number | null
+          services: string[] | null
+          drone_types: string[] | null
+          instagram_username: string | null
+          linkedin_username: string | null
+          instagram_url: string | null
+          linkedin_url: string | null
         }
         Insert: {
           company_name: string
@@ -67,6 +78,17 @@ export type Database = {
           updated_at?: string | null
           user_id: string
           website?: string | null
+          phone?: string | null
+          email?: string | null
+          location?: string | null
+          region?: string | null
+          experience_years?: number | null
+          services?: string[] | null
+          drone_types?: string[] | null
+          instagram_username?: string | null
+          linkedin_username?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
         }
         Update: {
           company_name?: string
@@ -77,6 +99,17 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           website?: string | null
+          phone?: string | null
+          email?: string | null
+          location?: string | null
+          region?: string | null
+          experience_years?: number | null
+          services?: string[] | null
+          drone_types?: string[] | null
+          instagram_username?: string | null
+          linkedin_username?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
         }
         Relationships: [
           {
@@ -258,6 +291,11 @@ export type Database = {
           specialties: string[] | null
           updated_at: string | null
           user_type: string | null
+          public_profile_slug: string | null
+          instagram_username: string | null
+          linkedin_username: string | null
+          instagram_url: string | null
+          linkedin_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -274,6 +312,11 @@ export type Database = {
           specialties?: string[] | null
           updated_at?: string | null
           user_type?: string | null
+          public_profile_slug?: string | null
+          instagram_username?: string | null
+          linkedin_username?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -290,6 +333,11 @@ export type Database = {
           specialties?: string[] | null
           updated_at?: string | null
           user_type?: string | null
+          public_profile_slug?: string | null
+          instagram_username?: string | null
+          linkedin_username?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
         }
         Relationships: []
       }
@@ -304,6 +352,8 @@ export type Database = {
           uploaded_at: string
           user_id: string
           validated_at: string | null
+          certificate_type: string | null
+          rejection_observations: string | null
         }
         Insert: {
           created_at?: string
@@ -315,6 +365,8 @@ export type Database = {
           uploaded_at?: string
           user_id: string
           validated_at?: string | null
+          certificate_type?: string | null
+          rejection_observations?: string | null
         }
         Update: {
           created_at?: string
@@ -326,6 +378,8 @@ export type Database = {
           uploaded_at?: string
           user_id?: string
           validated_at?: string | null
+          certificate_type?: string | null
+          rejection_observations?: string | null
         }
         Relationships: []
       }
