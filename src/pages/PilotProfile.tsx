@@ -983,24 +983,24 @@ const PilotProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-primary">
+    <div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
       {/* Header */}
-      <div className="bg-primary border-b border-border shadow-sm sticky top-0 z-50">
-        <div className="px-6 py-5">
-          <div className="flex items-center gap-4 max-w-5xl mx-auto">
+      <div className="bg-[#212121] border-b border-[#333333] shadow-sm sticky top-0 z-50">
+        <div className="px-4 py-4">
+          <div className="flex items-center gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/pilot')}
-              className="h-12 w-12 rounded-full hover:bg-accent/10 hover:scale-105 transition-all duration-200 text-white"
+              className="h-10 w-10 rounded-full hover:bg-[#FF69B4]/10 hover:scale-105 transition-all duration-200"
             >
-              <ArrowLeft className="h-6 w-6" />
+              <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-xl font-bold text-[#E0E0E0]">
                 Editar Perfil
               </h1>
-              <p className="text-base text-white/70 font-medium">Actualiza tu información personal</p>
+              <p className="text-sm text-[#B0B0B0] font-medium">Actualiza tu información personal</p>
             </div>
             <div className="ml-auto">
               <Button
