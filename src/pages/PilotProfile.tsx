@@ -1000,7 +1000,7 @@ const PilotProfile = () => {
               <h1 className="text-xl font-bold text-[#E0E0E0]">
                 Editar Perfil
               </h1>
-              <p className="text-sm text-[#B0B0B0] font-medium">Actualiza tu información personal</p>
+             
             </div>
             <div className="ml-auto">
               <Button
