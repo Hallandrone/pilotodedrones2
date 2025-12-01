@@ -402,11 +402,15 @@ const UserProfile = () => {
       }
 
       // Load subscription data
-      const { data: subData } = await supabase
+      const { data: subData, error: subError } = await supabase
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Usa maybeSingle() para evitar error 406 cuando no hay datos
+      
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('Error loading subscription:', subError);
+      }
 
       if (subData) {
         setSubscription({

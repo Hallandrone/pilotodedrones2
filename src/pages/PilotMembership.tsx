@@ -151,10 +151,14 @@ const PilotMembership = () => {
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Usa maybeSingle() para evitar error 406 cuando no hay datos
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        throw error;
+      if (error) {
+        console.error('Error loading subscription:', error);
+        // No lanzar error si no hay suscripción, simplemente continuar
+        if (error.code !== 'PGRST116') {
+          throw error;
+        }
       }
 
       if (subscription) {

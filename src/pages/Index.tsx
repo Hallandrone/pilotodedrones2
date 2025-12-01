@@ -94,10 +94,13 @@ const Index = () => {
         .in('user_id', pilotUserIds)
         .eq('status', 'active');
 
-      if (subsError) throw subsError;
+      if (subsError) {
+        console.error('Error fetching subscriptions:', subsError);
+        // No lanzar error, simplemente continuar sin suscripciones
+      }
 
       // Get user ids with active subscriptions
-      const activeUserIds = new Set(subscriptions?.map(s => s.user_id) || []);
+      const activeUserIds = new Set((subscriptions || [])?.map(s => s.user_id) || []);
 
       // Filter pilots with active subscriptions
       const qualifiedPilots = pilotsData?.filter(pilot => 

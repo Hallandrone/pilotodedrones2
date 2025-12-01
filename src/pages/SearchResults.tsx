@@ -146,10 +146,15 @@ const SearchResults = () => {
       if (profilesError) throw profilesError;
 
       // Obtener suscripciones (todas, no solo activas)
-      const { data: subscriptionsData } = await supabase
+      const { data: subscriptionsData, error: subscriptionsError } = await supabase
         .from("user_subscriptions")
         .select("user_id, status, plan_name")
         .in("user_id", userIds);
+      
+      if (subscriptionsError) {
+        console.error('Error fetching subscriptions:', subscriptionsError);
+        // Continuar sin suscripciones si hay error
+      }
 
       // Obtener asociaciones de empresas
       const { data: companyPilotsData } = await supabase

@@ -289,7 +289,7 @@ const AdminCertificates = () => {
           .from('user_subscriptions')
           .select('status, plan_name')
           .eq('user_id', doc.user_id)
-          .single();
+          .maybeSingle(); // Usa maybeSingle() para evitar error 406 cuando no hay datos
 
         if (subscriptionError && subscriptionError.code !== 'PGRST116') {
           console.error('Error verificando suscripción:', subscriptionError);
