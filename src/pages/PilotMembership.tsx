@@ -39,6 +39,7 @@ interface AvailablePlan {
   name: string;
   price: number;
   reveniu_plan_id?: string;
+  reveniu_checkout_link?: string; // Link directo de checkout de Reveniu
   flow_plan_id?: string; // ID del plan en Flow
   features: string[];
   description: string;
@@ -63,6 +64,7 @@ const PilotMembership = () => {
       name: 'Plan Profesional',
       price: 14990,
       flow_plan_id: '', // TODO: Agregar el ID del plan en Flow (sandbox)
+      reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/pk2JYEwJVEDUT5vXiFy4M6B9UNwjKxSD', // Link de Reveniu sandbox
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
         features: [
           'Perfil público con nombre, foto, zona y tipo de trabajos',
@@ -208,6 +210,16 @@ const PilotMembership = () => {
         return;
       }
 
+      // Obtener el plan seleccionado
+      const selectedPlan = availablePlans.find(p => p.id === planId);
+      
+      // Si el plan tiene un link de checkout de Reveniu, usarlo directamente
+      if (selectedPlan?.reveniu_checkout_link) {
+        window.location.href = selectedPlan.reveniu_checkout_link;
+        return;
+      }
+
+      // Si no hay link de Reveniu, continuar con Flow
       // Obtener email del usuario
       const { data: profile } = await supabase
         .from('profiles')
