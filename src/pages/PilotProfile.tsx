@@ -1209,12 +1209,12 @@ const PilotProfile = () => {
         </Card>
 
         {/* Specialties */}
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
-            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold text-[#E0E0E0]">
-                <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                  <MapPin className="h-5 w-5 text-white" />
+        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+            <CardHeader className="p-8 bg-card rounded-xl">
+              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                  <MapPin className="h-6 w-6 text-white" />
                 </div>
                 Especialidades
               </CardTitle>
@@ -1222,7 +1222,7 @@ const PilotProfile = () => {
                 Selecciona las áreas en las que tienes experiencia
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
+            <CardContent className="p-8 bg-card rounded-xl space-y-6">
               <div className="space-y-4">
                 {/* Especialidades predefinidas */}
                 <div className="flex flex-wrap gap-3">
@@ -1303,12 +1303,12 @@ const PilotProfile = () => {
         </Card>
 
         {/* Drone Types */}
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#00b3f3]/20 via-[#00b3f3]/10 to-[#00b3f3]/20 p-1">
-            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold text-[#E0E0E0]">
-                <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
-                  <Camera className="h-5 w-5 text-white" />
+        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+            <CardHeader className="p-8 bg-card rounded-xl">
+              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                  <Camera className="h-6 w-6 text-white" />
                 </div>
                 Tipos de Drones
               </CardTitle>
@@ -1316,7 +1316,7 @@ const PilotProfile = () => {
                 Selecciona los modelos de drones que estás habilitado para pilotear
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
+            <CardContent className="p-8 bg-card rounded-xl space-y-6">
               <div className="space-y-6">
                 {/* Drones seleccionados */}
                 {profile.drone_types.length > 0 && (
@@ -1497,12 +1497,12 @@ const PilotProfile = () => {
         </Card>
 
         {/* URL Personalizada del Perfil Público */}
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-yellow-500/20 via-yellow-500/10 to-yellow-500/20 p-1">
-            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-xl font-bold text-[#E0E0E0]">
-                <div className="h-10 w-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
-                  <Crown className="h-5 w-5 text-white" />
+        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+            <CardHeader className="p-8 bg-card rounded-xl">
+              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                  <Crown className="h-6 w-6 text-white" />
                 </div>
                 URL Personalizada del Perfil Público
               </CardTitle>
@@ -1510,7 +1510,7 @@ const PilotProfile = () => {
                 Personaliza la URL de tu perfil público.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
+            <CardContent className="p-8 bg-card rounded-xl space-y-6">
               <div className="space-y-4">
                 {/* Mensaje de advertencia */}
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
