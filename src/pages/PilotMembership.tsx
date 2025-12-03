@@ -73,8 +73,7 @@ const PilotMembership = () => {
           'Bitácora de vuelos y registro de horas acumuladas',
           'Enlace a perfil y código QR verificable',
           'Acceso al panel para editar datos y actualizar experiencia',
-          'Atención estándar por correo',
-          'Prueba de validación de conocimiento'
+          'Atención estándar por correo'
         ]
     },
     {
