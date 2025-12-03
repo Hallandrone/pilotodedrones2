@@ -326,7 +326,7 @@ const PilotCertificates = () => {
                 Subir Certificado
               </CardTitle>
               <CardDescription className="text-[#B0B0B0] font-medium">
-                Sube tus certificaciones en formato PDF, JPG o PNG para validación
+                Sube tus certificaciones en formato PDF, JPG o PNG para validación solo Academia de drone Chile
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
