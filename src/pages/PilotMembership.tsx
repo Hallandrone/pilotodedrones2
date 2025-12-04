@@ -170,11 +170,15 @@ const PilotMembership = () => {
       }
 
       if (subscription) {
-        // Mapear plan_name a detalles del plan
-        const planDetails = defaultPlans.find(p => 
-          p.id === subscription.plan_name || 
-          subscription.plan_name === 'basic' && p.id === 'profesional'
-        ) || defaultPlans[0];
+        // Mapear plan_name de BD a detalles del plan
+        // BD usa: 'basic', 'pro', 'premium'
+        // Frontend usa: 'profesional', 'empresa'
+        const planDetails = defaultPlans.find(p => {
+          if (subscription.plan_name === 'pro') return p.id === 'profesional';
+          if (subscription.plan_name === 'premium') return p.id === 'empresa';
+          if (subscription.plan_name === 'basic') return p.id === 'profesional'; // fallback
+          return p.id === subscription.plan_name;
+        }) || defaultPlans[0];
 
         // Cast para acceder a propiedades que pueden no estar en el tipo
         const subscriptionWithExtras = subscription as any;
@@ -703,7 +707,7 @@ const PilotMembership = () => {
             <Button
               variant="outline"
               className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-green-500/10 hover:border-green-500 hover:text-green-500 transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
-              onClick={() => window.open('https://wa.me/56912345678', '_blank')}
+              onClick={() => window.open('https://wa.me/569XXXXXXXX', '_blank')}
             >
               <MessageCircle className="h-5 w-5 mr-4" />
               <div className="text-left">
@@ -725,46 +729,6 @@ const PilotMembership = () => {
               </div>
               <ExternalLink className="h-4 w-4 ml-auto" />
             </Button>
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* Billing History */}
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
-            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="text-xl font-bold text-[#E0E0E0]">
-                Historial de Facturación
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
-              <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-lg">
-                <div>
-                  <p className="font-medium text-[#E0E0E0]">Enero 2024</p>
-                  <p className="text-sm text-[#B0B0B0]">Plan Básico</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-[#E0E0E0]">$9.900</p>
-                  <Badge className="bg-green-500/20 text-green-500 border border-green-500">
-                    Pagado
-                  </Badge>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-lg">
-                <div>
-                  <p className="font-medium text-[#E0E0E0]">Diciembre 2023</p>
-                  <p className="text-sm text-[#B0B0B0]">Plan Básico</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-medium text-[#E0E0E0]">$9.900</p>
-                  <Badge className="bg-green-500/20 text-green-500 border border-green-500">
-                    Pagado
-                  </Badge>
-                </div>
-              </div>
-            </div>
             </CardContent>
           </div>
         </Card>

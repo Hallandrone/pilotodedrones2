@@ -81,41 +81,56 @@ Deno.serve(async (req) => {
 
     // Estrategia 1: Si hay external_id, usarlo directamente (debería ser el user_id)
     if (externalId) {
-      console.log(`Using external_id to find user: ${externalId}`);
-      const { data: profileData } = await supabase
+      console.log(`✅ Using external_id to find user: ${externalId}`);
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id, email')
         .eq('id', externalId)
-        .single();
+        .maybeSingle();
       
       if (profileData) {
         profile = profileData;
         customerEmail = profileData.email;
-        console.log(`Found user by external_id: ${profile.id}`);
+        console.log(`✅ Found user by external_id: ${profile.id}`);
+      } else {
+        console.log(`❌ User not found with external_id: ${externalId}`);
+        if (profileError) {
+          console.error('Profile query error:', profileError);
+        }
       }
     }
 
     // Estrategia 2: Buscar por subscription_id en user_subscriptions si ya existe
     if (!profile) {
       console.log('No external_id, trying to find by subscription_id');
-      const { data: existingSubscription } = await supabase
+      const { data: existingSubscription, error: subscriptionError } = await supabase
         .from('user_subscriptions')
         .select('user_id')
         .eq('reveniu_subscription_id', String(subscriptionId))
         .maybeSingle();
 
       if (existingSubscription) {
-        console.log(`Found existing subscription for user: ${existingSubscription.user_id}`);
-        const { data: profileData } = await supabase
+        console.log(`✅ Found existing subscription for user: ${existingSubscription.user_id}`);
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id, email')
           .eq('id', existingSubscription.user_id)
-          .single();
+          .maybeSingle();
         
         if (profileData) {
           profile = profileData;
           customerEmail = profileData.email;
-          console.log(`Found user by existing subscription: ${profile.id}`);
+          console.log(`✅ Found user by existing subscription: ${profile.id}`);
+        } else {
+          console.log(`❌ Profile not found for user_id: ${existingSubscription.user_id}`);
+          if (profileError) {
+            console.error('Profile query error:', profileError);
+          }
+        }
+      } else {
+        console.log(`No existing subscription found with reveniu_subscription_id: ${subscriptionId}`);
+        if (subscriptionError) {
+          console.error('Subscription query error:', subscriptionError);
         }
       }
     }
@@ -123,12 +138,17 @@ Deno.serve(async (req) => {
     // Estrategia 3: Si no encontramos al usuario, intentar obtener datos de la API de Reveniu
     if (!profile && reveniuApiKey) {
       console.log('Trying to find user with pending subscription');
+      console.log(`REVENIU_ENV: ${reveniuEnv}`);
+      console.log(`Subscription ID to fetch: ${subscriptionId}`);
+      
       try {
         const reveniuBaseUrl = reveniuEnv === 'production' 
           ? 'https://production.reveniu.com'
           : 'https://sandbox.reveniu.com';
         
         const apiUrl = `${reveniuBaseUrl}/api/v1/subscriptions/${subscriptionId}`;
+        console.log(`Calling Reveniu API: ${apiUrl}`);
+        
         const apiResponse = await fetch(apiUrl, {
           method: 'GET',
           headers: {
@@ -137,29 +157,63 @@ Deno.serve(async (req) => {
           },
         });
 
+        console.log(`API Response status: ${apiResponse.status} ${apiResponse.statusText}`);
+        
         if (apiResponse.ok) {
           const subscriptionData = await apiResponse.json();
-          const subscription = subscriptionData.subscription || subscriptionData;
-          customerEmail = subscription.customer_email || subscription.email;
+          console.log('API Response data:', JSON.stringify(subscriptionData, null, 2));
           
-          console.log(`Got customer email from API: ${customerEmail}`);
+          // Intentar diferentes formatos de respuesta
+          const subscription = subscriptionData.subscription || subscriptionData.data || subscriptionData;
+          customerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
+          
+          console.log(`Extracted customer email: ${customerEmail || 'NOT FOUND'}`);
 
-          if (customerEmail) {
-            const { data: profileData } = await supabase
+          if (customerEmail && typeof customerEmail === 'string') {
+            const normalizedEmail = customerEmail.toLowerCase().trim();
+            console.log(`Searching for profile with email: ${normalizedEmail}`);
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('id, email')
-              .eq('email', customerEmail)
-              .single();
+              .eq('email', normalizedEmail)
+              .maybeSingle();
 
             if (profileData) {
               profile = profileData;
-              console.log(`Found user by email from API: ${profile.id}`);
+              console.log(`✅ Found user by email from API: ${profile.id}`);
+            } else {
+              console.log(`❌ Profile not found for email: ${normalizedEmail}`);
+              if (profileError) {
+                console.error('Profile query error:', profileError);
+              }
+              // Intentar búsqueda case-insensitive
+              const { data: profileDataCaseInsensitive } = await supabase
+                .from('profiles')
+                .select('id, email')
+                .ilike('email', normalizedEmail)
+                .maybeSingle();
+              
+              if (profileDataCaseInsensitive) {
+                profile = profileDataCaseInsensitive;
+                console.log(`✅ Found user by email (case-insensitive): ${profile.id}`);
+              }
             }
+          } else {
+            console.log('❌ No customer email found in API response');
           }
+        } else {
+          const errorText = await apiResponse.text();
+          console.error(`❌ API Error (${apiResponse.status}):`, errorText);
         }
       } catch (apiError) {
-        console.error('Error calling Reveniu API:', apiError);
+        console.error('❌ Error calling Reveniu API:', apiError);
+        if (apiError instanceof Error) {
+          console.error('Error message:', apiError.message);
+          console.error('Error stack:', apiError.stack);
+        }
       }
+    } else if (!profile && !reveniuApiKey) {
+      console.log('⚠️ REVENIU_API_KEY not configured, cannot fetch subscription details from API');
     }
 
     if (!profile) {
@@ -181,11 +235,20 @@ Deno.serve(async (req) => {
                        null;
 
     // Determinar el nombre del plan
-    // Por defecto, si es el plan de 14.990, es 'profesional'
-    let planName = 'profesional'; // Default para el plan de 14.990
+    // La base de datos solo acepta: 'basic', 'pro', 'premium'
+    // El plan de 14.990 corresponde a 'pro' (Plan Profesional)
+    let planName = 'pro'; // Default para el plan de 14.990 (Plan Profesional)
     if (eventData.plan_id || eventData.plan_name) {
-      // Aquí podrías mapear plan_id a plan_name si tienes esa información
-      planName = eventData.plan_name || 'profesional';
+      // Mapear nombres de plan a valores permitidos en la BD
+      const planNameFromEvent = eventData.plan_name || '';
+      if (planNameFromEvent.toLowerCase().includes('empresa') || planNameFromEvent.toLowerCase().includes('premium')) {
+        planName = 'premium';
+      } else if (planNameFromEvent.toLowerCase().includes('profesional') || planNameFromEvent.toLowerCase().includes('pro')) {
+        planName = 'pro';
+      } else if (planNameFromEvent.toLowerCase().includes('basic')) {
+        planName = 'basic';
+      }
+      // Si viene un plan_id, podrías mapearlo aquí según tus planes en Reveniu
     }
 
     // Crear o actualizar suscripción
@@ -215,14 +278,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Subscription ${subscriptionId} updated with status: ${dbStatus} for user: ${profile.id}`);
+    console.log(`✅ Subscription ${subscriptionId} updated with status: ${dbStatus} for user: ${profile.id}`);
 
     return new Response(JSON.stringify({ 
       status: 'ok', 
       received: true,
       subscription_id: subscriptionId,
       user_id: profile.id,
-      status: dbStatus
+      subscription_status: dbStatus
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
