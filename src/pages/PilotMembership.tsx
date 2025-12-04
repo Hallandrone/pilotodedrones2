@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -51,6 +52,9 @@ const PilotMembership = () => {
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState<string | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
+  const [showEmailWarning, setShowEmailWarning] = useState(false);
+  const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
+  const [pendingFlowPlanId, setPendingFlowPlanId] = useState<string | undefined>(undefined);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -212,7 +216,6 @@ const PilotMembership = () => {
 
   const handleSubscribe = async (planId: string, flowPlanId?: string) => {
     try {
-      setSubscribing(planId);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
@@ -230,16 +233,17 @@ const PilotMembership = () => {
           description: `Actualmente tienes el plan ${membership.plan_name} activo. Cancela tu suscripción actual antes de suscribirte a otro plan.`,
           variant: "default",
         });
-        setSubscribing(null);
         return;
       }
 
       // Obtener el plan seleccionado
       const selectedPlan = availablePlans.find(p => p.id === planId);
       
-      // Si el plan tiene un link de checkout de Reveniu, usarlo directamente
+      // Si el plan tiene un link de checkout de Reveniu, mostrar advertencia primero
       if (selectedPlan?.reveniu_checkout_link) {
-        window.location.href = selectedPlan.reveniu_checkout_link;
+        setPendingPlanId(planId);
+        setPendingFlowPlanId(flowPlanId);
+        setShowEmailWarning(true);
         return;
       }
 
@@ -316,6 +320,16 @@ const PilotMembership = () => {
       });
       setSubscribing(null);
     }
+  };
+
+  const handleConfirmSubscribe = () => {
+    setShowEmailWarning(false);
+    const selectedPlan = availablePlans.find(p => p.id === pendingPlanId);
+    if (selectedPlan?.reveniu_checkout_link) {
+      window.location.href = selectedPlan.reveniu_checkout_link;
+    }
+    setPendingPlanId(null);
+    setPendingFlowPlanId(undefined);
   };
 
   const handleCancelSubscription = async () => {
@@ -732,6 +746,46 @@ const PilotMembership = () => {
             </CardContent>
           </div>
         </Card>
+
+        {/* Dialog de advertencia de email */}
+        <Dialog open={showEmailWarning} onOpenChange={setShowEmailWarning}>
+          <DialogContent className="bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl font-bold text-[#E0E0E0]">
+                <AlertCircle className="h-5 w-5 text-amber-500" />
+                Importante: Email de Suscripción
+              </DialogTitle>
+              <DialogDescription className="text-[#B0B0B0] pt-2">
+                Para que tu suscripción se active correctamente, es <strong className="text-amber-400">muy importante</strong> que uses el mismo email con el que estás registrado en Piloto de Drones.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                <p className="text-sm text-[#E0E0E0] mb-2">
+                  <strong>⚠️ Aviso importante:</strong>
+                </p>
+                <p className="text-sm text-[#B0B0B0] leading-relaxed">
+                  Si usas un email diferente al de tu cuenta, el sistema no podrá asociar automáticamente tu suscripción y tendrás que contactar a soporte para activarla manualmente.
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowEmailWarning(false)}
+                className="bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#3C3C3C]"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleConfirmSubscribe}
+                className="bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white"
+              >
+                Continuar con el Pago
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
