@@ -3,7 +3,7 @@ import SearchForm from "@/components/ui/search-form";
 import PilotCard from "@/components/ui/pilot-card";
 import Logo from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Plane, Shield, Users, Star, LogIn, User, Menu, X } from "lucide-react";
+import { Plane, Shield, Users, Star, LogIn, User, Menu, X, CheckCircle, Award, Zap, Search, FileCheck, QrCode, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
