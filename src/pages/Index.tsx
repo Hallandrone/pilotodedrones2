@@ -87,10 +87,10 @@ const Index = () => {
       // Get pilot ids
       const pilotUserIds = pilotsData?.map(p => p.user_id) || [];
 
-      // Fetch subscriptions for these pilots
+      // Fetch subscriptions for these pilots (including featured_until)
       const { data: subscriptions, error: subsError } = await supabase
         .from('user_subscriptions')
-        .select('user_id, status, plan_name')
+        .select('user_id, status, plan_name, featured_until')
         .in('user_id', pilotUserIds)
         .eq('status', 'active');
 
@@ -102,20 +102,42 @@ const Index = () => {
       // Get user ids with active subscriptions
       const activeUserIds = new Set((subscriptions || [])?.map(s => s.user_id) || []);
 
-      // Separar pilotos con y sin suscripción activa
+      // SOLO mostrar pilotos con suscripción activa
       const pilotsWithSubscription = pilotsData?.filter(pilot => 
         activeUserIds.has(pilot.user_id)
       ) || [];
-      
-      const pilotsWithoutSubscription = pilotsData?.filter(pilot => 
-        !activeUserIds.has(pilot.user_id)
-      ) || [];
 
-      // Combinar: primero los con suscripción, luego los sin suscripción
-      // Tomar hasta 6 pilotos en total
+      // Separar pilotos destacados (featured_until > NOW) de los demás
+      const now = new Date();
+      const featuredPilots: typeof pilotsWithSubscription = [];
+      const regularPilots: typeof pilotsWithSubscription = [];
+
+      pilotsWithSubscription.forEach(pilot => {
+        const subscription = subscriptions?.find(s => s.user_id === pilot.user_id);
+        if (subscription?.featured_until) {
+          const featuredUntil = new Date(subscription.featured_until);
+          if (featuredUntil > now) {
+            // Aún está en período destacado
+            featuredPilots.push(pilot);
+          } else {
+            // Ya pasó el período destacado
+            regularPilots.push(pilot);
+          }
+        } else {
+          // No tiene featured_until (suscripción antigua o sin destacado)
+          regularPilots.push(pilot);
+        }
+      });
+
+      // Priorizar: primero los destacados, luego los regulares
+      // Mezclar aleatoriamente dentro de cada grupo
+      const shuffledFeatured = featuredPilots.sort(() => Math.random() - 0.5);
+      const shuffledRegular = regularPilots.sort(() => Math.random() - 0.5);
+      
+      // Combinar: destacados primero, luego regulares, hasta 6 en total
       const allQualifiedPilots = [
-        ...pilotsWithSubscription,
-        ...pilotsWithoutSubscription
+        ...shuffledFeatured,
+        ...shuffledRegular
       ].slice(0, 6);
 
       // Obtener todos los IDs de pilotos seleccionados para buscar empresas y servicios

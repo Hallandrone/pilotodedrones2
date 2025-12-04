@@ -185,6 +185,25 @@ const PublicPilotProfile = () => {
 
       setActualUserId(userId);
 
+      // Verificar que el usuario tenga suscripción activa
+      const { data: subscription } = await supabase
+        .from('user_subscriptions')
+        .select('status')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!subscription) {
+        // No tiene suscripción activa, mostrar mensaje de error
+        toast({
+          title: "Perfil no disponible",
+          description: "Este perfil requiere una suscripción activa para ser visible.",
+          variant: "destructive",
+        });
+        navigate('/');
+        return;
+      }
+
       // Load pilot data (status, certification, etc.)
       const { data: pilotInfo } = await supabase
         .from('pilots')

@@ -145,31 +145,47 @@ const SearchResults = () => {
 
       if (profilesError) throw profilesError;
 
-      // Obtener suscripciones (todas, no solo activas)
+      // Obtener SOLO suscripciones activas
       const { data: subscriptionsData, error: subscriptionsError } = await supabase
         .from("user_subscriptions")
         .select("user_id, status, plan_name")
-        .in("user_id", userIds);
+        .in("user_id", userIds)
+        .eq("status", "active");
       
       if (subscriptionsError) {
         console.error('Error fetching subscriptions:', subscriptionsError);
         // Continuar sin suscripciones si hay error
       }
 
-      // Obtener asociaciones de empresas
-      const { data: companyPilotsData } = await supabase
-        .from("company_pilots")
-        .select(`
-          pilot_id,
-          company:companies!inner (
-            id,
-            company_name
-          )
-        `)
-        .in("pilot_id", pilotIds);
+      // Crear Set de usuarios con suscripción activa
+      const activeSubscriptionUserIds = new Set(
+        (subscriptionsData || []).map(s => s.user_id)
+      );
 
-      // Combinar datos
-      const pilotsWithServices: PilotWithServices[] = pilotsData.map(pilot => {
+      // Filtrar solo pilotos con suscripción activa
+      const pilotsWithActiveSubscription = pilotsData.filter(pilot =>
+        activeSubscriptionUserIds.has(pilot.user_id)
+      );
+
+      // Obtener asociaciones de empresas solo para pilotos con suscripción activa
+      const activePilotIds = pilotsWithActiveSubscription.map(p => p.id);
+      let companyPilotsData = null;
+      if (activePilotIds.length > 0) {
+        const { data } = await supabase
+          .from("company_pilots")
+          .select(`
+            pilot_id,
+            company:companies!inner (
+              id,
+              company_name
+            )
+          `)
+          .in("pilot_id", activePilotIds);
+        companyPilotsData = data;
+      }
+
+      // Combinar datos - SOLO para pilotos con suscripción activa
+      const pilotsWithServices: PilotWithServices[] = pilotsWithActiveSubscription.map(pilot => {
         const profile = profilesData.find(p => p.id === pilot.user_id);
         const subscription = subscriptionsData?.find(s => s.user_id === pilot.user_id);
         const pilotServices = servicesData?.filter(s => s.pilot_id === pilot.id) || [];

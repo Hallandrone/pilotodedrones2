@@ -21,6 +21,7 @@ const PilotQR = () => {
   const [qrCode, setQrCode] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<string | null>(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
   const qrRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -62,6 +63,22 @@ const PilotQR = () => {
         .single();
 
       if (profileData) {
+        // Verificar suscripción activa antes de generar QR
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (!subscription) {
+          // No tiene suscripción activa
+          setHasActiveSubscription(false);
+          setPilotData(profileData);
+          return;
+        }
+
+        setHasActiveSubscription(true);
         setPilotData(profileData);
         
         // Generate QR code URL - ALWAYS use user ID to ensure QR never changes
@@ -233,21 +250,44 @@ const PilotQR = () => {
             </CardHeader>
             <CardContent className="text-center bg-[#2C2C2C] rounded-xl pt-6">
               {/* QR Code */}
-              <div ref={qrRef} className="bg-white p-8 rounded-2xl mx-auto mb-6 w-64 h-64 flex items-center justify-center shadow-lg">
-                {qrCode ? (
-                  <QRCodeSVG 
-                    value={qrCode} 
-                    size={200}
-                    level="H"
-                    includeMargin={false}
-                  />
-                ) : (
-                  <div className="text-center">
-                    <QrCode className="h-16 w-16 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 font-medium">Generando QR...</p>
+              {hasActiveSubscription ? (
+                <div ref={qrRef} className="bg-white p-8 rounded-2xl mx-auto mb-6 w-64 h-64 flex items-center justify-center shadow-lg">
+                  {qrCode ? (
+                    <QRCodeSVG 
+                      value={qrCode} 
+                      size={200}
+                      level="H"
+                      includeMargin={false}
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <QrCode className="h-16 w-16 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600 font-medium">Generando QR...</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-2xl mx-auto mb-6 p-8">
+                  <div className="text-center space-y-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/20 mb-4">
+                      <Shield className="h-8 w-8 text-amber-500" />
+                    </div>
+                    <h3 className="text-lg font-bold text-[#E0E0E0]">Suscripción Requerida</h3>
+                    <p className="text-sm text-[#B0B0B0] leading-relaxed">
+                      Necesitas una suscripción activa para generar tu código QR y hacer tu perfil público visible.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        const isCompany = location.pathname.includes('/company') || userType === 'company';
+                        navigate(isCompany ? '/company/membership' : '/pilot/membership');
+                      }}
+                      className="mt-4 bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white"
+                    >
+                      Ver Planes de Suscripción
+                    </Button>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="space-y-3">
                 <div className="flex items-center justify-center gap-2">
@@ -266,14 +306,15 @@ const PilotQR = () => {
         </Card>
 
         {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button
-            onClick={handleDownloadQR}
-            className="w-full h-12 bg-gradient-to-r from-[#FF69B4] to-pink-600 hover:from-[#FF69B4]/90 hover:to-pink-600/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 rounded-xl"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Descargar QR
-          </Button>
+        {hasActiveSubscription && (
+          <div className="space-y-3">
+            <Button
+              onClick={handleDownloadQR}
+              className="w-full h-12 bg-gradient-to-r from-[#FF69B4] to-pink-600 hover:from-[#FF69B4]/90 hover:to-pink-600/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 rounded-xl"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Descargar QR
+            </Button>
 
           <div className="grid grid-cols-2 gap-3">
             <Button
@@ -293,7 +334,8 @@ const PilotQR = () => {
               Copiar Enlace
             </Button>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Information Card */}
         <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">

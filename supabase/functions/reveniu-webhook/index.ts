@@ -327,19 +327,50 @@ Deno.serve(async (req) => {
       // Si viene un plan_id, podrías mapearlo aquí según tus planes en Reveniu
     }
 
+    // Calcular featured_until: 24 horas desde ahora si la suscripción se está activando
+    // Solo establecer featured_until si el estado es 'active' y es una activación nueva
+    let featuredUntil = null;
+    if (dbStatus === 'active') {
+      // Verificar si ya existe una suscripción para este usuario
+      const { data: existingSubscription } = await supabase
+        .from('user_subscriptions')
+        .select('featured_until, status')
+        .eq('user_id', profile.id)
+        .maybeSingle();
+
+      // Si no existe suscripción previa o la anterior no estaba activa, establecer featured_until
+      if (!existingSubscription || existingSubscription.status !== 'active') {
+        // 24 horas desde ahora
+        const now = new Date();
+        featuredUntil = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+        console.log(`✅ Setting featured_until to: ${featuredUntil} (24 hours from now)`);
+      } else if (existingSubscription.featured_until) {
+        // Si ya tiene featured_until, mantenerlo (no resetear)
+        featuredUntil = existingSubscription.featured_until;
+        console.log(`ℹ️ Keeping existing featured_until: ${featuredUntil}`);
+      }
+    }
+
     // Crear o actualizar suscripción
+    const upsertData: any = {
+      user_id: profile.id,
+      plan_name: planName,
+      status: dbStatus,
+      renewal_date: renewalDate,
+      payment_method: eventData.payment_method || 'Tarjeta de Crédito',
+      reveniu_subscription_id: String(subscriptionId),
+      reveniu_plan_id: eventData.plan_id ? String(eventData.plan_id) : null,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Solo agregar featured_until si tiene valor
+    if (featuredUntil) {
+      upsertData.featured_until = featuredUntil;
+    }
+
     const { error: upsertError } = await supabase
       .from('user_subscriptions')
-      .upsert({
-        user_id: profile.id,
-        plan_name: planName,
-        status: dbStatus,
-        renewal_date: renewalDate,
-        payment_method: eventData.payment_method || 'Tarjeta de Crédito',
-        reveniu_subscription_id: String(subscriptionId),
-        reveniu_plan_id: eventData.plan_id ? String(eventData.plan_id) : null,
-        updated_at: new Date().toISOString(),
-      }, {
+      .upsert(upsertData, {
         onConflict: 'user_id',
       });
 
