@@ -383,7 +383,7 @@ export default function CompanyProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !slug) return false;
       
-      const { data, error } = await supabase
+    const { data, error } = await supabase
         .from('profiles')
         .select('id')
         .eq('public_profile_slug', slug)
@@ -584,7 +584,7 @@ export default function CompanyProfile() {
   const handleLogoCropComplete = async (croppedImageUrl: string) => {
     try {
       setUploadingLogo(true);
-      const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("No se pudo obtener el usuario");
         return;
@@ -597,21 +597,21 @@ export default function CompanyProfile() {
 
       // Subir a Supabase Storage (bucket avatars)
       const filePath = `${user.id}/logo.jpg`;
-      const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, { upsert: true });
+      .upload(filePath, file, { upsert: true });
 
-      if (uploadError) {
+    if (uploadError) {
         console.error('Upload error:', uploadError);
         throw uploadError;
-      }
+    }
 
-      const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabase.storage
         .from("avatars")
-        .getPublicUrl(filePath);
+      .getPublicUrl(filePath);
 
       // Guardar el logo_url en la base de datos
-      await handleSave({ logo_url: publicUrl });
+    await handleSave({ logo_url: publicUrl });
       
       // Actualizar el estado de la empresa con el nuevo logo
       setCompany(prev => prev ? { ...prev, logo_url: publicUrl } : null);
@@ -811,7 +811,7 @@ export default function CompanyProfile() {
 
       const { error: dbError } = await supabase
         .from('user_certifications')
-        .insert({
+      .insert({
           user_id: user.id,
           file_name: file.name,
           file_url: fileName,
@@ -857,7 +857,7 @@ export default function CompanyProfile() {
     const { data, error } = await supabase.storage
       .from('certifications')
       .createSignedUrl(filePath, 3600);
-    
+
     if (error) {
       console.error('Error creating signed URL:', error);
       throw error;
@@ -1269,8 +1269,8 @@ export default function CompanyProfile() {
                 <AvatarImage src={company?.logo_url || ''} />
                 <AvatarFallback className="bg-accent text-white text-3xl">
                   {formData.company_name?.charAt(0)?.toUpperCase() || 'E'}
-                </AvatarFallback>
-              </Avatar>
+              </AvatarFallback>
+            </Avatar>
               <div className="flex flex-col items-center gap-2">
                 <Label htmlFor="logo-upload-modal" className="cursor-pointer">
                   <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
@@ -1285,41 +1285,41 @@ export default function CompanyProfile() {
                         <span>{company?.logo_url ? 'Cambiar logo' : 'Subir logo'}</span>
                       </>
                     )}
-                  </div>
-                </Label>
-                <Input
+                </div>
+              </Label>
+              <Input
                   id="logo-upload-modal"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
+                type="file"
+                accept="image/*"
+                className="hidden"
                   onChange={handleLogoSelect}
                   disabled={uploadingLogo}
-                />
+              />
                 <p className="text-xs text-muted-foreground text-center">
                   JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
                 </p>
-              </div>
             </div>
+          </div>
 
             <div className="space-y-3">
               <Label htmlFor="company_name_modal" className="text-base font-semibold">
                 Nombre de la Empresa *
               </Label>
-              <Input
+            <Input
                 id="company_name_modal"
-                value={formData.company_name}
+              value={formData.company_name}
                 onChange={(e) => handleInputChange('company_name', e.target.value)}
                 placeholder="Nombre de tu empresa"
                 className="h-12 sm:h-14 rounded-xl border-2"
-              />
-            </div>
+            />
+          </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <Label htmlFor="email_modal" className="text-base font-semibold">
                   Email de Contacto
                 </Label>
-                <Input
+            <Input
                   id="email_modal"
                   type="email"
                   value={formData.email}
@@ -1351,26 +1351,26 @@ export default function CompanyProfile() {
               </Label>
               <Input
                 id="website_modal"
-                type="url"
-                value={formData.website}
+              type="url"
+              value={formData.website}
                 onChange={(e) => handleInputChange('website', e.target.value)}
                 placeholder="https://www.empresa.cl"
                 className="h-12 sm:h-14 rounded-xl border-2"
-              />
-            </div>
+            />
+          </div>
 
             <div className="space-y-3">
               <Label htmlFor="description_modal" className="text-base font-semibold">
                 Descripción
               </Label>
-              <Textarea
+            <Textarea
                 id="description_modal"
-                value={formData.description}
+              value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 placeholder="Describe los servicios que ofrece tu empresa..."
                 className="rounded-xl border-2 resize-none min-h-[120px]"
-              />
-            </div>
+            />
+          </div>
 
             {/* Location Section */}
             <div className="pt-6 border-t border-border/50">
@@ -1505,8 +1505,8 @@ export default function CompanyProfile() {
               <Label htmlFor="custom-service-modal" className="text-sm mb-2 block font-medium">
                 Otra
               </Label>
-              <div className="flex gap-2">
-                <Input
+          <div className="flex gap-2">
+            <Input
                   id="custom-service-modal"
                   type="text"
                   value={customService}
@@ -1526,10 +1526,10 @@ export default function CompanyProfile() {
                   disabled={!customService.trim() || formData.services.includes(customService.trim())}
                   className="bg-accent hover:bg-accent/90 text-white"
                 >
-                  Agregar
-                </Button>
+              Agregar
+            </Button>
               </div>
-            </div>
+          </div>
 
             {/* Drones Section */}
             <div className="pt-6 border-t border-border/50">
@@ -1741,7 +1741,7 @@ export default function CompanyProfile() {
           </DialogHeader>
           <div className="space-y-6 mt-4">
             {/* Instagram */}
-            <div className="space-y-2">
+          <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="instagram_modal" className="font-medium">
                   <span className="inline-block mr-1">📷</span>
@@ -1972,7 +1972,7 @@ export default function CompanyProfile() {
               <p className="text-xs text-muted-foreground">
                 Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
               </p>
-            </div>
+                  </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button variant="outline" onClick={() => setOpenModal(null)}>
@@ -2079,9 +2079,9 @@ export default function CompanyProfile() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                           onClick={() => handleViewCertification(cert.id)}
                         >
                           <Eye className="h-4 w-4" />
@@ -2090,10 +2090,10 @@ export default function CompanyProfile() {
                           variant="ghost" 
                           size="sm" 
                           onClick={() => handleDeleteCertification(cert.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
                     </div>
                   ))}
                 </div>
@@ -2104,7 +2104,7 @@ export default function CompanyProfile() {
               <Button variant="outline" onClick={() => setOpenModal(null)}>
                 Cerrar
               </Button>
-            </div>
+          </div>
           </div>
         </DialogContent>
       </Dialog>

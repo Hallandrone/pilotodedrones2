@@ -97,22 +97,29 @@ const PilotMembership = () => {
   useEffect(() => {
     loadMembership();
     setAvailablePlans(defaultPlans);
+    checkUserType();
 
-    // Manejar parámetros de URL después del checkout de Flow
+    // Manejar parámetros de URL después del checkout
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       toast({
-        title: "¡Suscripción exitosa!",
-        description: "Tu suscripción ha sido activada correctamente a través de Flow",
+        title: "¡Pago procesado!",
+        description: "Verificando el estado de tu suscripción...",
       });
       // Limpiar URL
       window.history.replaceState({}, '', window.location.pathname);
-      // Recargar membresía
-      loadMembership();
+      // Esperar un momento y recargar membresía (el webhook puede tardar)
+      setTimeout(() => {
+        loadMembership();
+      }, 2000);
+      // Recargar nuevamente después de 5 segundos por si el webhook tardó
+      setTimeout(() => {
+        loadMembership();
+      }, 5000);
     } else if (urlParams.get('canceled') === 'true') {
       toast({
-        title: "Suscripción cancelada",
-        description: "El proceso de suscripción fue cancelado",
+        title: "Pago cancelado",
+        description: "El proceso de pago fue cancelado",
         variant: "default",
       });
       // Limpiar URL
@@ -169,6 +176,9 @@ const PilotMembership = () => {
           subscription.plan_name === 'basic' && p.id === 'profesional'
         ) || defaultPlans[0];
 
+        // Cast para acceder a propiedades que pueden no estar en el tipo
+        const subscriptionWithExtras = subscription as any;
+
         setMembership({
           plan_name: planDetails.name,
           status: subscription.status as any,
@@ -176,9 +186,9 @@ const PilotMembership = () => {
           payment_method: subscription.payment_method,
           price: planDetails.price,
           features: planDetails.features,
-          reveniu_subscription_id: subscription.reveniu_subscription_id,
-          flow_subscription_id: subscription.flow_subscription_id,
-          flow_plan_id: subscription.flow_plan_id
+          reveniu_subscription_id: subscriptionWithExtras.reveniu_subscription_id || null,
+          flow_subscription_id: subscriptionWithExtras.flow_subscription_id || null,
+          flow_plan_id: subscriptionWithExtras.flow_plan_id || null
         });
       } else {
         // Usuario sin suscripción
@@ -206,6 +216,17 @@ const PilotMembership = () => {
           description: "Debes iniciar sesión para suscribirte",
           variant: "destructive",
         });
+        return;
+      }
+
+      // Verificar si ya tiene una suscripción activa
+      if (membership && membership.status === 'active') {
+        toast({
+          title: "Ya tienes una suscripción activa",
+          description: `Actualmente tienes el plan ${membership.plan_name} activo. Cancela tu suscripción actual antes de suscribirte a otro plan.`,
+          variant: "default",
+        });
+        setSubscribing(null);
         return;
       }
 
@@ -496,6 +517,31 @@ const PilotMembership = () => {
                   )}
                 </div>
 
+                {/* Botón para verificar estado */}
+                <div className="pt-4 border-t border-[#333333]">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setLoading(true);
+                      loadMembership();
+                    }}
+                    disabled={loading}
+                    className="w-full bg-[#2C2C2C] border-[#333333] hover:bg-[#3C3C3C] text-[#E0E0E0]"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Verificando...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Verificar Estado de Suscripción
+                      </>
+                    )}
+                  </Button>
+                </div>
+
                 {/* Botón de cancelar suscripción - solo si está activa y tiene flow_subscription_id */}
                 {membership.status === 'active' && membership.flow_subscription_id && (
                   <div className="pt-4 border-t border-[#333333]">
@@ -533,32 +579,6 @@ const PilotMembership = () => {
             </CardContent>
         </Card>
         )}
-
-        {/* Plan Features */}
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
-            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="text-xl font-bold text-[#E0E0E0]">
-                Características del Plan
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
-              <div className="space-y-4">
-                {membership?.features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-4 p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
-                    <div className="h-6 w-6 bg-green-500 rounded-full flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-white" />
-                    </div>
-                    <span className="text-[#E0E0E0] font-medium">{feature}</span>
-                  </div>
-                ))}
-                {!membership && (
-                  <p className="text-[#B0B0B0] text-center">Selecciona un plan para ver sus características</p>
-                )}
-              </div>
-            </CardContent>
-          </div>
-        </Card>
 
         {/* Available Plans */}
         <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
@@ -614,24 +634,37 @@ const PilotMembership = () => {
                     ))}
               </ul>
                   {!isCurrentPlan && (
-                    <Button 
-                      className={`w-full mt-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${
-                        plan.id === 'profesional'
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
-                      }`}
-                      onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
-                      disabled={isSubscribing}
-                    >
-                      {isSubscribing ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Procesando...
-                        </>
+                    <>
+                      {membership && membership.status === 'active' ? (
+                        <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+                          <p className="text-[#E0E0E0] font-medium mb-2">
+                            Ya tienes un plan activo
+                          </p>
+                          <p className="text-sm text-[#B0B0B0]">
+                            Cancela tu suscripción actual para cambiar de plan
+                          </p>
+                        </div>
                       ) : (
-                        `Suscribirse a ${plan.name}`
+                        <Button 
+                          className={`w-full mt-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${
+                            plan.id === 'profesional'
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                              : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
+                          }`}
+                          onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
+                          disabled={isSubscribing || (membership && membership.status === 'active')}
+                        >
+                          {isSubscribing ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Procesando...
+                            </>
+                          ) : (
+                            `Suscribirse a ${plan.name}`
+                          )}
+                        </Button>
                       )}
-                    </Button>
+                    </>
                   )}
                 </div>
               );
