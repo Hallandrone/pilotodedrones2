@@ -158,52 +158,128 @@ Deno.serve(async (req) => {
         });
 
         console.log(`API Response status: ${apiResponse.status} ${apiResponse.statusText}`);
+        const contentType = apiResponse.headers.get('content-type') || '';
+        console.log(`API Response Content-Type: ${contentType}`);
         
         if (apiResponse.ok) {
-          const subscriptionData = await apiResponse.json();
-          console.log('API Response data:', JSON.stringify(subscriptionData, null, 2));
-          
-          // Intentar diferentes formatos de respuesta
-          const subscription = subscriptionData.subscription || subscriptionData.data || subscriptionData;
-          customerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
-          
-          console.log(`Extracted customer email: ${customerEmail || 'NOT FOUND'}`);
-
-          if (customerEmail && typeof customerEmail === 'string') {
-            const normalizedEmail = customerEmail.toLowerCase().trim();
-            console.log(`Searching for profile with email: ${normalizedEmail}`);
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('id, email')
-              .eq('email', normalizedEmail)
-              .maybeSingle();
-
-            if (profileData) {
-              profile = profileData;
-              console.log(`✅ Found user by email from API: ${profile.id}`);
-            } else {
-              console.log(`❌ Profile not found for email: ${normalizedEmail}`);
-              if (profileError) {
-                console.error('Profile query error:', profileError);
-              }
-              // Intentar búsqueda case-insensitive
-              const { data: profileDataCaseInsensitive } = await supabase
-                .from('profiles')
-                .select('id, email')
-                .ilike('email', normalizedEmail)
-                .maybeSingle();
+          // Verificar que la respuesta sea JSON antes de parsear
+          if (!contentType.includes('application/json')) {
+            // Si no es JSON, leer como texto para debugging
+            const responseText = await apiResponse.text();
+            console.error(`❌ API returned non-JSON response (${contentType}):`, responseText.substring(0, 500));
+            
+            // Intentar con formato de autenticación alternativo
+            console.log('Trying alternative authentication format (Authorization Bearer)...');
+            try {
+              const apiResponseAlt = await fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${reveniuApiKey}`,
+                },
+              });
               
-              if (profileDataCaseInsensitive) {
-                profile = profileDataCaseInsensitive;
-                console.log(`✅ Found user by email (case-insensitive): ${profile.id}`);
+              const contentTypeAlt = apiResponseAlt.headers.get('content-type') || '';
+              console.log(`Alternative auth Content-Type: ${contentTypeAlt}`);
+              
+              if (contentTypeAlt.includes('application/json') && apiResponseAlt.ok) {
+                const subscriptionData = await apiResponseAlt.json();
+                console.log('✅ API Response (alternative auth):', JSON.stringify(subscriptionData, null, 2));
+                
+                // Procesar con autenticación alternativa exitosa
+                const subscription = subscriptionData.subscription || subscriptionData.data || subscriptionData;
+                customerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
+                
+                console.log(`Extracted customer email: ${customerEmail || 'NOT FOUND'}`);
+
+                if (customerEmail && typeof customerEmail === 'string') {
+                  const normalizedEmail = customerEmail.toLowerCase().trim();
+                  console.log(`Searching for profile with email: ${normalizedEmail}`);
+                  const { data: profileData, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('id, email')
+                    .eq('email', normalizedEmail)
+                    .maybeSingle();
+
+                  if (profileData) {
+                    profile = profileData;
+                    console.log(`✅ Found user by email from API: ${profile.id}`);
+                  } else {
+                    console.log(`❌ Profile not found for email: ${normalizedEmail}`);
+                    if (profileError) {
+                      console.error('Profile query error:', profileError);
+                    }
+                    // Intentar búsqueda case-insensitive
+                    const { data: profileDataCaseInsensitive } = await supabase
+                      .from('profiles')
+                      .select('id, email')
+                      .ilike('email', normalizedEmail)
+                      .maybeSingle();
+                    
+                    if (profileDataCaseInsensitive) {
+                      profile = profileDataCaseInsensitive;
+                      console.log(`✅ Found user by email (case-insensitive): ${profile.id}`);
+                    }
+                  }
+                } else {
+                  console.log('❌ No customer email found in API response');
+                }
+              } else {
+                const altText = await apiResponseAlt.text();
+                console.error(`❌ Alternative auth also failed (${apiResponseAlt.status}):`, altText.substring(0, 500));
+                throw new Error(`API returned HTML instead of JSON. Check API key and endpoint. Status: ${apiResponseAlt.status}`);
               }
+            } catch (altError) {
+              console.error('❌ Error with alternative auth:', altError);
+              throw new Error(`API returned HTML instead of JSON. Original error: ${responseText.substring(0, 200)}`);
             }
           } else {
-            console.log('❌ No customer email found in API response');
+            // Es JSON, procesar normalmente
+            const subscriptionData = await apiResponse.json();
+            console.log('API Response data:', JSON.stringify(subscriptionData, null, 2));
+            
+            // Intentar diferentes formatos de respuesta
+            const subscription = subscriptionData.subscription || subscriptionData.data || subscriptionData;
+            customerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
+            
+            console.log(`Extracted customer email: ${customerEmail || 'NOT FOUND'}`);
+
+            if (customerEmail && typeof customerEmail === 'string') {
+              const normalizedEmail = customerEmail.toLowerCase().trim();
+              console.log(`Searching for profile with email: ${normalizedEmail}`);
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, email')
+                .eq('email', normalizedEmail)
+                .maybeSingle();
+
+              if (profileData) {
+                profile = profileData;
+                console.log(`✅ Found user by email from API: ${profile.id}`);
+              } else {
+                console.log(`❌ Profile not found for email: ${normalizedEmail}`);
+                if (profileError) {
+                  console.error('Profile query error:', profileError);
+                }
+                // Intentar búsqueda case-insensitive
+                const { data: profileDataCaseInsensitive } = await supabase
+                  .from('profiles')
+                  .select('id, email')
+                  .ilike('email', normalizedEmail)
+                  .maybeSingle();
+                
+                if (profileDataCaseInsensitive) {
+                  profile = profileDataCaseInsensitive;
+                  console.log(`✅ Found user by email (case-insensitive): ${profile.id}`);
+                }
+              }
+            } else {
+              console.log('❌ No customer email found in API response');
+            }
           }
         } else {
           const errorText = await apiResponse.text();
-          console.error(`❌ API Error (${apiResponse.status}):`, errorText);
+          console.error(`❌ API Error (${apiResponse.status}):`, errorText.substring(0, 500));
         }
       } catch (apiError) {
         console.error('❌ Error calling Reveniu API:', apiError);
