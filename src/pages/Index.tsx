@@ -577,6 +577,88 @@ const Index = () => {
                 </div>
               </section>
 
+              {/* Características y Beneficios */}
+              <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                  <div className="text-center mb-16">
+                    <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
+                      Características y Beneficios
+                    </h3>
+                    <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                      Descubre todo lo que nuestra plataforma ofrece para pilotos y clientes
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {/* Característica 1 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Certificaciones Verificadas</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Sistema de validación de certificaciones por administradores para garantizar la autenticidad de cada piloto
+                      </p>
+                    </div>
+
+                    {/* Característica 2 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Búsqueda Avanzada</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Filtra pilotos por región, especialidad, tipo de drone y experiencia para encontrar el profesional perfecto
+                      </p>
+                    </div>
+
+                    {/* Característica 3 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Código QR Personalizado</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Cada piloto tiene un código QR único para compartir su perfil profesional de forma rápida y profesional
+                      </p>
+                    </div>
+
+                    {/* Característica 4 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">URL Personalizada</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Crea tu propia URL personalizada para tu perfil público y facilita que los clientes te encuentren
+                      </p>
+                    </div>
+
+                    {/* Característica 5 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Perfiles Destacados</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Los pilotos certificados y con suscripción activa aparecen destacados en los resultados de búsqueda
+                      </p>
+                    </div>
+
+                    {/* Característica 6 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Acceso Rápido</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Panel de control intuitivo para gestionar tu perfil, certificaciones y servicios de forma eficiente
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
               {/* Resultados / Destacados */}
               <section className="py-20 lg:py-28 bg-secondary">
                 <div className="max-w-7xl mx-auto">
@@ -709,6 +791,88 @@ const Index = () => {
                       <h4 className="text-2xl font-bold mb-4 text-primary">Calidad Garantizada</h4>
                       <p className="text-lg text-muted-foreground leading-relaxed">
                         Sistema de reseñas y evaluaciones para garantizar la mejor experiencia
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Características y Beneficios */}
+              <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                  <div className="text-center mb-16">
+                    <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
+                      Características y Beneficios
+                    </h3>
+                    <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                      Descubre todo lo que nuestra plataforma ofrece para pilotos y clientes
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {/* Característica 1 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Certificaciones Verificadas</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Sistema de validación de certificaciones por administradores para garantizar la autenticidad de cada piloto
+                      </p>
+                    </div>
+
+                    {/* Característica 2 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Búsqueda Avanzada</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Filtra pilotos por región, especialidad, tipo de drone y experiencia para encontrar el profesional perfecto
+                      </p>
+                    </div>
+
+                    {/* Característica 3 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Código QR Personalizado</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Cada piloto tiene un código QR único para compartir su perfil profesional de forma rápida y profesional
+                      </p>
+                    </div>
+
+                    {/* Característica 4 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">URL Personalizada</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Crea tu propia URL personalizada para tu perfil público y facilita que los clientes te encuentren
+                      </p>
+                    </div>
+
+                    {/* Característica 5 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Perfiles Destacados</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Los pilotos certificados y con suscripción activa aparecen destacados en los resultados de búsqueda
+                      </p>
+                    </div>
+
+                    {/* Característica 6 */}
+                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                      <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
+                        <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h4 className="text-xl font-bold mb-3 text-primary">Acceso Rápido</h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Panel de control intuitivo para gestionar tu perfil, certificaciones y servicios de forma eficiente
                       </p>
                     </div>
                   </div>
