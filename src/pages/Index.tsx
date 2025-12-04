@@ -102,10 +102,24 @@ const Index = () => {
       // Get user ids with active subscriptions
       const activeUserIds = new Set((subscriptions || [])?.map(s => s.user_id) || []);
 
-      // Filter pilots with active subscriptions
-      const qualifiedPilots = pilotsData?.filter(pilot => 
+      // Separar pilotos con y sin suscripción activa
+      const pilotsWithSubscription = pilotsData?.filter(pilot => 
         activeUserIds.has(pilot.user_id)
       ) || [];
+      
+      const pilotsWithoutSubscription = pilotsData?.filter(pilot => 
+        !activeUserIds.has(pilot.user_id)
+      ) || [];
+
+      // Combinar: primero los con suscripción, luego los sin suscripción
+      // Tomar hasta 6 pilotos en total
+      const allQualifiedPilots = [
+        ...pilotsWithSubscription,
+        ...pilotsWithoutSubscription
+      ].slice(0, 6);
+
+      // Obtener todos los IDs de pilotos seleccionados para buscar empresas y servicios
+      const selectedPilotIds = allQualifiedPilots.map(p => p.id);
 
       // Fetch companies for these pilots
       const { data: companyPilots } = await supabase
@@ -116,7 +130,7 @@ const Index = () => {
             company_name
           )
         `)
-        .in('pilot_id', qualifiedPilots.map(p => p.id));
+        .in('pilot_id', selectedPilotIds);
 
       const companyMap = new Map();
       companyPilots?.forEach((cp: any) => {
@@ -129,7 +143,7 @@ const Index = () => {
       const { data: services } = await supabase
         .from('pilot_services')
         .select('pilot_id, service_type')
-        .in('pilot_id', qualifiedPilots.map(p => p.id))
+        .in('pilot_id', selectedPilotIds)
         .eq('is_published', true);
 
       const servicesMap = new Map();
@@ -141,7 +155,7 @@ const Index = () => {
       });
 
       // Transform and randomize
-      const transformedPilots = qualifiedPilots.map(pilot => ({
+      const transformedPilots = allQualifiedPilots.map(pilot => ({
         id: pilot.id,
         name: pilot.profiles?.full_name || 'Piloto Profesional',
         location: pilot.profiles?.location || pilot.profiles?.region || 'Chile',
@@ -154,9 +168,9 @@ const Index = () => {
         company_name: companyMap.get(pilot.id) || null,
       }));
 
-      // Randomize and limit to 6
+      // Randomize (ya no necesitamos slice porque ya limitamos arriba)
       const shuffled = transformedPilots.sort(() => Math.random() - 0.5);
-      setFeaturedPilots(shuffled.slice(0, 6));
+      setFeaturedPilots(shuffled);
     } catch (error) {
       console.error('Error loading featured pilots:', error);
       setFeaturedPilots([]);
