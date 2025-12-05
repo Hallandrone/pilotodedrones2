@@ -34,13 +34,23 @@ Deno.serve(async (req) => {
     
     // Validar webhook secret si está configurado
     const webhookSignature = req.headers.get('reveniu-secret-key') || req.headers.get('Reveniu-Secret-Key') || '';
+    console.log('Webhook auth check:', {
+      hasSecret: !!reveniuWebhookSecret,
+      hasSignature: !!webhookSignature,
+      signatureMatch: reveniuWebhookSecret && webhookSignature ? webhookSignature === reveniuWebhookSecret : 'N/A'
+    });
+    
     if (reveniuWebhookSecret && webhookSignature) {
       if (webhookSignature !== reveniuWebhookSecret) {
+        console.error('❌ Invalid webhook signature');
         return new Response(JSON.stringify({ error: 'Invalid webhook signature' }), {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+      console.log('✅ Webhook signature validated');
+    } else if (reveniuWebhookSecret && !webhookSignature) {
+      console.warn('⚠️ REVENIU_WEBHOOK_SECRET configured but no signature header received');
     }
 
     console.log('Reveniu webhook received:', JSON.stringify(payload, null, 2));
@@ -52,6 +62,13 @@ Deno.serve(async (req) => {
     const externalId = eventData.subscription_external_id || eventData.external_id;
 
     console.log(`Event type: ${eventType}, Subscription ID: ${subscriptionId}, External ID: ${externalId || 'null'}`);
+    console.log('Event data for plan detection:', JSON.stringify({
+      plan_id: eventData.plan_id,
+      plan_name: eventData.plan_name,
+      amount: eventData.amount,
+      price: eventData.price,
+      plan_amount: eventData.plan_amount
+    }, null, 2));
 
     if (!subscriptionId) {
       console.log('No subscription ID found in webhook payload');
@@ -308,29 +325,69 @@ Deno.serve(async (req) => {
     const renewalDate = eventData.next_due_date || 
                        eventData.next_billing_date || 
                        eventData.due_date || 
-                       null;
+                           null;
 
     // Determinar el nombre del plan
     // La base de datos acepta: 'basic', 'profesional', 'empresa'
     // El plan de 14.990 corresponde a 'profesional' (Plan Profesional)
     // El plan de 39.990 corresponde a 'empresa' (Plan Empresa)
     let planName = 'profesional'; // Default para el plan de 14.990 (Plan Profesional)
-    if (eventData.plan_id || eventData.plan_name) {
-      // Mapear nombres de plan a valores permitidos en la BD
-      const planNameFromEvent = eventData.plan_name || '';
-      if (planNameFromEvent.toLowerCase().includes('empresa')) {
+    
+    // Estrategia 1: Detectar por monto (más confiable para diferenciar planes)
+    const amount = eventData.amount || eventData.price || eventData.plan_amount || eventData.amount_cents;
+    if (amount) {
+      const amountNum = typeof amount === 'string' ? parseFloat(amount) : amount;
+      // Si viene en centavos, convertir a pesos
+      const amountInPesos = amountNum > 1000 ? amountNum / 100 : amountNum;
+      console.log(`Amount detected: ${amountNum} (${amountInPesos} pesos)`);
+      
+      if (amountInPesos >= 39000 && amountInPesos <= 40000) {
         planName = 'empresa';
-      } else if (planNameFromEvent.toLowerCase().includes('premium')) {
-        planName = 'premium'; // Mantener compatibilidad con 'premium'
-      } else if (planNameFromEvent.toLowerCase().includes('profesional')) {
+        console.log('✅ Detected Plan Empresa by amount (39.990)');
+      } else if (amountInPesos >= 14000 && amountInPesos <= 15000) {
         planName = 'profesional';
-      } else if (planNameFromEvent.toLowerCase().includes('pro')) {
-        planName = 'pro'; // Mantener compatibilidad con 'pro'
-      } else if (planNameFromEvent.toLowerCase().includes('basic')) {
-        planName = 'basic';
+        console.log('✅ Detected Plan Profesional by amount (14.990)');
       }
-      // Si viene un plan_id, podrías mapearlo aquí según tus planes en Reveniu
     }
+    
+    // Estrategia 2: Detectar por plan_name (texto) - solo si no se detectó por monto
+    if (planName === 'profesional' && (eventData.plan_id || eventData.plan_name)) {
+      const planNameFromEvent = String(eventData.plan_name || '').toLowerCase();
+      console.log(`Plan name from event: "${planNameFromEvent}"`);
+      
+      if (planNameFromEvent.includes('empresa')) {
+        planName = 'empresa';
+        console.log('✅ Detected Plan Empresa by name');
+      } else if (planNameFromEvent.includes('premium')) {
+        planName = 'premium'; // Mantener compatibilidad con 'premium'
+        console.log('✅ Detected Plan Premium by name');
+      } else if (planNameFromEvent.includes('profesional')) {
+        planName = 'profesional';
+        console.log('✅ Detected Plan Profesional by name');
+      } else if (planNameFromEvent.includes('pro')) {
+        planName = 'pro'; // Mantener compatibilidad con 'pro'
+        console.log('✅ Detected Plan Pro by name');
+      } else if (planNameFromEvent.includes('basic')) {
+        planName = 'basic';
+        console.log('✅ Detected Plan Basic by name');
+      }
+    }
+    
+    // Estrategia 3: Detectar por plan_id si tenemos los IDs específicos de Reveniu
+    // (Comentar y descomentar según los IDs reales de tus planes en Reveniu)
+    // if (eventData.plan_id) {
+    //   const planId = String(eventData.plan_id);
+    //   // Reemplazar con los IDs reales de tus planes en Reveniu
+    //   if (planId === 'plan_empresa_id_here') {
+    //     planName = 'empresa';
+    //     console.log('✅ Detected Plan Empresa by plan_id');
+    //   } else if (planId === 'plan_profesional_id_here') {
+    //     planName = 'profesional';
+    //     console.log('✅ Detected Plan Profesional by plan_id');
+    //   }
+    // }
+    
+    console.log(`✅ Final plan name determined: ${planName}`);
 
     // Calcular featured_until: 24 horas desde ahora si la suscripción se está activando
     // Solo establecer featured_until si el estado es 'active' y es una activación nueva
@@ -356,16 +413,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Crear o actualizar suscripción
+        // Crear o actualizar suscripción
     const upsertData: any = {
-      user_id: profile.id,
+            user_id: profile.id,
       plan_name: planName,
-      status: dbStatus,
-      renewal_date: renewalDate,
+            status: dbStatus,
+            renewal_date: renewalDate,
       payment_method: eventData.payment_method || 'Tarjeta de Crédito',
-      reveniu_subscription_id: String(subscriptionId),
+            reveniu_subscription_id: String(subscriptionId),
       reveniu_plan_id: eventData.plan_id ? String(eventData.plan_id) : null,
-      updated_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
     };
 
     // Solo agregar featured_until si tiene valor
@@ -407,11 +464,11 @@ Deno.serve(async (req) => {
     const { error: upsertError } = await supabase
       .from('user_subscriptions')
       .upsert(upsertData, {
-        onConflict: 'user_id',
-      });
+            onConflict: 'user_id',
+          });
 
-    if (upsertError) {
-      console.error('Error updating subscription:', upsertError);
+        if (upsertError) {
+          console.error('Error updating subscription:', upsertError);
       return new Response(JSON.stringify({ 
         status: 'error', 
         message: upsertError.message 
