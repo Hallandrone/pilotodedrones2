@@ -18,9 +18,9 @@ Deno.serve(async (req) => {
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     const reveniuApiKey = Deno.env.get('REVENIU_API_KEY');
     const reveniuEnv = (Deno.env.get('REVENIU_ENV') || 'sandbox').toLowerCase();
-    
+
     // URLs base de Reveniu según documentación oficial
-    const reveniuBaseUrl = reveniuEnv === 'production' 
+    const reveniuBaseUrl = reveniuEnv === 'production'
       ? 'https://production.reveniu.com'
       : 'https://integration.reveniu.com';
 
@@ -52,10 +52,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { endpoint, method = 'POST', params = {} }: { 
-      endpoint: string; 
-      method?: HttpMethod; 
-      params?: Record<string, any> 
+    const { endpoint, method = 'POST', params = {} }: {
+      endpoint: string;
+      method?: HttpMethod;
+      params?: Record<string, any>
     } = await req.json();
 
     if (!endpoint) {
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
 
     let response: Response;
     if (method === 'GET') {
-      response = await fetch(url, { 
+      response = await fetch(url, {
         method: 'GET',
         headers,
       });
@@ -97,13 +97,16 @@ Deno.serve(async (req) => {
     const contentType = response.headers.get('content-type') || '';
     const isJson = contentType.includes('application/json');
 
+    console.log(`Reveniu API Response (${response.status}):`, text.substring(0, 1000));
+
     const payload = isJson ? JSON.parse(text) : text;
 
     if (!response.ok) {
-      return new Response(JSON.stringify({ 
-        error: 'Reveniu API error', 
-        status: response.status, 
-        payload 
+      console.error('Reveniu API Error:', payload);
+      return new Response(JSON.stringify({
+        error: 'Reveniu API error',
+        status: response.status,
+        payload
       }), {
         status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
