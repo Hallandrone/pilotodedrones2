@@ -86,7 +86,7 @@ const Terms = () => {
                   <div className="bg-card border border-border rounded-lg p-4">
                     <h3 className="font-semibold text-primary mb-2">Plan Empresa ($39.990/mes):</h3>
                     <p className="text-muted-foreground text-sm">
-                      Todo Profesional + panel multiusuario (hasta 3 pilotos), sello "Empresa Certificada", perfil destacado "Empresas Recomendadas", estadísticas vistas/contactos, descuento asesorías drones, soporte WhatsApp prioritario.
+                      Todo Profesional + panel multiusuario (hasta 3 pilotos), sello "Empresa Certificada", perfil destacado "Empresas Recomendadas", soporte WhatsApp prioritario.
                     </p>
                   </div>
                   <p className="text-muted-foreground mt-4">

@@ -56,11 +56,8 @@ const Pricing = () => {
         'Panel multiusuario (hasta 3 pilotos)',
         'Sello digital "Empresa Certificada"',
         'Perfil destacado en recomendaciones',
-        'Estadísticas de vistas y contactos',
         'Gestión de múltiples certificaciones',
-        'Descuentos en asesorías especializadas',
-        'Soporte prioritario por WhatsApp',
-        'Dashboard con métricas avanzadas'
+        'Soporte prioritario por WhatsApp'
       ],
       icon: Building2,
       color: 'from-purple-500 to-pink-500'

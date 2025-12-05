@@ -92,7 +92,6 @@ const PilotMembership = () => {
         'Sello digital "Empresa Certificada" tras validación',
         'Perfil destacado en "Empresas Recomendadas"',
         'Estadísticas de vistas y contacto de clientes',
-        'Descuento en asesorías de drones',
         'Soporte técnico prioritario WhatsApp'
       ]
     }
