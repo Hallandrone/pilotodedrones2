@@ -740,7 +740,7 @@ const Index = () => {
                     </motion.div>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Características y Beneficios */}
               <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
@@ -1070,7 +1070,7 @@ const Index = () => {
                     </motion.div>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Características y Beneficios */}
               <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
