@@ -311,16 +311,21 @@ Deno.serve(async (req) => {
                        null;
 
     // Determinar el nombre del plan
-    // La base de datos solo acepta: 'basic', 'pro', 'premium'
-    // El plan de 14.990 corresponde a 'pro' (Plan Profesional)
-    let planName = 'pro'; // Default para el plan de 14.990 (Plan Profesional)
+    // La base de datos acepta: 'basic', 'profesional', 'empresa'
+    // El plan de 14.990 corresponde a 'profesional' (Plan Profesional)
+    // El plan de 39.990 corresponde a 'empresa' (Plan Empresa)
+    let planName = 'profesional'; // Default para el plan de 14.990 (Plan Profesional)
     if (eventData.plan_id || eventData.plan_name) {
       // Mapear nombres de plan a valores permitidos en la BD
       const planNameFromEvent = eventData.plan_name || '';
-      if (planNameFromEvent.toLowerCase().includes('empresa') || planNameFromEvent.toLowerCase().includes('premium')) {
-        planName = 'premium';
-      } else if (planNameFromEvent.toLowerCase().includes('profesional') || planNameFromEvent.toLowerCase().includes('pro')) {
-        planName = 'pro';
+      if (planNameFromEvent.toLowerCase().includes('empresa')) {
+        planName = 'empresa';
+      } else if (planNameFromEvent.toLowerCase().includes('premium')) {
+        planName = 'premium'; // Mantener compatibilidad con 'premium'
+      } else if (planNameFromEvent.toLowerCase().includes('profesional')) {
+        planName = 'profesional';
+      } else if (planNameFromEvent.toLowerCase().includes('pro')) {
+        planName = 'pro'; // Mantener compatibilidad con 'pro'
       } else if (planNameFromEvent.toLowerCase().includes('basic')) {
         planName = 'basic';
       }
@@ -366,6 +371,37 @@ Deno.serve(async (req) => {
     // Solo agregar featured_until si tiene valor
     if (featuredUntil) {
       upsertData.featured_until = featuredUntil;
+    }
+
+    // Activar características del Plan Empresa si corresponde
+    if ((planName === 'empresa' || planName === 'premium') && dbStatus === 'active') {
+      upsertData.whatsapp_priority_support = true;
+      
+      // Activar featured para la empresa (30 días)
+      const featuredUntilDate = new Date();
+      featuredUntilDate.setDate(featuredUntilDate.getDate() + 30);
+      
+      // Actualizar la tabla companies si existe
+      const { data: companyData } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('user_id', profile.id)
+        .maybeSingle();
+      
+      if (companyData) {
+        await supabase
+          .from('companies')
+          .update({
+            is_featured: true,
+            featured_until: featuredUntilDate.toISOString()
+          })
+          .eq('id', companyData.id);
+        
+        console.log(`✅ Company featured status activated for user: ${profile.id}`);
+      }
+    } else if (planName !== 'empresa' && planName !== 'premium' || dbStatus !== 'active') {
+      // Desactivar características si no es Plan Empresa o no está activo
+      upsertData.whatsapp_priority_support = false;
     }
 
     const { error: upsertError } = await supabase

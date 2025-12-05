@@ -56,12 +56,14 @@ const Index = () => {
   const [sidebarBanners, setSidebarBanners] = useState<AdBanner[]>([]);
   const [mobileBanners, setMobileBanners] = useState<AdBanner[]>([]);
   const [featuredPilots, setFeaturedPilots] = useState<any[]>([]);
+  const [featuredCompanies, setFeaturedCompanies] = useState<any[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadActiveBanners();
     loadFeaturedPilots();
+    loadFeaturedCompanies();
     checkAuth();
     
     // Escuchar cambios en el estado de autenticación
@@ -223,6 +225,85 @@ const Index = () => {
     } catch (error) {
       console.error('Error loading featured pilots:', error);
       setFeaturedPilots([]);
+    }
+  };
+
+  const loadFeaturedCompanies = async () => {
+    try {
+      // Obtener empresas con Plan Empresa activo y destacadas
+      const { data: companiesData, error: companiesError } = await supabase
+        .from('companies')
+        .select(`
+          id,
+          user_id,
+          company_name,
+          logo_url,
+          description,
+          is_featured,
+          featured_until,
+          profiles:user_id (
+            id,
+            full_name,
+            email,
+            avatar_url,
+            location,
+            region,
+            public_profile_slug
+          )
+        `)
+        .eq('is_featured', true)
+        .or('featured_until.is.null,featured_until.gt.' + new Date().toISOString())
+        .limit(6);
+
+      if (companiesError) {
+        console.error('Error loading companies:', companiesError);
+        setFeaturedCompanies([]);
+        return;
+      }
+
+      if (!companiesData || companiesData.length === 0) {
+        setFeaturedCompanies([]);
+        return;
+      }
+
+      // Verificar que tengan suscripción activa de Plan Empresa
+      const companyUserIds = companiesData.map(c => c.user_id);
+      const { data: subscriptions } = await supabase
+        .from('user_subscriptions')
+        .select('user_id, status, plan_name')
+        .in('user_id', companyUserIds)
+        .eq('status', 'active')
+        .in('plan_name', ['empresa', 'premium']);
+
+      const activeCompanyUserIds = new Set(
+        subscriptions?.map(s => s.user_id) || []
+      );
+
+      // Filtrar solo empresas con suscripción activa
+      const activeCompanies = companiesData.filter(c => 
+        activeCompanyUserIds.has(c.user_id) && c.profiles
+      );
+
+      // Transformar para usar el mismo formato que PilotCard (simplificado)
+      const transformedCompanies = activeCompanies.map(company => ({
+        id: company.id,
+        user_id: company.user_id,
+        full_name: company.company_name || company.profiles?.full_name,
+        company_name: company.company_name,
+        avatar_url: company.logo_url || company.profiles?.avatar_url,
+        location: company.profiles?.location,
+        region: company.profiles?.region,
+        public_profile_slug: company.profiles?.public_profile_slug,
+        certification_status: company.certification_status || false,
+        is_company: true
+      }));
+
+      // Mezclar aleatoriamente
+      const shuffled = transformedCompanies.sort(() => Math.random() - 0.5);
+      setFeaturedCompanies(shuffled.slice(0, 6));
+    } catch (error) {
+      console.error('Error loading featured companies:', error);
+      setFeaturedCompanies([]);
     }
   };
 
@@ -841,6 +922,51 @@ const Index = () => {
                   </div>
                 </div>
               </section>
+
+              {/* Empresas Recomendadas */}
+              {!results.length && featuredCompanies.length > 0 && (
+                <motion.section 
+                  className="py-20 lg:py-28 bg-gradient-to-b from-secondary to-background"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <div className="max-w-7xl mx-auto">
+                    <motion.h3 
+                      className="text-4xl md:text-5xl font-bold text-center text-primary mb-4"
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      Empresas Recomendadas
+                    </motion.h3>
+                    <motion.p 
+                      className="text-center text-muted-foreground mb-12 text-lg"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                      Empresas certificadas con Plan Empresa activo
+                    </motion.p>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {featuredCompanies.map((company, index) => (
+                        <motion.div
+                          key={company.id}
+                          initial={{ opacity: 0, y: 50 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.6, delay: index * 0.1 }}
+                        >
+                          <PilotCard pilot={company} />
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.section>
+              )}
 
               {/* Resultados / Destacados */}
               <motion.section 

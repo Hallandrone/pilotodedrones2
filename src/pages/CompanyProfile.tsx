@@ -1102,34 +1102,6 @@ export default function CompanyProfile() {
               </h1>
               <p className="text-sm sm:text-base text-white/70 font-medium">Actualiza la información de tu empresa</p>
             </div>
-            <div className="ml-auto flex items-center gap-2">
-              {hasChanges && (
-                <>
-                  {lastSaved && (
-                    <span className="text-xs text-white/60">
-                      Guardado: {lastSaved.toLocaleTimeString()}
-                    </span>
-                  )}
-                  <Button
-                    onClick={() => handleSave()}
-                    disabled={saving}
-                    className="bg-[#00b3f3] hover:bg-[#0099cc] text-white"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Guardando...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Guardar Cambios
-                      </>
-                    )}
-                  </Button>
-                </>
-              )}
-            </div>
           </div>
         </div>
       </div>
@@ -1265,6 +1237,49 @@ export default function CompanyProfile() {
               <CardDescription className="text-xs sm:text-sm text-white/70">Cambiar contraseña y email</CardDescription>
             </CardContent>
           </Card>
+        </div>
+      </div>
+
+      {/* Save Button Section */}
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto sticky bottom-4 z-40">
+        <div className="space-y-4">
+          {/* Status indicator */}
+          {hasChanges && (
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-5 py-3 bg-[#2C2C2C] border-2 border-[#00b3f3] text-[#00b3f3] rounded-xl text-base font-semibold shadow-lg">
+                <div className="h-2.5 w-2.5 bg-amber-500 rounded-full animate-pulse"></div>
+                Tienes cambios sin guardar
+              </div>
+            </div>
+          )}
+          
+          {lastSaved && !hasChanges && (
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 px-5 py-3 bg-[#2C2C2C] border-2 border-green-500 text-green-400 rounded-xl text-base font-semibold shadow-lg">
+                <div className="h-2.5 w-2.5 bg-green-500 rounded-full"></div>
+                Guardado {lastSaved.toLocaleTimeString()}
+              </div>
+            </div>
+          )}
+
+          <Button
+            onClick={() => handleSave()}
+            disabled={saving || !hasChanges}
+            size="lg"
+            className="w-full h-16 text-lg font-bold rounded-2xl bg-[#00b3f3] hover:bg-[#0099cc] text-white shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-6 w-6 mr-3 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="h-6 w-6 mr-3" />
+                {hasChanges ? 'Guardar Cambios' : 'Perfil Actualizado'}
+              </>
+            )}
+          </Button>
         </div>
       </div>
 

@@ -18,8 +18,10 @@ export type Database = {
         Row: {
           active: boolean
           created_at: string
+          desktop_only: boolean
           id: string
           image_url: string
+          mobile_image_url: string | null
           position: string
           redirect_url: string | null
           title: string
@@ -28,8 +30,10 @@ export type Database = {
         Insert: {
           active?: boolean
           created_at?: string
+          desktop_only?: boolean
           id?: string
           image_url: string
+          mobile_image_url?: string | null
           position: string
           redirect_url?: string | null
           title: string
@@ -38,8 +42,10 @@ export type Database = {
         Update: {
           active?: boolean
           created_at?: string
+          desktop_only?: boolean
           id?: string
           image_url?: string
+          mobile_image_url?: string | null
           position?: string
           redirect_url?: string | null
           title?: string
@@ -49,69 +55,91 @@ export type Database = {
       }
       companies: {
         Row: {
+          certification_status: boolean | null
+          certification_validated_at: string | null
+          certification_validated_by: string | null
           company_name: string
           created_at: string | null
           description: string | null
+          drone_types: string[] | null
+          email: string | null
+          experience_years: number | null
+          featured_until: string | null
           id: string
+          instagram_url: string | null
+          instagram_username: string | null
+          is_featured: boolean | null
+          linkedin_url: string | null
+          linkedin_username: string | null
+          location: string | null
           logo_url: string | null
+          phone: string | null
+          region: string | null
+          services: string[] | null
           updated_at: string | null
           user_id: string
           website: string | null
-          phone: string | null
-          email: string | null
-          location: string | null
-          region: string | null
-          experience_years: number | null
-          services: string[] | null
-          drone_types: string[] | null
-          instagram_username: string | null
-          linkedin_username: string | null
-          instagram_url: string | null
-          linkedin_url: string | null
         }
         Insert: {
+          certification_status?: boolean | null
+          certification_validated_at?: string | null
+          certification_validated_by?: string | null
           company_name: string
           created_at?: string | null
           description?: string | null
+          drone_types?: string[] | null
+          email?: string | null
+          experience_years?: number | null
+          featured_until?: string | null
           id?: string
+          instagram_url?: string | null
+          instagram_username?: string | null
+          is_featured?: boolean | null
+          linkedin_url?: string | null
+          linkedin_username?: string | null
+          location?: string | null
           logo_url?: string | null
+          phone?: string | null
+          region?: string | null
+          services?: string[] | null
           updated_at?: string | null
           user_id: string
           website?: string | null
-          phone?: string | null
-          email?: string | null
-          location?: string | null
-          region?: string | null
-          experience_years?: number | null
-          services?: string[] | null
-          drone_types?: string[] | null
-          instagram_username?: string | null
-          linkedin_username?: string | null
-          instagram_url?: string | null
-          linkedin_url?: string | null
         }
         Update: {
+          certification_status?: boolean | null
+          certification_validated_at?: string | null
+          certification_validated_by?: string | null
           company_name?: string
           created_at?: string | null
           description?: string | null
+          drone_types?: string[] | null
+          email?: string | null
+          experience_years?: number | null
+          featured_until?: string | null
           id?: string
+          instagram_url?: string | null
+          instagram_username?: string | null
+          is_featured?: boolean | null
+          linkedin_url?: string | null
+          linkedin_username?: string | null
+          location?: string | null
           logo_url?: string | null
+          phone?: string | null
+          region?: string | null
+          services?: string[] | null
           updated_at?: string | null
           user_id?: string
           website?: string | null
-          phone?: string | null
-          email?: string | null
-          location?: string | null
-          region?: string | null
-          experience_years?: number | null
-          services?: string[] | null
-          drone_types?: string[] | null
-          instagram_username?: string | null
-          linkedin_username?: string | null
-          instagram_url?: string | null
-          linkedin_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "companies_certification_validated_by_fkey"
+            columns: ["certification_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "companies_user_id_fkey"
             columns: ["user_id"]
@@ -156,6 +184,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      flight_logs: {
+        Row: {
+          created_at: string
+          duration_hours: number | null
+          file_name: string
+          file_url: string
+          flight_date: string | null
+          flight_hours: number | null
+          id: string
+          location: string | null
+          notes: string | null
+          purpose: string | null
+          rejection_observations: string | null
+          status: string
+          updated_at: string
+          uploaded_at: string
+          user_id: string
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_hours?: number | null
+          file_name: string
+          file_url: string
+          flight_date?: string | null
+          flight_hours?: number | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          purpose?: string | null
+          rejection_observations?: string | null
+          status?: string
+          updated_at?: string
+          uploaded_at?: string
+          user_id: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_hours?: number | null
+          file_name?: string
+          file_url?: string
+          flight_date?: string | null
+          flight_hours?: number | null
+          id?: string
+          location?: string | null
+          notes?: string | null
+          purpose?: string | null
+          rejection_observations?: string | null
+          status?: string
+          updated_at?: string
+          uploaded_at?: string
+          user_id?: string
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: []
       }
       pilot_services: {
         Row: {
@@ -275,6 +363,106 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_contacts: {
+        Row: {
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          contacted_at: string | null
+          id: string
+          message: string | null
+          profile_id: string
+          status: string | null
+        }
+        Insert: {
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          contacted_at?: string | null
+          id?: string
+          message?: string | null
+          profile_id: string
+          status?: string | null
+        }
+        Update: {
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          contacted_at?: string | null
+          id?: string
+          message?: string | null
+          profile_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_slug_history: {
+        Row: {
+          created_at: string
+          deactivated_at: string | null
+          id: string
+          is_current: boolean
+          slug: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deactivated_at?: string | null
+          id?: string
+          is_current?: boolean
+          slug: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deactivated_at?: string | null
+          id?: string
+          is_current?: boolean
+          slug?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profile_views: {
+        Row: {
+          id: string
+          profile_id: string
+          user_agent: string | null
+          viewed_at: string | null
+          viewer_ip: string | null
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          user_agent?: string | null
+          viewed_at?: string | null
+          viewer_ip?: string | null
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          user_agent?: string | null
+          viewed_at?: string | null
+          viewer_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -285,17 +473,17 @@ export type Database = {
           experience_years: number | null
           full_name: string | null
           id: string
+          instagram_url: string | null
+          instagram_username: string | null
+          linkedin_url: string | null
+          linkedin_username: string | null
           location: string | null
           phone: string | null
+          public_profile_slug: string | null
           region: string | null
           specialties: string[] | null
           updated_at: string | null
           user_type: string | null
-          public_profile_slug: string | null
-          instagram_username: string | null
-          linkedin_username: string | null
-          instagram_url: string | null
-          linkedin_url: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -306,17 +494,17 @@ export type Database = {
           experience_years?: number | null
           full_name?: string | null
           id: string
+          instagram_url?: string | null
+          instagram_username?: string | null
+          linkedin_url?: string | null
+          linkedin_username?: string | null
           location?: string | null
           phone?: string | null
+          public_profile_slug?: string | null
           region?: string | null
           specialties?: string[] | null
           updated_at?: string | null
           user_type?: string | null
-          public_profile_slug?: string | null
-          instagram_username?: string | null
-          linkedin_username?: string | null
-          instagram_url?: string | null
-          linkedin_url?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -327,59 +515,59 @@ export type Database = {
           experience_years?: number | null
           full_name?: string | null
           id?: string
+          instagram_url?: string | null
+          instagram_username?: string | null
+          linkedin_url?: string | null
+          linkedin_username?: string | null
           location?: string | null
           phone?: string | null
+          public_profile_slug?: string | null
           region?: string | null
           specialties?: string[] | null
           updated_at?: string | null
           user_type?: string | null
-          public_profile_slug?: string | null
-          instagram_username?: string | null
-          linkedin_username?: string | null
-          instagram_url?: string | null
-          linkedin_url?: string | null
         }
         Relationships: []
       }
       user_certifications: {
         Row: {
+          certificate_type: string | null
           created_at: string
           file_name: string
           file_url: string
           id: string
+          rejection_observations: string | null
           status: string
           updated_at: string
           uploaded_at: string
           user_id: string
           validated_at: string | null
-          certificate_type: string | null
-          rejection_observations: string | null
         }
         Insert: {
+          certificate_type?: string | null
           created_at?: string
           file_name: string
           file_url: string
           id?: string
+          rejection_observations?: string | null
           status?: string
           updated_at?: string
           uploaded_at?: string
           user_id: string
           validated_at?: string | null
-          certificate_type?: string | null
-          rejection_observations?: string | null
         }
         Update: {
+          certificate_type?: string | null
           created_at?: string
           file_name?: string
           file_url?: string
           id?: string
+          rejection_observations?: string | null
           status?: string
           updated_at?: string
           uploaded_at?: string
           user_id?: string
           validated_at?: string | null
-          certificate_type?: string | null
-          rejection_observations?: string | null
         }
         Relationships: []
       }
@@ -404,33 +592,72 @@ export type Database = {
       user_subscriptions: {
         Row: {
           created_at: string
+          featured_until: string | null
           id: string
           payment_method: string | null
           plan_name: string
           renewal_date: string | null
+          reveniu_plan_id: string | null
+          reveniu_subscription_id: string | null
           status: string
           updated_at: string
           user_id: string
+          whatsapp_priority_support: boolean | null
         }
         Insert: {
           created_at?: string
+          featured_until?: string | null
           id?: string
           payment_method?: string | null
           plan_name?: string
           renewal_date?: string | null
+          reveniu_plan_id?: string | null
+          reveniu_subscription_id?: string | null
           status?: string
           updated_at?: string
           user_id: string
+          whatsapp_priority_support?: boolean | null
         }
         Update: {
           created_at?: string
+          featured_until?: string | null
           id?: string
           payment_method?: string | null
           plan_name?: string
           renewal_date?: string | null
+          reveniu_plan_id?: string | null
+          reveniu_subscription_id?: string | null
           status?: string
           updated_at?: string
           user_id?: string
+          whatsapp_priority_support?: boolean | null
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          payload: Json
+          processed: boolean | null
+          webhook_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          payload: Json
+          processed?: boolean | null
+          webhook_type: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+          webhook_type?: string
         }
         Relationships: []
       }

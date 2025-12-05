@@ -15,10 +15,15 @@ import {
   Briefcase,
   QrCode,
   Award,
-  ArrowLeft
+  ArrowLeft,
+  MessageCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { QRCodeSVG } from "qrcode.react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface PilotProfile {
   full_name: string | null;
@@ -60,11 +65,21 @@ const PublicPilotProfile = () => {
   const [pilotData, setPilotData] = useState<PilotData | null>(null);
   const [flightHours, setFlightHours] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [isCompany, setIsCompany] = useState(false);
+  const [companyData, setCompanyData] = useState<{ certification_status: boolean; company_name: string | null } | null>(null);
   const { toast } = useToast();
   
   const searchState = location.state as any;
   const [actualUserId, setActualUserId] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [submittingContact, setSubmittingContact] = useState(false);
 
   // Generate profile URL - use slug if available, otherwise use ID
   const profileUrl = profileSlug 
@@ -204,12 +219,33 @@ const PublicPilotProfile = () => {
         return;
       }
 
-      // Load pilot data (status, certification, etc.)
-      const { data: pilotInfo } = await supabase
-        .from('pilots')
-        .select('status, certification_status, certification_academy')
-        .eq('user_id', userId)
-        .single();
+      // Verificar si es empresa
+      const userType = profileData.user_type;
+      setIsCompany(userType === 'company');
+
+      // Load pilot data (status, certification, etc.) - solo si no es empresa
+      let pilotInfo = null;
+      if (userType !== 'company') {
+        const { data: pilotData } = await supabase
+          .from('pilots')
+          .select('status, certification_status, certification_academy')
+          .eq('user_id', userId)
+          .maybeSingle();
+        pilotInfo = pilotData;
+      }
+
+      // Load company data si es empresa
+      if (userType === 'company') {
+        const { data: companyInfo } = await supabase
+          .from('companies')
+          .select('certification_status, company_name')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (companyInfo) {
+          setCompanyData(companyInfo);
+        }
+      }
 
       // Load published services
       const { data: servicesData } = await supabase
@@ -225,6 +261,21 @@ const PublicPilotProfile = () => {
       setPilotData(pilotInfo);
       setServices(servicesData || []);
       setFlightHours(totalHours);
+
+      // Registrar vista del perfil
+      if (userId) {
+        try {
+          await supabase
+            .from('profile_views')
+            .insert({
+              profile_id: userId,
+              user_agent: navigator.userAgent
+            });
+        } catch (viewError) {
+          console.error('Error tracking view:', viewError);
+          // No mostrar error al usuario, solo log
+        }
+      }
     } catch (error) {
       console.error('Error loading pilot profile:', error);
       toast({
@@ -234,6 +285,44 @@ const PublicPilotProfile = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actualUserId) return;
+
+    setSubmittingContact(true);
+    try {
+      const { error } = await supabase
+        .from('profile_contacts')
+        .insert({
+          profile_id: actualUserId,
+          contact_name: contactForm.name,
+          contact_email: contactForm.email,
+          contact_phone: contactForm.phone || null,
+          message: contactForm.message || null,
+          status: 'new'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "¡Gracias por contactarnos!",
+        description: "Te contactaremos pronto.",
+      });
+
+      setContactForm({ name: '', email: '', phone: '', message: '' });
+      setContactDialogOpen(false);
+    } catch (error: any) {
+      console.error('Error submitting contact:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo enviar tu solicitud. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingContact(false);
     }
   };
 
@@ -294,7 +383,7 @@ const PublicPilotProfile = () => {
                           profile.full_name?.charAt(0).toUpperCase()
                         )}
                       </div>
-                      {pilotData?.certification_status && (
+                      {(pilotData?.certification_status || companyData?.certification_status) && (
                         <div className="absolute -bottom-2 -right-2 bg-[#00b3f3] rounded-full p-2 border-4 border-white shadow-md">
                           <CheckCircle className="h-5 w-5 text-white" />
                         </div>
@@ -328,7 +417,13 @@ const PublicPilotProfile = () => {
                       {pilotData?.certification_status && (
                         <Badge className="bg-[#00b3f3] text-white border-0 px-4 py-1.5 text-sm font-medium w-fit mx-auto lg:mx-0">
                           <Shield className="h-4 w-4 mr-2" />
-                          Certificado
+                          Perfil Certificado
+                        </Badge>
+                      )}
+                      {companyData?.certification_status && (
+                        <Badge className="bg-[#00b3f3] text-white border-0 px-4 py-1.5 text-sm font-medium w-fit mx-auto lg:mx-0">
+                          <Shield className="h-4 w-4 mr-2" />
+                          Empresa Certificada
                         </Badge>
                       )}
                     </div>
@@ -375,6 +470,19 @@ const PublicPilotProfile = () => {
                           <div>
                             <div className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-1">Certificado por</div>
                             <div className="text-[#083b4e] font-semibold text-lg">{pilotData.certification_academy}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {companyData?.certification_status && (
+                      <div className="bg-[#00b3f3]/10 border border-[#00b3f3]/30 rounded-lg p-6 mb-8">
+                        <div className="flex items-center gap-4">
+                          <div className="bg-[#00b3f3] rounded-lg p-3">
+                            <Award className="h-8 w-8 text-white" />
+                          </div>
+                          <div>
+                            <div className="text-gray-600 font-medium text-sm uppercase tracking-wide mb-1">Empresa Certificada</div>
+                            <div className="text-[#083b4e] font-semibold text-lg">Validada y verificada</div>
                           </div>
                         </div>
                       </div>
@@ -455,6 +563,95 @@ const PublicPilotProfile = () => {
                       </CardContent>
                     </Card>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Contact Button Card - Solo para Plan Empresa */}
+          {actualUserId && (
+            <Card className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] border-0 shadow-lg overflow-hidden">
+              <CardContent className="p-6 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="bg-white/20 rounded-full p-4">
+                    <MessageCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-2">
+                      ¿Interesado en nuestros servicios?
+                    </h3>
+                    <p className="text-white/90 mb-4">
+                      Déjanos tus datos y te contactaremos a la brevedad
+                    </p>
+                    <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          size="lg" 
+                          className="bg-white text-[#00b3f3] hover:bg-white/90 font-semibold"
+                        >
+                          Te llamaremos
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Déjanos tus datos</DialogTitle>
+                          <DialogDescription>
+                            Completa el formulario y te contactaremos pronto
+                          </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleContactSubmit} className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="contact-name">Nombre completo *</Label>
+                            <Input
+                              id="contact-name"
+                              value={contactForm.name}
+                              onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                              required
+                              placeholder="Tu nombre"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="contact-email">Email *</Label>
+                            <Input
+                              id="contact-email"
+                              type="email"
+                              value={contactForm.email}
+                              onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                              required
+                              placeholder="tu@email.com"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="contact-phone">Teléfono</Label>
+                            <Input
+                              id="contact-phone"
+                              type="tel"
+                              value={contactForm.phone}
+                              onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                              placeholder="+56 9 1234 5678"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="contact-message">Mensaje (opcional)</Label>
+                            <Textarea
+                              id="contact-message"
+                              value={contactForm.message}
+                              onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                              placeholder="Cuéntanos sobre tu proyecto..."
+                              rows={4}
+                            />
+                          </div>
+                          <Button 
+                            type="submit" 
+                            className="w-full"
+                            disabled={submittingContact}
+                          >
+                            {submittingContact ? 'Enviando...' : 'Enviar solicitud'}
+                          </Button>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               </CardContent>
             </Card>
