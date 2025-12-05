@@ -85,6 +85,7 @@ const PilotMembership = () => {
       name: 'Plan Empresa',
       price: 39990,
       flow_plan_id: '', // TODO: Agregar el ID del plan en Flow (sandbox)
+      reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/faD3XBeyoHUNvsd9zOv4XJuGrv0ugdCG', // Link de Reveniu sandbox para Plan Empresa
       description: 'Ideal para: Publicar Empresas para realizar servicios especializados con drones',
       features: [
         'Todo lo del Plan Profesional',
