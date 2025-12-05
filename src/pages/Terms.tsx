@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, FileText } from "lucide-react";
@@ -6,6 +7,19 @@ import Logo from "@/components/ui/logo";
 
 const Terms = () => {
   const navigate = useNavigate();
+  const titleRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Scroll al título cuando se carga la página
+    if (titleRef.current) {
+      const headerHeight = 80; // Altura aproximada del header sticky
+      const titlePosition = titleRef.current.offsetTop - headerHeight;
+      window.scrollTo({
+        top: titlePosition,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
@@ -32,7 +46,7 @@ const Terms = () => {
       <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12 lg:py-16">
         <Card className="shadow-lg">
           <CardContent className="p-8 lg:p-12">
-            <div className="flex items-center gap-3 mb-8">
+            <div ref={titleRef} className="flex items-center gap-3 mb-8 scroll-mt-20">
               <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center">
                 <FileText className="h-6 w-6 text-accent" />
               </div>
