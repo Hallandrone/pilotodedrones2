@@ -20,6 +20,7 @@ import {
   Mail, 
   Map,
   Camera,
+  Plane,
   Upload,
   X,
   Crown,
@@ -1321,7 +1322,7 @@ const PilotProfile = () => {
             <CardHeader className="p-8 bg-card rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <Camera className="h-6 w-6 text-white" />
+                  <Plane className="h-6 w-6 text-white" />
                 </div>
                 Tipos de Drones
               </CardTitle>
