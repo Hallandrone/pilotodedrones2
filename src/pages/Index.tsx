@@ -8,6 +8,33 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { motion, useScroll, useTransform } from "framer-motion";
+
+// Componente para el efecto parallax del background del Hero
+const HeroParallaxBackground = () => {
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 500], [0, -100]);
+  
+  return (
+    <motion.div 
+      className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"
+      style={{ y }}
+    />
+  );
+};
+
+// Componente para el efecto parallax del background del CTA
+const CTAParallaxBackground = () => {
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 1000], [0, -150]);
+  
+  return (
+    <motion.div 
+      className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"
+      style={{ y }}
+    />
+  );
+};
 
 interface AdBanner {
   id: string;
@@ -473,26 +500,53 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"></div>
-        <div className="container mx-auto px-6 lg:px-8 text-center relative z-10">
+        <HeroParallaxBackground />
+        <motion.div 
+          className="container mx-auto px-6 lg:px-8 text-center relative z-10"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           <div className="max-w-5xl mx-auto">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+            <motion.h1 
+              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+            >
               Conecta con Pilotos de Drones
               <span className="text-accent block mt-2">Certificados</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed">
+            </motion.h1>
+            <motion.p 
+              className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+            >
               La plataforma líder para encontrar pilotos profesionales y empresas especializadas en servicios con drones
-            </p>
+            </motion.p>
 
             {/* Search Form */}
-            <div className="max-w-4xl mx-auto">
+            <motion.div 
+              className="max-w-4xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
+            >
               <SearchForm onSearch={handleSearch} />
-            </div>
+            </motion.div>
             {loading && (
-              <p className="mt-6 text-sm text-white/80 animate-pulse">Buscando pilotos profesionales...</p>
+              <motion.p 
+                className="mt-6 text-sm text-white/80 animate-pulse"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                Buscando pilotos profesionales...
+              </motion.p>
             )}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Mobile Banners - Solo se muestran en móvil */}
@@ -553,9 +607,21 @@ const Index = () => {
 
               {/* CTA Section: solo si no hay resultados */}
               {results.length === 0 && (
-                <section className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
-                  <div className="text-center relative z-10">
+                <motion.section 
+                  className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <CTAParallaxBackground />
+                  <motion.div 
+                    className="text-center relative z-10"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     <div className="max-w-3xl mx-auto">
                       <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
                         ¿Eres piloto o empresa?
@@ -571,18 +637,36 @@ const Index = () => {
                         Publicar Perfil Profesional
                       </Button>
                     </div>
-                  </div>
-                </section>
+                  </motion.div>
+                </motion.section>
               )}
 
               {/* Features */}
-              <section className="py-20 lg:py-28 bg-white">
+              <motion.section 
+                className="py-20 lg:py-28 bg-white"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+              >
                 <div className="max-w-6xl mx-auto">
-                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                  <motion.h3 
+                    className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     ¿Por qué elegir Piloto de Drones?
-                  </h3>
+                  </motion.h3>
                   <div className="grid md:grid-cols-3 gap-12">
-                    <div className="text-center group">
+                    <motion.div 
+                      className="text-center group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                    >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -590,8 +674,14 @@ const Index = () => {
                       <p className="text-lg text-muted-foreground leading-relaxed">
                         Todos nuestros pilotos están validados y cuentan con las certificaciones requeridas
                       </p>
-                    </div>
-                    <div className="text-center group">
+                    </motion.div>
+                    <motion.div 
+                      className="text-center group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                    >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -599,8 +689,14 @@ const Index = () => {
                       <p className="text-lg text-muted-foreground leading-relaxed">
                         Conecta con una amplia red de pilotos y empresas especializadas
                       </p>
-                    </div>
-                    <div className="text-center group">
+                    </motion.div>
+                    <motion.div 
+                      className="text-center group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -608,26 +704,44 @@ const Index = () => {
                       <p className="text-lg text-muted-foreground leading-relaxed">
                         Sistema de reseñas y evaluaciones para garantizar la mejor experiencia
                       </p>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Características y Beneficios */}
-              <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
+              <motion.section 
+                className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+              >
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                  <div className="text-center mb-16">
+                  <motion.div 
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
                       Características y Beneficios
                     </h3>
                     <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                       Descubre todo lo que nuestra plataforma ofrece para pilotos y clientes
                     </p>
-                  </div>
+                  </motion.div>
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* Característica 1 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -635,10 +749,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Sistema de validación de certificaciones por administradores para garantizar la autenticidad de cada piloto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 2 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -646,10 +766,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Filtra pilotos por región, especialidad, tipo de drone y experiencia para encontrar el profesional perfecto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 3 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -657,10 +783,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Cada piloto tiene un código QR único para compartir su perfil profesional de forma rápida y profesional
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 4 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.4 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -668,10 +800,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Crea tu propia URL personalizada para tu perfil público y facilita que los clientes te encuentren
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 5 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.5 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -679,10 +817,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Los pilotos certificados y con suscripción activa aparecen destacados en los resultados de búsqueda
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 6 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.6 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -690,24 +834,50 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Panel de control intuitivo para gestionar tu perfil, certificaciones y servicios de forma eficiente
                       </p>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Resultados / Destacados */}
-              <section className="py-20 lg:py-28 bg-secondary">
+              <motion.section 
+                className="py-20 lg:py-28 bg-secondary"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+              >
                 <div className="max-w-7xl mx-auto">
-                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                  <motion.h3 
+                    className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     {results.length ? "Resultados de Búsqueda" : "Pilotos Destacados"}
-                  </h3>
+                  </motion.h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {listToRender.map((pilot) => (
-                      <PilotCard key={pilot.id} pilot={pilot} />
+                    {listToRender.map((pilot, index) => (
+                      <motion.div
+                        key={pilot.id}
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                      >
+                        <PilotCard pilot={pilot} />
+                      </motion.div>
                     ))}
                   </div>
                   {!results.length && (
-                    <div className="text-center mt-12">
+                    <motion.div 
+                      className="text-center mt-12"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
                       <Button 
                         variant="outline" 
                         size="lg"
@@ -715,10 +885,10 @@ const Index = () => {
                       >
                         Ver Todos los Pilotos
                       </Button>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
-              </section>
+              </motion.section>
             </div>
 
             {/* Sidebar - Solo Desktop */}
@@ -773,9 +943,21 @@ const Index = () => {
 
               {/* CTA Section: solo si no hay resultados */}
               {results.length === 0 && (
-                <section className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"></div>
-                  <div className="text-center relative z-10">
+                <motion.section 
+                  className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.8 }}
+                >
+                  <CTAParallaxBackground />
+                  <motion.div 
+                    className="text-center relative z-10"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     <div className="max-w-3xl mx-auto">
                       <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
                         ¿Eres piloto o empresa?
@@ -791,18 +973,36 @@ const Index = () => {
                         Publicar Perfil Profesional
                       </Button>
                     </div>
-                  </div>
-                </section>
+                  </motion.div>
+                </motion.section>
               )}
 
               {/* Features */}
-              <section className="py-20 lg:py-28 bg-white">
+              <motion.section 
+                className="py-20 lg:py-28 bg-white"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+              >
                 <div className="max-w-6xl mx-auto">
-                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                  <motion.h3 
+                    className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     ¿Por qué elegir Piloto de Drones?
-                  </h3>
+                  </motion.h3>
                   <div className="grid md:grid-cols-3 gap-12">
-                    <div className="text-center group">
+                    <motion.div 
+                      className="text-center group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                    >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -810,8 +1010,14 @@ const Index = () => {
                       <p className="text-lg text-muted-foreground leading-relaxed">
                         Todos nuestros pilotos están validados y cuentan con las certificaciones requeridas
                       </p>
-                    </div>
-                    <div className="text-center group">
+                    </motion.div>
+                    <motion.div 
+                      className="text-center group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                    >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -819,8 +1025,14 @@ const Index = () => {
                       <p className="text-lg text-muted-foreground leading-relaxed">
                         Conecta con una amplia red de pilotos y empresas especializadas
                       </p>
-                    </div>
-                    <div className="text-center group">
+                    </motion.div>
+                    <motion.div 
+                      className="text-center group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -828,26 +1040,44 @@ const Index = () => {
                       <p className="text-lg text-muted-foreground leading-relaxed">
                         Sistema de reseñas y evaluaciones para garantizar la mejor experiencia
                       </p>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Características y Beneficios */}
-              <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
+              <motion.section 
+                className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+              >
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                  <div className="text-center mb-16">
+                  <motion.div 
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
                       Características y Beneficios
                     </h3>
                     <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
                       Descubre todo lo que nuestra plataforma ofrece para pilotos y clientes
                     </p>
-                  </div>
+                  </motion.div>
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* Característica 1 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -855,10 +1085,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Sistema de validación de certificaciones por administradores para garantizar la autenticidad de cada piloto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 2 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.2 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -866,10 +1102,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Filtra pilotos por región, especialidad, tipo de drone y experiencia para encontrar el profesional perfecto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 3 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -877,10 +1119,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Cada piloto tiene un código QR único para compartir su perfil profesional de forma rápida y profesional
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 4 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.4 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -888,10 +1136,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Crea tu propia URL personalizada para tu perfil público y facilita que los clientes te encuentren
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 5 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.5 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -899,10 +1153,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Los pilotos certificados y con suscripción activa aparecen destacados en los resultados de búsqueda
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 6 */}
-                    <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group">
+                    <motion.div 
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.6 }}
+                    >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
                       </div>
@@ -910,24 +1170,50 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Panel de control intuitivo para gestionar tu perfil, certificaciones y servicios de forma eficiente
                       </p>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
-              </section>
+              </motion.section>
 
               {/* Resultados / Destacados */}
-              <section className="py-20 lg:py-28 bg-secondary">
+              <motion.section 
+                className="py-20 lg:py-28 bg-secondary"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8 }}
+              >
                 <div className="max-w-7xl mx-auto">
-                  <h3 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16">
+                  <motion.h3 
+                    className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                  >
                     {results.length ? "Resultados de Búsqueda" : "Pilotos Destacados"}
-                  </h3>
+                  </motion.h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {listToRender.map((pilot) => (
-                      <PilotCard key={pilot.id} pilot={pilot} />
+                    {listToRender.map((pilot, index) => (
+                      <motion.div
+                        key={pilot.id}
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6, delay: index * 0.1 }}
+                      >
+                        <PilotCard pilot={pilot} />
+                      </motion.div>
                     ))}
                   </div>
                   {!results.length && (
-                    <div className="text-center mt-12">
+                    <motion.div 
+                      className="text-center mt-12"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
                       <Button 
                         variant="outline" 
                         size="lg"
@@ -935,10 +1221,10 @@ const Index = () => {
                       >
                         Ver Todos los Pilotos
                       </Button>
-                    </div>
+                    </motion.div>
                   )}
                 </div>
-              </section>
+              </motion.section>
             </div>
           </div>
         )}
