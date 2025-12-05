@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  ArrowLeft, 
-  CreditCard, 
-  Calendar, 
-  Phone, 
-  Mail, 
+import {
+  ArrowLeft,
+  CreditCard,
+  Calendar,
+  Phone,
+  Mail,
   MessageCircle,
   CheckCircle,
   AlertCircle,
@@ -70,15 +70,15 @@ const PilotMembership = () => {
       flow_plan_id: '', // TODO: Agregar el ID del plan en Flow (sandbox)
       reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/pk2JYEwJVEDUT5vXiFy4M6B9UNwjKxSD', // Link de Reveniu sandbox
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
-        features: [
-          'Perfil público con nombre, foto, zona y tipo de trabajos',
-          'Sello digital "Perfil Certificado" tras validación',
-          'Subida ilimitada de certificados (PDF)',
-          'Bitácora de vuelos y registro de horas acumuladas',
-          'Enlace a perfil y código QR verificable',
-          'Acceso al panel para editar datos y actualizar experiencia',
-          'Atención estándar por correo'
-        ]
+      features: [
+        'Perfil público con nombre, foto, zona y tipo de trabajos',
+        'Sello digital "Perfil Certificado" tras validación',
+        'Subida ilimitada de certificados (PDF)',
+        'Bitácora de vuelos y registro de horas acumuladas',
+        'Enlace a perfil y código QR verificable',
+        'Acceso al panel para editar datos y actualizar experiencia',
+        'Atención estándar por correo'
+      ]
     },
     {
       id: 'empresa',
@@ -249,7 +249,7 @@ const PilotMembership = () => {
 
       // Obtener el plan seleccionado
       const selectedPlan = availablePlans.find(p => p.id === planId);
-      
+
       // Si el plan tiene un link de checkout de Reveniu, mostrar advertencia primero
       if (selectedPlan?.reveniu_checkout_link) {
         setPendingPlanId(planId);
@@ -289,7 +289,7 @@ const PilotMembership = () => {
       const appUrl = getBaseUrl();
       // URL del webhook público de Supabase Edge Function
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-      const webhookUrl = supabaseUrl 
+      const webhookUrl = supabaseUrl
         ? `${supabaseUrl}/functions/v1/flow-webhook`
         : `${appUrl}/api/flow-webhook`;
       const successUrl = `${appUrl}/pilot/membership?success=true`;
@@ -312,7 +312,7 @@ const PilotMembership = () => {
         // Si es un token, construir la URL de checkout
         if (subscriptionResponse.token && !subscriptionResponse.url) {
           const flowEnv = import.meta.env.VITE_FLOW_ENV || 'sandbox';
-          const flowBaseUrl = flowEnv === 'production' 
+          const flowBaseUrl = flowEnv === 'production'
             ? 'https://www.flow.cl/pagar'
             : 'https://sandbox.flow.cl/pagar';
           window.location.href = `${flowBaseUrl}/${subscriptionResponse.token}`;
@@ -333,11 +333,20 @@ const PilotMembership = () => {
     }
   };
 
-  const handleConfirmSubscribe = () => {
+  const handleConfirmSubscribe = async () => {
     setShowEmailWarning(false);
     const selectedPlan = availablePlans.find(p => p.id === pendingPlanId);
     if (selectedPlan?.reveniu_checkout_link) {
-      window.location.href = selectedPlan.reveniu_checkout_link;
+      // Obtener el user_id para enviarlo como external_id a Reveniu
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Agregar el user_id como parámetro external_id en la URL
+        const checkoutUrl = `${selectedPlan.reveniu_checkout_link}?external_id=${user.id}`;
+        window.location.href = checkoutUrl;
+      } else {
+        // Si no hay usuario, redirigir sin external_id (fallback)
+        window.location.href = selectedPlan.reveniu_checkout_link;
+      }
     }
     setPendingPlanId(null);
     setPendingFlowPlanId(undefined);
@@ -366,7 +375,7 @@ const PilotMembership = () => {
 
     try {
       setSubscribing('cancelling');
-      
+
       // Cancelar suscripción en Flow
       await cancelFlowSubscription(membership.flow_subscription_id);
 
@@ -501,47 +510,47 @@ const PilotMembership = () => {
       <div className="p-4 space-y-4 pb-20">
         {/* Current Plan */}
         {membership ? (
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
-            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
-                    <CreditCard className="h-5 w-5 text-white" />
+          <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
+              <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                      <CreditCard className="h-5 w-5 text-white" />
+                    </div>
+                    <span className="text-xl font-bold text-[#E0E0E0]">
+                      Plan Actual
+                    </span>
                   </div>
-                  <span className="text-xl font-bold text-[#E0E0E0]">
-                    Plan Actual
-                  </span>
-                </div>
                   {getStatusBadge(membership.status)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-6">
-              <div className="text-center">
-                <h3 className="text-3xl font-bold text-[#E0E0E0] mb-2">
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-6">
+                <div className="text-center">
+                  <h3 className="text-3xl font-bold text-[#E0E0E0] mb-2">
                     {membership.plan_name}
-                </h3>
-                <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  </h3>
+                  <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                     {formatPrice(membership.price)}
-                </p>
-                <p className="text-[#B0B0B0] font-medium">por mes</p>
-              </div>
-
-              <div className="space-y-4">
-                  {membership.renewal_date && (
-                <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
-                  <span className="text-[#B0B0B0] font-medium">Próxima renovación</span>
-                  <span className="text-[#E0E0E0] font-semibold">
-                        {formatDate(membership.renewal_date)}
-                  </span>
+                  </p>
+                  <p className="text-[#B0B0B0] font-medium">por mes</p>
                 </div>
+
+                <div className="space-y-4">
+                  {membership.renewal_date && (
+                    <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
+                      <span className="text-[#B0B0B0] font-medium">Próxima renovación</span>
+                      <span className="text-[#E0E0E0] font-semibold">
+                        {formatDate(membership.renewal_date)}
+                      </span>
+                    </div>
                   )}
                   {membership.payment_method && (
-                <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
-                  <span className="text-[#B0B0B0] font-medium">Método de pago</span>
-                  <span className="text-[#E0E0E0] font-semibold">
+                    <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
+                      <span className="text-[#B0B0B0] font-medium">Método de pago</span>
+                      <span className="text-[#E0E0E0] font-semibold">
                         {membership.payment_method}
-                  </span>
+                      </span>
                     </div>
                   )}
                 </div>
@@ -598,7 +607,7 @@ const PilotMembership = () => {
                   </div>
                 )}
               </CardContent>
-              </div>
+            </div>
           </Card>
         ) : (
           <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
@@ -606,7 +615,7 @@ const PilotMembership = () => {
               <p className="text-[#E0E0E0] mb-4">No tienes una suscripción activa</p>
               <p className="text-[#B0B0B0] text-sm">Selecciona un plan para comenzar</p>
             </CardContent>
-        </Card>
+          </Card>
         )}
 
         {/* Available Plans */}
@@ -621,83 +630,78 @@ const PilotMembership = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-6">
-            {availablePlans.map((plan) => {
-              const isCurrentPlan = membership?.plan_name === plan.name;
-              const isSubscribing = subscribing === plan.id;
-              
-              return (
-                <div 
-                  key={plan.id} 
-                  className={`border-2 rounded-2xl p-6 bg-[#2C2C2C] border-[#333333] ${
-                    plan.id === 'profesional' 
-                      ? 'border-blue-500/30' 
-                      : 'border-purple-500/30'
-                  }`}
-                >
-              <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-xl font-bold text-[#E0E0E0]">{plan.name}</h4>
-                    {isCurrentPlan && (
-                      <div className={`px-3 py-1 text-white rounded-full text-sm font-semibold ${
-                        plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
-                      }`}>
-                  Actual
-                </div>
-                    )}
-              </div>
-                  <p className={`text-3xl font-bold bg-clip-text text-transparent mb-2 ${
-                    plan.id === 'profesional'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
-                      : 'bg-gradient-to-r from-purple-600 to-pink-600'
-                  }`}>
-                    {formatPrice(plan.price)}
-                  </p>
-                  <p className="text-[#B0B0B0] font-medium mb-4">{plan.description}</p>
-                  <ul className="text-[#E0E0E0] space-y-2 mb-4">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-3">
-                        <div className={`h-2 w-2 rounded-full ${
-                          plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
-                        }`}></div>
-                        {feature}
-                </li>
-                    ))}
-              </ul>
-                  {!isCurrentPlan && (
-                    <>
-                      {membership && membership.status === 'active' ? (
-                        <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
-                          <p className="text-[#E0E0E0] font-medium mb-2">
-                            Ya tienes un plan activo
-                          </p>
-                          <p className="text-sm text-[#B0B0B0]">
-                            Cancela tu suscripción actual para cambiar de plan
-                          </p>
+              {availablePlans.map((plan) => {
+                const isCurrentPlan = membership?.plan_name === plan.name;
+                const isSubscribing = subscribing === plan.id;
+
+                return (
+                  <div
+                    key={plan.id}
+                    className={`border-2 rounded-2xl p-6 bg-[#2C2C2C] border-[#333333] ${plan.id === 'profesional'
+                        ? 'border-blue-500/30'
+                        : 'border-purple-500/30'
+                      }`}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-xl font-bold text-[#E0E0E0]">{plan.name}</h4>
+                      {isCurrentPlan && (
+                        <div className={`px-3 py-1 text-white rounded-full text-sm font-semibold ${plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
+                          }`}>
+                          Actual
                         </div>
-                      ) : (
-                        <Button 
-                          className={`w-full mt-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${
-                            plan.id === 'profesional'
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                              : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
-                          }`}
-                          onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
-                          disabled={isSubscribing || (membership && membership.status === 'active')}
-                        >
-                          {isSubscribing ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Procesando...
-                            </>
-                          ) : (
-                            `Suscribirse a ${plan.name}`
-                          )}
-                        </Button>
                       )}
-                    </>
-                  )}
-                </div>
-              );
-            })}
+                    </div>
+                    <p className={`text-3xl font-bold bg-clip-text text-transparent mb-2 ${plan.id === 'profesional'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                      }`}>
+                      {formatPrice(plan.price)}
+                    </p>
+                    <p className="text-[#B0B0B0] font-medium mb-4">{plan.description}</p>
+                    <ul className="text-[#E0E0E0] space-y-2 mb-4">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-center gap-3">
+                          <div className={`h-2 w-2 rounded-full ${plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
+                            }`}></div>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    {!isCurrentPlan && (
+                      <>
+                        {membership && membership.status === 'active' ? (
+                          <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+                            <p className="text-[#E0E0E0] font-medium mb-2">
+                              Ya tienes un plan activo
+                            </p>
+                            <p className="text-sm text-[#B0B0B0]">
+                              Cancela tu suscripción actual para cambiar de plan
+                            </p>
+                          </div>
+                        ) : (
+                          <Button
+                            className={`w-full mt-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${plan.id === 'profesional'
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
+                              }`}
+                            onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
+                            disabled={isSubscribing || (membership && membership.status === 'active')}
+                          >
+                            {isSubscribing ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Procesando...
+                              </>
+                            ) : (
+                              `Suscribirse a ${plan.name}`
+                            )}
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </CardContent>
           </div>
         </Card>
@@ -717,43 +721,43 @@ const PilotMembership = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-4">
-            <Button
-              variant="outline"
-              className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-500 transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
-              onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
-            >
-              <Mail className="h-5 w-5 mr-4" />
-              <div className="text-left">
-                <div className="font-semibold text-[#E0E0E0]">Email de Soporte</div>
-                <div className="text-sm text-[#B0B0B0]">soporte@pilotodedrones.cl</div>
-              </div>
-            </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-500 transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
+                onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
+              >
+                <Mail className="h-5 w-5 mr-4" />
+                <div className="text-left">
+                  <div className="font-semibold text-[#E0E0E0]">Email de Soporte</div>
+                  <div className="text-sm text-[#B0B0B0]">soporte@pilotodedrones.cl</div>
+                </div>
+              </Button>
 
-            <Button
-              variant="outline"
-              className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-green-500/10 hover:border-green-500 hover:text-green-500 transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
-              onClick={() => window.open('https://wa.me/569XXXXXXXX', '_blank')}
-            >
-              <MessageCircle className="h-5 w-5 mr-4" />
-              <div className="text-left">
-                <div className="font-semibold text-[#E0E0E0]">WhatsApp (Plan Empresa)</div>
-                <div className="text-sm text-[#B0B0B0]">Soporte técnico prioritario</div>
-              </div>
-              <ExternalLink className="h-4 w-4 ml-auto" />
-            </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-green-500/10 hover:border-green-500 hover:text-green-500 transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
+                onClick={() => window.open('https://wa.me/569XXXXXXXX', '_blank')}
+              >
+                <MessageCircle className="h-5 w-5 mr-4" />
+                <div className="text-left">
+                  <div className="font-semibold text-[#E0E0E0]">WhatsApp (Plan Empresa)</div>
+                  <div className="text-sm text-[#B0B0B0]">Soporte técnico prioritario</div>
+                </div>
+                <ExternalLink className="h-4 w-4 ml-auto" />
+              </Button>
 
-            <Button
-              variant="outline"
-              className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4] transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
-              onClick={() => window.open('https://help.pilotodedrones.cl', '_blank')}
-            >
-              <HelpCircle className="h-5 w-5 mr-4" />
-              <div className="text-left">
-                <div className="font-semibold text-[#E0E0E0]">Centro de Ayuda</div>
-                <div className="text-sm text-[#B0B0B0]">Preguntas frecuentes</div>
-              </div>
-              <ExternalLink className="h-4 w-4 ml-auto" />
-            </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4] transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
+                onClick={() => window.open('https://help.pilotodedrones.cl', '_blank')}
+              >
+                <HelpCircle className="h-5 w-5 mr-4" />
+                <div className="text-left">
+                  <div className="font-semibold text-[#E0E0E0]">Centro de Ayuda</div>
+                  <div className="text-sm text-[#B0B0B0]">Preguntas frecuentes</div>
+                </div>
+                <ExternalLink className="h-4 w-4 ml-auto" />
+              </Button>
             </CardContent>
           </div>
         </Card>
