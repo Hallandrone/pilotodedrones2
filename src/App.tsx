@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Pricing from "./pages/Pricing";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import Auth from "./pages/Auth";
 import DemoAuth from "./pages/DemoAuth";
 import Dashboard from "./pages/Dashboard";
@@ -46,6 +48,8 @@ const App = () => (
             {/* Rutas con tema CLARO (Landing) */}
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/demo" element={<DemoAuth />} />
             <Route path="/search" element={<SearchResults />} />

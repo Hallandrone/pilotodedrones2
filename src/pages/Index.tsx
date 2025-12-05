@@ -695,10 +695,10 @@ const Index = () => {
                   <div className="grid md:grid-cols-3 gap-12">
                     <motion.div 
                       className="text-center group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -710,10 +710,10 @@ const Index = () => {
                     </motion.div>
                     <motion.div 
                       className="text-center group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -725,10 +725,10 @@ const Index = () => {
                     </motion.div>
                     <motion.div 
                       className="text-center group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -740,23 +740,17 @@ const Index = () => {
                     </motion.div>
                   </div>
                 </div>
-              </motion.section>
+              </section>
 
               {/* Características y Beneficios */}
-              <motion.section 
-                className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8, type: "tween", ease: "easeOut" }}
-              >
+              <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                   <motion.div 
                     className="text-center mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, type: "tween", ease: "easeOut" }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.5, type: "tween", ease: "easeOut" }}
                   >
                     <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
                       Características y Beneficios
@@ -770,10 +764,10 @@ const Index = () => {
                     {/* Característica 1 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -787,10 +781,10 @@ const Index = () => {
                     {/* Característica 2 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -804,10 +798,10 @@ const Index = () => {
                     {/* Característica 3 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -821,10 +815,10 @@ const Index = () => {
                     {/* Característica 4 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.4, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.4, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -838,10 +832,10 @@ const Index = () => {
                     {/* Característica 5 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.5, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.5, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -855,10 +849,10 @@ const Index = () => {
                     {/* Característica 6 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.6, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.6, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -870,7 +864,7 @@ const Index = () => {
                     </motion.div>
                   </div>
                 </div>
-              </motion.section>
+              </section>
 
               {/* Resultados / Destacados */}
               <motion.section 
@@ -1031,10 +1025,10 @@ const Index = () => {
                   <div className="grid md:grid-cols-3 gap-12">
                     <motion.div 
                       className="text-center group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1046,10 +1040,10 @@ const Index = () => {
                     </motion.div>
                     <motion.div 
                       className="text-center group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1061,10 +1055,10 @@ const Index = () => {
                     </motion.div>
                     <motion.div 
                       className="text-center group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1076,23 +1070,17 @@ const Index = () => {
                     </motion.div>
                   </div>
                 </div>
-              </motion.section>
+              </section>
 
               {/* Características y Beneficios */}
-              <motion.section 
-                className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10"
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8, type: "tween", ease: "easeOut" }}
-              >
+              <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                   <motion.div 
                     className="text-center mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, type: "tween", ease: "easeOut" }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.5, type: "tween", ease: "easeOut" }}
                   >
                     <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
                       Características y Beneficios
@@ -1106,10 +1094,10 @@ const Index = () => {
                     {/* Característica 1 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1123,10 +1111,10 @@ const Index = () => {
                     {/* Característica 2 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1140,10 +1128,10 @@ const Index = () => {
                     {/* Característica 3 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1157,10 +1145,10 @@ const Index = () => {
                     {/* Característica 4 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.4, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.4, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1174,10 +1162,10 @@ const Index = () => {
                     {/* Característica 5 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.5, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.5, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1191,10 +1179,10 @@ const Index = () => {
                     {/* Característica 6 */}
                     <motion.div 
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
-                      initial={{ opacity: 0, y: 50 }}
+                      initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.6, type: "tween", ease: "easeOut" }}
+                      viewport={{ once: true, amount: 0.2 }}
+                      transition={{ duration: 0.4, delay: 0.6, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1206,7 +1194,7 @@ const Index = () => {
                     </motion.div>
                   </div>
                 </div>
-              </motion.section>
+              </section>
 
               {/* Resultados / Destacados */}
               <motion.section 
@@ -1282,7 +1270,7 @@ const Index = () => {
               </p>
 
               {/* Enlaces mínimos */}
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap justify-center">
                 <button
                   onClick={() => navigate('/auth')}
                   className="hover:text-foreground transition-colors"
@@ -1295,6 +1283,20 @@ const Index = () => {
                   className="hover:text-foreground transition-colors"
                 >
                   Buscar Pilotos
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/terms')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Términos y Condiciones
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/privacy')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Política de Privacidad
                 </button>
               </div>
             </div>
