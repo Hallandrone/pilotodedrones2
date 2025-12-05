@@ -307,17 +307,11 @@ const Index = () => {
       // Solo mostrar pilotos con servicios publicados
       query = query.eq("pilot_services.is_published", true);
 
-      // Filtro por tipo de trabajo -> pilot_services.service_type (búsqueda flexible)
+      // Filtro por tipo de trabajo -> buscar en specialties, services y service_type
       if (filters.workType && filters.workType !== "todos") {
-        // Mapeo de valores cortos a patrones de búsqueda
-        const workTypeMap: Record<string, string> = {
-          fotografia: "Fotografía",
-          topografia: "Topograf",
-          inspeccion: "Inspecc",
-          agricultura: "Agricultur",
-          seguridad: "Seguridad",
-        };
-        const searchPattern = workTypeMap[filters.workType] || filters.workType;
+        // Usar el valor real directamente (ya viene del select dinámico)
+        const searchPattern = filters.workType;
+        // Buscar en pilot_services.service_type
         query = query.ilike("pilot_services.service_type", `%${searchPattern}%`);
       }
 

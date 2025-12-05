@@ -35,14 +35,95 @@ interface PilotWithServices {
   } | null;
 }
 
-const specialtyTypes = [
-  "Audiovisual",
-  "Fotografía 360",
-  "Fotogrametría",
-  "Minería",
-  "Agricultura",
-  "Pulverización/Fumigación"
-];
+// specialtyTypes ahora se carga dinámicamente desde la BD
+let specialtyTypesCache: { data: string[]; timestamp: number } | null = null;
+const SPECIALTY_CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+const loadSpecialtyTypes = async (): Promise<string[]> => {
+  // Verificar caché
+  if (specialtyTypesCache && Date.now() - specialtyTypesCache.timestamp < SPECIALTY_CACHE_DURATION) {
+    return specialtyTypesCache.data;
+  }
+
+  try {
+    const specialtySet = new Set<string>();
+
+    // Obtener specialties de profiles
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("specialties")
+      .not("specialties", "is", null);
+
+    if (profilesData) {
+      profilesData.forEach((profile) => {
+        if (profile.specialties && Array.isArray(profile.specialties)) {
+          profile.specialties.forEach((specialty: string) => {
+            if (specialty && specialty.trim()) {
+              specialtySet.add(specialty.trim());
+            }
+          });
+        }
+      });
+    }
+
+    // Obtener services de companies
+    const { data: companiesData } = await supabase
+      .from("companies")
+      .select("services")
+      .not("services", "is", null);
+
+    if (companiesData) {
+      companiesData.forEach((company) => {
+        if (company.services && Array.isArray(company.services)) {
+          company.services.forEach((service: string) => {
+            if (service && service.trim()) {
+              specialtySet.add(service.trim());
+            }
+          });
+        }
+      });
+    }
+
+    // Obtener service_type de pilot_services
+    const { data: servicesData } = await supabase
+      .from("pilot_services")
+      .select("service_type")
+      .eq("is_published", true)
+      .not("service_type", "is", null);
+
+    if (servicesData) {
+      servicesData.forEach((service) => {
+        if (service.service_type && service.service_type.trim()) {
+          specialtySet.add(service.service_type.trim());
+        }
+      });
+    }
+
+    // Convertir a array y ordenar
+    const sortedSpecialties = Array.from(specialtySet).sort((a, b) => 
+      a.localeCompare(b, 'es', { sensitivity: 'base' })
+    );
+
+    // Actualizar caché
+    specialtyTypesCache = {
+      data: sortedSpecialties,
+      timestamp: Date.now()
+    };
+
+    return sortedSpecialties;
+  } catch (error) {
+    console.error("Error loading specialty types:", error);
+    // Fallback
+    return [
+      "Audiovisual",
+      "Fotografía 360",
+      "Fotogrametría",
+      "Minería",
+      "Agricultura",
+      "Pulverización/Fumigación"
+    ];
+  }
+};
 
 const droneTypes = [
   "DJI Mavic",
@@ -80,6 +161,8 @@ const SearchResults = () => {
   const [pilots, setPilots] = useState<PilotWithServices[]>([]);
   const [filteredPilots, setFilteredPilots] = useState<PilotWithServices[]>([]);
   const [loading, setLoading] = useState(true);
+  const [specialtyTypes, setSpecialtyTypes] = useState<string[]>([]);
+  const [loadingSpecialties, setLoadingSpecialties] = useState(true);
 
   // Filtros - leer desde URL params
   const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
@@ -95,6 +178,11 @@ const SearchResults = () => {
   useEffect(() => {
     fetchPilots();
     fetchCompanies();
+    // Cargar tipos de especialidad dinámicamente
+    loadSpecialtyTypes().then((types) => {
+      setSpecialtyTypes(types);
+      setLoadingSpecialties(false);
+    });
   }, []);
 
   useEffect(() => {
@@ -370,9 +458,13 @@ const SearchResults = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todas las especialidades</SelectItem>
-                      {specialtyTypes.map(type => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
+                      {loadingSpecialties ? (
+                        <SelectItem value="loading" disabled>Cargando...</SelectItem>
+                      ) : (
+                        specialtyTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
