@@ -21,6 +21,7 @@ import {
   Loader2
 } from "lucide-react";
 import { createSubscription as createFlowSubscription, cancelSubscription as cancelFlowSubscription, type FlowSubscriptionParams } from "@/integrations/flow/client";
+import { createSubscription as createReveniuSubscription } from "@/integrations/reveniu/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 
 interface Membership {
@@ -68,6 +69,7 @@ const PilotMembership = () => {
       name: 'Plan Profesional',
       price: 14990,
       flow_plan_id: '', // TODO: Agregar el ID del plan en Flow (sandbox)
+      reveniu_plan_id: '9604', // ✅ ID del Plan Piloto en Reveniu sandbox
       reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/pk2JYEwJVEDUT5vXiFy4M6B9UNwjKxSD', // Link de Reveniu sandbox
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
       features: [
@@ -85,6 +87,7 @@ const PilotMembership = () => {
       name: 'Plan Empresa',
       price: 39990,
       flow_plan_id: '', // TODO: Agregar el ID del plan en Flow (sandbox)
+      reveniu_plan_id: '9934', // ✅ ID del Plan Empresa en Reveniu sandbox
       reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/faD3XBeyoHUNvsd9zOv4XJuGrv0ugdCG', // Link de Reveniu sandbox para Plan Empresa
       description: 'Ideal para: Publicar Empresas para realizar servicios especializados con drones',
       features: [
@@ -247,16 +250,80 @@ const PilotMembership = () => {
         return;
       }
 
+
       // Obtener el plan seleccionado
       const selectedPlan = availablePlans.find(p => p.id === planId);
 
-      // Si el plan tiene un link de checkout de Reveniu, mostrar advertencia primero
+      // Si el plan tiene un link de checkout de Reveniu, usar la API en lugar del link
       if (selectedPlan?.reveniu_checkout_link) {
-        setPendingPlanId(planId);
-        setPendingFlowPlanId(flowPlanId);
-        setShowEmailWarning(true);
+        setSubscribing(planId);
+
+        // Obtener email y nombre del usuario
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.email) {
+          toast({
+            title: "Error",
+            description: "No se encontró el email del usuario",
+            variant: "destructive",
+          });
+          setSubscribing(null);
+          return;
+        }
+
+        // Obtener el plan_id de Reveniu (necesitamos configurarlo)
+        const reveniuPlanId = selectedPlan.reveniu_plan_id;
+        if (!reveniuPlanId) {
+          toast({
+            title: "Error de configuración",
+            description: "El plan no tiene un ID de Reveniu configurado. Contacta al administrador.",
+            variant: "destructive",
+          });
+          setSubscribing(null);
+          return;
+        }
+
+        const appUrl = getBaseUrl();
+        const successUrl = `${appUrl}/pilot/membership?success=true`;
+        const cancelUrl = `${appUrl}/pilot/membership?canceled=true`;
+
+        try {
+          // Crear suscripción usando la API de Reveniu con external_id
+          const subscriptionResponse = await createReveniuSubscription({
+            plan_id: reveniuPlanId,
+            customer_email: profile.email,
+            customer_name: profile.full_name || undefined,
+            success_url: successUrl,
+            cancel_url: cancelUrl,
+            metadata: {
+              external_id: user.id,  // ✅ Enviar user_id como external_id
+              user_type: userType || 'company',
+            }
+          });
+
+          // Reveniu retorna un link de checkout
+          const checkoutUrl = subscriptionResponse.link || subscriptionResponse.checkout_url;
+          if (checkoutUrl) {
+            window.location.href = checkoutUrl;
+          } else {
+            throw new Error('No se recibió URL de checkout de Reveniu');
+          }
+        } catch (error: any) {
+          console.error('Error creating Reveniu subscription:', error);
+          toast({
+            title: "Error",
+            description: error.message || "No se pudo crear la suscripción con Reveniu. Intenta nuevamente.",
+            variant: "destructive",
+          });
+          setSubscribing(null);
+        }
         return;
       }
+
 
       // Si no hay link de Reveniu, continuar con Flow
       // Obtener email del usuario
@@ -638,8 +705,8 @@ const PilotMembership = () => {
                   <div
                     key={plan.id}
                     className={`border-2 rounded-2xl p-6 bg-[#2C2C2C] border-[#333333] ${plan.id === 'profesional'
-                        ? 'border-blue-500/30'
-                        : 'border-purple-500/30'
+                      ? 'border-blue-500/30'
+                      : 'border-purple-500/30'
                       }`}
                   >
                     <div className="flex items-center justify-between mb-4">
@@ -652,8 +719,8 @@ const PilotMembership = () => {
                       )}
                     </div>
                     <p className={`text-3xl font-bold bg-clip-text text-transparent mb-2 ${plan.id === 'profesional'
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                      : 'bg-gradient-to-r from-purple-600 to-pink-600'
                       }`}>
                       {formatPrice(plan.price)}
                     </p>
@@ -681,8 +748,8 @@ const PilotMembership = () => {
                         ) : (
                           <Button
                             className={`w-full mt-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${plan.id === 'profesional'
-                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                                : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
+                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                              : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
                               }`}
                             onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
                             disabled={isSubscribing || (membership && membership.status === 'active')}
