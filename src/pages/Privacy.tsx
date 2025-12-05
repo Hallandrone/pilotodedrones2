@@ -200,6 +200,59 @@ const Privacy = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Footer */}
+      <footer className="py-12 border-t border-border/50 bg-background mt-16">
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              {/* Logo y nombre */}
+              <div className="flex items-center gap-2">
+                <Logo size="sm" showText={false} />
+                <span className="text-lg font-semibold text-muted-foreground">
+                  Piloto de Drones
+                </span>
+              </div>
+
+              {/* Copyright */}
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} Piloto de Drones. Todos los derechos reservados.
+              </p>
+
+              {/* Enlaces mínimos */}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap justify-center">
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Iniciar Sesión
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/search')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Buscar Pilotos
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/terms')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Términos y Condiciones
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/privacy')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Política de Privacidad
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
