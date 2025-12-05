@@ -68,6 +68,7 @@ const CompanyDashboard = () => {
     experience_years: 0,
     services_count: 0
   });
+  const [subscription, setSubscription] = useState<{ status: string; plan_name: string; renewal_date: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -216,6 +217,9 @@ const CompanyDashboard = () => {
 
       console.log('Company data loaded successfully');
 
+      // Cargar suscripción
+      await loadSubscription(userId);
+
     } catch (error) {
       console.error('Error loading company data:', error);
       toast({
@@ -223,6 +227,25 @@ const CompanyDashboard = () => {
         description: "No se pudieron cargar los datos de la empresa",
         variant: "destructive",
       });
+    }
+  };
+
+  const loadSubscription = async (userId: string) => {
+    try {
+      const { data: subscriptionData, error } = await supabase
+        .from('user_subscriptions')
+        .select('status, plan_name, renewal_date')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading subscription:', error);
+        return;
+      }
+
+      setSubscription(subscriptionData || null);
+    } catch (error) {
+      console.error('Error loading subscription:', error);
     }
   };
 
@@ -535,12 +558,20 @@ const CompanyDashboard = () => {
                     </div>
                     <span className="text-white text-sm sm:text-xl">Membresía</span>
                   </div>
-                  <div className="h-8 w-16 sm:h-12 sm:w-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                    <span className="text-xs sm:text-sm font-semibold text-emerald-400">Activa</span>
-                  </div>
+                  {subscription && subscription.status === 'active' ? (
+                    <div className="h-8 w-16 sm:h-12 sm:w-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <span className="text-xs sm:text-sm font-semibold text-emerald-400">Activa</span>
+                    </div>
+                  ) : (
+                    <div className="h-8 w-20 sm:h-12 sm:w-24 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+                      <span className="text-xs sm:text-sm font-semibold text-yellow-400">Inactiva</span>
+                    </div>
+                  )}
                 </div>
                 <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                  Plan Profesional - Renovación el 15 de Febrero
+                  {subscription && subscription.status === 'active' 
+                    ? `${subscription.plan_name === 'empresa' ? 'Plan Empresa' : subscription.plan_name === 'profesional' ? 'Plan Profesional' : subscription.plan_name || 'Plan'}${subscription.renewal_date ? ` - Renovación el ${new Date(subscription.renewal_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`
+                    : 'No tienes una suscripción activa'}
                 </p>
                 <Button 
                   size="lg" 
