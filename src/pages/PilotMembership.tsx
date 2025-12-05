@@ -99,7 +99,6 @@ const PilotMembership = () => {
 
   useEffect(() => {
     loadMembership();
-    setAvailablePlans(defaultPlans);
     checkUserType();
 
     // Manejar parámetros de URL después del checkout
@@ -129,6 +128,17 @@ const PilotMembership = () => {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
+
+  // Filtrar planes según el tipo de usuario
+  useEffect(() => {
+    if (userType === 'company') {
+      // Si es empresa, solo mostrar Plan Empresa
+      setAvailablePlans(defaultPlans.filter(p => p.id === 'empresa'));
+    } else {
+      // Si es piloto (o no se ha determinado), solo mostrar Plan Profesional
+      setAvailablePlans(defaultPlans.filter(p => p.id === 'profesional'));
+    }
+  }, [userType]);
 
   const checkUserType = async () => {
     try {
