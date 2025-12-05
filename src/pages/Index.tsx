@@ -3,7 +3,7 @@ import SearchForm from "@/components/ui/search-form";
 import PilotCard from "@/components/ui/pilot-card";
 import Logo from "@/components/ui/logo";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Plane, Shield, Users, Star, LogIn, User, Menu, X, CheckCircle, Award, Zap, Search, FileCheck, QrCode, Globe } from "lucide-react";
+import { Plane, Shield, Users, Star, LogIn, User, Menu, X, CheckCircle, Award, Zap, Search, FileCheck, QrCode, Globe, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -365,6 +365,22 @@ const Index = () => {
             
             {/* Desktop Menu - Visible solo en md y superior */}
             <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="sm:h-11 sm:px-6 hover:bg-accent/10 transition-all duration-200 whitespace-nowrap"
+              >
+                Home
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/pricing')}
+                className="sm:h-11 sm:px-6 hover:bg-accent/10 transition-all duration-200 whitespace-nowrap"
+              >
+                Precios
+              </Button>
               {user ? (
                 <>
                   <Button 
@@ -432,6 +448,29 @@ const Index = () => {
                     <SheetTitle>Menú</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6 space-y-3">
+                    <Button 
+                      variant="ghost" 
+                      size="lg"
+                      className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/');
+                      }}
+                    >
+                      <Home className="h-5 w-5 mr-3" />
+                      Home
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="lg"
+                      className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/pricing');
+                      }}
+                    >
+                      Precios
+                    </Button>
                     {user ? (
                       <>
                         <Button 
@@ -659,7 +698,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1 }}
+                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -674,7 +713,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
+                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -689,7 +728,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
+                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -709,7 +748,7 @@ const Index = () => {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.8, type: "tween", ease: "easeOut" }}
               >
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                   <motion.div 
@@ -717,7 +756,7 @@ const Index = () => {
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.6, type: "tween", ease: "easeOut" }}
                   >
                     <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
                       Características y Beneficios
@@ -734,7 +773,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1 }}
+                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -751,7 +790,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
+                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -768,7 +807,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
+                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -785,7 +824,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.4 }}
+                      transition={{ duration: 0.6, delay: 0.4, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -802,7 +841,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.5 }}
+                      transition={{ duration: 0.6, delay: 0.5, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -819,7 +858,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.6 }}
+                      transition={{ duration: 0.6, delay: 0.6, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -870,7 +909,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
+                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <Button 
                         variant="outline" 
@@ -995,7 +1034,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1 }}
+                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Shield className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1010,7 +1049,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
+                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Users className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1025,7 +1064,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
+                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Star className="h-10 w-10 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1045,7 +1084,7 @@ const Index = () => {
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.8 }}
+                transition={{ duration: 0.8, type: "tween", ease: "easeOut" }}
               >
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
                   <motion.div 
@@ -1053,7 +1092,7 @@ const Index = () => {
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.6, type: "tween", ease: "easeOut" }}
                   >
                     <h3 className="text-4xl md:text-5xl font-bold text-primary mb-4">
                       Características y Beneficios
@@ -1070,7 +1109,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.1 }}
+                      transition={{ duration: 0.6, delay: 0.1, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1087,7 +1126,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
+                      transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1104,7 +1143,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
+                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1121,7 +1160,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.4 }}
+                      transition={{ duration: 0.6, delay: 0.4, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1138,7 +1177,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.5 }}
+                      transition={{ duration: 0.6, delay: 0.5, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1155,7 +1194,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.6 }}
+                      transition={{ duration: 0.6, delay: 0.6, type: "tween", ease: "easeOut" }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1206,7 +1245,7 @@ const Index = () => {
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3 }}
+                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
                       <Button 
                         variant="outline" 

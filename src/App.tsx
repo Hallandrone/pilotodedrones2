@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
+import Pricing from "./pages/Pricing";
 import Auth from "./pages/Auth";
 import DemoAuth from "./pages/DemoAuth";
 import Dashboard from "./pages/Dashboard";
@@ -44,6 +45,7 @@ const App = () => (
           <Routes>
             {/* Rutas con tema CLARO (Landing) */}
             <Route path="/" element={<Index />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/demo" element={<DemoAuth />} />
             <Route path="/search" element={<SearchResults />} />
