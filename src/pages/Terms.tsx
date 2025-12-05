@@ -8,7 +8,7 @@ const Terms = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm shadow-sm sticky top-0 z-50 w-full">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
@@ -161,7 +161,7 @@ const Terms = () => {
       </div>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-border/50 bg-background mt-16">
+      <footer className="mt-auto py-12 border-t border-border/50 bg-background">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
