@@ -94,6 +94,7 @@ export default function CompanyProfile() {
   const [newEmail, setNewEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
   const [passwordForEmailChange, setPasswordForEmailChange] = useState("");
+  const [subscription, setSubscription] = useState<{ status: string; plan_name: string } | null>(null);
   
   const appBaseUrl = getBaseUrlClean();
 
@@ -250,6 +251,22 @@ export default function CompanyProfile() {
         .select("public_profile_slug, email")
         .eq("id", userId)
         .single();
+
+      // Cargar suscripción
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('user_subscriptions')
+        .select('status, plan_name')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+        console.error('Error loading subscription:', subscriptionError);
+      }
+
+      if (subscriptionData) {
+        setSubscription(subscriptionData);
+      }
 
       if (companyData) {
         setCompany(companyData);
@@ -1327,6 +1344,14 @@ export default function CompanyProfile() {
                   placeholder="contacto@empresa.cl"
                   className="h-12 sm:h-14 rounded-xl border-2"
                 />
+                {subscription && subscription.status === 'active' && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="default" className="bg-accent text-accent-foreground">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Plan {subscription.plan_name || 'Empresa'} Activo
+                    </Badge>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">

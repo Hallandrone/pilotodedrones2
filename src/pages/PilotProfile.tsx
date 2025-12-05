@@ -48,8 +48,9 @@ interface ProfileData {
 interface Subscription {
   id: string;
   status: string;
-  plan_type: string;
-  payment_method: string;
+  plan_name: string;
+  plan_type?: string;
+  payment_method?: string;
 }
 
 // Campos que existen en la tabla profiles
@@ -388,12 +389,16 @@ const PilotProfile = () => {
         .single();
 
       // Cargar suscripción
-      const { data: subscriptionData } = await supabase
-        .from('subscriptions')
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
+      
+      if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+        console.error('Error loading subscription:', subscriptionError);
+      }
       
       if (subscriptionData) {
         setSubscription(subscriptionData as Subscription);
@@ -1114,6 +1119,14 @@ const PilotProfile = () => {
                 placeholder="tu@email.com"
                 className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
               />
+              {subscription && subscription.status === 'active' && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge variant="default" className="bg-accent text-accent-foreground">
+                    <Crown className="h-3 w-3 mr-1" />
+                    Plan {subscription.plan_name || 'Pro'} Activo
+                  </Badge>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">
