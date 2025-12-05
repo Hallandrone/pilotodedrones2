@@ -1225,16 +1225,40 @@ const Index = () => {
       </div>
 
       {/* Footer */}
-      <footer className="py-16 border-t border-border bg-white">
+      <footer className="py-12 border-t border-border/50 bg-background">
         <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <Plane className="h-8 w-8 text-accent" />
-              <span className="text-2xl font-bold text-primary">Piloto de Drones</span>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              {/* Logo y nombre */}
+              <div className="flex items-center gap-2">
+                <Logo size="sm" showText={false} />
+                <span className="text-lg font-semibold text-muted-foreground">
+                  Piloto de Drones
+                </span>
+              </div>
+
+              {/* Copyright */}
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} Piloto de Drones. Todos los derechos reservados.
+              </p>
+
+              {/* Enlaces mínimos */}
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Iniciar Sesión
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/search')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Buscar Pilotos
+                </button>
+              </div>
             </div>
-            <p className="text-lg text-muted-foreground">
-              La plataforma profesional para servicios con drones en Chile
-            </p>
           </div>
         </div>
       </footer>

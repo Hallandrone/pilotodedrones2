@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, MapPin, DollarSign, Shield, Briefcase, Search, Filter } from "lucide-react";
+import { ArrowLeft, MapPin, DollarSign, Shield, Briefcase, Search, Filter, Phone, Mail, Instagram, Linkedin } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface PilotWithServices {
@@ -23,6 +23,10 @@ interface PilotWithServices {
   certification_academy: string | null;
   company_name: string | null;
   public_profile_slug: string | null;
+  phone: string | null;
+  email: string | null;
+  instagram_url: string | null;
+  linkedin_url: string | null;
   services: Array<{
     id: string;
     service_type: string;
@@ -292,6 +296,10 @@ const SearchResults = () => {
           certification_academy: pilot.certification_academy || null,
           company_name: companyAssoc ? (companyAssoc.company as any).company_name : null,
           public_profile_slug: (profile as any)?.public_profile_slug || null,
+          phone: (profile as any)?.phone || null,
+          email: profile?.email || null,
+          instagram_url: (profile as any)?.instagram_url || null,
+          linkedin_url: (profile as any)?.linkedin_url || null,
           services: pilotServices.map(s => ({
             id: s.id,
             service_type: s.service_type,
@@ -748,21 +756,25 @@ const SearchResults = () => {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
                             <h3 className="font-semibold text-lg text-foreground truncate">
                               {pilot.full_name}
                             </h3>
-                            {pilot.certification_status && (
-                              <Badge variant="secondary" className="gap-1">
-                                <Shield className="h-3 w-3" />
-                                Certificado
-                              </Badge>
-                            )}
+                            <div className="flex items-center gap-2 mt-1 flex-wrap">
+                              {pilot.certification_status && (
+                                <Badge variant="secondary" className="gap-1 text-xs">
+                                  <Shield className="h-3 w-3" />
+                                  Certificado
+                                </Badge>
+                              )}
+                              {pilot.subscription?.plan_name && (
+                                <Badge variant="outline" className="text-xs">
+                                  {pilot.subscription.plan_name}
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                          <Badge variant="outline">
-                            {pilot.subscription?.plan_name || "Free"}
-                          </Badge>
                         </div>
 
                         <div className="mt-2 space-y-1 text-sm text-muted-foreground">
@@ -790,41 +802,72 @@ const SearchResults = () => {
                           )}
                         </div>
 
-                        <div className="mt-3 space-y-2">
-                          {pilot.specialties.length > 0 && (
-                            <div>
-                              <div className="text-xs font-medium text-muted-foreground mb-1">Especialidades:</div>
-                              <div className="flex flex-wrap gap-1">
-                                {pilot.specialties.slice(0, 3).map((specialty, idx) => (
-                                  <Badge key={idx} variant="outline" className="text-xs">
-                                    {specialty}
-                                  </Badge>
-                                ))}
-                                {pilot.specialties.length > 3 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{pilot.specialties.length - 3}
-                                  </Badge>
+                        {/* Servicios */}
+                        {pilot.services.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-xs font-medium text-muted-foreground mb-1">Servicios:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {pilot.services.slice(0, 2).map((service, idx) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {service.service_type}
+                                </Badge>
+                              ))}
+                              {pilot.services.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{pilot.services.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Información de contacto */}
+                        <div className="mt-3 pt-3 border-t border-border/50">
+                          <div className="text-xs font-medium text-muted-foreground mb-2">Contacto:</div>
+                          <div className="space-y-1.5">
+                            {pilot.phone && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Phone className="h-3 w-3 flex-shrink-0" />
+                                <a href={`tel:${pilot.phone}`} className="hover:text-foreground transition-colors truncate">
+                                  {pilot.phone}
+                                </a>
+                              </div>
+                            )}
+                            {pilot.email && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3 flex-shrink-0" />
+                                <a href={`mailto:${pilot.email}`} className="hover:text-foreground transition-colors truncate">
+                                  {pilot.email}
+                                </a>
+                              </div>
+                            )}
+                            {(pilot.instagram_url || pilot.linkedin_url) && (
+                              <div className="flex items-center gap-3 pt-1">
+                                {pilot.instagram_url && (
+                                  <a
+                                    href={pilot.instagram_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                    title="Instagram"
+                                  >
+                                    <Instagram className="h-4 w-4" />
+                                  </a>
+                                )}
+                                {pilot.linkedin_url && (
+                                  <a
+                                    href={pilot.linkedin_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                    title="LinkedIn"
+                                  >
+                                    <Linkedin className="h-4 w-4" />
+                                  </a>
                                 )}
                               </div>
-                            </div>
-                          )}
-                          {pilot.drone_types.length > 0 && (
-                            <div>
-                              <div className="text-xs font-medium text-muted-foreground mb-1">Drones:</div>
-                              <div className="flex flex-wrap gap-1">
-                                {pilot.drone_types.slice(0, 2).map((drone, idx) => (
-                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                    {drone}
-                                  </Badge>
-                                ))}
-                                {pilot.drone_types.length > 2 && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    +{pilot.drone_types.length - 2}
-                                  </Badge>
-                                )}
-                              </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
 
                         <Button
