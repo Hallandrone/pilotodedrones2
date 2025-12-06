@@ -30,6 +30,7 @@ import UserProfile from "./pages/UserProfile";
 import PublicPilotProfile from "./pages/PublicPilotProfile";
 import CompanyProfile from "./pages/CompanyProfile";
 import CompanyDashboard from "./pages/CompanyDashboard";
+import ProfileContacts from "./pages/ProfileContacts";
 import NotFound from "./pages/NotFound";
 import "./lib/debug-auth"; // Importar funciones de debug
 import "./lib/force-create-role"; // Importar función para crear rol
@@ -53,7 +54,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/demo" element={<DemoAuth />} />
             <Route path="/search" element={<SearchResults />} />
-            
+
             {/* Rutas con tema OSCURO (Dashboards) */}
             <Route path="/dashboard/*" element={<div className="dark"><Dashboard /></div>} />
             <Route path="/pilot" element={<div className="dark"><PilotDashboard /></div>} />
@@ -68,8 +69,10 @@ const App = () => (
             <Route path="/company/certificates" element={<div className="dark"><PilotCertificates /></div>} />
             <Route path="/company/qr" element={<div className="dark"><PilotQR /></div>} />
             <Route path="/company/membership" element={<div className="dark"><PilotMembership /></div>} />
+            <Route path="/company/contacts" element={<div className="dark"><ProfileContacts /></div>} />
+            <Route path="/pilot/contacts" element={<div className="dark"><ProfileContacts /></div>} />
             <Route path="/admin/certificates" element={<div className="dark"><AdminCertificates /></div>} />
-            
+
             {/* Rutas de debug/fix */}
             <Route path="/debug-auth" element={<DebugAuth />} />
             <Route path="/fix-auth" element={<FixAuth />} />
@@ -78,16 +81,16 @@ const App = () => (
             <Route path="/pilot-data-fix" element={<PilotDataFix />} />
             <Route path="/profile-save-fix" element={<ProfileSaveFix />} />
             <Route path="/access-fix" element={<AccessFix />} />
-            
+
             {/* Ruta temporal para ver UserProfile sin auth */}
             <Route path="/user-profile" element={<div className="dark"><UserProfile /></div>} />
-            
+
             {/* Perfil público del piloto (para QR) - mantener ruta antigua por compatibilidad */}
             <Route path="/pilot/:pilotId" element={<div className="dark"><PublicPilotProfile /></div>} />
-            
+
             {/* Nueva ruta para perfiles públicos con slug personalizado (debe ir antes del catch-all) */}
             <Route path="/:slug" element={<div className="dark"><PublicPilotProfile /></div>} />
-            
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

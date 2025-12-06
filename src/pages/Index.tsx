@@ -434,7 +434,12 @@ const Index = () => {
     }
   };
 
-  const listToRender = results.length ? results : featuredPilots;
+  // Combinar pilotos y empresas destacados, limitando a 6 en total
+  const combinedFeatured = [...featuredPilots, ...featuredCompanies]
+    .sort(() => Math.random() - 0.5) // Mezclar aleatoriamente
+    .slice(0, 6); // Limitar a 6 tarjetas en total
+
+  const listToRender = results.length ? results : combinedFeatured;
 
   return (
     <div className="min-h-screen bg-background">

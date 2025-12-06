@@ -662,10 +662,10 @@ const PublicPilotProfile = () => {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold text-white mb-2">
-                      ¿Interesado en nuestros servicios?
+                      {isCompany ? '¿Interesado en nuestros servicios?' : '¿Interesado en mis servicios?'}
                     </h3>
                     <p className="text-white/90 mb-4">
-                      Déjanos tus datos y te contactaremos a la brevedad
+                      {isCompany ? 'Déjanos tus datos y te contactaremos a la brevedad' : 'Déjame tus datos y te contactaré a la brevedad'}
                     </p>
                     <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
                       <DialogTrigger asChild>
