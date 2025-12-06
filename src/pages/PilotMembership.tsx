@@ -20,7 +20,6 @@ import {
   ExternalLink,
   Loader2
 } from "lucide-react";
-import { createSubscription as createFlowSubscription, cancelSubscription as cancelFlowSubscription, type FlowSubscriptionParams } from "@/integrations/flow/client";
 import { createSubscription as createReveniuSubscription, cancelSubscription as cancelReveniuSubscription } from "@/integrations/reveniu/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 
@@ -32,8 +31,6 @@ interface Membership {
   price: number;
   features: string[];
   reveniu_subscription_id?: string | null;
-  flow_subscription_id?: string | null;
-  flow_plan_id?: string | null;
 }
 
 interface AvailablePlan {
@@ -41,8 +38,7 @@ interface AvailablePlan {
   name: string;
   price: number;
   reveniu_plan_id?: string;
-  reveniu_checkout_link?: string; // Link directo de checkout de Reveniu
-  flow_plan_id?: string; // ID del plan en Flow
+  reveniu_checkout_link?: string;
   features: string[];
   description: string;
 }
@@ -60,15 +56,12 @@ const PilotMembership = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Planes disponibles
-  // IMPORTANTE: Agregar flow_plan_id de los planes creados en Flow
-  // Flow está ACTIVO y configurado para usar sandbox por defecto
+  // Planes disponibles con Reveniu
   const defaultPlans: AvailablePlan[] = [
     {
       id: 'profesional',
       name: 'Plan Profesional',
       price: 14990,
-      flow_plan_id: '', // TODO: Agregar el ID del plan en Flow (sandbox)
       reveniu_plan_id: '9604', // ✅ ID del Plan Piloto en Reveniu sandbox
       reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/pk2JYEwJVEDUT5vXiFy4M6B9UNwjKxSD', // Link de Reveniu sandbox
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
@@ -86,7 +79,6 @@ const PilotMembership = () => {
       id: 'empresa',
       name: 'Plan Empresa',
       price: 39990,
-      flow_plan_id: '', // TODO: Agregar el ID del plan en Flow (sandbox)
       reveniu_plan_id: '9934', // ✅ ID del Plan Empresa en Reveniu sandbox
       reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/faD3XBeyoHUNvsd9zOv4XJuGrv0ugdCG', // Link de Reveniu sandbox para Plan Empresa
       description: 'Ideal para: Publicar Empresas para realizar servicios especializados con drones',
@@ -423,11 +415,7 @@ const PilotMembership = () => {
   };
 
   const handleCancelSubscription = async () => {
-    // Verificar si hay suscripción de Flow o Reveniu
-    const hasFlowSubscription = !!membership?.flow_subscription_id;
-    const hasReveniuSubscription = !!membership?.reveniu_subscription_id;
-
-    if (!hasFlowSubscription && !hasReveniuSubscription) {
+    if (!membership?.reveniu_subscription_id) {
       toast({
         title: "Error",
         description: "No se encontró información de la suscripción",
@@ -450,12 +438,8 @@ const PilotMembership = () => {
     try {
       setSubscribing('cancelling');
 
-      // Cancelar según el proveedor
-      if (hasFlowSubscription) {
-        await cancelFlowSubscription(membership.flow_subscription_id!);
-      } else if (hasReveniuSubscription) {
-        await cancelReveniuSubscription(membership.reveniu_subscription_id!);
-      }
+      // Cancelar suscripción en Reveniu
+      await cancelReveniuSubscription(membership.reveniu_subscription_id);
 
       // Actualizar estado en la base de datos
       const { data: { user } } = await supabase.auth.getUser();
