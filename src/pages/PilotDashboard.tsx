@@ -413,7 +413,7 @@ const PilotDashboard = () => {
                       {flightHours.this_month}
                       <span className="text-sm sm:text-lg text-[#00b3f3]/60">hrs</span>
                     </div>
-                    <div className="text-xs sm:text-base text-white/90">Este Mes</div>
+                    <div className="text-xs sm:text-base text-white/90">Último Mes</div>
                   </div>
                 </div>
               </div>

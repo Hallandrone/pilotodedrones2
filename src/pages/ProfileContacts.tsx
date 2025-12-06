@@ -15,7 +15,7 @@ interface Contact {
 	contact_email: string;
 	contact_phone: string | null;
 	contact_message: string | null;
-	created_at: string;
+	contacted_at: string;
 	is_read: boolean;
 }
 
@@ -39,7 +39,7 @@ const ProfileContacts = () => {
 				.from('profile_contacts')
 				.select('*')
 				.eq('profile_id', user.id)
-				.order('created_at', { ascending: false });
+				.order('contacted_at', { ascending: false });
 
 			if (error) throw error;
 
@@ -166,7 +166,7 @@ const ProfileContacts = () => {
 												</CardTitle>
 												<CardDescription className="text-[#B0B0B0] mt-1 flex items-center gap-2">
 													<Calendar className="h-3 w-3" />
-													{new Date(contact.created_at).toLocaleDateString('es-CL', {
+													{new Date(contact.contacted_at).toLocaleDateString('es-CL', {
 														day: 'numeric',
 														month: 'long',
 														year: 'numeric',
