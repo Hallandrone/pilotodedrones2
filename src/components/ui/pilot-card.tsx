@@ -33,7 +33,7 @@ const PilotCard = ({ pilot }: PilotCardProps) => {
               />
             ) : (
               <span className="text-lg font-semibold text-muted-foreground">
-                {pilot.name.charAt(0)}
+                {pilot.name?.charAt(0) || 'P'}
               </span>
             )}
           </div>
