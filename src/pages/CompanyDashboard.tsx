@@ -8,15 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/ui/logo";
-import { 
+import {
   Building2,
-  MapPin, 
-  Calendar, 
-  FileText, 
-  QrCode, 
-  Settings, 
-  LogOut, 
-  CheckCircle, 
+  MapPin,
+  Calendar,
+  FileText,
+  QrCode,
+  Settings,
+  LogOut,
+  CheckCircle,
   AlertCircle,
   XCircle,
   Phone,
@@ -27,11 +27,11 @@ import {
   Briefcase
 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
-import { 
-  getCertificationStatus, 
-  getDaysUntilExpiration, 
+import {
+  getCertificationStatus,
+  getDaysUntilExpiration,
   formatExpirationDate,
-  type CertificationStatus 
+  type CertificationStatus
 } from "@/utils/certificationHelpers";
 
 interface CompanyData {
@@ -80,7 +80,7 @@ const CompanyDashboard = () => {
   const checkUserAuth = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session?.user) {
         navigate('/auth');
         return;
@@ -133,7 +133,7 @@ const CompanyDashboard = () => {
   const loadCompanyData = async (userId: string) => {
     try {
       console.log('Loading company data for user:', userId);
-      
+
       // First, get user profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -162,7 +162,7 @@ const CompanyDashboard = () => {
 
       // If company data doesn't exist, create it
       let companyInfo = companyData;
-      
+
       if (!companyData) {
         console.log('Creating company record...');
         const { data: newCompanyData, error: createCompanyError } = await supabase
@@ -342,15 +342,15 @@ const CompanyDashboard = () => {
     <div className="min-h-screen bg-[#083b4e] relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
-      
+
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
       {/* Header */}
-      <div className="bg-[#083b4e]/80 backdrop-blur-lg border-b border-[#00b3f3]/20 shadow-lg sticky top-0 z-50 relative animate-fade-in">
+      <div className="bg-[#0a4a61]/80 backdrop-blur-lg border-b border-[#00b3f3]/20 shadow-lg sticky top-0 z-50 relative animate-fade-in">
         <div className="px-3 sm:px-6 py-3 sm:py-5">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <Logo size="lg" className="hover:scale-110 transition-all duration-300 filter drop-shadow-lg" showText={false} />
+            <Logo size="md" className="hover:scale-110 transition-all duration-300 filter drop-shadow-lg" showText={false} />
             <Button
               variant="ghost"
               size="sm"
@@ -395,7 +395,7 @@ const CompanyDashboard = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3 sm:gap-6">
                 <div className="relative group overflow-hidden bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-[#00b3f3]/30 hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,179,243,0.3)] hover:scale-105">
                   <div className="absolute inset-0 bg-[#00b3f3]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
@@ -423,9 +423,9 @@ const CompanyDashboard = () => {
         </Card>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <Button 
-            variant="outline" 
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <Button
+            variant="outline"
             size="lg"
             className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
             onClick={() => navigate('/company/profile')}
@@ -436,8 +436,8 @@ const CompanyDashboard = () => {
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Editar Perfil</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="lg"
             className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
             onClick={() => navigate('/company/certificates')}
@@ -448,20 +448,9 @@ const CompanyDashboard = () => {
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Certificados</span>
           </Button>
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/company/profile')}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
-            <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-              <Briefcase className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Servicios</span>
-          </Button>
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             size="lg"
             className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
             onClick={() => navigate('/company/qr')}
@@ -482,12 +471,11 @@ const CompanyDashboard = () => {
               <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <div className="flex items-center gap-2 sm:gap-4">
-                    <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${
-                      certificationStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
+                    <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${certificationStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
                       certificationStatus === 'expiring_soon' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
-                      certificationStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
-                      'bg-gradient-to-br from-gray-500 to-gray-600'
-                    }`}>
+                        certificationStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
+                          'bg-gradient-to-br from-gray-500 to-gray-600'
+                      }`}>
                       <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                     </div>
                     <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
@@ -510,7 +498,7 @@ const CompanyDashboard = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                   {certificationStatus === 'valid' && (
                     <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
@@ -522,26 +510,25 @@ const CompanyDashboard = () => {
                       </p>
                     </div>
                   )}
-                  
+
                   {certificationStatus === 'not_validated' && (
                     <p className="text-white/80 text-sm sm:text-base leading-relaxed">
                       Pendiente de validación de certificaciones AOC/CEO
                     </p>
                   )}
                 </div>
-                
-                <Button 
-                  size="lg" 
+
+                <Button
+                  size="lg"
                   onClick={() => navigate('/company/certificates')}
-                  className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${
-                    certificationStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
+                  className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${certificationStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
                     certificationStatus === 'expiring_soon' || certificationStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
-                    'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
-                  }`}
+                      'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+                    }`}
                 >
-                  {certificationStatus === 'not_validated' ? 'Subir Certificados AOC/CEO' : 
-                   certificationStatus === 'expired' ? 'Renovar Certificación' : 
-                   'Ver Certificados'}
+                  {certificationStatus === 'not_validated' ? 'Subir Certificados AOC/CEO' :
+                    certificationStatus === 'expired' ? 'Renovar Certificación' :
+                      'Ver Certificados'}
                 </Button>
               </CardContent>
             </div>
@@ -569,12 +556,12 @@ const CompanyDashboard = () => {
                   )}
                 </div>
                 <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                  {subscription && subscription.status === 'active' 
+                  {subscription && subscription.status === 'active'
                     ? `${subscription.plan_name === 'empresa' ? 'Plan Empresa' : subscription.plan_name === 'profesional' ? 'Plan Profesional' : subscription.plan_name || 'Plan'}${subscription.renewal_date ? ` - Renovación el ${new Date(subscription.renewal_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`
                     : 'No tienes una suscripción activa'}
                 </p>
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   onClick={() => navigate('/company/membership')}
                   className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
                 >
@@ -598,16 +585,16 @@ const CompanyDashboard = () => {
                   ¿Necesitas ayuda? Nuestro equipo está aquí para asistirte.
                 </p>
                 <div className="space-y-3 sm:space-y-4">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
                     onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
                   >
                     <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
                     Enviar Email
                   </Button>
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
                     onClick={() => window.open('https://wa.me/56912345678')}
                   >

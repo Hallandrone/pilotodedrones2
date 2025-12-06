@@ -14,9 +14,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 const HeroParallaxBackground = () => {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, -100]);
-  
+
   return (
-    <motion.div 
+    <motion.div
       className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"
       style={{ y }}
     />
@@ -27,9 +27,9 @@ const HeroParallaxBackground = () => {
 const CTAParallaxBackground = () => {
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 1000], [0, -150]);
-  
+
   return (
-    <motion.div 
+    <motion.div
       className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"
       style={{ y }}
     />
@@ -65,7 +65,7 @@ const Index = () => {
     loadFeaturedPilots();
     loadFeaturedCompanies();
     checkAuth();
-    
+
     // Escuchar cambios en el estado de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -132,7 +132,7 @@ const Index = () => {
       const activeUserIds = new Set((subscriptions || [])?.map(s => s.user_id) || []);
 
       // SOLO mostrar pilotos con suscripción activa
-      const pilotsWithSubscription = pilotsData?.filter(pilot => 
+      const pilotsWithSubscription = pilotsData?.filter(pilot =>
         activeUserIds.has(pilot.user_id)
       ) || [];
 
@@ -162,7 +162,7 @@ const Index = () => {
       // Mezclar aleatoriamente dentro de cada grupo
       const shuffledFeatured = featuredPilots.sort(() => Math.random() - 0.5);
       const shuffledRegular = regularPilots.sort(() => Math.random() - 0.5);
-      
+
       // Combinar: destacados primero, luego regulares, hasta 6 en total
       const allQualifiedPilots = [
         ...shuffledFeatured,
@@ -280,7 +280,7 @@ const Index = () => {
       );
 
       // Filtrar solo empresas con suscripción activa
-      const activeCompanies = companiesData.filter(c => 
+      const activeCompanies = companiesData.filter(c =>
         activeCompanyUserIds.has(c.user_id) && c.profiles
       );
 
@@ -316,21 +316,21 @@ const Index = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       const allBanners = data || [];
-      
+
       // Separar banners horizontales (Superior, Medio, Inferior)
       const horizontalBanners = allBanners.filter(
         banner => banner.position !== 'Lateral Derecho'
       );
       setBanners(horizontalBanners);
-      
+
       // Separar banners laterales (solo desktop)
       const lateralBanners = allBanners.filter(
         banner => banner.position === 'Lateral Derecho'
       );
       setSidebarBanners(lateralBanners);
-      
+
       // Separar banners móviles (laterales con versión móvil)
       const mobileBannersList = allBanners.filter(
         banner => banner.position === 'Lateral Derecho' && !banner.desktop_only && banner.mobile_image_url
@@ -403,24 +403,24 @@ const Index = () => {
 
       // Process results and get unique pilots
       const pilotMap = new Map();
-      
+
       (data || []).forEach((row: any) => {
         if (!pilotMap.has(row.id)) {
-        const name = row?.profiles?.full_name || "Piloto";
+          const name = row?.profiles?.full_name || "Piloto";
           const services = Array.isArray(row.pilot_services) ? row.pilot_services : [row.pilot_services];
-        const specialties = Array.from(
+          const specialties = Array.from(
             new Set(services.map((s: any) => s.service_type))
-        );
-          
+          );
+
           pilotMap.set(row.id, {
-          id: row.id,
-          name,
-          location: "Chile",
-          rating: 4.8,
-          flightHours: 0,
-          certified: !!row.certification_status,
-          specialties,
-          profileImage: row?.profiles?.avatar_url || undefined,
+            id: row.id,
+            name,
+            location: "Chile",
+            rating: 4.8,
+            flightHours: 0,
+            certified: !!row.certification_status,
+            specialties,
+            profileImage: row?.profiles?.avatar_url || undefined,
           });
         }
       });
@@ -443,7 +443,7 @@ const Index = () => {
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
           <div className="flex items-center justify-between gap-4 w-full">
             <Logo size="xl" className="hover:scale-105 transition-transform duration-200 flex-shrink-0" />
-            
+
             {/* Desktop Menu - Visible solo en md y superior */}
             <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
               <Button
@@ -464,8 +464,8 @@ const Index = () => {
               </Button>
               {user ? (
                 <>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="sm:h-11 sm:px-8 hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2 whitespace-nowrap"
                     onClick={() => {
@@ -477,8 +477,8 @@ const Index = () => {
                     <span className="hidden md:inline">Mi Cuenta</span>
                     <span className="md:hidden">Cuenta</span>
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     className="sm:h-11 sm:px-8 hover:bg-accent/10 transition-all duration-200 whitespace-nowrap"
                     onClick={handleLogout}
@@ -489,8 +489,8 @@ const Index = () => {
                 </>
               ) : (
                 <>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     className="sm:h-11 sm:px-8 hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2 whitespace-nowrap"
                     onClick={() => navigate('/demo')}
@@ -498,7 +498,7 @@ const Index = () => {
                     <span className="hidden sm:inline">Usuario Demo</span>
                     <span className="sm:hidden">Demo</span>
                   </Button>
-                  <Button 
+                  <Button
                     size="sm"
                     className="sm:h-11 sm:px-8 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
                     onClick={() => navigate('/auth')}
@@ -529,8 +529,8 @@ const Index = () => {
                     <SheetTitle>Menú</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6 space-y-3">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="lg"
                       className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
                       onClick={() => {
@@ -541,8 +541,8 @@ const Index = () => {
                       <Home className="h-5 w-5 mr-3" />
                       Home
                     </Button>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="lg"
                       className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
                       onClick={() => {
@@ -554,8 +554,8 @@ const Index = () => {
                     </Button>
                     {user ? (
                       <>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="lg"
                           className="w-full justify-start hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2"
                           onClick={() => {
@@ -566,8 +566,8 @@ const Index = () => {
                           <User className="h-5 w-5 mr-3" />
                           Mi Cuenta
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="lg"
                           className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
                           onClick={() => {
@@ -580,8 +580,8 @@ const Index = () => {
                       </>
                     ) : (
                       <>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="lg"
                           className="w-full justify-start hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2"
                           onClick={() => {
@@ -591,7 +591,7 @@ const Index = () => {
                         >
                           Usuario Demo
                         </Button>
-                        <Button 
+                        <Button
                           size="lg"
                           className="w-full justify-start bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl"
                           onClick={() => {
@@ -615,14 +615,14 @@ const Index = () => {
       {/* Hero Section */}
       <section className="py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 relative overflow-hidden">
         <HeroParallaxBackground />
-        <motion.div 
+        <motion.div
           className="container mx-auto px-6 lg:px-8 text-center relative z-10"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
           <div className="max-w-5xl mx-auto">
-            <motion.h1 
+            <motion.h1
               className="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -631,7 +631,7 @@ const Index = () => {
               Conecta con Pilotos de Drones
               <span className="text-accent block mt-2">Certificados</span>
             </motion.h1>
-            <motion.p 
+            <motion.p
               className="text-xl md:text-2xl text-white/90 mb-12 max-w-3xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -641,7 +641,7 @@ const Index = () => {
             </motion.p>
 
             {/* Search Form */}
-            <motion.div 
+            <motion.div
               className="max-w-4xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -650,7 +650,7 @@ const Index = () => {
               <SearchForm onSearch={handleSearch} />
             </motion.div>
             {loading && (
-              <motion.p 
+              <motion.p
                 className="mt-6 text-sm text-white/80 animate-pulse"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -721,7 +721,7 @@ const Index = () => {
 
               {/* CTA Section: solo si no hay resultados */}
               {results.length === 0 && (
-                <motion.section 
+                <motion.section
                   className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden"
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -729,7 +729,7 @@ const Index = () => {
                   transition={{ duration: 0.8 }}
                 >
                   <CTAParallaxBackground />
-                  <motion.div 
+                  <motion.div
                     className="text-center relative z-10"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -743,8 +743,8 @@ const Index = () => {
                       <p className="text-xl text-white/90 mb-8 leading-relaxed">
                         Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
                       </p>
-                      <Button 
-                        variant="secondary" 
+                      <Button
+                        variant="secondary"
                         size="lg"
                         className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
                       >
@@ -756,7 +756,7 @@ const Index = () => {
               )}
 
               {/* Features */}
-              <motion.section 
+              <motion.section
                 className="py-20 lg:py-28 bg-white"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -764,7 +764,7 @@ const Index = () => {
                 transition={{ duration: 0.8 }}
               >
                 <div className="max-w-6xl mx-auto">
-                  <motion.h3 
+                  <motion.h3
                     className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -774,7 +774,7 @@ const Index = () => {
                     ¿Por qué elegir Piloto de Drones?
                   </motion.h3>
                   <div className="grid md:grid-cols-3 gap-12">
-                    <motion.div 
+                    <motion.div
                       className="text-center group"
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -789,7 +789,7 @@ const Index = () => {
                         Todos nuestros pilotos están validados y cuentan con las certificaciones requeridas
                       </p>
                     </motion.div>
-                    <motion.div 
+                    <motion.div
                       className="text-center group"
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -804,7 +804,7 @@ const Index = () => {
                         Conecta con una amplia red de pilotos y empresas especializadas
                       </p>
                     </motion.div>
-                    <motion.div 
+                    <motion.div
                       className="text-center group"
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -826,7 +826,7 @@ const Index = () => {
               {/* Características y Beneficios */}
               <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                  <motion.div 
+                  <motion.div
                     className="text-center mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -843,8 +843,13 @@ const Index = () => {
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* Característica 1 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -853,11 +858,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Sistema de validación de certificaciones por administradores para garantizar la autenticidad de cada piloto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 2 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -866,11 +876,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Filtra pilotos por región, especialidad, tipo de drone y experiencia para encontrar el profesional perfecto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 3 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -879,11 +894,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Cada piloto tiene un código QR único para compartir su perfil profesional de forma rápida y profesional
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 4 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -892,11 +912,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Crea tu propia URL personalizada para tu perfil público y facilita que los clientes te encuentren
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 5 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.5 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -905,11 +930,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Los pilotos certificados y con suscripción activa aparecen destacados en los resultados de búsqueda
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 6 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.6 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -918,14 +948,14 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Panel de control intuitivo para gestionar tu perfil, certificaciones y servicios de forma eficiente
                       </p>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               </section>
 
               {/* Empresas Recomendadas */}
               {!results.length && featuredCompanies.length > 0 && (
-                <motion.section 
+                <motion.section
                   className="py-20 lg:py-28 bg-gradient-to-b from-secondary to-background"
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -933,7 +963,7 @@ const Index = () => {
                   transition={{ duration: 0.8 }}
                 >
                   <div className="max-w-7xl mx-auto">
-                    <motion.h3 
+                    <motion.h3
                       className="text-4xl md:text-5xl font-bold text-center text-primary mb-4"
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -942,7 +972,7 @@ const Index = () => {
                     >
                       Empresas Recomendadas
                     </motion.h3>
-                    <motion.p 
+                    <motion.p
                       className="text-center text-muted-foreground mb-12 text-lg"
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -969,7 +999,7 @@ const Index = () => {
               )}
 
               {/* Resultados / Destacados */}
-              <motion.section 
+              <motion.section
                 className="py-20 lg:py-28 bg-secondary"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -977,7 +1007,7 @@ const Index = () => {
                 transition={{ duration: 0.8 }}
               >
                 <div className="max-w-7xl mx-auto">
-                  <motion.h3 
+                  <motion.h3
                     className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -1000,15 +1030,15 @@ const Index = () => {
                     ))}
                   </div>
                   {!results.length && (
-                    <motion.div 
+                    <motion.div
                       className="text-center mt-12"
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="lg"
                         className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
                       >
@@ -1072,7 +1102,7 @@ const Index = () => {
 
               {/* CTA Section: solo si no hay resultados */}
               {results.length === 0 && (
-                <motion.section 
+                <motion.section
                   className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden"
                   initial={{ opacity: 0 }}
                   whileInView={{ opacity: 1 }}
@@ -1080,7 +1110,7 @@ const Index = () => {
                   transition={{ duration: 0.8 }}
                 >
                   <CTAParallaxBackground />
-                  <motion.div 
+                  <motion.div
                     className="text-center relative z-10"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -1094,8 +1124,8 @@ const Index = () => {
                       <p className="text-xl text-white/90 mb-8 leading-relaxed">
                         Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
                       </p>
-                      <Button 
-                        variant="secondary" 
+                      <Button
+                        variant="secondary"
                         size="lg"
                         className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
                       >
@@ -1107,7 +1137,7 @@ const Index = () => {
               )}
 
               {/* Features */}
-              <motion.section 
+              <motion.section
                 className="py-20 lg:py-28 bg-white"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -1115,7 +1145,7 @@ const Index = () => {
                 transition={{ duration: 0.8 }}
               >
                 <div className="max-w-6xl mx-auto">
-                  <motion.h3 
+                  <motion.h3
                     className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -1125,7 +1155,7 @@ const Index = () => {
                     ¿Por qué elegir Piloto de Drones?
                   </motion.h3>
                   <div className="grid md:grid-cols-3 gap-12">
-                    <motion.div 
+                    <motion.div
                       className="text-center group"
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1140,7 +1170,7 @@ const Index = () => {
                         Todos nuestros pilotos están validados y cuentan con las certificaciones requeridas
                       </p>
                     </motion.div>
-                    <motion.div 
+                    <motion.div
                       className="text-center group"
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1155,7 +1185,7 @@ const Index = () => {
                         Conecta con una amplia red de pilotos y empresas especializadas
                       </p>
                     </motion.div>
-                    <motion.div 
+                    <motion.div
                       className="text-center group"
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -1177,7 +1207,7 @@ const Index = () => {
               {/* Características y Beneficios */}
               <section className="py-20 lg:py-28 bg-gradient-to-br from-accent/5 via-white to-secondary/10">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8">
-                  <motion.div 
+                  <motion.div
                     className="text-center mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -1194,8 +1224,13 @@ const Index = () => {
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* Característica 1 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1204,11 +1239,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Sistema de validación de certificaciones por administradores para garantizar la autenticidad de cada piloto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 2 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1217,11 +1257,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Filtra pilotos por región, especialidad, tipo de drone y experiencia para encontrar el profesional perfecto
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 3 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.3 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1230,11 +1275,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Cada piloto tiene un código QR único para compartir su perfil profesional de forma rápida y profesional
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 4 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1243,11 +1293,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Crea tu propia URL personalizada para tu perfil público y facilita que los clientes te encuentren
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 5 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.5 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1256,11 +1311,16 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Los pilotos certificados y con suscripción activa aparecen destacados en los resultados de búsqueda
                       </p>
-                    </div>
+                    </motion.div>
 
                     {/* Característica 6 */}
-                    <div 
+                    <motion.div
                       className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      initial={{ opacity: 0, y: 50 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.5, delay: 0.6 }}
+                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1269,13 +1329,13 @@ const Index = () => {
                       <p className="text-muted-foreground leading-relaxed">
                         Panel de control intuitivo para gestionar tu perfil, certificaciones y servicios de forma eficiente
                       </p>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               </section>
 
               {/* Resultados / Destacados */}
-              <motion.section 
+              <motion.section
                 className="py-20 lg:py-28 bg-secondary"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
@@ -1283,7 +1343,7 @@ const Index = () => {
                 transition={{ duration: 0.8 }}
               >
                 <div className="max-w-7xl mx-auto">
-                  <motion.h3 
+                  <motion.h3
                     className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -1306,15 +1366,15 @@ const Index = () => {
                     ))}
                   </div>
                   {!results.length && (
-                    <motion.div 
+                    <motion.div
                       className="text-center mt-12"
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
                     >
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="lg"
                         className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
                       >

@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QRCodeSVG } from 'qrcode.react';
-import { 
-  ArrowLeft, 
-  QrCode, 
-  Download, 
-  Share2, 
+import {
+  ArrowLeft,
+  QrCode,
+  Download,
+  Share2,
   Copy,
   CheckCircle,
   Shield
@@ -80,15 +80,12 @@ const PilotQR = () => {
 
         setHasActiveSubscription(true);
         setPilotData(profileData);
-        
+
         // Generate QR code URL - ALWAYS use user ID to ensure QR never changes
         // The QR code should remain constant even if user changes their custom slug
         // This ensures the QR code works forever regardless of URL changes
-        // Use /company/ for companies, /pilot/ for pilots
-        const isCompany = profileData.user_type === 'company';
-        const profileUrl = isCompany 
-          ? `${window.location.origin}/company/${user.id}`
-          : `${window.location.origin}/pilot/${user.id}`;
+        // Use /pilot/ route for both pilots and companies (PublicPilotProfile handles both)
+        const profileUrl = `${window.location.origin}/pilot/${user.id}`;
         setQrCode(profileUrl);
       }
     } catch (error) {
@@ -112,18 +109,18 @@ const PilotQR = () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
-    
+
     img.onload = () => {
       canvas.width = 512;
       canvas.height = 512;
-      
+
       // White background
       if (ctx) {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, 512, 512);
       }
-      
+
       // Download
       canvas.toBlob((blob) => {
         if (blob) {
@@ -135,7 +132,7 @@ const PilotQR = () => {
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
-          
+
           toast({
             title: "QR Descargado",
             description: "Tu código QR ha sido descargado exitosamente",
@@ -143,26 +140,23 @@ const PilotQR = () => {
         }
       });
     };
-    
+
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   const handleShare = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    
+
     // Always use user ID for QR, not the slug - ensures QR never changes
-    // Use /company/ for companies, /pilot/ for pilots
-    const isCompany = userType === 'company';
-    const profileUrl = isCompany 
-      ? `${window.location.origin}/company/${user.id}`
-      : `${window.location.origin}/pilot/${user.id}`;
-    
+    // Use /pilot/ route for both pilots and companies (PublicPilotProfile handles both)
+    const profileUrl = `${window.location.origin}/pilot/${user.id}`;
+
     if (navigator.share) {
       try {
         await navigator.share({
-          title: isCompany ? 'Mi Perfil de Empresa' : 'Mi Perfil de Piloto',
-          text: isCompany 
+          title: userType === 'company' ? 'Mi Perfil de Empresa' : 'Mi Perfil de Piloto',
+          text: userType === 'company'
             ? `Soy ${pilotData?.full_name || 'una empresa'}, empresa certificada de drones`
             : `Soy ${pilotData?.full_name}, piloto certificado de drones`,
           url: profileUrl
@@ -183,13 +177,10 @@ const PilotQR = () => {
   const handleCopyLink = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    
+
     // Always use user ID for QR, not the slug - ensures QR never changes
-    // Use /company/ for companies, /pilot/ for pilots
-    const isCompany = userType === 'company';
-    const profileUrl = isCompany 
-      ? `${window.location.origin}/company/${user.id}`
-      : `${window.location.origin}/pilot/${user.id}`;
+    // Use /pilot/ route for both pilots and companies (PublicPilotProfile handles both)
+    const profileUrl = `${window.location.origin}/pilot/${user.id}`;
     navigator.clipboard.writeText(profileUrl);
     toast({
       title: "Enlace copiado",
@@ -253,8 +244,8 @@ const PilotQR = () => {
               {hasActiveSubscription ? (
                 <div ref={qrRef} className="bg-white p-8 rounded-2xl mx-auto mb-6 w-64 h-64 flex items-center justify-center shadow-lg">
                   {qrCode ? (
-                    <QRCodeSVG 
-                      value={qrCode} 
+                    <QRCodeSVG
+                      value={qrCode}
                       size={200}
                       level="H"
                       includeMargin={false}
@@ -316,24 +307,24 @@ const PilotQR = () => {
               Descargar QR
             </Button>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              onClick={handleShare}
-              className="h-12 bg-[#2C2C2C] border-[#333333] hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-500 transition-all duration-200 rounded-xl text-[#E0E0E0]"
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Compartir
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleCopyLink}
-              className="h-12 bg-[#2C2C2C] border-[#333333] hover:bg-green-500/10 hover:border-green-500 hover:text-green-500 transition-all duration-200 rounded-xl text-[#E0E0E0]"
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              Copiar Enlace
-            </Button>
-          </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                onClick={handleShare}
+                className="h-12 bg-[#2C2C2C] border-[#333333] hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-500 transition-all duration-200 rounded-xl text-[#E0E0E0]"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Compartir
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCopyLink}
+                className="h-12 bg-[#2C2C2C] border-[#333333] hover:bg-green-500/10 hover:border-green-500 hover:text-green-500 transition-all duration-200 rounded-xl text-[#E0E0E0]"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar Enlace
+              </Button>
+            </div>
           </div>
         )}
 

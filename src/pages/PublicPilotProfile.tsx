@@ -37,6 +37,12 @@ interface PilotProfile {
   linkedin_username?: string | null;
   instagram_url?: string | null;
   linkedin_url?: string | null;
+  // Company-specific fields
+  company_name?: string | null;
+  description?: string | null;
+  website?: string | null;
+  region?: string | null;
+  services?: string[] | null;
 }
 
 interface PilotData {
@@ -236,12 +242,34 @@ const PublicPilotProfile = () => {
       if (userType === 'company') {
         const { data: companyInfo } = await supabase
           .from('companies')
-          .select('certification_status, company_name')
+          .select('*')
           .eq('user_id', userId)
           .maybeSingle();
 
         if (companyInfo) {
-          setCompanyData(companyInfo);
+          setCompanyData({
+            certification_status: companyInfo.certification_status,
+            company_name: companyInfo.company_name
+          });
+          // Merge company data into profile for easier access
+          setProfile(prev => ({
+            ...prev,
+            ...profileData,
+            company_name: companyInfo.company_name,
+            description: companyInfo.description,
+            website: companyInfo.website,
+            phone: companyInfo.phone || profileData.phone,
+            email: companyInfo.email || profileData.email,
+            location: companyInfo.location || profileData.location,
+            region: companyInfo.region,
+            experience_years: companyInfo.experience_years,
+            services: companyInfo.services,
+            drone_types: companyInfo.drone_types,
+            instagram_username: companyInfo.instagram_username || profileData.instagram_username,
+            linkedin_username: companyInfo.linkedin_username || profileData.linkedin_username,
+            instagram_url: companyInfo.instagram_url || profileData.instagram_url,
+            linkedin_url: companyInfo.linkedin_url || profileData.linkedin_url,
+          } as PilotProfile));
         }
       }
 
@@ -394,7 +422,7 @@ const PublicPilotProfile = () => {
                     <div className="flex flex-col lg:flex-row lg:items-start gap-4 mb-6">
                       <div className="flex-1">
                         <h1 className="text-3xl md:text-4xl font-semibold text-[#083b4e] mb-2">
-                          {profile.full_name}
+                          {isCompany && companyData?.company_name ? companyData.company_name : profile.full_name}
                         </h1>
                         {profile.location && (
                           <p className="text-gray-600 text-base flex items-center gap-2 justify-center lg:justify-start mb-4">
@@ -568,6 +596,62 @@ const PublicPilotProfile = () => {
                     </a>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Servicios Card - Solo para empresas */}
+          {isCompany && profile.services && profile.services.length > 0 && (
+            <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50 border-b border-gray-200">
+                <CardTitle className="text-[#083b4e] text-2xl font-semibold flex items-center gap-3">
+                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
+                    <Briefcase className="h-6 w-6 text-[#00b3f3]" />
+                  </div>
+                  Servicios que Prestamos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="flex flex-wrap gap-3">
+                  {profile.services.map((service, index) => (
+                    <Badge
+                      key={index}
+                      className="bg-[#00b3f3] text-white border-0 px-4 py-2 text-sm font-medium hover:bg-[#0099cc] transition-colors"
+                    >
+                      {service}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Website Card - Solo si tiene website */}
+          {isCompany && profile.website && (
+            <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
+              <CardHeader className="bg-gray-50 border-b border-gray-200">
+                <CardTitle className="text-[#083b4e] text-2xl font-semibold flex items-center gap-3">
+                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
+                    <Mail className="h-6 w-6 text-[#00b3f3]" />
+                  </div>
+                  Sitio Web
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <a
+                  href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
+                >
+                  <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center">
+                    <span className="text-[#00b3f3] text-2xl font-bold">🌐</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 font-medium mb-1">Visita nuestro sitio web</p>
+                    <p className="font-medium text-[#00b3f3] text-base break-all">{profile.website}</p>
+                  </div>
+                </a>
               </CardContent>
             </Card>
           )}
