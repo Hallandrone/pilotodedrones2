@@ -77,7 +77,7 @@ const PilotCard = ({ pilot }: PilotCardProps) => {
 
             {/* Specialties */}
             <div className="space-y-2">
-              {pilot.specialties.length > 0 && (
+              {pilot.specialties && pilot.specialties.length > 0 && (
                 <div>
                   <div className="text-xs font-medium text-muted-foreground mb-1">Especialidades:</div>
                   <div className="flex flex-wrap gap-2">
