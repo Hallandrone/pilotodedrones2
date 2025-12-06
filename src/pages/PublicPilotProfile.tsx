@@ -4,22 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Shield, 
-  MapPin, 
-  Mail, 
-  Phone, 
+import {
+  Shield,
+  MapPin,
+  Mail,
+  Phone,
   Clock,
   CheckCircle,
   Star,
   Briefcase,
-  QrCode,
   Award,
   ArrowLeft,
   MessageCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { QRCodeSVG } from "qrcode.react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,7 +66,7 @@ const PublicPilotProfile = () => {
   const [isCompany, setIsCompany] = useState(false);
   const [companyData, setCompanyData] = useState<{ certification_status: boolean; company_name: string | null } | null>(null);
   const { toast } = useToast();
-  
+
   const searchState = location.state as any;
   const [actualUserId, setActualUserId] = useState<string | null>(null);
   const [profileSlug, setProfileSlug] = useState<string | null>(null);
@@ -82,9 +80,9 @@ const PublicPilotProfile = () => {
   const [submittingContact, setSubmittingContact] = useState(false);
 
   // Generate profile URL - use slug if available, otherwise use ID
-  const profileUrl = profileSlug 
+  const profileUrl = profileSlug
     ? `${window.location.origin}/${profileSlug}`
-    : actualUserId 
+    : actualUserId
       ? `${window.location.origin}/pilot/${actualUserId}`
       : `${window.location.origin}/pilot/${pilotId}`;
 
@@ -94,8 +92,8 @@ const PublicPilotProfile = () => {
       if (searchState.searchTerm) params.set("search", searchState.searchTerm);
       if (searchState.selectedRegion && searchState.selectedRegion !== "all") params.set("region", searchState.selectedRegion);
       if (searchState.certifiedOnly) params.set("certified", "true");
-      navigate(`/search?${params.toString()}`, { 
-        state: searchState 
+      navigate(`/search?${params.toString()}`, {
+        state: searchState
       });
     } else {
       navigate("/search");
@@ -118,7 +116,7 @@ const PublicPilotProfile = () => {
 
       // UUIDs have format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (36 chars with hyphens)
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pilotId || '');
-      
+
       // If it's not a UUID, try to find by slug in history table first
       if (!isUUID) {
         // Check slug history to see if this slug exists (current or old)
@@ -130,7 +128,7 @@ const PublicPilotProfile = () => {
 
         if (slugHistory && !historyError) {
           userId = slugHistory.user_id;
-          
+
           // If this is not the current slug, redirect to current slug
           if (!slugHistory.is_current) {
             const { data: currentSlug } = await supabase
@@ -139,14 +137,14 @@ const PublicPilotProfile = () => {
               .eq('user_id', userId)
               .eq('is_current', true)
               .single();
-            
+
             if (currentSlug) {
               // Redirect to current slug
               navigate(`/${currentSlug.slug}`, { replace: true });
               return;
             }
           }
-          
+
           // Load profile by user_id
           const { data: profileByUserId } = await supabase
             .from('profiles')
@@ -188,7 +186,7 @@ const PublicPilotProfile = () => {
           // If it was a slug and not found by ID either, throw error
           throw new Error('Perfil no encontrado');
         }
-        
+
         profileData = idData;
         userId = idData.id;
         setProfileSlug(idData.public_profile_slug || null);
@@ -241,7 +239,7 @@ const PublicPilotProfile = () => {
           .select('certification_status, company_name')
           .eq('user_id', userId)
           .maybeSingle();
-        
+
         if (companyInfo) {
           setCompanyData(companyInfo);
         }
@@ -358,8 +356,8 @@ const PublicPilotProfile = () => {
       <div className="px-4 py-8 md:py-12">
         <div className="max-w-5xl mx-auto space-y-8">
           {/* Back Button */}
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={handleBack}
             className="text-[#083b4e] hover:bg-gray-100 mb-4 gap-2"
           >
@@ -388,15 +386,6 @@ const PublicPilotProfile = () => {
                           <CheckCircle className="h-5 w-5 text-white" />
                         </div>
                       )}
-                    </div>
-                    
-                    {/* QR Code */}
-                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                      <QRCodeSVG value={profileUrl} size={120} level="H" />
-                      <p className="text-xs text-center text-gray-600 mt-2 flex items-center justify-center gap-1.5 font-medium">
-                        <QrCode className="h-3 w-3" />
-                        Perfil Verificable
-                      </p>
                     </div>
                   </div>
 
@@ -442,7 +431,7 @@ const PublicPilotProfile = () => {
                         <div className="text-[#083b4e] text-3xl font-semibold mb-1">{flightHours}</div>
                         <div className="text-gray-600 text-sm font-medium">Horas de Vuelo</div>
                       </div>
-                      
+
                       {/* Experience */}
                       {profile.experience_years && profile.experience_years > 0 && (
                         <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-[#00b3f3]/30 transition-colors">
@@ -451,7 +440,7 @@ const PublicPilotProfile = () => {
                           <div className="text-gray-600 text-sm font-medium">Años de Experiencia</div>
                         </div>
                       )}
-                      
+
                       {/* Services Count */}
                       <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-[#00b3f3]/30 transition-colors">
                         <Briefcase className="h-6 w-6 text-[#00b3f3] mb-3" />
@@ -585,8 +574,8 @@ const PublicPilotProfile = () => {
                     </p>
                     <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button 
-                          size="lg" 
+                        <Button
+                          size="lg"
                           className="bg-white text-[#00b3f3] hover:bg-white/90 font-semibold"
                         >
                           Te llamaremos
@@ -641,8 +630,8 @@ const PublicPilotProfile = () => {
                               rows={4}
                             />
                           </div>
-                          <Button 
-                            type="submit" 
+                          <Button
+                            type="submit"
                             className="w-full"
                             disabled={submittingContact}
                           >
@@ -670,7 +659,7 @@ const PublicPilotProfile = () => {
             <CardContent className="pt-6">
               <div className="grid gap-6 sm:grid-cols-2">
                 {profile.email && (
-                  <a 
+                  <a
                     href={`mailto:${profile.email}`}
                     className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
                   >
@@ -684,7 +673,7 @@ const PublicPilotProfile = () => {
                   </a>
                 )}
                 {profile.phone && (
-                  <a 
+                  <a
                     href={`tel:${profile.phone}`}
                     className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
                   >
@@ -698,7 +687,7 @@ const PublicPilotProfile = () => {
                   </a>
                 )}
                 {(profile.instagram_url || profile.instagram_username) && (
-                  <a 
+                  <a
                     href={profile.instagram_url || `https://instagram.com/${profile.instagram_username}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -716,7 +705,7 @@ const PublicPilotProfile = () => {
                   </a>
                 )}
                 {(profile.linkedin_url || profile.linkedin_username) && (
-                  <a 
+                  <a
                     href={profile.linkedin_url || `https://linkedin.com/in/${profile.linkedin_username}`}
                     target="_blank"
                     rel="noopener noreferrer"
