@@ -157,7 +157,8 @@ export async function getLocationName(
 ): Promise<string> {
 	try {
 		// Usar Nominatim de OpenStreetMap para geocodificación inversa (gratis)
-		const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`;
+		// zoom=18 para máxima precisión a nivel de calle/comuna
+		const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
 		const response = await fetch(url, {
 			headers: {
 				'User-Agent': 'PilotoDeDrones/1.0',
@@ -170,19 +171,28 @@ export async function getLocationName(
 
 		const data = await response.json();
 
-		// Intentar obtener ciudad/comuna
+		// Intentar obtener comuna/barrio específico
 		const address = data.address;
-		const city = address.city || address.town || address.village || address.municipality;
-		const state = address.state || address.region;
 
-		if (city && state) {
-			return `${city}, ${state}`;
+		// Priorizar suburb (comuna) y neighbourhood (barrio)
+		const suburb = address.suburb || address.neighbourhood || address.quarter;
+		const city = address.city || address.town || address.village || address.municipality;
+		const county = address.county;
+
+		// Construir nombre de ubicación más específico
+		if (suburb && city) {
+			return `${suburb}, ${city}`;
+		} else if (suburb && county) {
+			return `${suburb}, ${county}`;
+		} else if (suburb) {
+			return suburb;
 		} else if (city) {
 			return city;
-		} else if (state) {
-			return state;
+		} else if (county) {
+			return county;
 		} else {
-			return data.display_name.split(',').slice(0, 2).join(',');
+			// Fallback: tomar los primeros 2 elementos del display_name
+			return data.display_name.split(',').slice(0, 2).join(',').trim();
 		}
 	} catch (error) {
 		console.error('Error fetching location name:', error);
