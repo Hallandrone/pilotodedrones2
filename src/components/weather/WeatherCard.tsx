@@ -11,9 +11,13 @@ import {
 	CheckCircle,
 	XCircle,
 	Loader2,
-	MapPin
+	MapPin,
+	RefreshCw,
+	Sunrise,
+	Sunset,
+	Sun
 } from 'lucide-react';
-import { getWeatherConditions, getUserLocation, DEFAULT_LOCATION } from '@/services/weatherService';
+import { getWeatherConditions, getUserLocation, DEFAULT_LOCATION, getSunriseSunset, getLocationName, type SunriseSunsetData } from '@/services/weatherService';
 import {
 	getFlightStatusColor,
 	getFlightStatusIcon,
@@ -36,6 +40,9 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	const [error, setError] = useState<string | null>(null);
 	const [locationGranted, setLocationGranted] = useState(false);
 	const [showDetailModal, setShowDetailModal] = useState(false);
+	const [locationName, setLocationName] = useState<string>('Santiago, Chile');
+	const [currentLocation, setCurrentLocation] = useState<{ latitude: number, longitude: number }>(DEFAULT_LOCATION);
+	const [sunData, setSunData] = useState<SunriseSunsetData | null>(null);
 	const { toast } = useToast();
 
 	useEffect(() => {
@@ -61,6 +68,16 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 				location = DEFAULT_LOCATION;
 				setLocationGranted(false);
 			}
+
+			setCurrentLocation(location);
+
+			// Obtener nombre de ubicación
+			const locName = await getLocationName(location.latitude, location.longitude);
+			setLocationName(locName);
+
+			// Obtener datos de sunrise/sunset
+			const sunriseSunsetData = await getSunriseSunset(location.latitude, location.longitude);
+			setSunData(sunriseSunsetData);
 
 			// Obtener datos meteorológicos
 			const weatherData = await getWeatherConditions(location.latitude, location.longitude);
@@ -160,19 +177,28 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 
 	return (
 		<>
-			<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
 				<CardHeader className="pb-3">
-					<div className="flex items-center justify-between">
-						<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
-							<Cloud className="h-5 w-5 text-[#00b3f3]" />
-							Condiciones para Volar
-						</CardTitle>
-						{!locationGranted && (
-							<Badge variant="outline" className="text-xs text-white/60 border-white/30">
-								<MapPin className="h-3 w-3 mr-1" />
-								Santiago
-							</Badge>
-						)}
+					<div className="flex items-start justify-between">
+						<div className="flex-1">
+							<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
+								<Cloud className="h-5 w-5 text-[#00b3f3]" />
+								Condiciones para Volar
+							</CardTitle>
+							<div className="flex items-center gap-2 mt-1">
+								<MapPin className="h-3 w-3 text-white/60" />
+								<span className="text-xs text-white/60">{locationName}</span>
+								<Button
+									size="sm"
+									variant="ghost"
+									className="h-5 px-2 text-xs text-white/60 hover:text-white hover:bg-white/10"
+									onClick={loadWeather}
+								>
+									<RefreshCw className="h-3 w-3 mr-1" />
+									Actualizar
+								</Button>
+							</div>
+						</div>
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">
@@ -247,6 +273,33 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 							</p>
 						</div>
 					</div>
+
+					{/* Sunrise/Sunset Data */}
+					{sunData && (
+						<div className="grid grid-cols-3 gap-2 bg-white/5 rounded-lg p-3 border border-[#00b3f3]/20">
+							<div className="text-center">
+								<Sunrise className="h-4 w-4 text-orange-400 mx-auto mb-1" />
+								<p className="text-white/60 text-xs mb-1">Amanecer</p>
+								<p className="text-white font-semibold text-xs">
+									{new Date(sunData.sunrise).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+								</p>
+							</div>
+							<div className="text-center border-x border-white/10">
+								<Sun className="h-4 w-4 text-yellow-400 mx-auto mb-1" />
+								<p className="text-white/60 text-xs mb-1">Mediodía</p>
+								<p className="text-white font-semibold text-xs">
+									{new Date(sunData.solar_noon).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+								</p>
+							</div>
+							<div className="text-center">
+								<Sunset className="h-4 w-4 text-purple-400 mx-auto mb-1" />
+								<p className="text-white/60 text-xs mb-1">Atardecer</p>
+								<p className="text-white font-semibold text-xs">
+									{new Date(sunData.sunset).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+								</p>
+							</div>
+						</div>
+					)}
 
 					{/* Botón Ver Detalles */}
 					<Button
