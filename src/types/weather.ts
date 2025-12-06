@@ -24,7 +24,7 @@ export interface MeteoblueData1h {
 	windspeed: number[];
 	winddirection: number[];
 	precipitation: number[];
-	visibility: number[];
+	visibility?: number[];
 	relativehumidity: number[];
 	sealevelpressure: number[];
 	pictocode: number[];
