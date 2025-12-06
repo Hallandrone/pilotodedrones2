@@ -70,6 +70,10 @@ Deno.serve(async (req) => {
     if (!fullEndpoint.startsWith('api/v1/')) {
       fullEndpoint = `api/v1/${fullEndpoint}`;
     }
+    // Reveniu requiere barra final para POST/PUT/DELETE según documentación
+    if (method !== 'GET' && !fullEndpoint.endsWith('/')) {
+      fullEndpoint += '/';
+    }
     const url = `${reveniuBaseUrl.replace(/\/$/, '')}/${fullEndpoint}`;
 
     // Preparar headers para Reveniu
@@ -78,6 +82,12 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
       'Reveniu-Secret-Key': reveniuApiKey,
     };
+
+    console.log('Reveniu API Request:', {
+      method,
+      url,
+      paramsPreview: JSON.stringify(params).substring(0, 200)
+    });
 
     let response: Response;
     if (method === 'GET') {
