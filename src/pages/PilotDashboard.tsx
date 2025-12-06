@@ -76,7 +76,7 @@ interface Contact {
   contact_email: string;
   contact_phone: string | null;
   contact_message: string | null;
-  created_at: string;
+  contacted_at: string;
 }
 
 const PilotDashboard = () => {
@@ -247,7 +247,7 @@ const PilotDashboard = () => {
         .from('profile_contacts')
         .select('*')
         .eq('profile_id', userId)
-        .order('created_at', { ascending: false })
+        .order('contacted_at', { ascending: false })
         .limit(5); // Solo mostrar los últimos 5
 
       if (error) throw error;
