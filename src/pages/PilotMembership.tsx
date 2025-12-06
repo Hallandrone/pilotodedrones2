@@ -815,19 +815,6 @@ const PilotMembership = () => {
                 </div>
                 <ExternalLink className="h-4 w-4 ml-auto" />
               </Button>
-
-              <Button
-                variant="outline"
-                className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4] transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
-                onClick={() => window.open('https://help.pilotodedrones.cl', '_blank')}
-              >
-                <HelpCircle className="h-5 w-5 mr-4" />
-                <div className="text-left">
-                  <div className="font-semibold text-[#E0E0E0]">Centro de Ayuda</div>
-                  <div className="text-sm text-[#B0B0B0]">Preguntas frecuentes</div>
-                </div>
-                <ExternalLink className="h-4 w-4 ml-auto" />
-              </Button>
             </CardContent>
           </div>
         </Card>
