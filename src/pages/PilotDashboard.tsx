@@ -418,37 +418,6 @@ const PilotDashboard = () => {
                 </div>
               </div>
 
-              {/* Contactos Recibidos - Botón */}
-              <Card
-                className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 cursor-pointer group"
-                onClick={() => navigate('/pilot/contacts')}
-              >
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-white font-semibold text-base sm:text-lg">Contactos Recibidos</h3>
-                        <p className="text-white/60 text-xs sm:text-sm">
-                          {contacts.length === 0
-                            ? 'Aún no has recibido contactos'
-                            : `${contacts.length} contacto${contacts.length !== 1 ? 's' : ''} reciente${contacts.length !== 1 ? 's' : ''}`
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {contacts.length > 0 && (
-                        <Badge className="bg-[#00b3f3] text-white">{contacts.length}</Badge>
-                      )}
-                      <ArrowRight className="h-5 w-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Weather Card */}
               <WeatherCard hasActiveSubscription={hasActiveSubscription} />
             </CardContent>
@@ -506,6 +475,38 @@ const PilotDashboard = () => {
             <span className="relative text-xs sm:text-base text-white px-1">Mi QR</span>
           </Button>
         </div>
+
+        {/* Contactos Recibidos - Botón */}
+        <Card
+          className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 cursor-pointer group animate-fade-in"
+          style={{ animationDelay: '0.25s' }}
+          onClick={() => navigate('/pilot/contacts')}
+        >
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-base sm:text-lg">Contactos Recibidos</h3>
+                  <p className="text-white/60 text-xs sm:text-sm">
+                    {contacts.length === 0
+                      ? 'Aún no has recibido contactos'
+                      : `${contacts.length} contacto${contacts.length !== 1 ? 's' : ''} reciente${contacts.length !== 1 ? 's' : ''}`
+                    }
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {contacts.length > 0 && (
+                  <Badge className="bg-[#00b3f3] text-white">{contacts.length}</Badge>
+                )}
+                <ArrowRight className="h-5 w-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Status Cards */}
         <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
