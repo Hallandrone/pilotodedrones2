@@ -30,24 +30,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PilotDetailsModal } from "./PilotDetailsModal";
-import { 
-  Loader2, 
-  Plane, 
-  Mail, 
-  Calendar, 
-  MoreHorizontal, 
-  Eye, 
+import {
+  Loader2,
+  Plane,
+  Mail,
+  Calendar,
+  MoreHorizontal,
+  Eye,
   Ban,
   CheckCircle,
   XCircle,
   Clock,
   RefreshCw
 } from "lucide-react";
-import { 
-  getCertificationStatus, 
-  getDaysUntilExpiration, 
+import {
+  getCertificationStatus,
+  getDaysUntilExpiration,
   formatExpirationDate,
-  calculateExpirationDate 
+  calculateExpirationDate
 } from "@/utils/certificationHelpers";
 
 interface PilotService {
@@ -75,6 +75,8 @@ interface PilotProfile {
     avatar_url: string | null;
   };
   pilot_services: PilotService[];
+  subscription_status: string | null;
+  subscription_plan: string | null;
 }
 
 export function Pilots() {
@@ -116,10 +118,19 @@ export function Pilots() {
             .select('*')
             .eq('pilot_id', pilot.id);
 
+          // Get subscription status
+          const { data: subscriptionData } = await supabase
+            .from('user_subscriptions')
+            .select('status, plan_name')
+            .eq('user_id', pilot.user_id)
+            .single();
+
           return {
             ...pilot,
             profiles: profileData || { full_name: null, email: null, avatar_url: null },
-            pilot_services: servicesData || []
+            pilot_services: servicesData || [],
+            subscription_status: subscriptionData?.status || null,
+            subscription_plan: subscriptionData?.plan_name || null
           };
         })
       );
@@ -305,6 +316,7 @@ export function Pilots() {
                     <TableHead>Expiración</TableHead>
                     <TableHead>Tipo de Servicio</TableHead>
                     <TableHead>Estado de Publicación</TableHead>
+                    <TableHead>Suscripción</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -340,7 +352,7 @@ export function Pilots() {
                             pilot.certification_expires_at
                           );
                           const daysUntilExpiration = getDaysUntilExpiration(pilot.certification_expires_at);
-                          
+
                           if (certStatus === 'valid') {
                             return (
                               <div className="flex items-center gap-1">
@@ -407,6 +419,30 @@ export function Pilots() {
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        {pilot.subscription_status ? (
+                          <div className="flex items-center gap-1">
+                            {pilot.subscription_status === 'active' ? (
+                              <CheckCircle className="h-3 w-3 text-green-500" />
+                            ) : (
+                              <XCircle className="h-3 w-3 text-gray-500" />
+                            )}
+                            <Badge
+                              variant={pilot.subscription_status === 'active' ? 'default' : 'secondary'}
+                              className={pilot.subscription_status === 'active' ? 'bg-green-500' : ''}
+                            >
+                              {pilot.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
+                            </Badge>
+                            {pilot.subscription_plan && (
+                              <span className="text-xs text-muted-foreground ml-1">
+                                ({pilot.subscription_plan})
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <Badge variant="outline">Sin suscripción</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1">
                           {getStatusIcon(pilot.status)}
                           <Badge variant={getStatusBadgeVariant(pilot.status)}>
@@ -431,7 +467,7 @@ export function Pilots() {
                             {pilot.certification_status && (
                               <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => handleRenewCertification(pilot.id, pilot.user_id)}
                                 >
                                   <RefreshCw className="mr-2 h-4 w-4" />
@@ -440,7 +476,7 @@ export function Pilots() {
                               </>
                             )}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => handleStatusUpdate(pilot.id, pilot.status === 'active' ? 'suspended' : 'rejected')}
                             >
