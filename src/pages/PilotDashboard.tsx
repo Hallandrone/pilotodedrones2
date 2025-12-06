@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/ui/logo";
+import WeatherCard from "@/components/weather/WeatherCard";
 import {
   Plane,
   MapPin,
@@ -86,6 +87,7 @@ const PilotDashboard = () => {
     last_flight: null
   });
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -119,6 +121,7 @@ const PilotDashboard = () => {
       }
 
       await loadPilotData(session.user.id);
+      await checkSubscription(session.user.id);
     } catch (error) {
       console.error('Error checking auth:', error);
       navigate('/auth');
@@ -252,6 +255,24 @@ const PilotDashboard = () => {
     } catch (error) {
       console.error('Error loading contacts:', error);
       // No mostrar error al usuario, solo log
+    }
+  };
+
+  const checkSubscription = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('user_subscriptions')
+        .select('status')
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (error) throw error;
+
+      setHasActiveSubscription(!!data);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setHasActiveSubscription(false);
     }
   };
 
@@ -456,6 +477,9 @@ const PilotDashboard = () => {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Weather Card */}
+              <WeatherCard hasActiveSubscription={hasActiveSubscription} />
             </CardContent>
           </div>
         </Card>
