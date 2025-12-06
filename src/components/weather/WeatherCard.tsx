@@ -24,7 +24,7 @@ import {
 } from '@/utils/weatherHelpers';
 import type { FlightConditions } from '@/types/weather';
 import { useToast } from '@/hooks/use-toast';
-import WeatherDetailModal from './WeatherDetailModal';
+import WeatherDetailModal from '@/components/weather/WeatherDetailModal';
 
 interface WeatherCardProps {
 	hasActiveSubscription: boolean;
