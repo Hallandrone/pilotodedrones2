@@ -469,12 +469,7 @@ const PublicPilotProfile = () => {
                         </div>
                       )}
 
-                      {/* Services Count */}
-                      <div className="bg-white border border-gray-200 rounded-lg p-6 hover:border-[#00b3f3]/30 transition-colors">
-                        <Briefcase className="h-6 w-6 text-[#00b3f3] mb-3" />
-                        <div className="text-[#083b4e] text-3xl font-semibold mb-1">{services.length}</div>
-                        <div className="text-gray-600 text-sm font-medium">Servicios Disponibles</div>
-                      </div>
+
                     </div>
 
                     {/* Certification Badge */}
