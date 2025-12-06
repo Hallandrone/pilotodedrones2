@@ -13,8 +13,9 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const reveniuWebhookSecret = Deno.env.get('REVENIU_WEBHOOK_SECRET');
     const reveniuApiKey = Deno.env.get('REVENIU_API_KEY');
+    // Reveniu usa la misma API key para webhooks, pero permitimos override con REVENIU_WEBHOOK_SECRET
+    const reveniuWebhookSecret = Deno.env.get('REVENIU_WEBHOOK_SECRET') || reveniuApiKey;
     const reveniuEnv = (Deno.env.get('REVENIU_ENV') || 'sandbox').toLowerCase();
 
     if (!supabaseUrl || !supabaseServiceKey) {
