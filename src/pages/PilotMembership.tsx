@@ -21,6 +21,7 @@ import {
   Loader2
 } from "lucide-react";
 import { createSubscription as createFlowSubscription, cancelSubscription as cancelFlowSubscription, type FlowSubscriptionParams } from "@/integrations/flow/client";
+import { createSubscription as createReveniuSubscription } from "@/integrations/reveniu/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 
 interface Membership {
@@ -253,15 +254,76 @@ const PilotMembership = () => {
       // Obtener el plan seleccionado
       const selectedPlan = availablePlans.find(p => p.id === planId);
 
-      // Si el plan tiene un link de checkout de Reveniu, usarlo directamente con external_id
+      // Si el plan tiene un link de checkout de Reveniu, usar la API para crear la suscripción
       if (selectedPlan?.reveniu_checkout_link) {
         setSubscribing(planId);
 
-        // Agregar el user_id como parámetro external_id en la URL
-        const checkoutUrl = `${selectedPlan.reveniu_checkout_link}?external_id=${user.id}`;
+        // Obtener email y nombre del usuario
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email, full_name')
+          .eq('id', user.id)
+          .single();
 
-        // Redirigir al checkout de Reveniu
-        window.location.href = checkoutUrl;
+        if (!profile?.email) {
+          toast({
+            title: "Error",
+            description: "No se encontró el email del usuario",
+            variant: "destructive",
+          });
+          setSubscribing(null);
+          return;
+        }
+
+        // Verificar que el plan tenga un ID de Reveniu configurado
+        const reveniuPlanId = selectedPlan.reveniu_plan_id;
+        if (!reveniuPlanId) {
+          toast({
+            title: "Error de configuración",
+            description: "El plan no tiene un ID de Reveniu configurado. Contacta al administrador.",
+            variant: "destructive",
+          });
+          setSubscribing(null);
+          return;
+        }
+
+        try {
+          // Crear suscripción usando la API de Reveniu con external_id
+          console.log('Creating Reveniu subscription with:', {
+            plan_id: reveniuPlanId,
+            external_id: user.id,
+            email: profile.email
+          });
+
+          const subscriptionResponse = await createReveniuSubscription({
+            plan_id: reveniuPlanId,
+            external_id: user.id,  // ✅ Este es el campo clave que permite identificar al usuario
+            field_values: {
+              email: profile.email,
+              name: profile.full_name || undefined,
+            }
+          });
+
+          console.log('Reveniu API response:', subscriptionResponse);
+
+          // Reveniu retorna completion_url para redirigir al checkout
+          const checkoutUrl = subscriptionResponse.completion_url || subscriptionResponse.link || subscriptionResponse.checkout_url;
+
+          if (checkoutUrl) {
+            // Redirigir al checkout de Reveniu
+            window.location.href = checkoutUrl;
+          } else {
+            throw new Error('No se recibió URL de checkout de Reveniu. Respuesta: ' + JSON.stringify(subscriptionResponse));
+          }
+        } catch (error: any) {
+          console.error('Error creating Reveniu subscription:', error);
+          toast({
+            title: "Error al crear suscripción",
+            description: error.message || "No se pudo crear la suscripción con Reveniu. Intenta nuevamente.",
+            variant: "destructive",
+          });
+          setSubscribing(null);
+        }
         return;
       }
 
