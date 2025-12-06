@@ -29,7 +29,8 @@ import {
   Shield,
   CreditCard,
   HelpCircle,
-  MessageCircle
+  MessageCircle,
+  ArrowRight
 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
 import {
@@ -417,64 +418,34 @@ const PilotDashboard = () => {
                 </div>
               </div>
 
-              {/* Contactos Recibidos */}
-              <Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-                <CardHeader className="pb-3">
+              {/* Contactos Recibidos - Botón */}
+              <Card
+                className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 cursor-pointer group"
+                onClick={() => navigate('/pilot/contacts')}
+              >
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-lg flex items-center justify-center">
-                        <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                       </div>
-                      <CardTitle className="text-white text-base sm:text-lg">Contactos Recibidos</CardTitle>
+                      <div>
+                        <h3 className="text-white font-semibold text-base sm:text-lg">Contactos Recibidos</h3>
+                        <p className="text-white/60 text-xs sm:text-sm">
+                          {contacts.length === 0
+                            ? 'Aún no has recibido contactos'
+                            : `${contacts.length} contacto${contacts.length !== 1 ? 's' : ''} reciente${contacts.length !== 1 ? 's' : ''}`
+                          }
+                        </p>
+                      </div>
                     </div>
-                    {contacts.length > 0 && (
-                      <Badge className="bg-[#00b3f3] text-white">{contacts.length}</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {contacts.length > 0 && (
+                        <Badge className="bg-[#00b3f3] text-white">{contacts.length}</Badge>
+                      )}
+                      <ArrowRight className="h-5 w-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  {contacts.length === 0 ? (
-                    <div className="text-center py-6 sm:py-8">
-                      <MessageCircle className="h-10 w-10 sm:h-12 sm:w-12 text-white/40 mx-auto mb-3" />
-                      <p className="text-white/60 text-sm sm:text-base mb-1">Aún no has recibido contactos</p>
-                      <p className="text-white/40 text-xs sm:text-sm">
-                        Cuando un cliente llene el formulario de tu perfil público, la información aparecerá aquí
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {contacts.map((contact) => (
-                        <div
-                          key={contact.id}
-                          className="bg-white/5 backdrop-blur-sm border border-[#00b3f3]/20 rounded-lg p-3 sm:p-4 hover:bg-white/10 hover:border-[#00b3f3]/40 transition-all duration-200"
-                        >
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <h4 className="text-white font-medium text-sm sm:text-base">{contact.contact_name}</h4>
-                            <span className="text-white/50 text-xs whitespace-nowrap">
-                              {new Date(contact.created_at).toLocaleDateString('es-CL')}
-                            </span>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-white/70 text-xs sm:text-sm flex items-center gap-2">
-                              <Mail className="h-3 w-3 text-[#00b3f3]" />
-                              {contact.contact_email}
-                            </p>
-                            {contact.contact_phone && (
-                              <p className="text-white/70 text-xs sm:text-sm flex items-center gap-2">
-                                <Phone className="h-3 w-3 text-[#00b3f3]" />
-                                {contact.contact_phone}
-                              </p>
-                            )}
-                            {contact.contact_message && (
-                              <p className="text-white/60 text-xs sm:text-sm mt-2 italic">
-                                "{contact.contact_message}"
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
