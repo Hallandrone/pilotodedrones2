@@ -21,7 +21,7 @@ import {
   Loader2
 } from "lucide-react";
 import { createSubscription as createFlowSubscription, cancelSubscription as cancelFlowSubscription, type FlowSubscriptionParams } from "@/integrations/flow/client";
-import { createSubscription as createReveniuSubscription } from "@/integrations/reveniu/client";
+import { createSubscription as createReveniuSubscription, cancelSubscription as cancelReveniuSubscription } from "@/integrations/reveniu/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 
 interface Membership {
@@ -423,7 +423,11 @@ const PilotMembership = () => {
   };
 
   const handleCancelSubscription = async () => {
-    if (!membership?.flow_subscription_id) {
+    // Verificar si hay suscripción de Flow o Reveniu
+    const hasFlowSubscription = !!membership?.flow_subscription_id;
+    const hasReveniuSubscription = !!membership?.reveniu_subscription_id;
+
+    if (!hasFlowSubscription && !hasReveniuSubscription) {
       toast({
         title: "Error",
         description: "No se encontró información de la suscripción",
@@ -446,8 +450,12 @@ const PilotMembership = () => {
     try {
       setSubscribing('cancelling');
 
-      // Cancelar suscripción en Flow
-      await cancelFlowSubscription(membership.flow_subscription_id);
+      // Cancelar según el proveedor
+      if (hasFlowSubscription) {
+        await cancelFlowSubscription(membership.flow_subscription_id!);
+      } else if (hasReveniuSubscription) {
+        await cancelReveniuSubscription(membership.reveniu_subscription_id!);
+      }
 
       // Actualizar estado en la base de datos
       const { data: { user } } = await supabase.auth.getUser();
@@ -650,8 +658,8 @@ const PilotMembership = () => {
                   </Button>
                 </div>
 
-                {/* Botón de cancelar suscripción - solo si está activa y tiene flow_subscription_id */}
-                {membership.status === 'active' && membership.flow_subscription_id && (
+                {/* Botón de cancelar suscripción - solo si está activa y tiene flow_subscription_id o reveniu_subscription_id */}
+                {membership.status === 'active' && (membership.flow_subscription_id || membership.reveniu_subscription_id) && (
                   <div className="pt-4 border-t border-[#333333]">
                     <Button
                       variant="destructive"
