@@ -517,45 +517,61 @@ const PublicPilotProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Services Card */}
-          {services.length > 0 && (
+
+          {/* Redes Sociales Card - Solo si tiene redes sociales */}
+          {(profile.instagram_url || profile.instagram_username || profile.linkedin_url || profile.linkedin_username) && (
             <Card className="bg-white border border-gray-200 shadow-sm overflow-hidden">
               <CardHeader className="bg-gray-50 border-b border-gray-200">
-                <CardTitle className="flex items-center gap-3 text-[#083b4e] text-2xl font-semibold">
+                <CardTitle className="text-[#083b4e] text-2xl font-semibold flex items-center gap-3">
                   <div className="bg-[#00b3f3]/10 rounded-lg p-2">
-                    <Briefcase className="h-6 w-6 text-[#00b3f3]" />
+                    <MessageCircle className="h-6 w-6 text-[#00b3f3]" />
                   </div>
-                  Servicios Disponibles
+                  Redes Sociales
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {services.map((service, index) => (
-                    <Card key={index} className="bg-white border border-gray-200 hover:border-[#00b3f3]/30 transition-colors">
-                      <CardContent className="pt-6">
-                        <div className="flex flex-col gap-4">
-                          <div className="flex items-start justify-between">
-                            <h3 className="font-semibold text-[#083b4e] text-lg">{service.service_type}</h3>
-                            <Badge className="bg-[#00b3f3] text-white border-0 px-3 py-1 text-sm font-medium whitespace-nowrap">
-                              ${service.price_per_hour?.toLocaleString()}/hr
-                            </Badge>
-                          </div>
-                          {service.description && (
-                            <p className="text-sm text-gray-600 leading-relaxed">{service.description}</p>
-                          )}
-                          <div className="pt-2 border-t border-gray-200">
-                            <Button className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white">
-                              Solicitar Servicio
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {(profile.instagram_url || profile.instagram_username) && (
+                    <a
+                      href={profile.instagram_url || `https://instagram.com/${profile.instagram_username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
+                    >
+                      <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white text-2xl font-bold">📷</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600 font-medium mb-1">Instagram</p>
+                        <p className="font-medium text-[#083b4e] text-base">
+                          @{profile.instagram_username || (profile.instagram_url ? profile.instagram_url.split('/').pop() : '')}
+                        </p>
+                      </div>
+                    </a>
+                  )}
+                  {(profile.linkedin_url || profile.linkedin_username) && (
+                    <a
+                      href={profile.linkedin_url || `https://linkedin.com/in/${profile.linkedin_username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
+                    >
+                      <div className="h-14 w-14 bg-[#0077b5]/10 rounded-lg flex items-center justify-center">
+                        <span className="text-[#0077b5] text-2xl font-bold">💼</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-600 font-medium mb-1">LinkedIn</p>
+                        <p className="font-medium text-[#083b4e] text-base">
+                          {profile.linkedin_username || (profile.linkedin_url ? profile.linkedin_url.split('/').pop() : '')}
+                        </p>
+                      </div>
+                    </a>
+                  )}
                 </div>
               </CardContent>
             </Card>
           )}
+
 
           {/* Contact Button Card - Solo para Plan Empresa */}
           {actualUserId && (
@@ -683,42 +699,6 @@ const PublicPilotProfile = () => {
                     <div className="flex-1">
                       <p className="text-sm text-gray-600 font-medium mb-1">Teléfono</p>
                       <p className="font-medium text-[#083b4e] text-base">{profile.phone}</p>
-                    </div>
-                  </a>
-                )}
-                {(profile.instagram_url || profile.instagram_username) && (
-                  <a
-                    href={profile.instagram_url || `https://instagram.com/${profile.instagram_username}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
-                  >
-                    <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                      <span className="text-white text-2xl font-bold">📷</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-600 font-medium mb-1">Instagram</p>
-                      <p className="font-medium text-[#083b4e] text-base">
-                        @{profile.instagram_username || (profile.instagram_url ? profile.instagram_url.split('/').pop() : '')}
-                      </p>
-                    </div>
-                  </a>
-                )}
-                {(profile.linkedin_url || profile.linkedin_username) && (
-                  <a
-                    href={profile.linkedin_url || `https://linkedin.com/in/${profile.linkedin_username}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-5 p-6 bg-white border border-gray-200 rounded-lg hover:border-[#00b3f3]/30 hover:bg-gray-50 transition-all"
-                  >
-                    <div className="h-14 w-14 bg-[#0077b5]/10 rounded-lg flex items-center justify-center">
-                      <span className="text-[#0077b5] text-2xl font-bold">💼</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-600 font-medium mb-1">LinkedIn</p>
-                      <p className="font-medium text-[#083b4e] text-base">
-                        {profile.linkedin_username || (profile.linkedin_url ? profile.linkedin_url.split('/').pop() : '')}
-                      </p>
                     </div>
                   </a>
                 )}
