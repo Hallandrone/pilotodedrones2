@@ -186,85 +186,84 @@ const Pricing = () => {
         {/* Pricing Cards */}
         <section className="py-12 lg:py-20">
           <div className="max-w-7xl mx-auto px-6">
-            <div className="grid md:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto">
-              {plans.map((plan, index) => {
-                const Icon = plan.icon;
-                return (
-                  <motion.div
-                    key={plan.id}
-                    initial={{ opacity: 0, y: 50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{
-                      duration: 0.6,
-                      delay: index * 0.1,
-                      type: "tween",
-                      ease: "easeOut"
-                    }}
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">{plans.map((plan, index) => {
+              const Icon = plan.icon;
+              return (
+                <motion.div
+                  key={plan.id}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{
+                    duration: 0.6,
+                    delay: index * 0.1,
+                    type: "tween",
+                    ease: "easeOut"
+                  }}
+                >
+                  <Card
+                    className={`relative overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${plan.popular
+                      ? 'border-accent shadow-xl scale-105'
+                      : 'border-border hover:border-accent/50'
+                      }`}
                   >
-                    <Card
-                      className={`relative overflow-hidden border-2 transition-all duration-300 hover:shadow-2xl ${plan.popular
-                        ? 'border-accent shadow-xl scale-105'
-                        : 'border-border hover:border-accent/50'
-                        }`}
-                    >
-                      {plan.popular && (
-                        <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 text-sm font-semibold rounded-bl-lg">
-                          <Star className="h-3 w-3 inline mr-1" />
-                          Más Popular
-                        </div>
-                      )}
+                    {plan.popular && (
+                      <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 text-sm font-semibold rounded-bl-lg">
+                        <Star className="h-3 w-3 inline mr-1" />
+                        Más Popular
+                      </div>
+                    )}
 
-                      <CardHeader className="pb-4">
-                        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.color} mb-4`}>
-                          <Icon className="h-8 w-8 text-white" />
-                        </div>
-                        <CardTitle className="text-2xl font-bold text-primary mb-2">
-                          {plan.name}
-                        </CardTitle>
-                        <CardDescription className="text-base">
-                          {plan.description}
-                        </CardDescription>
-                      </CardHeader>
+                    <CardHeader className="pb-4">
+                      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${plan.color} mb-4`}>
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold text-primary mb-2">
+                        {plan.name}
+                      </CardTitle>
+                      <CardDescription className="text-base">
+                        {plan.description}
+                      </CardDescription>
+                    </CardHeader>
 
-                      <CardContent className="space-y-6">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-5xl font-bold text-primary">
-                            {formatPrice(plan.price)}
-                          </span>
-                          <span className="text-muted-foreground">/mes</span>
-                        </div>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-5xl font-bold text-primary">
+                          {formatPrice(plan.price)}
+                        </span>
+                        <span className="text-muted-foreground">/mes</span>
+                      </div>
 
-                        <ul className="space-y-3">
-                          {plan.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-3">
-                              <div className="flex-shrink-0 mt-0.5">
-                                <Check className="h-5 w-5 text-accent" />
-                              </div>
-                              <span className="text-muted-foreground">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
+                      <ul className="space-y-3">
+                        {plan.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-0.5">
+                              <Check className="h-5 w-5 text-accent" />
+                            </div>
+                            <span className="text-muted-foreground">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
 
-                        <Button
-                          className={`w-full h-12 text-base font-semibold transition-all duration-300 ${plan.popular
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl'
-                            : 'bg-accent hover:bg-accent/90 text-accent-foreground'
-                            }`}
-                          onClick={() => handleRegister(plan.id)}
-                        >
-                          Comenzar Ahora
-                          <ArrowRight className="h-4 w-4 ml-2" />
-                        </Button>
+                      <Button
+                        className={`w-full h-12 text-base font-semibold transition-all duration-300 ${plan.popular
+                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl'
+                          : 'bg-accent hover:bg-accent/90 text-accent-foreground'
+                          }`}
+                        onClick={() => handleRegister(plan.id)}
+                      >
+                        Comenzar Ahora
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Button>
 
-                        <p className="text-xs text-center text-muted-foreground">
-                          Sin compromiso. Cancela cuando quieras.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
+                      <p className="text-xs text-center text-muted-foreground">
+                        Sin compromiso. Cancela cuando quieras.
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
             </div>
           </div>
         </section>

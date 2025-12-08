@@ -33,6 +33,7 @@ import {
   formatExpirationDate,
   type CertificationStatus
 } from "@/utils/certificationHelpers";
+import { CompanyPilotManagement } from "@/components/company/CompanyPilotManagement";
 
 interface CompanyData {
   id: string;
@@ -606,6 +607,13 @@ const CompanyDashboard = () => {
             </div>
           </Card>
         </div>
+
+        {/* Gestión de Pilotos */}
+        {companyData?.id && (
+          <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <CompanyPilotManagement companyId={companyData.id} />
+          </div>
+        )}
       </div>
     </div>
   );
