@@ -1394,6 +1394,52 @@ const Index = () => {
         )}
       </div>
 
+      {/* CTA de Planes */}
+      <motion.section
+        className="py-20 bg-gradient-to-br from-primary/10 via-accent/5 to-secondary/10"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8 }}
+      >
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.h3
+              className="text-3xl md:text-4xl font-bold text-primary mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              Encuentra el Plan Perfecto para Ti
+            </motion.h3>
+            <motion.p
+              className="text-xl text-muted-foreground mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              Desde Plan Gratis hasta Plan Empresa - Elige el que mejor se adapte a tus necesidades
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <Button
+                size="lg"
+                onClick={() => navigate('/pricing')}
+                className="bg-accent hover:bg-accent/90 text-white text-lg px-10 py-6 h-auto shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105"
+              >
+                Ver Planes y Precios
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </motion.section>
+
       {/* Footer */}
       <footer className="py-12 border-t border-border/50 bg-background">
         <div className="container mx-auto px-6 lg:px-8">

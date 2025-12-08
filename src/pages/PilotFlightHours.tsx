@@ -9,12 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Clock, 
-  Calendar, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Plus,
+  Clock,
+  Calendar,
+  MapPin,
   Plane,
   Save,
   Edit,
@@ -26,8 +26,11 @@ import {
   XCircle,
   Loader2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Crown
 } from "lucide-react";
+import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
+import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 
 interface FlightRecord {
   id: string;
@@ -58,8 +61,10 @@ const PilotFlightHours = () => {
   const [certificates, setCertificates] = useState<FlightLogCertificate[]>([]);
   const [uploadingCertificate, setUploadingCertificate] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { plan, loading: planLoading } = useSubscriptionPlan();
 
   const [formData, setFormData] = useState({
     date: '',
@@ -149,7 +154,7 @@ const PilotFlightHours = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.date || !formData.duration || !formData.location || !formData.purpose) {
       toast({
         title: "Error",
@@ -175,7 +180,7 @@ const PilotFlightHours = () => {
       };
 
       if (editingRecord) {
-        setFlightRecords(prev => 
+        setFlightRecords(prev =>
           prev.map(record => record.id === editingRecord.id ? newRecord : record)
         );
         toast({
@@ -251,7 +256,7 @@ const PilotFlightHours = () => {
   const getThisMonthHours = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
-    
+
     return flightRecords
       .filter(record => {
         const recordDate = new Date(record.date);
@@ -270,7 +275,7 @@ const PilotFlightHours = () => {
 
   const loadCertificates = async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('flight_logs')
@@ -333,7 +338,7 @@ const PilotFlightHours = () => {
     // Validate file type
     const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!allowedTypes.includes(fileExtension)) {
       toast({
         title: "Archivo no válido",
@@ -492,12 +497,92 @@ const PilotFlightHours = () => {
     }
   };
 
-  if (loading) {
+  if (loading || planLoading) {
     return (
       <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#FF69B4] mb-4"></div>
           <p className="text-[#B0B0B0]">Cargando registros...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar pantalla de upgrade si el usuario tiene plan gratis
+  if (plan && plan.isFree) {
+    return (
+      <div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
+        {/* Header */}
+        <div className="bg-[#212121] border-b border-[#333333] shadow-sm sticky top-0 z-50">
+          <div className="px-4 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/pilot')}
+                className="h-10 w-10 rounded-full hover:bg-[#FF69B4]/10 hover:scale-105 transition-all duration-200"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="text-xl font-bold text-[#E0E0E0]">
+                  Horas de Vuelo
+                </h1>
+                <p className="text-sm text-[#B0B0B0] font-medium">Característica Pro</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Upgrade Content */}
+        <div className="p-4 flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <Card className="bg-[#212121] border border-[#333333] shadow-2xl rounded-2xl overflow-hidden max-w-md w-full">
+            <div className="bg-gradient-to-r from-blue-500/20 via-cyan-500/10 to-blue-500/20 p-1">
+              <CardContent className="p-8 bg-[#2C2C2C] rounded-xl text-center">
+                <div className="h-20 w-20 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Crown className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#E0E0E0] mb-3">
+                  Actualiza a Plan Pro
+                </h3>
+                <p className="text-[#B0B0B0] mb-6">
+                  La bitácora de vuelos y registro de horas está disponible en Plan Pro y Plan Empresa.
+                </p>
+                <div className="bg-[#212121] border border-[#333333] rounded-xl p-4 mb-6 text-left">
+                  <p className="text-sm font-semibold text-[#E0E0E0] mb-3">Con Plan Pro obtienes:</p>
+                  <ul className="space-y-2 text-sm text-[#B0B0B0]">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Bitácora de vuelos ilimitada</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Registro de horas acumuladas</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Certificados ilimitados</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Datos meteorológicos</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span>Perfil destacado</span>
+                    </li>
+                  </ul>
+                </div>
+                <Button
+                  onClick={() => navigate('/pilot/membership')}
+                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                >
+                  <Crown className="h-4 w-4 mr-2" />
+                  Ver Planes y Precios
+                </Button>
+              </CardContent>
+            </div>
+          </Card>
         </div>
       </div>
     );
@@ -577,107 +662,107 @@ const PilotFlightHours = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <Label htmlFor="date" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        Fecha *
+                      </Label>
+                      <Input
+                        id="date"
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                        className="h-12 rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 bg-[#2C2C2C] text-[#E0E0E0]"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="duration" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Duración (h) *
+                      </Label>
+                      <Input
+                        id="duration"
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        value={formData.duration}
+                        onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
+                        placeholder="2.5"
+                        className="h-12 rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 bg-[#2C2C2C] text-[#E0E0E0]"
+                        required
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-3">
-                    <Label htmlFor="date" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Fecha *
+                    <Label htmlFor="location" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Ubicación *
                     </Label>
                     <Input
-                      id="date"
-                      type="date"
-                      value={formData.date}
-                      onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="Santiago, RM"
                       className="h-12 rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 bg-[#2C2C2C] text-[#E0E0E0]"
                       required
                     />
                   </div>
+
                   <div className="space-y-3">
-                    <Label htmlFor="duration" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      Duración (h) *
+                    <Label htmlFor="purpose" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
+                      <Plane className="h-4 w-4" />
+                      Propósito *
                     </Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      value={formData.duration}
-                      onChange={(e) => setFormData(prev => ({ ...prev, duration: e.target.value }))}
-                      placeholder="2.5"
-                      className="h-12 rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 bg-[#2C2C2C] text-[#E0E0E0]"
-                      required
+                    <Select value={formData.purpose} onValueChange={(value) => setFormData(prev => ({ ...prev, purpose: value }))}>
+                      <SelectTrigger className="h-12 rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 bg-[#2C2C2C] text-[#E0E0E0]">
+                        <SelectValue placeholder="Selecciona el propósito" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#212121] border-[#333333] text-[#E0E0E0]">
+                        {purposeOptions.map((purpose) => (
+                          <SelectItem key={purpose} value={purpose} className="text-[#E0E0E0] focus:bg-[#FF69B4]/10 focus:text-[#E0E0E0]">
+                            {purpose}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="notes" className="text-sm font-semibold text-[#E0E0E0]">
+                      Notas
+                    </Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                      placeholder="Detalles adicionales del vuelo..."
+                      className="rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 resize-none bg-[#2C2C2C] text-[#E0E0E0] min-h-[80px]"
                     />
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  <Label htmlFor="location" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Ubicación *
-                  </Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="Santiago, RM"
-                    className="h-12 rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 bg-[#2C2C2C] text-[#E0E0E0]"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="purpose" className="text-sm font-semibold text-[#E0E0E0] flex items-center gap-2">
-                    <Plane className="h-4 w-4" />
-                    Propósito *
-                  </Label>
-                  <Select value={formData.purpose} onValueChange={(value) => setFormData(prev => ({ ...prev, purpose: value }))}>
-                    <SelectTrigger className="h-12 rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 bg-[#2C2C2C] text-[#E0E0E0]">
-                      <SelectValue placeholder="Selecciona el propósito" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#212121] border-[#333333] text-[#E0E0E0]">
-                      {purposeOptions.map((purpose) => (
-                        <SelectItem key={purpose} value={purpose} className="text-[#E0E0E0] focus:bg-[#FF69B4]/10 focus:text-[#E0E0E0]">
-                          {purpose}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="notes" className="text-sm font-semibold text-[#E0E0E0]">
-                    Notas
-                  </Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="Detalles adicionales del vuelo..."
-                    className="rounded-xl border-[#333333] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200 resize-none bg-[#2C2C2C] text-[#E0E0E0] min-h-[80px]"
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={resetForm}
-                    className="flex-1 bg-[#2C2C2C] border-[#333333] hover:bg-[#212121] hover:border-[#555555] hover:text-[#E0E0E0] text-[#E0E0E0] transition-all duration-200 rounded-xl font-semibold"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={saving}
-                    className="flex-1 bg-gradient-to-r from-[#FF69B4] to-pink-600 hover:from-[#FF69B4] hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saving ? 'Guardando...' : 'Guardar'}
-                  </Button>
-                </div>
-              </form>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={resetForm}
+                      className="flex-1 bg-[#2C2C2C] border-[#333333] hover:bg-[#212121] hover:border-[#555555] hover:text-[#E0E0E0] text-[#E0E0E0] transition-all duration-200 rounded-xl font-semibold"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={saving}
+                      className="flex-1 bg-gradient-to-r from-[#FF69B4] to-pink-600 hover:from-[#FF69B4] hover:to-pink-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {saving ? 'Guardando...' : 'Guardar'}
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </div>
           </Card>
@@ -840,13 +925,12 @@ const PilotFlightHours = () => {
                         </div>
                       </div>
                       {cert.rejection_observations && (
-                        <div className={`mt-3 p-3 rounded-lg border ${
-                          cert.status === 'rejected'
-                            ? 'bg-red-500/10 border-red-500/30'
-                            : cert.status === 'validated'
+                        <div className={`mt-3 p-3 rounded-lg border ${cert.status === 'rejected'
+                          ? 'bg-red-500/10 border-red-500/30'
+                          : cert.status === 'validated'
                             ? 'bg-green-500/10 border-green-500/30'
                             : 'bg-blue-500/10 border-blue-500/30'
-                        }`}>
+                          }`}>
                           <div className="flex items-start gap-2">
                             {cert.status === 'rejected' ? (
                               <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
@@ -856,27 +940,25 @@ const PilotFlightHours = () => {
                               <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                             )}
                             <div className="flex-1">
-                              <p className={`text-sm font-semibold mb-1 ${
-                                cert.status === 'rejected'
-                                  ? 'text-red-400'
-                                  : cert.status === 'validated'
+                              <p className={`text-sm font-semibold mb-1 ${cert.status === 'rejected'
+                                ? 'text-red-400'
+                                : cert.status === 'validated'
                                   ? 'text-green-400'
                                   : 'text-blue-400'
-                              }`}>
+                                }`}>
                                 {cert.status === 'rejected'
                                   ? 'Observaciones del administrador (Rechazado):'
                                   : cert.status === 'validated'
-                                  ? 'Observaciones del administrador (Validado):'
-                                  : 'Observaciones del administrador:'
+                                    ? 'Observaciones del administrador (Validado):'
+                                    : 'Observaciones del administrador:'
                                 }
                               </p>
-                              <p className={`text-sm whitespace-pre-wrap ${
-                                cert.status === 'rejected'
-                                  ? 'text-red-300'
-                                  : cert.status === 'validated'
+                              <p className={`text-sm whitespace-pre-wrap ${cert.status === 'rejected'
+                                ? 'text-red-300'
+                                : cert.status === 'validated'
                                   ? 'text-green-300'
                                   : 'text-blue-300'
-                              }`}>
+                                }`}>
                                 {cert.rejection_observations}
                               </p>
                             </div>

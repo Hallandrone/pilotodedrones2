@@ -84,12 +84,16 @@ Deno.serve(async (req) => {
 
     // Mapear eventos a estados de base de datos
     let dbStatus = 'pending';
+    let shouldRevertToFree = false;
+
     if (eventType === 'subscription_activated' || eventType === 'subscription_payment_succeeded') {
       dbStatus = 'active';
     } else if (eventType === 'subscription_deactivated' || eventType === 'subscription_cancelled') {
       dbStatus = 'cancelled';
+      shouldRevertToFree = true; // Cambiar a plan gratis al cancelar
     } else if (eventType === 'subscription_expired') {
       dbStatus = 'expired';
+      shouldRevertToFree = true; // Cambiar a plan gratis al expirar
     } else if (eventType === 'subscription_payment_failed') {
       dbStatus = 'pending'; // Pago fallido, pero puede recuperarse
     }
@@ -377,21 +381,29 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Estrategia 3: Detectar por plan_id si tenemos los IDs específicos de Reveniu
-    // (Comentar y descomentar según los IDs reales de tus planes en Reveniu)
-    // if (eventData.plan_id) {
-    //   const planId = String(eventData.plan_id);
-    //   // Reemplazar con los IDs reales de tus planes en Reveniu
-    //   if (planId === 'plan_empresa_id_here') {
-    //     planName = 'empresa';
-    //     console.log('✅ Detected Plan Empresa by plan_id');
-    //   } else if (planId === 'plan_profesional_id_here') {
-    //     planName = 'profesional';
-    //     console.log('✅ Detected Plan Profesional by plan_id');
-    //   }
-    // }
+    // Estrategia 3: Detectar por plan_id (IDs específicos de Reveniu)
+    // Plan Pro (Profesional): ID 9604
+    // Plan Empresa: ID 9934
+    if (eventData.plan_id) {
+      const planId = String(eventData.plan_id);
+      console.log(`Plan ID from event: "${planId}"`);
+
+      if (planId === '9934') {
+        planName = 'empresa';
+        console.log('✅ Detected Plan Empresa by plan_id (9934)');
+      } else if (planId === '9604') {
+        planName = 'pro';
+        console.log('✅ Detected Plan Pro by plan_id (9604)');
+      }
+    }
 
     console.log(`✅ Final plan name determined: ${planName}`);
+
+    // Si la suscripción fue cancelada o expiró, cambiar a plan 'free'
+    if (shouldRevertToFree) {
+      planName = 'free';
+      console.log('✅ Reverting to free plan due to cancellation/expiration');
+    }
 
     // Calcular featured_until: 24 horas desde ahora si la suscripción se está activando
     // Solo establecer featured_until si el estado es 'active' y es una activación nueva

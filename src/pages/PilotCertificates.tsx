@@ -5,20 +5,23 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, 
-  Upload, 
-  FileText, 
-  Download, 
-  Trash2, 
-  CheckCircle, 
-  Clock, 
+import {
+  ArrowLeft,
+  Upload,
+  FileText,
+  Download,
+  Trash2,
+  CheckCircle,
+  Clock,
   XCircle,
   Eye,
   Plus,
   AlertCircle,
-  Info
+  Info,
+  Crown
 } from "lucide-react";
+import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
+import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 
 interface Certification {
   id: string;
@@ -35,9 +38,11 @@ const PilotCertificates = () => {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<string | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { plan, loading: planLoading } = useSubscriptionPlan();
 
   useEffect(() => {
     checkUserType();
@@ -90,13 +95,20 @@ const PilotCertificates = () => {
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Verificar si el usuario tiene acceso a subir certificados
+    if (plan && plan.isFree) {
+      setShowUpgradeModal(true);
+      event.target.value = '';
+      return;
+    }
+
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type - Allow PDF and JPG/JPEG
     const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!allowedTypes.includes(fileExtension)) {
       toast({
         title: "Archivo no válido",
@@ -172,17 +184,17 @@ const PilotCertificates = () => {
       // Already a full URL, return as is
       return filePath;
     }
-    
+
     // It's a path, create signed URL
     const { data, error } = await supabase.storage
       .from('certifications')
       .createSignedUrl(filePath, 3600); // 1 hour expiration
-    
+
     if (error) {
       console.error('Error creating signed URL:', error);
       throw error;
     }
-    
+
     return data.signedUrl;
   };
 
@@ -225,7 +237,7 @@ const PilotCertificates = () => {
       if (error) throw error;
 
       setCertifications(prev => prev.filter(cert => cert.id !== id));
-      
+
       toast({
         title: "Certificación eliminada",
         description: "La certificación ha sido eliminada correctamente",
@@ -428,13 +440,12 @@ const PilotCertificates = () => {
 
                     {/* Observaciones del administrador */}
                     {cert.rejection_observations && (
-                      <div className={`mt-4 p-4 rounded-xl border ${
-                        cert.status === 'rejected' 
-                          ? 'bg-red-500/10 border-red-500/30' 
-                          : cert.status === 'validated'
+                      <div className={`mt-4 p-4 rounded-xl border ${cert.status === 'rejected'
+                        ? 'bg-red-500/10 border-red-500/30'
+                        : cert.status === 'validated'
                           ? 'bg-green-500/10 border-green-500/30'
                           : 'bg-blue-500/10 border-blue-500/30'
-                      }`}>
+                        }`}>
                         <div className="flex items-start gap-3">
                           {cert.status === 'rejected' ? (
                             <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
@@ -444,27 +455,25 @@ const PilotCertificates = () => {
                             <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
                           )}
                           <div className="flex-1">
-                            <p className={`text-sm font-semibold mb-1 ${
-                              cert.status === 'rejected'
-                                ? 'text-red-400'
-                                : cert.status === 'validated'
+                            <p className={`text-sm font-semibold mb-1 ${cert.status === 'rejected'
+                              ? 'text-red-400'
+                              : cert.status === 'validated'
                                 ? 'text-green-400'
                                 : 'text-blue-400'
-                            }`}>
-                              {cert.status === 'rejected' 
+                              }`}>
+                              {cert.status === 'rejected'
                                 ? 'Observaciones del administrador (Rechazado):'
                                 : cert.status === 'validated'
-                                ? 'Observaciones del administrador (Validado):'
-                                : 'Observaciones del administrador:'
+                                  ? 'Observaciones del administrador (Validado):'
+                                  : 'Observaciones del administrador:'
                               }
                             </p>
-                            <p className={`text-sm whitespace-pre-wrap ${
-                              cert.status === 'rejected'
-                                ? 'text-red-300'
-                                : cert.status === 'validated'
+                            <p className={`text-sm whitespace-pre-wrap ${cert.status === 'rejected'
+                              ? 'text-red-300'
+                              : cert.status === 'validated'
                                 ? 'text-green-300'
                                 : 'text-blue-300'
-                            }`}>
+                              }`}>
                               {cert.rejection_observations}
                             </p>
                           </div>
@@ -494,6 +503,15 @@ const PilotCertificates = () => {
           </Card>
         )}
       </div>
+
+      {/* Modal de Upgrade */}
+      <UpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        requiredPlan="pro"
+        feature="Subida de certificados"
+        featureDescription="La subida de certificados está disponible en Plan Pro y Plan Empresa. Actualiza tu plan para validar tu perfil profesional."
+      />
     </div>
   );
 };

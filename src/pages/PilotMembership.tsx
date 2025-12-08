@@ -59,20 +59,34 @@ const PilotMembership = () => {
   // Planes disponibles con Reveniu
   const defaultPlans: AvailablePlan[] = [
     {
+      id: 'free',
+      name: 'Plan Gratis',
+      price: 0,
+      description: 'Perfecto para comenzar y probar la plataforma',
+      features: [
+        'Perfil público profesional',
+        'Código QR personalizado para compartir perfil',
+        'Panel de control intuitivo',
+        'Aparición en búsquedas de servicios'
+      ]
+    },
+    {
       id: 'profesional',
-      name: 'Plan Profesional',
+      name: 'Plan Pro',
       price: 14990,
       reveniu_plan_id: '9604', // ✅ ID del Plan Piloto en Reveniu sandbox
       reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/pk2JYEwJVEDUT5vXiFy4M6B9UNwjKxSD', // Link de Reveniu sandbox
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
       features: [
-        'Perfil público con nombre, foto, zona y tipo de trabajos',
+        'Todo lo del Plan Gratis',
         'Sello digital "Perfil Certificado" tras validación',
         'Subida ilimitada de certificados (PDF)',
         'Bitácora de vuelos y registro de horas acumuladas',
-        'Enlace a perfil y código QR verificable',
-        'Acceso al panel para editar datos y actualizar experiencia',
-        'Atención estándar por correo'
+        'URL personalizada para tu perfil',
+        'Perfil destacado en búsquedas',
+        'Datos meteorológicos geolocalizados',
+        'Horarios de amanecer/atardecer para fotogrametría',
+        'Soporte por correo electrónico'
       ]
     },
     {
@@ -83,8 +97,8 @@ const PilotMembership = () => {
       reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/faD3XBeyoHUNvsd9zOv4XJuGrv0ugdCG', // Link de Reveniu sandbox para Plan Empresa
       description: 'Ideal para: Publicar Empresas para realizar servicios especializados con drones',
       features: [
-        'Todo lo del Plan Profesional',
-        'Panel multiusuario (para agregar hasta 3 pilotos)',
+        'Todo lo del Plan Pro',
+        'Panel multiusuario (hasta 4 pilotos)',
         'Sello digital "Empresa Certificada" tras validación',
         'Perfil destacado en "Empresas Recomendadas"',
         'Estadísticas de vistas y contacto de clientes',

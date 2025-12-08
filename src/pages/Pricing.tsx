@@ -27,20 +27,35 @@ const Pricing = () => {
 
   const plans = [
     {
-      id: 'profesional',
-      name: 'Plan Profesional',
-      price: 14990,
-      description: 'Ideal para pilotos individuales que buscan destacar su experiencia certificada',
+      id: 'free',
+      name: 'Plan Gratis',
+      price: 0,
+      description: 'Perfecto para comenzar y probar la plataforma',
       popular: false,
       features: [
-        'Perfil público profesional con foto y datos',
+        'Perfil público profesional',
+        'Código QR personalizado para compartir perfil',
+        'Panel de control intuitivo',
+        'Aparición en búsquedas de servicios'
+      ],
+      icon: Plane,
+      color: 'from-gray-400 to-gray-500'
+    },
+    {
+      id: 'profesional',
+      name: 'Plan Pro',
+      price: 14990,
+      description: 'Ideal para pilotos individuales que buscan destacar su experiencia certificada',
+      popular: true,
+      features: [
+        'Todo lo del Plan Gratis',
         'Sello digital "Perfil Certificado"',
         'Subida ilimitada de certificados',
         'Bitácora de vuelos y horas acumuladas',
-        'Código QR personalizado verificable',
         'URL personalizada para tu perfil',
-        'Panel de control intuitivo',
-        'Aparición en búsquedas de servicios',
+        'Perfil destacado en búsquedas',
+        'Datos meteorológicos geolocalizados',
+        'Horarios de amanecer/atardecer para fotogrametría',
         'Soporte por correo electrónico'
       ],
       icon: Plane,
@@ -51,10 +66,10 @@ const Pricing = () => {
       name: 'Plan Empresa',
       price: 39990,
       description: 'Solución completa para empresas que ofrecen servicios con drones',
-      popular: true,
+      popular: false,
       features: [
-        'Todo lo incluido en Plan Profesional',
-        'Panel multiusuario (hasta 3 pilotos)',
+        'Todo lo del Plan Pro',
+        'Panel multiusuario (hasta 4 pilotos)',
         'Sello digital "Empresa Certificada"',
         'Perfil destacado en recomendaciones',
         'Gestión de múltiples certificaciones',

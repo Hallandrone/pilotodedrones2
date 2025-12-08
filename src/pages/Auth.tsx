@@ -22,15 +22,15 @@ const Auth = () => {
 
   useEffect(() => {
     let mounted = true;
-    
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         // Solo redirigir si hay sesión y no estamos en proceso de login/signup
         if (session?.user && event !== 'SIGNED_OUT') {
           try {
@@ -62,15 +62,15 @@ const Auth = () => {
     // Check for existing session (solo si no hay errores)
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (!mounted) return;
-      
+
       if (error) {
         console.error('Error getting session:', error);
         return;
       }
-      
+
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         try {
           const { data: profile, error: profileError } = await supabase
@@ -105,7 +105,7 @@ const Auth = () => {
 
   const handleSignUp = async (email: string, password: string, userData: any) => {
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -195,18 +195,18 @@ const Auth = () => {
       // Check if user is immediately confirmed (email confirmation disabled)
       if (!data.user.email_confirmed_at) {
         toast({
-          title: "Cuenta creada",
-          description: "Tu cuenta ha sido creada exitosamente. Puedes iniciar sesión ahora.",
+          title: "¡Cuenta creada con Plan Gratis!",
+          description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
         });
       } else {
         toast({
-          title: "Cuenta creada",
-          description: "Tu cuenta ha sido creada y confirmada exitosamente.",
+          title: "¡Bienvenido! Tienes Plan Gratis",
+          description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
         });
-        
+
         // Esperar un momento más antes de redirigir
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         // Redirigir según el tipo de usuario
         if (profile?.user_type === 'company') {
           navigate('/company');
@@ -378,7 +378,7 @@ const Auth = () => {
           <GoogleIcon />
           Continuar con Google
         </Button>
-        
+
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -453,7 +453,7 @@ const Auth = () => {
           <GoogleIcon />
           Registrarse con Google
         </Button>
-        
+
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -563,7 +563,7 @@ const Auth = () => {
               <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
               <TabsTrigger value="signup">Crear Cuenta</TabsTrigger>
             </TabsList>
-            
+
             <CardContent className="p-6 pt-0">
               <TabsContent value="login" className="mt-0">
                 <div className="space-y-2 mb-6">
@@ -574,7 +574,7 @@ const Auth = () => {
                 </div>
                 <LoginForm />
               </TabsContent>
-              
+
               <TabsContent value="signup" className="mt-0">
                 <div className="space-y-2 mb-6">
                   <CardTitle>Crear cuenta</CardTitle>
@@ -589,8 +589,8 @@ const Auth = () => {
         </Card>
 
         <div className="text-center mt-6">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => navigate('/')}
             className="text-muted-foreground hover:text-foreground"
           >
