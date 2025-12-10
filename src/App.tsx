@@ -31,6 +31,7 @@ import PublicPilotProfile from "./pages/PublicPilotProfile";
 import CompanyProfile from "./pages/CompanyProfile";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import ProfileContacts from "./pages/ProfileContacts";
+import InvitationAccept from "./pages/InvitationAccept";
 import NotFound from "./pages/NotFound";
 import "./lib/debug-auth"; // Importar funciones de debug
 import "./lib/force-create-role"; // Importar función para crear rol
@@ -84,6 +85,9 @@ const App = () => (
 
             {/* Ruta temporal para ver UserProfile sin auth */}
             <Route path="/user-profile" element={<div className="dark"><UserProfile /></div>} />
+
+            {/* Ruta para aceptar invitaciones de empresa */}
+            <Route path="/invitation/:token" element={<InvitationAccept />} />
 
             {/* Perfil público del piloto (para QR) - mantener ruta antigua por compatibilidad */}
             <Route path="/pilot/:pilotId" element={<div className="dark"><PublicPilotProfile /></div>} />
