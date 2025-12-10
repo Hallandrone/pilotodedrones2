@@ -211,7 +211,11 @@ export function CompanyPilotManagement({ companyId }: CompanyPilotManagementProp
 										</Avatar>
 										<div>
 											<p className="font-medium">{pilot.pilot?.full_name || 'Piloto'}</p>
-											<p className="text-sm text-muted-foreground">{pilot.pilot?.email}</p>
+											<p className="text-sm text-muted-foreground">
+												{pilot.pilot?.email ||
+													invitations.find(i => i.pilot_id === pilot.pilot_id && i.status === 'accepted')?.pilot_email ||
+													'Email no visible'}
+											</p>
 										</div>
 									</div>
 									<AlertDialog>
