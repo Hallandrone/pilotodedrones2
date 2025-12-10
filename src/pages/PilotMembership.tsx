@@ -52,6 +52,7 @@ const PilotMembership = () => {
   const [showEmailWarning, setShowEmailWarning] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
   const [pendingFlowPlanId, setPendingFlowPlanId] = useState<string | undefined>(undefined);
+  const [sponsoringCompany, setSponsoringCompany] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -221,6 +222,31 @@ const PilotMembership = () => {
       } else {
         // Usuario sin suscripción
         setMembership(null);
+      }
+
+      // LÓGICA EMPRESA PATROCINADORA
+      // Si el plan es Pro y el método de pago indica patrocinio, buscamos el nombre de la empresa
+      if (subscription && subscription.plan_name === 'pro' && subscription.payment_method?.includes('company')) {
+        const { data: pilotData } = await supabase
+          .from('company_pilots')
+          .select('company_id')
+          .eq('pilot_id', user.id)
+          .maybeSingle();
+
+        if (pilotData?.company_id) {
+          const { data: companyProfile } = await supabase
+            .from('profiles')
+            .select('company_name, full_name')
+            .eq('id', pilotData.company_id)
+            .single();
+
+          if (companyProfile) {
+            // Priorizar company_name, fallback a full_name
+            setSponsoringCompany(companyProfile.company_name || companyProfile.full_name);
+          }
+        }
+      } else {
+        setSponsoringCompany(null);
       }
 
       // AUTOCURACIÓN: Si el usuario tiene plan gratis (o null), verificar si debería ser Pro por empresa
@@ -713,93 +739,126 @@ const PilotMembership = () => {
           </Card>
         )}
 
-        {/* Available Plans */}
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
-            <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="text-xl font-bold text-[#E0E0E0]">
-                Planes Disponibles
-              </CardTitle>
-              <CardDescription className="text-[#B0B0B0] font-medium">
-                Actualiza tu plan para obtener más funcionalidades
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-6">
-              {availablePlans.map((plan) => {
-                const isCurrentPlan = membership?.plan_name === plan.name;
-                const isSubscribing = subscribing === plan.id;
+        {/* Available Plans or Sponsored Message */}
+        {sponsoringCompany ? (
+          <Card className="bg-[#0f172a] border border-blue-500/30 shadow-xl rounded-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600/20 via-blue-400/10 to-blue-600/20 p-1">
+              <CardHeader className="p-6 bg-[#1e293b]/90 backdrop-blur rounded-xl">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="h-10 w-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-bold text-blue-100">
+                      Membresía Empresarial Activa
+                    </CardTitle>
+                    <CardDescription className="text-blue-300">
+                      Gestionada por <span className="font-bold text-white">{sponsoringCompany}</span>
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 bg-[#1e293b]/90 backdrop-blur rounded-xl space-y-4">
+                <p className="text-gray-300">
+                  Tu cuenta está vinculada a una suscripción empresarial. Disfrutas de todos los beneficios del <span className="text-white font-semibold">Plan Pro</span> sin costo directo para ti.
+                </p>
+                <div className="p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg">
+                  <p className="text-sm text-blue-200">
+                    <InfoIcon className="h-4 w-4 inline mr-2" />
+                    Si la empresa cancela su suscripción, tu cuenta volverá automáticamente al Plan Gratis y podrás elegir suscribirte individualmente.
+                  </p>
+                </div>
+              </CardContent>
+            </div>
+          </Card>
+        ) : (
+          <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
+              <CardHeader className="p-6 bg-[#2C2C2C] rounded-xl">
+                <CardTitle className="text-xl font-bold text-[#E0E0E0]">
+                  Planes Disponibles
+                </CardTitle>
+                <CardDescription className="text-[#B0B0B0] font-medium">
+                  Actualiza tu plan para obtener más funcionalidades
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-6">
+                {availablePlans.map((plan) => {
+                  const isCurrentPlan = membership?.plan_name === plan.name;
+                  const isSubscribing = subscribing === plan.id;
 
-                return (
-                  <div
-                    key={plan.id}
-                    className={`border-2 rounded-2xl p-6 bg-[#2C2C2C] border-[#333333] ${plan.id === 'profesional'
-                      ? 'border-blue-500/30'
-                      : 'border-purple-500/30'
-                      }`}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-xl font-bold text-[#E0E0E0]">{plan.name}</h4>
-                      {isCurrentPlan && (
-                        <div className={`px-3 py-1 text-white rounded-full text-sm font-semibold ${plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
-                          }`}>
-                          Actual
-                        </div>
+                  return (
+                    <div
+                      key={plan.id}
+                      className={`border-2 rounded-2xl p-6 bg-[#2C2C2C] border-[#333333] ${plan.id === 'profesional'
+                        ? 'border-blue-500/30'
+                        : 'border-purple-500/30'
+                        }`}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-xl font-bold text-[#E0E0E0]">{plan.name}</h4>
+                        {isCurrentPlan && (
+                          <div className={`px-3 py-1 text-white rounded-full text-sm font-semibold ${plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
+                            }`}>
+                            Actual
+                          </div>
+                        )}
+                      </div>
+                      <p className={`text-3xl font-bold bg-clip-text text-transparent mb-2 ${plan.id === 'profesional'
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                        : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                        }`}>
+                        {formatPrice(plan.price)}
+                      </p>
+                      <p className="text-[#B0B0B0] font-medium mb-4">{plan.description}</p>
+                      <ul className="text-[#E0E0E0] space-y-2 mb-4">
+                        {plan.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center gap-3">
+                            <div className={`h-2 w-2 rounded-full ${plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
+                              }`}></div>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      {!isCurrentPlan && (
+                        <>
+                          {membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis' ? (
+                            <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
+                              <p className="text-[#E0E0E0] font-medium mb-2">
+                                Ya tienes un plan activo
+                              </p>
+                              <p className="text-sm text-[#B0B0B0]">
+                                Cancela tu suscripción actual para cambiar de plan
+                              </p>
+                            </div>
+                          ) : (
+                            <Button
+                              className={`w-full mt-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${plan.id === 'profesional'
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
+                                }`}
+                              onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
+                              disabled={isSubscribing || (membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis')}
+                            >
+                              {isSubscribing ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Procesando...
+                                </>
+                              ) : (
+                                `Suscribirse a ${plan.name}`
+                              )}
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
-                    <p className={`text-3xl font-bold bg-clip-text text-transparent mb-2 ${plan.id === 'profesional'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
-                      : 'bg-gradient-to-r from-purple-600 to-pink-600'
-                      }`}>
-                      {formatPrice(plan.price)}
-                    </p>
-                    <p className="text-[#B0B0B0] font-medium mb-4">{plan.description}</p>
-                    <ul className="text-[#E0E0E0] space-y-2 mb-4">
-                      {plan.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-3">
-                          <div className={`h-2 w-2 rounded-full ${plan.id === 'profesional' ? 'bg-blue-500' : 'bg-purple-500'
-                            }`}></div>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    {!isCurrentPlan && (
-                      <>
-                        {membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis' ? (
-                          <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
-                            <p className="text-[#E0E0E0] font-medium mb-2">
-                              Ya tienes un plan activo
-                            </p>
-                            <p className="text-sm text-[#B0B0B0]">
-                              Cancela tu suscripción actual para cambiar de plan
-                            </p>
-                          </div>
-                        ) : (
-                          <Button
-                            className={`w-full mt-4 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 ${plan.id === 'profesional'
-                              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                              : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
-                              }`}
-                            onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
-                            disabled={isSubscribing || (membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis')}
-                          >
-                            {isSubscribing ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Procesando...
-                              </>
-                            ) : (
-                              `Suscribirse a ${plan.name}`
-                            )}
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </CardContent>
-          </div>
-        </Card>
+                  );
+                })}
+              </CardContent>
+            </div>
+          </Card>
+        )}
 
         {/* Support Section */}
         <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
