@@ -4,6 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://pilotodedrones.cl'
 
 interface InvitationEmailRequest {
@@ -86,6 +87,163 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify(data),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Acción: Aceptar invitación
+    if (body.action === 'accept_invitation') {
+      const { invitationId } = body
+      const authHeader = req.headers.get('Authorization')
+
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: 'No autorizado' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // 1. Obtener usuario autenticado
+      const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } })
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+
+      if (userError || !user) {
+        return new Response(
+          JSON.stringify({ error: 'Usuario no autenticado' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('👤 Usuario aceptando:', user.email, user.id)
+
+      // Usar admin client para operaciones de base de datos
+      const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+      // 2. Obtener invitación
+      const { data: invitation, error: invError } = await supabaseAdmin
+        .from('company_pilot_invitations')
+        .select('*')
+        .eq('id', invitationId)
+        .eq('status', 'pending')
+        .single()
+
+      if (invError || !invitation) {
+        return new Response(
+          JSON.stringify({ error: 'Invitación no encontrada o ya procesada' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // 3. Validar que el usuario corresponde a la invitación
+      // Si invitation.pilot_id es NULL (usuario nuevo), validamos por email
+      // Si invitation.pilot_id existe, debe coincidir con user.id
+      const userEmail = user.email?.toLowerCase().trim()
+      const invEmail = invitation.pilot_email.toLowerCase().trim()
+
+      let isValido = false
+      if (invitation.pilot_id) {
+        if (invitation.pilot_id === user.id) isValido = true
+      } else {
+        if (invEmail === userEmail) isValido = true // Coincidencia por email
+      }
+
+      if (!isValido) {
+        return new Response(
+          JSON.stringify({ error: 'Esta invitación no corresponde a tu usuario' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('✅ Validación exitosa. Procesando aceptación...')
+
+      // 4. Actualizar invitación con el ID real del usuario si faltaba
+      if (!invitation.pilot_id) {
+        await supabaseAdmin
+          .from('company_pilot_invitations')
+          .update({ pilot_id: user.id })
+          .eq('id', invitationId)
+      }
+
+      // 5. Verificar si ya está en la empresa (para evitar duplicados)
+      const { data: existingPilot } = await supabaseAdmin
+        .from('company_pilots')
+        .select('id')
+        .eq('company_id', invitation.company_id)
+        .eq('pilot_id', user.id)
+        .maybeSingle()
+
+      if (!existingPilot) {
+        // Agregar a company_pilots
+        const { error: addError } = await supabaseAdmin
+          .from('company_pilots')
+          .insert({
+            company_id: invitation.company_id,
+            pilot_id: user.id
+          })
+
+        if (addError) {
+          console.error('Error adding pilot:', addError)
+          throw new Error('Error al unirse a la empresa')
+        }
+      }
+
+      // 6. ACTIVAR PLAN PRO (Upsert subscription)
+      // Buscamos suscripción actual
+      const { data: existingSub } = await supabaseAdmin
+        .from('user_subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const unAnioMas = new Date()
+      unAnioMas.setFullYear(unAnioMas.getFullYear() + 1)
+
+      if (existingSub) {
+        await supabaseAdmin
+          .from('user_subscriptions')
+          .update({
+            plan_name: 'pro',
+            status: 'active',
+            payment_method: 'company_sponsored', // Marca especial
+            renewal_date: unAnioMas.toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id)
+      } else {
+        await supabaseAdmin
+          .from('user_subscriptions')
+          .insert({
+            user_id: user.id,
+            plan_name: 'pro',
+            status: 'active',
+            payment_method: 'company_sponsored',
+            renewal_date: unAnioMas.toISOString()
+          })
+      }
+
+      // 7. Marcar invitación como aceptada
+      await supabaseAdmin
+        .from('company_pilot_invitations')
+        .update({
+          status: 'accepted',
+          responded_at: new Date().toISOString(),
+          pilot_id: user.id // Asegurar que quede linkeado
+        })
+        .eq('id', invitationId)
+
+      // 8. Notificación (opcional)
+      await supabaseAdmin
+        .from('notifications')
+        .insert({
+          user_id: user.id,
+          type: 'welcome_company',
+          title: 'Bienvenido al equipo',
+          message: 'Has sido añadido correctamente y tu Plan Pro está activo.',
+          data: { company_id: invitation.company_id }
+        })
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Invitación aceptada correctamente' }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

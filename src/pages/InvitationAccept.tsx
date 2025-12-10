@@ -113,11 +113,13 @@ const InvitationAcceptPage = () => {
 				return;
 			}
 
-			// Aceptar invitación
-			const { data, error } = await supabase
-				.rpc('accept_company_invitation_with_pro', {
-					invitation_id_param: invitation.id
-				});
+			// Aceptar invitación usando Edge Function (Logic robusta que maneja null pilot_id y plan pro)
+			const { data, error } = await supabase.functions.invoke('send-invitation-email', {
+				body: {
+					action: 'accept_invitation',
+					invitationId: invitation.id
+				}
+			});
 
 			if (error || !data?.success) {
 				throw new Error(data?.error || 'Error al aceptar invitación');
