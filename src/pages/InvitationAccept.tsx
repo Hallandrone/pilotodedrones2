@@ -191,16 +191,27 @@ const InvitationAcceptPage = () => {
 		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
 			<Card className="w-full max-w-2xl border-0 shadow-2xl">
 				{/* Header */}
+				{/* Header */}
 				<CardHeader className="text-center space-y-4 pb-6 bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-t-lg">
-					<div className="flex justify-center mb-4">
-						<Logo size="lg" className="filter brightness-0 invert" />
+					{/* Texto arriba centrado */}
+					<div className="flex justify-center mb-2">
+						<h2 className="text-2xl font-bold text-white tracking-wide">
+							Piloto de Drones
+						</h2>
 					</div>
+
+					{/* Logo grande centrado (reemplazando el edificio) */}
 					<div className="flex justify-center">
-						<div className="h-20 w-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-							<Building2 className="h-10 w-10 text-white" />
+						<div className="h-24 w-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center p-5 shadow-lg ring-1 ring-white/30">
+							<Logo
+								showText={false}
+								size="xl"
+								className="filter brightness-0 invert justify-center"
+							/>
 						</div>
 					</div>
-					<CardTitle className="text-3xl font-bold">
+
+					<CardTitle className="text-3xl font-bold mt-2">
 						¡Tienes una invitación!
 					</CardTitle>
 					<CardDescription className="text-white/90 text-lg">
