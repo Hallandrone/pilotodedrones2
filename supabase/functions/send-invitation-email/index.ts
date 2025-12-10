@@ -100,8 +100,8 @@ serve(async (req) => {
       if (!authHeader) {
         console.error('❌ Falta header Authorization')
         return new Response(
-          JSON.stringify({ error: 'No autorizado: Falta token' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ success: false, error: 'No autorizado: Falta token de sesión' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
@@ -118,24 +118,24 @@ serve(async (req) => {
         if (userError) {
           console.error('❌ Error validando usuario:', userError)
           return new Response(
-            JSON.stringify({ error: 'Sesión inválida o expirada' }),
-            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            JSON.stringify({ success: false, error: `Auth Error: ${userError.message}` }),
+            { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
         user = data.user
-      } catch (err) {
+      } catch (err: any) {
         console.error('❌ Error interno auth:', err)
         return new Response(
-          JSON.stringify({ error: 'Error interno de autenticación' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ success: false, error: `Internal Auth Error: ${err.message}` }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
       if (!user) {
         console.error('❌ No se encontró usuario en la sesión')
         return new Response(
-          JSON.stringify({ error: 'Usuario no autenticado' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ success: false, error: 'Usuario no identificado en la sesión' }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
