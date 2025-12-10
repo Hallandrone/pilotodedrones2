@@ -131,7 +131,7 @@ const InvitationAcceptPage = () => {
 					variant: 'destructive'
 				});
 				// Esperar un poco para que el toast se vea
-				setTimeout(() => navigate(`/auth?invitation=${token}`), 1500);
+				setTimeout(() => navigate(`/auth?invitation=${token}&tab=signup`), 1500);
 				return;
 			}
 
