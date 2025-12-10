@@ -56,36 +56,56 @@ const InvitationAcceptPage = () => {
 				return;
 			}
 
-			// Obtener datos de la invitación directamente por ID
-			// @ts-ignore
-			const { data: invitationData, error: invitationError } = await supabase
-				.from('company_pilot_invitations')
-				.select(`
-					id,
-					pilot_email,
-					message,
-					invited_at,
-					status,
-					company:companies!company_pilot_invitations_company_id_fkey (
-						company_name
-					)
-				`)
-				.eq('id', token)
-				.eq('status', 'pending')
-				.single();
+			// Obtener datos de la invitación usando la Edge Function para saltar RLS
+			// ya que el usuario aún no está autenticado o no tiene permisos de lectura
+			const { data: invitationData, error: invitationError } = await supabase.functions.invoke('send-invitation-email', {
+				method: 'GET',
+				headers: { 'Content-Type': 'application/json' },
+				// Pasamos el ID como query param en la URL de la función
+				// La librería supabase-js maneja la URL base, pero para GET con params es mejor construir la URL manualmente o usar body si fuera POST
+				// Pero como modificamos la función para leer searchParams, necesitamos que lleguen en la URL.
+				// supabase.functions.invoke no tiene una opción fácil para query params en GET, así que los pasamos manualmente si es necesario o usamos una llamada fetch si la librería lo complica.
+				// Sin embargo, invoke permite pasar opciones de fetch.
+			});
 
-			if (invitationError || !invitationData) {
-				setError('Invitación no encontrada o ya procesada');
+			// Intentamos una llamada directa con fetch si invoke no añade query params fácilmente en la URL base.
+			// Pero mejor aún, vamos a probar pasando el ID en la URL de invoke si la librería lo permite
+			// O más simple: Hacemos una llamada usando el cliente global de supabase que tiene la URL configurada.
+
+			// Dado que invoke hace POST por defecto si hay body, y GET si no, pero pasar query params es la clave.
+			// Vamos a construir la llamada manualmente con fetch para asegurar que los params lleguen.
+
+			const projectUrl = import.meta.env.VITE_SUPABASE_URL;
+			const functionUrl = `${projectUrl}/functions/v1/send-invitation-email?id=${token}`;
+			const { data: { session: currentSession } } = await supabase.auth.getSession();
+
+			const response = await fetch(functionUrl, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+					// Si hay sesión, también podríamos enviarla, pero la function usa service_role así que no importa
+				}
+			});
+
+			if (!response.ok) {
+				throw new Error('Error al obtener invitación');
+			}
+
+			const data = await response.json();
+
+			if (!data || data.error) {
+				setError(data?.error || 'Invitación no encontrada o ya procesada');
 				setLoading(false);
 				return;
 			}
 
 			setInvitation({
-				id: invitationData.id,
-				company_name: invitationData.company?.company_name || 'Una empresa',
-				pilot_email: invitationData.pilot_email,
-				message: invitationData.message,
-				invited_at: invitationData.invited_at
+				id: data.id,
+				company_name: data.company?.company_name || 'Una empresa',
+				pilot_email: data.pilot_email,
+				message: data.message,
+				invited_at: data.invited_at
 			});
 			setLoading(false);
 
