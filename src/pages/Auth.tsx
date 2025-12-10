@@ -61,7 +61,14 @@ const Auth = () => {
             if (profile?.user_type === 'company') {
               navigate('/company');
             } else {
-              navigate('/dashboard');
+              // Check for invitation
+              const params = new URLSearchParams(window.location.search);
+              const invitationToken = params.get('invitation');
+              if (invitationToken) {
+                navigate(`/invitation/${invitationToken}`);
+              } else {
+                navigate('/dashboard');
+              }
             }
           } catch (error) {
             console.error('Error checking profile:', error);
@@ -224,17 +231,33 @@ const Auth = () => {
             description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
           });
         } else {
-          toast({
-            title: "¡Bienvenido! Tienes Plan Gratis",
-            description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
-          });
+          // Verificar si hay invitación pendiente
+          const params = new URLSearchParams(window.location.search);
+          const invitationToken = params.get('invitation');
+
+          if (invitationToken) {
+            toast({
+              title: "Cuenta creada",
+              description: "Procesando tu invitación...",
+            });
+          } else {
+            toast({
+              title: "¡Bienvenido! Tienes Plan Gratis",
+              description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
+            });
+          }
         }
 
         // Esperar un momento más antes de redirigir
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Redirigir según el tipo de usuario
-        if (profile?.user_type === 'company') {
+        // Redirigir según contexto
+        const params = new URLSearchParams(window.location.search);
+        const invitationToken = params.get('invitation');
+
+        if (invitationToken) {
+          navigate(`/invitation/${invitationToken}`);
+        } else if (profile?.user_type === 'company') {
           // Las empresas DEBEN ir a membresía para activar su cuenta
           navigate('/company/membership');
         } else {
@@ -325,7 +348,13 @@ const Auth = () => {
       if (roleData.role === 'admin' || roleData.role === 'super_admin') {
         navigate('/dashboard');
       } else if (roleData.role === 'pilot') {
-        navigate('/pilot');
+        const params = new URLSearchParams(window.location.search);
+        const invitationToken = params.get('invitation');
+        if (invitationToken) {
+          navigate(`/invitation/${invitationToken}`);
+        } else {
+          navigate('/pilot');
+        }
       } else if (roleData.role === 'company') {
         navigate('/company');
       } else {
