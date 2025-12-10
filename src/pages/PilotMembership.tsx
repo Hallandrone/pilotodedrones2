@@ -273,9 +273,7 @@ const PilotMembership = () => {
           renewal_date: subscription?.renewal_date || null,
           payment_method: 'company_sponsored',
           features: defaultPlans.find(p => p.id === 'profesional')?.features || [],
-          reveniu_subscription_id: (subscription as any)?.reveniu_subscription_id || null,
-          flow_subscription_id: (subscription as any)?.flow_subscription_id || null,
-          flow_plan_id: (subscription as any)?.flow_plan_id || null
+          reveniu_subscription_id: (subscription as any)?.reveniu_subscription_id || null
         });
 
       } else {
@@ -780,7 +778,7 @@ const PilotMembership = () => {
                 </p>
                 <div className="p-4 bg-blue-900/20 border border-blue-500/20 rounded-lg">
                   <p className="text-sm text-blue-200">
-                    <InfoIcon className="h-4 w-4 inline mr-2" />
+                    <AlertCircle className="h-4 w-4 inline mr-2" />
                     Si la empresa cancela su suscripción, tu cuenta volverá automáticamente al Plan Gratis y podrás elegir suscribirte individualmente.
                   </p>
                 </div>
