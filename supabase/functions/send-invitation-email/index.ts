@@ -93,21 +93,46 @@ serve(async (req) => {
 
     // Acción: Aceptar invitación
     if (body.action === 'accept_invitation') {
+      console.log('🚀 Iniciando aceptación de invitación')
       const { invitationId } = body
       const authHeader = req.headers.get('Authorization')
 
       if (!authHeader) {
+        console.error('❌ Falta header Authorization')
         return new Response(
-          JSON.stringify({ error: 'No autorizado' }),
+          JSON.stringify({ error: 'No autorizado: Falta token' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
 
-      // 1. Obtener usuario autenticado
-      const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } })
-      const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+      // 1. Obtener usuario autenticado con manejo de errores
+      let user = null
+      try {
+        if (!SUPABASE_ANON_KEY) {
+          throw new Error('Falta configuración del servidor (ANON_KEY)')
+        }
 
-      if (userError || !user) {
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } })
+        const { data, error: userError } = await supabaseClient.auth.getUser()
+
+        if (userError) {
+          console.error('❌ Error validando usuario:', userError)
+          return new Response(
+            JSON.stringify({ error: 'Sesión inválida o expirada' }),
+            { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+        user = data.user
+      } catch (err) {
+        console.error('❌ Error interno auth:', err)
+        return new Response(
+          JSON.stringify({ error: 'Error interno de autenticación' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      if (!user) {
+        console.error('❌ No se encontró usuario en la sesión')
         return new Response(
           JSON.stringify({ error: 'Usuario no autenticado' }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
