@@ -43,15 +43,49 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	const [locationName, setLocationName] = useState<string>('Santiago, Chile');
 	const [currentLocation, setCurrentLocation] = useState<{ latitude: number, longitude: number }>(DEFAULT_LOCATION);
 	const [sunData, setSunData] = useState<SunriseSunsetData | null>(null);
+	const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 	const { toast } = useToast();
+
+	const CACHE_KEY = 'weather_cache';
+	const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos en milisegundos
 
 	useEffect(() => {
 		if (hasActiveSubscription) {
-			loadWeather();
+			loadWeatherWithCache();
 		} else {
 			setLoading(false);
 		}
 	}, [hasActiveSubscription]);
+
+	const loadWeatherWithCache = async () => {
+		try {
+			// Intentar cargar desde caché
+			const cachedData = localStorage.getItem(CACHE_KEY);
+			if (cachedData) {
+				const { data, timestamp } = JSON.parse(cachedData);
+				const now = new Date().getTime();
+				const cacheAge = now - timestamp;
+
+				// Si el caché tiene menos de 30 minutos, usarlo
+				if (cacheAge < CACHE_DURATION) {
+					setConditions(data.conditions);
+					setLocationName(data.locationName);
+					setCurrentLocation(data.currentLocation);
+					setSunData(data.sunData);
+					setLocationGranted(data.locationGranted);
+					setLastUpdate(new Date(timestamp));
+					setLoading(false);
+					return;
+				}
+			}
+
+			// Si no hay caché válido, cargar datos frescos
+			await loadWeather();
+		} catch (err) {
+			console.error('Error loading weather with cache:', err);
+			await loadWeather();
+		}
+	};
 
 	const loadWeather = async () => {
 		try {
@@ -82,6 +116,25 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 			// Obtener datos meteorológicos
 			const weatherData = await getWeatherConditions(location.latitude, location.longitude);
 			setConditions(weatherData);
+
+			// Guardar en caché
+			const cacheData = {
+				data: {
+					conditions: weatherData,
+					locationName: locName,
+					currentLocation: location,
+					sunData: sunriseSunsetData,
+					locationGranted: location === DEFAULT_LOCATION ? false : true
+				},
+				timestamp: new Date().getTime()
+			};
+			localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+			setLastUpdate(new Date());
+
+			toast({
+				title: 'Condiciones actualizadas',
+				description: 'Datos meteorológicos actualizados correctamente',
+			});
 		} catch (err) {
 			console.error('Error loading weather:', err);
 			setError('No se pudieron cargar las condiciones meteorológicas');
@@ -185,20 +238,26 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 								<Cloud className="h-5 w-5 text-[#00b3f3]" />
 								Condiciones para Volar
 							</CardTitle>
-							<div className="flex items-center gap-2 mt-1">
+							<div className="flex items-center gap-2 mt-1 flex-wrap">
 								<MapPin className="h-3 w-3 text-white/60" />
 								<span className="text-xs text-white/60">{locationName}</span>
-								<Button
-									size="sm"
-									variant="ghost"
-									className="h-5 px-2 text-xs text-white/60 hover:text-white hover:bg-white/10"
-									onClick={loadWeather}
-								>
-									<RefreshCw className="h-3 w-3 mr-1" />
-									Actualizar
-								</Button>
+								{lastUpdate && (
+									<span className="text-xs text-white/40">
+										• Actualizado hace {Math.floor((new Date().getTime() - lastUpdate.getTime()) / 60000)} min
+									</span>
+								)}
 							</div>
 						</div>
+						<Button
+							size="sm"
+							variant="outline"
+							className="border-[#00b3f3]/50 text-white hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] transition-all"
+							onClick={loadWeather}
+							disabled={loading}
+						>
+							<RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
+							Actualizar
+						</Button>
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-4">

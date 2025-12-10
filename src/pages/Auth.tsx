@@ -194,22 +194,37 @@ const Auth = () => {
 
       // Check if user is immediately confirmed (email confirmation disabled)
       if (!data.user.email_confirmed_at) {
-        toast({
-          title: "¡Cuenta creada con Plan Gratis!",
-          description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
-        });
+        if (profile?.user_type === 'company') {
+          toast({
+            title: "¡Cuenta creada!",
+            description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
+          });
+        } else {
+          toast({
+            title: "¡Cuenta creada con Plan Gratis!",
+            description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
+          });
+        }
       } else {
-        toast({
-          title: "¡Bienvenido! Tienes Plan Gratis",
-          description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
-        });
+        if (profile?.user_type === 'company') {
+          toast({
+            title: "¡Bienvenido!",
+            description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
+          });
+        } else {
+          toast({
+            title: "¡Bienvenido! Tienes Plan Gratis",
+            description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
+          });
+        }
 
         // Esperar un momento más antes de redirigir
         await new Promise(resolve => setTimeout(resolve, 500));
 
         // Redirigir según el tipo de usuario
         if (profile?.user_type === 'company') {
-          navigate('/company');
+          // Las empresas DEBEN ir a membresía para activar su cuenta
+          navigate('/company/membership');
         } else {
           navigate('/dashboard');
         }
