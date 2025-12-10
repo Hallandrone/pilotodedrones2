@@ -147,11 +147,11 @@ const InvitationAcceptPage = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+			<div className="min-h-screen bg-[#f5f8fa] flex items-center justify-center p-4">
 				<Card className="w-full max-w-md">
 					<CardContent className="pt-6">
 						<div className="text-center py-8">
-							<Loader2 className="h-12 w-12 text-blue-600 mx-auto mb-4 animate-spin" />
+							<Loader2 className="h-12 w-12 text-[#00b3f3] mx-auto mb-4 animate-spin" />
 							<p className="text-gray-600">Cargando invitación...</p>
 						</div>
 					</CardContent>
@@ -162,7 +162,7 @@ const InvitationAcceptPage = () => {
 
 	if (error || !invitation) {
 		return (
-			<div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+			<div className="min-h-screen bg-[#f5f8fa] flex items-center justify-center p-4">
 				<Card className="w-full max-w-md border-red-200">
 					<CardHeader>
 						<div className="mx-auto mb-4 h-16 w-16 bg-red-100 rounded-full flex items-center justify-center">
@@ -188,11 +188,10 @@ const InvitationAcceptPage = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+		<div className="min-h-screen bg-[#f5f8fa] flex items-center justify-center p-4">
 			<Card className="w-full max-w-2xl border-0 shadow-2xl">
 				{/* Header */}
-				{/* Header */}
-				<CardHeader className="text-center space-y-4 pb-6 bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-t-lg">
+				<CardHeader className="text-center space-y-4 pb-6 bg-[#083b4e] text-white rounded-t-lg">
 					{/* Texto arriba centrado */}
 					<div className="flex justify-center mb-2">
 						<h2 className="text-2xl font-bold text-white tracking-wide">
@@ -200,7 +199,7 @@ const InvitationAcceptPage = () => {
 						</h2>
 					</div>
 
-					{/* Logo grande centrado (reemplazando el edificio) */}
+					{/* Logo grande centrado */}
 					<div className="flex justify-center">
 						<div className="h-24 w-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center p-5 shadow-lg ring-1 ring-white/30">
 							<Logo
@@ -222,7 +221,7 @@ const InvitationAcceptPage = () => {
 				<CardContent className="pt-8 space-y-6">
 					{/* Mensaje personalizado */}
 					{invitation.message && (
-						<div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+						<div className="bg-[#f0f9ff] border-l-4 border-[#00b3f3] p-4 rounded-r-lg">
 							<p className="text-gray-700 italic">"{invitation.message}"</p>
 						</div>
 					)}
@@ -230,11 +229,11 @@ const InvitationAcceptPage = () => {
 					{/* Información de la invitación */}
 					<div className="space-y-3">
 						<div className="flex items-center gap-3 text-gray-600">
-							<Mail className="h-5 w-5 text-blue-600" />
+							<Mail className="h-5 w-5 text-[#00b3f3]" />
 							<span>Invitación enviada a: <strong>{invitation.pilot_email}</strong></span>
 						</div>
 						<div className="flex items-center gap-3 text-gray-600">
-							<Calendar className="h-5 w-5 text-blue-600" />
+							<Calendar className="h-5 w-5 text-[#00b3f3]" />
 							<span>Fecha: {new Date(invitation.invited_at).toLocaleDateString('es-ES', {
 								day: 'numeric',
 								month: 'long',
@@ -244,9 +243,9 @@ const InvitationAcceptPage = () => {
 					</div>
 
 					{/* Beneficios */}
-					<div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-lg border-2 border-purple-200">
+					<div className="bg-[#e8f4f8] p-6 rounded-lg border-2 border-[#b3e5fadd]">
 						<div className="flex items-center gap-2 mb-4">
-							<Gift className="h-6 w-6 text-purple-600" />
+							<Gift className="h-6 w-6 text-[#00b3f3]" />
 							<h3 className="text-xl font-semibold text-gray-900">
 								Beneficios al unirte
 							</h3>
@@ -261,7 +260,7 @@ const InvitationAcceptPage = () => {
 								'Visibilidad prioritaria en búsquedas'
 							].map((benefit, index) => (
 								<li key={index} className="flex items-start gap-3">
-									<CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+									<CheckCircle className="h-5 w-5 text-[#00b3f3] mt-0.5 flex-shrink-0" />
 									<span className="text-gray-700">{benefit}</span>
 								</li>
 							))}
@@ -270,7 +269,7 @@ const InvitationAcceptPage = () => {
 
 					{/* Plan Pro Badge */}
 					<div className="flex justify-center">
-						<Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 text-base">
+						<Badge className="bg-[#00b3f3] hover:bg-[#0099cc] text-white px-6 py-2 text-base">
 							<Sparkles className="h-4 w-4 mr-2" />
 							Plan Pro incluido
 						</Badge>
@@ -282,7 +281,7 @@ const InvitationAcceptPage = () => {
 							<Button
 								onClick={handleAccept}
 								disabled={accepting}
-								className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-6 text-lg"
+								className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-semibold py-6 text-lg shadow-lg shadow-blue-500/20"
 								size="lg"
 							>
 								{accepting ? (
@@ -305,7 +304,7 @@ const InvitationAcceptPage = () => {
 								</p>
 								<Button
 									onClick={() => navigate(`/auth?invitation=${token}`)}
-									className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-6 text-lg"
+									className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-semibold py-6 text-lg shadow-lg shadow-blue-500/20"
 									size="lg"
 								>
 									Iniciar sesión / Registrarse
