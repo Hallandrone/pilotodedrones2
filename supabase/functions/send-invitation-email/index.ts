@@ -7,41 +7,55 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://pilotodedrones.cl'
 
 interface InvitationEmailRequest {
-	invitationId: string
-	pilotEmail: string
-	pilotName: string
-	companyName: string
-	message?: string
+  invitationId: string
+  pilotEmail: string
+  pilotName: string
+  companyName: string
+  message?: string
 }
 
 serve(async (req) => {
-	// CORS headers
-	const corsHeaders = {
-		'Access-Control-Allow-Origin': '*',
-		'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-	}
+  // CORS headers
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 
-	// Handle CORS preflight
-	if (req.method === 'OPTIONS') {
-		return new Response('ok', { headers: corsHeaders })
-	}
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
 
-	try {
-		const { invitationId, pilotEmail, pilotName, companyName, message }: InvitationEmailRequest = await req.json()
+  try {
+    const { invitationId, pilotEmail, pilotName, companyName, message }: InvitationEmailRequest = await req.json()
 
-		// Validar datos requeridos
-		if (!invitationId || !pilotEmail || !companyName) {
-			return new Response(
-				JSON.stringify({ error: 'Faltan datos requeridos' }),
-				{ status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-			)
-		}
+    // Validar datos requeridos
+    if (!invitationId || !pilotEmail || !companyName) {
+      return new Response(
+        JSON.stringify({ error: 'Faltan datos requeridos' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-		// Crear link de invitación
-		const invitationLink = `${FRONTEND_URL}/invitation/${invitationId}`
+    // Obtener el invitation_token de la base de datos
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-		// Preparar el HTML del email
-		const emailHtml = `
+    const { data: invitationData, error: invitationError } = await supabase
+      .from('company_pilot_invitations')
+      .select('invitation_token')
+      .eq('id', invitationId)
+      .single()
+
+    if (invitationError || !invitationData?.invitation_token) {
+      console.error('Error obteniendo token:', invitationError)
+      throw new Error('No se pudo obtener el token de invitación')
+    }
+
+    // Crear link de invitación usando el TOKEN, no el ID
+    const invitationLink = `${FRONTEND_URL}/invitation/${invitationData.invitation_token}`
+
+    // Preparar el HTML del email
+    const emailHtml = `
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -141,59 +155,59 @@ serve(async (req) => {
 </html>
     `
 
-		// Enviar email con Resend
-		const resendResponse = await fetch('https://api.resend.com/emails', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': `Bearer ${RESEND_API_KEY}`,
-			},
-			body: JSON.stringify({
-				from: 'Piloto de Drones <invitaciones@pilotodedrones.cl>',
-				to: [pilotEmail],
-				subject: `${companyName} te invita a unirte a su equipo - Plan Pro GRATIS`,
-				html: emailHtml,
-			}),
-		})
+    // Enviar email con Resend
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: 'Piloto de Drones <invitaciones@pilotodedrones.cl>',
+        to: [pilotEmail],
+        subject: `${companyName} te invita a unirte a su equipo - Plan Pro GRATIS`,
+        html: emailHtml,
+      }),
+    })
 
-		const resendData = await resendResponse.json()
+    const resendData = await resendResponse.json()
 
-		if (!resendResponse.ok) {
-			console.error('Error de Resend:', resendData)
-			throw new Error(resendData.message || 'Error al enviar email')
-		}
+    if (!resendResponse.ok) {
+      console.error('Error de Resend:', resendData)
+      throw new Error(resendData.message || 'Error al enviar email')
+    }
 
-		// Registrar envío en Supabase
-		const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    // Registrar envío en Supabase
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
-		await supabase
-			.from('company_pilot_invitations')
-			.update({
-				email_sent: true,
-				email_sent_at: new Date().toISOString()
-			})
-			.eq('id', invitationId)
+    await supabase
+      .from('company_pilot_invitations')
+      .update({
+        email_sent: true,
+        email_sent_at: new Date().toISOString()
+      })
+      .eq('id', invitationId)
 
-		return new Response(
-			JSON.stringify({
-				success: true,
-				emailId: resendData.id,
-				message: 'Email enviado correctamente'
-			}),
-			{
-				status: 200,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			}
-		)
+    return new Response(
+      JSON.stringify({
+        success: true,
+        emailId: resendData.id,
+        message: 'Email enviado correctamente'
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
 
-	} catch (error) {
-		console.error('Error:', error)
-		return new Response(
-			JSON.stringify({ error: error.message }),
-			{
-				status: 500,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			}
-		)
-	}
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
+  }
 })

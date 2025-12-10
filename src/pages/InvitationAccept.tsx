@@ -56,17 +56,37 @@ const InvitationAcceptPage = () => {
 				return;
 			}
 
-			// Obtener datos de la invitación
-			const { data, error: invitationError } = await supabase
-				.rpc('get_invitation_by_token', { token_param: token });
+			// Obtener datos de la invitación directamente por ID
+			// @ts-ignore
+			const { data: invitationData, error: invitationError } = await supabase
+				.from('company_pilot_invitations')
+				.select(`
+					id,
+					pilot_email,
+					message,
+					invited_at,
+					status,
+					company:companies!company_pilot_invitations_company_id_fkey (
+						company_name
+					)
+				`)
+				.eq('id', token)
+				.eq('status', 'pending')
+				.single();
 
-			if (invitationError || !data?.success) {
-				setError(data?.error || 'Invitación no encontrada o ya procesada');
+			if (invitationError || !invitationData) {
+				setError('Invitación no encontrada o ya procesada');
 				setLoading(false);
 				return;
 			}
 
-			setInvitation(data.invitation);
+			setInvitation({
+				id: invitationData.id,
+				company_name: invitationData.company?.company_name || 'Una empresa',
+				pilot_email: invitationData.pilot_email,
+				message: invitationData.message,
+				invited_at: invitationData.invited_at
+			});
 			setLoading(false);
 
 		} catch (err: any) {
