@@ -224,47 +224,63 @@ const PilotMembership = () => {
         setMembership(null);
       }
 
-      // LÓGICA EMPRESA PATROCINADORA
-      // Si el plan es Pro y el método de pago indica patrocinio, buscamos el nombre de la empresa
-      if (subscription && subscription.plan_name === 'pro' && subscription.payment_method?.includes('company')) {
-        const { data: pilotData } = await supabase
-          .from('company_pilots')
-          .select('company_id')
-          .eq('pilot_id', user.id)
-          .maybeSingle();
+      // ====== LÓGICA PRIORIZADA: PILOTO DE EMPRESA ======
+      // PRIMERO verificamos si el usuario pertenece a una empresa
+      // Si es así, FORZAMOS que tenga Plan Pro, independientemente de lo que diga la DB
 
-        if (pilotData?.company_id) {
-          const { data: companyProfile } = await supabase
-            .from('profiles')
-            .select('company_name, full_name')
-            .eq('id', pilotData.company_id)
-            .single();
+      const { data: pilotCompanyData } = await supabase
+        .from('company_pilots')
+        .select('company_id')
+        .eq('pilot_id', user.id)
+        .maybeSingle();
 
-          if (companyProfile) {
-            // Priorizar company_name, fallback a full_name
-            setSponsoringCompany(companyProfile.company_name || companyProfile.full_name);
-          }
-        }
-      } else {
-        setSponsoringCompany(null);
-      }
+      if (pilotCompanyData?.company_id) {
+        // ES PILOTO DE EMPRESA - Cargar nombre de empresa
+        const { data: companyProfile } = await supabase
+          .from('profiles')
+          .select('company_name, full_name')
+          .eq('id', pilotCompanyData.company_id)
+          .single();
 
-      // AUTOCURACIÓN: Si el usuario tiene plan gratis (o null), verificar si debería ser Pro por empresa
-      // Llamamos a la Edge Function que tiene la lógica segura
-      if (!membership || (subscription && (subscription.plan_name === 'basic' || subscription.plan_name === 'free'))) {
-        // Llamada en segundo plano para no bloquear UI
-        supabase.functions.invoke('send-invitation-email', {
-          body: { action: 'restore_pro_subscription' }
-        }).then(({ data }) => {
-          if (data?.success) {
+        const companyName = companyProfile?.company_name || companyProfile?.full_name || 'la empresa';
+        setSponsoringCompany(companyName);
+
+        // Verificar si su plan actual NO es Pro
+        if (!subscription || subscription.plan_name !== 'pro' || !subscription.payment_method?.includes('company')) {
+          console.log('⚠️ Piloto de empresa sin plan Pro correcto. Restaurando...');
+
+          // Llamar a Edge Function para forzar el plan Pro
+          const { data: restoreData } = await supabase.functions.invoke('send-invitation-email', {
+            body: { action: 'restore_pro_subscription' }
+          });
+
+          if (restoreData?.success) {
             toast({
               title: "Plan actualizado",
-              description: "Se ha activado tu Plan Pro de empresa.",
+              description: `Tu Plan Pro de ${companyName} ha sido activado.`,
             });
-            // Recargar para mostrar el nuevo plan
+            // Recargar para obtener el estado actualizado
             loadMembership();
+            return; // Salir para evitar continuar con el estado antiguo
           }
-        }).catch(err => console.error('Auto-restore check failed', err));
+        }
+
+        // El usuario tiene Pro correcto, mostrar el estado empresarial
+        setMembership({
+          plan_name: 'Plan Pro',
+          price: 0,
+          status: 'active',
+          renewal_date: subscription?.renewal_date || null,
+          payment_method: 'company_sponsored',
+          features: defaultPlans.find(p => p.id === 'profesional')?.features || [],
+          reveniu_subscription_id: (subscription as any)?.reveniu_subscription_id || null,
+          flow_subscription_id: (subscription as any)?.flow_subscription_id || null,
+          flow_plan_id: (subscription as any)?.flow_plan_id || null
+        });
+
+      } else {
+        // NO es piloto de empresa - Lógica normal
+        setSponsoringCompany(null);
       }
 
     } catch (error) {

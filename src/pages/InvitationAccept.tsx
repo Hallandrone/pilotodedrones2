@@ -307,9 +307,10 @@ const InvitationAcceptPage = () => {
 									</>
 								) : (
 									<>
-										<CheckCircle className="h-5 w-5 mr-2" />
-										Aceptar invitación y activar Plan Pro
-										<ArrowRight className="h-5 w-5 ml-2" />
+										<CheckCircle className="h-5 w-5 mr-2 flex-shrink-0" />
+										<span className="hidden sm:inline">Aceptar invitación y activar Plan Pro</span>
+										<span className="sm:hidden">Aceptar Invitación</span>
+										<ArrowRight className="h-5 w-5 ml-2 flex-shrink-0" />
 									</>
 								)}
 							</Button>
