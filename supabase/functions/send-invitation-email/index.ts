@@ -273,6 +273,49 @@ serve(async (req) => {
       )
     }
 
+    // Acción: Restaurar Plan Pro (Autocuración)
+    if (body.action === 'restore_pro_subscription') {
+      const authHeader = req.headers.get('Authorization')
+      if (!authHeader) {
+        return new Response(JSON.stringify({ success: false, error: 'No autorizado' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } })
+      const { data: { user } } = await supabaseClient.auth.getUser()
+
+      if (!user) {
+        return new Response(JSON.stringify({ success: false, error: 'Usuario no encontrado' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+      // Verificar si es piloto de empresa
+      const { data: pilotRecord } = await supabaseAdmin
+        .from('company_pilots')
+        .select('id')
+        .eq('pilot_id', user.id)
+        .maybeSingle()
+
+      if (pilotRecord) {
+        // Es piloto de empresa, forzar Pro
+        const unAnioMas = new Date()
+        unAnioMas.setFullYear(unAnioMas.getFullYear() + 1)
+
+        await supabaseAdmin.from('user_subscriptions').upsert({
+          user_id: user.id,
+          plan_name: 'pro',
+          status: 'active',
+          payment_method: 'company_sponsored_restore',
+          renewal_date: unAnioMas.toISOString(),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' })
+
+        return new Response(JSON.stringify({ success: true, message: 'Plan restaurado a Pro' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      } else {
+        return new Response(JSON.stringify({ success: false, error: 'No eres piloto de empresa' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+    }
+
     // POST: Enviar email de invitación (si tiene datos de email)
     if (req.method === 'POST' && body.pilotEmail) {
       const { invitationId, pilotEmail, pilotName, companyName, message } = body

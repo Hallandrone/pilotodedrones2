@@ -222,6 +222,25 @@ const PilotMembership = () => {
         // Usuario sin suscripción
         setMembership(null);
       }
+
+      // AUTOCURACIÓN: Si el usuario tiene plan gratis (o null), verificar si debería ser Pro por empresa
+      // Llamamos a la Edge Function que tiene la lógica segura
+      if (!membership || (subscription && (subscription.plan_name === 'basic' || subscription.plan_name === 'free'))) {
+        // Llamada en segundo plano para no bloquear UI
+        supabase.functions.invoke('send-invitation-email', {
+          body: { action: 'restore_pro_subscription' }
+        }).then(({ data }) => {
+          if (data?.success) {
+            toast({
+              title: "Plan actualizado",
+              description: "Se ha activado tu Plan Pro de empresa.",
+            });
+            // Recargar para mostrar el nuevo plan
+            loadMembership();
+          }
+        }).catch(err => console.error('Auto-restore check failed', err));
+      }
+
     } catch (error) {
       console.error('Error loading membership:', error);
       toast({
@@ -745,7 +764,7 @@ const PilotMembership = () => {
                     </ul>
                     {!isCurrentPlan && (
                       <>
-                        {membership && membership.status === 'active' ? (
+                        {membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis' ? (
                           <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
                             <p className="text-[#E0E0E0] font-medium mb-2">
                               Ya tienes un plan activo
@@ -761,7 +780,7 @@ const PilotMembership = () => {
                               : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
                               }`}
                             onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
-                            disabled={isSubscribing || (membership && membership.status === 'active')}
+                            disabled={isSubscribing || (membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis')}
                           >
                             {isSubscribing ? (
                               <>
