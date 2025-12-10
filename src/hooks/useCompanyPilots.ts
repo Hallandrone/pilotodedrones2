@@ -185,10 +185,54 @@ export function useCompanyPilots(companyId?: string) {
 
 			if (data && typeof data === 'object' && 'success' in data) {
 				if (data.success) {
-					toast({
-						title: '¡Invitación enviada!',
-						description: `Se ha enviado la invitación a ${data.pilot_name || email}`,
-					});
+					// Invitación creada exitosamente, ahora enviar email
+					const invitationId = data.invitation_id;
+					const pilotName = data.pilot_name || email;
+
+					// Obtener nombre de la empresa
+					const { data: companyData } = await supabase
+						.from('companies')
+						.select('company_name')
+						.eq('id', companyId)
+						.single();
+
+					const companyName = companyData?.company_name || 'Una empresa';
+
+					// Llamar a Edge Function para enviar email
+					try {
+						const { error: emailError } = await supabase.functions.invoke('send-invitation-email', {
+							body: {
+								invitationId: invitationId,
+								pilotEmail: email,
+								pilotName: pilotName,
+								companyName: companyName,
+								message: message || undefined
+							}
+						});
+
+						if (emailError) {
+							console.error('Error sending email:', emailError);
+							// No fallar la invitación si el email falla
+							toast({
+								title: 'Invitación creada',
+								description: `Invitación creada para ${pilotName}, pero hubo un problema al enviar el email. Puedes reenviar la invitación.`,
+								variant: 'default',
+							});
+						} else {
+							toast({
+								title: '¡Invitación enviada!',
+								description: `Se ha enviado la invitación por email a ${pilotName}`,
+							});
+						}
+					} catch (emailError) {
+						console.error('Error calling email function:', emailError);
+						toast({
+							title: 'Invitación creada',
+							description: `Invitación creada para ${pilotName}, pero hubo un problema al enviar el email.`,
+							variant: 'default',
+						});
+					}
+
 					loadInvitations();
 					return { success: true };
 				} else {
