@@ -57,42 +57,20 @@ const InvitationAcceptPage = () => {
 			}
 
 			// Obtener datos de la invitación usando la Edge Function para saltar RLS
-			// ya que el usuario aún no está autenticado o no tiene permisos de lectura
-			const { data: invitationData, error: invitationError } = await supabase.functions.invoke('send-invitation-email', {
-				method: 'GET',
-				headers: { 'Content-Type': 'application/json' },
-				// Pasamos el ID como query param en la URL de la función
-				// La librería supabase-js maneja la URL base, pero para GET con params es mejor construir la URL manualmente o usar body si fuera POST
-				// Pero como modificamos la función para leer searchParams, necesitamos que lleguen en la URL.
-				// supabase.functions.invoke no tiene una opción fácil para query params en GET, así que los pasamos manualmente si es necesario o usamos una llamada fetch si la librería lo complica.
-				// Sin embargo, invoke permite pasar opciones de fetch.
-			});
-
-			// Intentamos una llamada directa con fetch si invoke no añade query params fácilmente en la URL base.
-			// Pero mejor aún, vamos a probar pasando el ID en la URL de invoke si la librería lo permite
-			// O más simple: Hacemos una llamada usando el cliente global de supabase que tiene la URL configurada.
-
-			// Dado que invoke hace POST por defecto si hay body, y GET si no, pero pasar query params es la clave.
-			// Vamos a construir la llamada manualmente con fetch para asegurar que los params lleguen.
-
-			const projectUrl = import.meta.env.VITE_SUPABASE_URL;
-			const functionUrl = `${projectUrl}/functions/v1/send-invitation-email?id=${token}`;
-			const { data: { session: currentSession } } = await supabase.auth.getSession();
-
-			const response = await fetch(functionUrl, {
-				method: 'GET',
-				headers: {
-					'Content-Type': 'application/json',
-					'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-					// Si hay sesión, también podríamos enviarla, pero la function usa service_role así que no importa
+			// Usamos POST con action='get_invitation' para simplificar la llamada y evitar problemas de headers
+			const { data, error: functionError } = await supabase.functions.invoke('send-invitation-email', {
+				body: {
+					action: 'get_invitation',
+					id: token
 				}
 			});
 
-			if (!response.ok) {
-				throw new Error('Error al obtener invitación');
+			if (functionError) {
+				console.error('Error invoking function:', functionError);
+				setError('Error al obtener invitación');
+				setLoading(false);
+				return;
 			}
-
-			const data = await response.json();
 
 			if (!data || data.error) {
 				setError(data?.error || 'Invitación no encontrada o ya procesada');

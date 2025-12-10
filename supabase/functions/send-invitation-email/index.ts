@@ -28,10 +28,26 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url)
+    let body: any = {}
 
-    // GET: Obtener detalles de invitación (Bypass RLS)
-    if (req.method === 'GET') {
-      const invitationId = url.searchParams.get('id')
+    // Intentar leer body si es POST
+    if (req.method === 'POST') {
+      try {
+        body = await req.json()
+      } catch (e) {
+        // Body vacío o inválido
+      }
+    }
+
+    // Lógica para obtener detalles (GET o POST con action='get_invitation')
+    // Soportamos ambos para máxima compatibilidad
+    const isGetRequest = req.method === 'GET'
+    const isGetAction = body.action === 'get_invitation' || body.action === 'get-invitation'
+
+    if (isGetRequest || isGetAction) {
+      const invitationId = isGetRequest
+        ? url.searchParams.get('id')
+        : (body.id || body.invitationId)
 
       if (!invitationId) {
         return new Response(
@@ -74,9 +90,9 @@ serve(async (req) => {
       )
     }
 
-    // POST: Enviar email de invitación
-    if (req.method === 'POST') {
-      const { invitationId, pilotEmail, pilotName, companyName, message }: InvitationEmailRequest = await req.json()
+    // POST: Enviar email de invitación (si tiene datos de email)
+    if (req.method === 'POST' && body.pilotEmail) {
+      const { invitationId, pilotEmail, pilotName, companyName, message } = body
 
       // Validar datos requeridos
       if (!invitationId || !pilotEmail || !companyName) {
