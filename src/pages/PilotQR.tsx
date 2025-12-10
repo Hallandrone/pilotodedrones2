@@ -348,42 +348,20 @@ const PilotQR = () => {
           </div>
         </Card>
 
-        {/* Profile Preview */}
-        <Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
-            <CardHeader className="pb-3 bg-[#2C2C2C] rounded-xl">
-              <CardTitle className="text-[#E0E0E0]">Vista Previa del Perfil</CardTitle>
-              <CardDescription className="text-[#B0B0B0] font-medium">
-                Así verán tu perfil los clientes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="bg-[#2C2C2C] rounded-xl pt-6">
-              <div className="bg-[#1A1A1A] rounded-xl p-4 space-y-3 border border-[#333333]">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 bg-gradient-to-br from-[#FF69B4] to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-white font-semibold text-lg">
-                      {pilotData?.full_name?.charAt(0) || 'P'}
-                    </span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-[#E0E0E0]">
-                      {pilotData?.full_name || 'Piloto de Drones'}
-                    </h4>
-                    <p className="text-sm text-[#B0B0B0] font-medium">Piloto Certificado</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline" className="bg-[#2C2C2C] border-[#333333] text-[#E0E0E0]">Fotografía Aérea</Badge>
-                  <Badge variant="outline" className="bg-[#2C2C2C] border-[#333333] text-[#E0E0E0]">Topografía</Badge>
-                  <Badge variant="outline" className="bg-[#2C2C2C] border-[#333333] text-[#E0E0E0]">Inspección</Badge>
-                </div>
-                <p className="text-sm text-[#B0B0B0] font-medium">
-                  Ubicación: Santiago, RM
-                </p>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
+        {/* Ver Perfil Público Button */}
+        {hasActiveSubscription && (
+          <Button
+            onClick={async () => {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+              // Navegar al perfil público usando el ID del usuario
+              navigate(`/pilot/${user.id}`, { state: { fromQR: true } });
+            }}
+            className="w-full h-14 bg-gradient-to-r from-[#FF69B4] to-pink-600 hover:from-[#FF69B4]/90 hover:to-pink-600/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 rounded-xl text-lg"
+          >
+            Ver mi perfil público
+          </Button>
+        )}
       </div>
     </div>
   );

@@ -84,6 +84,8 @@ const PublicPilotProfile = () => {
     message: ''
   });
   const [submittingContact, setSubmittingContact] = useState(false);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [currentUserType, setCurrentUserType] = useState<string | null>(null);
 
   // Generate profile URL - use slug if available, otherwise use ID
   const profileUrl = profileSlug
@@ -93,7 +95,18 @@ const PublicPilotProfile = () => {
       : `${window.location.origin}/pilot/${pilotId}`;
 
   const handleBack = () => {
-    if (searchState) {
+    // Si el usuario está viendo su propio perfil, regresar al dashboard correspondiente
+    if (isOwnProfile) {
+      if (currentUserType === 'company') {
+        navigate('/company');
+      } else {
+        navigate('/pilot');
+      }
+      return;
+    }
+
+    // Si viene de búsqueda, regresar a búsqueda con los parámetros
+    if (searchState && !searchState.fromQR) {
       const params = new URLSearchParams();
       if (searchState.searchTerm) params.set("search", searchState.searchTerm);
       if (searchState.selectedRegion && searchState.selectedRegion !== "all") params.set("region", searchState.selectedRegion);
@@ -203,6 +216,21 @@ const PublicPilotProfile = () => {
       }
 
       setActualUserId(userId);
+
+      // Verificar si el usuario autenticado está viendo su propio perfil
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser && currentUser.id === userId) {
+        setIsOwnProfile(true);
+        // Obtener el tipo de usuario del perfil actual
+        const { data: currentProfile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', currentUser.id)
+          .single();
+        if (currentProfile) {
+          setCurrentUserType(currentProfile.user_type);
+        }
+      }
 
       // Verificar que el usuario tenga suscripción activa
       const { data: subscription } = await supabase
@@ -390,7 +418,7 @@ const PublicPilotProfile = () => {
             className="text-[#083b4e] hover:bg-gray-100 mb-4 gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver a resultados
+            {isOwnProfile ? 'Volver' : 'Volver a resultados'}
           </Button>
 
           {/* Profile Header Card */}
