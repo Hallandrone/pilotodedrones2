@@ -256,9 +256,6 @@ export function Pilots() {
     }
   };
 
-  const getPublishedServicesCount = (services: PilotService[]) => {
-    return services.filter(service => service.is_published).length;
-  };
 
   const getMainServiceType = (services: PilotService[]) => {
     const publishedServices = services.filter(service => service.is_published);
@@ -315,7 +312,6 @@ export function Pilots() {
                     <TableHead>Certificación</TableHead>
                     <TableHead>Expiración</TableHead>
                     <TableHead>Tipo de Servicio</TableHead>
-                    <TableHead>Estado de Publicación</TableHead>
                     <TableHead>Suscripción</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -412,11 +408,6 @@ export function Pilots() {
                         <span className="text-sm">
                           {getMainServiceType(pilot.pilot_services)}
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {getPublishedServicesCount(pilot.pilot_services)} servicio(s)
-                        </Badge>
                       </TableCell>
                       <TableCell>
                         {pilot.subscription_status ? (
