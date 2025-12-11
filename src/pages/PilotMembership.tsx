@@ -229,11 +229,30 @@ const PilotMembership = () => {
       // Si es así, FORZAMOS que tenga Plan Pro, independientemente de lo que diga la DB
 
       console.log('🔍 Verificando si usuario es piloto de empresa...', user.id);
-      const { data: pilotCompanyData, error: companyError } = await supabase
-        .from('company_pilots')
-        .select('company_id')
-        .eq('pilot_id', user.id)
-        .maybeSingle();
+
+      // Primero obtener el ID del piloto en la tabla pilots
+      const { data: pilotData } = await supabase
+        .from('pilots')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      console.log('👤 Pilot record:', pilotData);
+
+      let pilotCompanyData = null;
+      let companyError = null;
+
+      if (pilotData?.id) {
+        // Ahora sí buscar en company_pilots usando el pilot.id correcto
+        const result = await supabase
+          .from('company_pilots')
+          .select('company_id')
+          .eq('pilot_id', pilotData.id)
+          .maybeSingle();
+
+        pilotCompanyData = result.data;
+        companyError = result.error;
+      }
 
       console.log('📊 Resultado company_pilots:', { pilotCompanyData, companyError });
 
