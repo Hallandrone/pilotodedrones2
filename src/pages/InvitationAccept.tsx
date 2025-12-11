@@ -87,10 +87,66 @@ const InvitationAcceptPage = () => {
 			});
 			setLoading(false);
 
+			// AUTO-ACEPTACIÓN: Si el usuario acaba de registrarse y vuelve, aceptar automáticamente
+			const pendingToken = localStorage.getItem('pendingInvitationToken');
+			if (session?.user && pendingToken && pendingToken === token) {
+				console.log('Auto-aceptando invitación después del registro...');
+				// Limpiar el token pendiente ANTES de aceptar para evitar loops
+				localStorage.removeItem('pendingInvitationToken');
+				// Pequeño delay para que el usuario vea la pantalla
+				setTimeout(() => {
+					handleAcceptAutomatic(data.id);
+				}, 1000);
+			}
+
 		} catch (err: any) {
 			console.error('Error:', err);
 			setError('Error al cargar la invitación');
 			setLoading(false);
+		}
+	};
+
+	// Función separada para auto-aceptación (evita problemas de closure)
+	const handleAcceptAutomatic = async (invitationId: string) => {
+		setAccepting(true);
+		try {
+			const { data, error } = await supabase.functions.invoke('send-invitation-email', {
+				body: {
+					action: 'accept_invitation',
+					invitationId: invitationId
+				}
+			});
+
+			console.log('Respuesta auto-accept:', data);
+
+			if (data?.error && (data.error.includes('User from sub claim') || data.error.includes('Auth Error'))) {
+				// JWT corrupto, pero ya no debería pasar aquí
+				console.error('JWT corrupto en auto-accept');
+				setAccepting(false);
+				return;
+			}
+
+			if (error || !data?.success) {
+				throw new Error(data?.error || 'Error al aceptar invitación');
+			}
+
+			toast({
+				title: '¡Invitación aceptada!',
+				description: 'Plan Pro activado. Bienvenido al equipo',
+			});
+
+			setTimeout(() => {
+				navigate('/pilot');
+			}, 2000);
+
+		} catch (err: any) {
+			console.error('Error en auto-accept:', err);
+			toast({
+				title: 'Error',
+				description: err.message || 'No se pudo aceptar la invitación automáticamente. Intenta manualmente.',
+				variant: 'destructive',
+			});
+			setAccepting(false);
 		}
 	};
 
