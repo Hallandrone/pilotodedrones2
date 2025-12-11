@@ -673,10 +673,18 @@ const PilotMembership = () => {
                   <h3 className="text-3xl font-bold text-[#E0E0E0] mb-2">
                     {membership.plan_name}
                   </h3>
-                  <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                    {formatPrice(membership.price)}
-                  </p>
-                  <p className="text-[#B0B0B0] font-medium">por mes</p>
+                  {sponsoringCompany ? (
+                    <p className="text-lg text-blue-400 font-semibold">
+                      Patrocinado por {sponsoringCompany}
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        {formatPrice(membership.price)}
+                      </p>
+                      <p className="text-[#B0B0B0] font-medium">por mes</p>
+                    </>
+                  )}
                 </div>
 
                 <div className="space-y-4">
@@ -692,7 +700,7 @@ const PilotMembership = () => {
                     <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
                       <span className="text-[#B0B0B0] font-medium">Método de pago</span>
                       <span className="text-[#E0E0E0] font-semibold">
-                        {membership.payment_method}
+                        {membership.payment_method === 'company_sponsored' ? 'Patrocinado' : membership.payment_method}
                       </span>
                     </div>
                   )}
