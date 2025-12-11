@@ -228,13 +228,18 @@ const PilotMembership = () => {
       // PRIMERO verificamos si el usuario pertenece a una empresa
       // Si es así, FORZAMOS que tenga Plan Pro, independientemente de lo que diga la DB
 
-      const { data: pilotCompanyData } = await supabase
+      console.log('🔍 Verificando si usuario es piloto de empresa...', user.id);
+      const { data: pilotCompanyData, error: companyError } = await supabase
         .from('company_pilots')
         .select('company_id')
         .eq('pilot_id', user.id)
         .maybeSingle();
 
+      console.log('📊 Resultado company_pilots:', { pilotCompanyData, companyError });
+
       if (pilotCompanyData?.company_id) {
+        console.log('✅ ES PILOTO DE EMPRESA. Company ID:', pilotCompanyData.company_id);
+
         // ES PILOTO DE EMPRESA - Cargar nombre de empresa
         const { data: companyProfile } = await supabase
           .from('profiles')
@@ -243,6 +248,7 @@ const PilotMembership = () => {
           .single();
 
         const companyName = companyProfile?.company_name || companyProfile?.full_name || 'la empresa';
+        console.log('🏢 Nombre de empresa:', companyName);
         setSponsoringCompany(companyName);
 
         // Verificar si su plan actual NO es Pro
@@ -266,6 +272,7 @@ const PilotMembership = () => {
         }
 
         // El usuario tiene Pro correcto, mostrar el estado empresarial
+        console.log('✅ Seteando membership como empresa');
         setMembership({
           plan_name: 'Plan Pro',
           price: 0,
@@ -277,6 +284,7 @@ const PilotMembership = () => {
         });
 
       } else {
+        console.log('❌ NO es piloto de empresa');
         // NO es piloto de empresa - Lógica normal
         setSponsoringCompany(null);
       }
