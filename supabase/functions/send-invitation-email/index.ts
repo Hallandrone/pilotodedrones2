@@ -189,27 +189,97 @@ serve(async (req) => {
           .eq('id', invitationId)
       }
 
-      // 5. Verificar si ya está en la empresa (para evitar duplicados)
-      const { data: existingPilot } = await supabaseAdmin
-        .from('company_pilots')
+      // 5. ASEGURAR que el registro en COMPANIES existe
+      // (La invitación tiene company_id que apunta a profiles, pero company_pilots requiere companies.id)
+      const { data: existingCompany } = await supabaseAdmin
+        .from('companies')
         .select('id')
-        .eq('company_id', invitation.company_id)
-        .eq('pilot_id', user.id)
+        .eq('user_id', invitation.company_id)
         .maybeSingle()
 
-      if (!existingPilot) {
-        // Agregar a company_pilots
+      let companyRecordId = existingCompany?.id
+
+      if (!companyRecordId) {
+        console.log('⚠️ Registro en companies no existe, creando...')
+        // Obtener info de la empresa desde profiles
+        const { data: companyProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('company_name, full_name')
+          .eq('id', invitation.company_id)
+          .single()
+
+        // Crear el registro en companies
+        const { data: newCompany, error: companyError } = await supabaseAdmin
+          .from('companies')
+          .insert({
+            user_id: invitation.company_id,
+            company_name: companyProfile?.company_name || companyProfile?.full_name || 'Empresa'
+          })
+          .select('id')
+          .single()
+
+        if (companyError) {
+          console.error('Error creating company record:', companyError)
+          throw new Error('Error al crear registro de empresa')
+        }
+
+        companyRecordId = newCompany.id
+        console.log('✅ Registro de empresa creado:', companyRecordId)
+      }
+
+      // 6. ASEGURAR que el registro en PILOTS existe
+      const { data: existingPilotRecord } = await supabaseAdmin
+        .from('pilots')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      let pilotRecordId = existingPilotRecord?.id
+
+      if (!pilotRecordId) {
+        console.log('⚠️ Registro en pilots no existe, creando...')
+        const { data: newPilot, error: pilotError } = await supabaseAdmin
+          .from('pilots')
+          .insert({
+            user_id: user.id
+          })
+          .select('id')
+          .single()
+
+        if (pilotError) {
+          console.error('Error creating pilot record:', pilotError)
+          throw new Error('Error al crear registro de piloto')
+        }
+
+        pilotRecordId = newPilot.id
+        console.log('✅ Registro de piloto creado:', pilotRecordId)
+      }
+
+      // 7. Verificar si ya está en company_pilots (para evitar duplicados)
+      const { data: existingAssociation } = await supabaseAdmin
+        .from('company_pilots')
+        .select('id')
+        .eq('company_id', companyRecordId!)
+        .eq('pilot_id', pilotRecordId!)
+        .maybeSingle()
+
+      if (!existingAssociation) {
+        console.log('📝 Agregando piloto a empresa...')
+        // Agregar a company_pilots usando los IDs CORRECTOS
         const { error: addError } = await supabaseAdmin
           .from('company_pilots')
           .insert({
-            company_id: invitation.company_id,
-            pilot_id: user.id
+            company_id: companyRecordId!,
+            pilot_id: pilotRecordId!
           })
 
         if (addError) {
-          console.error('Error adding pilot:', addError)
+          console.error('Error adding pilot to company:', addError)
           throw new Error('Error al unirse a la empresa')
         }
+        console.log('✅ Piloto agregado a empresa exitosamente')
+      } else {
+        console.log('ℹ️ Piloto ya pertenece a la empresa')
       }
 
       // 6. ACTIVAR PLAN PRO (Upsert subscription)
