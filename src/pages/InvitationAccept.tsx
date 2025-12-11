@@ -122,22 +122,26 @@ const InvitationAcceptPage = () => {
 				}
 			});
 
-			// Manejo específico para usuario eliminado o sesión inválida
-			if (data?.error && (data.error.includes('User from sub claim') || data.error.includes('Auth Error'))) {
-				console.log('Detectado usuario inválido/eliminado. Cerrando sesión...');
-				await supabase.auth.signOut();
-				toast({
-					title: 'Sesión expirada',
-					description: 'Tu usuario anterior fue eliminado. Por favor regístrate nuevamente.',
-					variant: 'destructive'
-				});
-				// Esperar un poco para que el toast se vea
-				setTimeout(() => {
-					if (token) localStorage.setItem('pendingInvitationToken', token);
-					navigate(`/auth?invitation=${token}&tab=signup`);
-				}, 1500);
-				return;
-			}
+			console.log(data);
+			/* COMENTADO TEMPORALMENTE PARA DEBUG
+	// Safety check: verify user still exists in auth
+	const { data: { user }, error: userError } = await supabase.auth.getUser();
+	if (userError || !user) {
+		console.log('Detectado usuario inválido/eliminado. Cerrando sesión...');
+		await supabase.auth.signOut();
+		toast({
+			title: 'Sesión invalidada',
+			description: 'Tu usuario no existe. Por favor regístrate nuevamente.',
+			variant: 'destructive'
+		});
+		// Esperar un poco para que el toast se vea
+		setTimeout(() => {
+			if (token) localStorage.setItem('pendingInvitationToken', token);
+			navigate(`/auth?invitation=${token}&tab=signup`);
+		}, 1500);
+		return;
+	}
+	*/
 
 			if (error || !data?.success) {
 				throw new Error(data?.error || 'Error al aceptar invitación');
