@@ -18,6 +18,7 @@ const Auth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
+  const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -25,12 +26,23 @@ const Auth = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
+    const tokenParam = params.get('invitation');
+
+    // Recuperar token de almacenamiento local si existe
+    const storedToken = localStorage.getItem('pendingInvitationToken');
+    const effectiveToken = tokenParam || storedToken;
+
     if (tabParam === 'signup' || tabParam === 'register') {
       setActiveTab("signup");
     }
-  }, [location]);
 
-  // ... (resto del useEffect de auth state listener)
+    if (effectiveToken) {
+      console.log('Token de invitación detectado:', effectiveToken);
+      setInvitationToken(effectiveToken);
+      // Asegurar que esté guardado para persistencia
+      if (tokenParam) localStorage.setItem('pendingInvitationToken', tokenParam);
+    }
+  }, [location]);
 
   useEffect(() => {
     let mounted = true;
@@ -58,17 +70,23 @@ const Auth = () => {
               return;
             }
 
+            // PRIORIDAD 1: Si hay token de invitación (en storage o URL), redirigir a invitación
+            const storedToken = localStorage.getItem('pendingInvitationToken');
+            const currentParams = new URLSearchParams(window.location.search);
+            const effectiveToken = storedToken || currentParams.get('invitation');
+
+            if (effectiveToken) {
+              console.log('Redirigiendo a invitación pendiente:', effectiveToken);
+              // NO limpiamos el storage todavía para asegurar que llegue a la página
+              // La página de Invitación lo limpiará si es exitosa, o lo mantendrá si falla auth
+              navigate(`/invitation/${effectiveToken}`);
+              return;
+            }
+
             if (profile?.user_type === 'company') {
               navigate('/company');
             } else {
-              // Check for invitation
-              const params = new URLSearchParams(window.location.search);
-              const invitationToken = params.get('invitation');
-              if (invitationToken) {
-                navigate(`/invitation/${invitationToken}`);
-              } else {
-                navigate('/dashboard');
-              }
+              navigate('/dashboard');
             }
           } catch (error) {
             console.error('Error checking profile:', error);
@@ -219,23 +237,12 @@ const Auth = () => {
             description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
           });
         } else {
-          toast({
-            title: "¡Cuenta creada con Plan Gratis!",
-            description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
-          });
-        }
-      } else {
-        if (profile?.user_type === 'company') {
-          toast({
-            title: "¡Bienvenido!",
-            description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
-          });
-        } else {
-          // Verificar si hay invitación pendiente
-          const params = new URLSearchParams(window.location.search);
-          const invitationToken = params.get('invitation');
+          // Verificar si hay invitación pendiente (usando storage o URL)
+          const storedToken = localStorage.getItem('pendingInvitationToken');
+          const currentParams = new URLSearchParams(window.location.search);
+          const effectiveToken = storedToken || currentParams.get('invitation');
 
-          if (invitationToken) {
+          if (effectiveToken) {
             toast({
               title: "Cuenta creada",
               description: "Procesando tu invitación...",
@@ -247,22 +254,47 @@ const Auth = () => {
             });
           }
         }
-
-        // Esperar un momento más antes de redirigir
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Redirigir según contexto
-        const params = new URLSearchParams(window.location.search);
-        const invitationToken = params.get('invitation');
-
-        if (invitationToken) {
-          navigate(`/invitation/${invitationToken}`);
-        } else if (profile?.user_type === 'company') {
-          // Las empresas DEBEN ir a membresía para activar su cuenta
-          navigate('/company/membership');
+      } else {
+        if (profile?.user_type === 'company') {
+          toast({
+            title: "¡Bienvenido!",
+            description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
+          });
         } else {
-          navigate('/dashboard');
+          // Verificar si hay invitación pendiente (usando storage o URL)
+          const storedToken = localStorage.getItem('pendingInvitationToken');
+          const currentParams = new URLSearchParams(window.location.search);
+          const effectiveToken = storedToken || currentParams.get('invitation');
+
+          if (effectiveToken) {
+            toast({
+              title: "Cuenta creada",
+              description: "Procesando tu invitación...",
+            });
+          } else {
+            toast({
+              title: "¡Bienvenido! Tienes Plan Gratis",
+              description: "Tu cuenta ha sido creada exitosamente. Puedes actualizar tu plan desde tu perfil.",
+            });
+          }
         }
+      }
+
+      // Esperar un momento más antes de redirigir
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Redirigir según contexto
+      const storedToken = localStorage.getItem('pendingInvitationToken');
+      const currentParams = new URLSearchParams(window.location.search);
+      const effectiveToken = storedToken || currentParams.get('invitation');
+
+      if (effectiveToken) {
+        navigate(`/invitation/${effectiveToken}`);
+      } else if (profile?.user_type === 'company') {
+        // Las empresas DEBEN ir a membresía para activar su cuenta
+        navigate('/company/membership');
+      } else {
+        navigate('/dashboard');
       }
     } catch (err: any) {
       console.error('Error en registro:', err);
@@ -348,10 +380,12 @@ const Auth = () => {
       if (roleData.role === 'admin' || roleData.role === 'super_admin') {
         navigate('/dashboard');
       } else if (roleData.role === 'pilot') {
-        const params = new URLSearchParams(window.location.search);
-        const invitationToken = params.get('invitation');
-        if (invitationToken) {
-          navigate(`/invitation/${invitationToken}`);
+        const storedToken = localStorage.getItem('pendingInvitationToken');
+        const currentParams = new URLSearchParams(window.location.search);
+        const effectiveToken = storedToken || currentParams.get('invitation');
+
+        if (effectiveToken) {
+          navigate(`/invitation/${effectiveToken}`);
         } else {
           navigate('/pilot');
         }

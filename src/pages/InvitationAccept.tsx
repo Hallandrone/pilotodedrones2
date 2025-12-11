@@ -109,7 +109,8 @@ const InvitationAcceptPage = () => {
 					title: 'Inicia sesión o regístrate',
 					description: 'Necesitas una cuenta para aceptar la invitación',
 				});
-				navigate(`/auth?invitation=${token}`);
+				if (token) localStorage.setItem('pendingInvitationToken', token);
+				navigate(`/auth?invitation=${token}&tab=register`);
 				return;
 			}
 
@@ -131,7 +132,10 @@ const InvitationAcceptPage = () => {
 					variant: 'destructive'
 				});
 				// Esperar un poco para que el toast se vea
-				setTimeout(() => navigate(`/auth?invitation=${token}&tab=signup`), 1500);
+				setTimeout(() => {
+					if (token) localStorage.setItem('pendingInvitationToken', token);
+					navigate(`/auth?invitation=${token}&tab=signup`);
+				}, 1500);
 				return;
 			}
 
