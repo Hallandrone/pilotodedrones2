@@ -20,8 +20,15 @@ import {
   ExternalLink,
   Loader2
 } from "lucide-react";
-import { createSubscription as createReveniuSubscription, cancelSubscription as cancelReveniuSubscription } from "@/integrations/reveniu/client";
+import { createPreference } from "@/integrations/mercadopago/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
+
+// Declaración para el SDK de Mercado Pago
+declare global {
+  interface Window {
+    MercadoPago: any;
+  }
+}
 
 interface Membership {
   plan_name: string;
@@ -37,8 +44,6 @@ interface AvailablePlan {
   id: string;
   name: string;
   price: number;
-  reveniu_plan_id?: string;
-  reveniu_checkout_link?: string;
   features: string[];
   description: string;
 }
@@ -57,7 +62,7 @@ const PilotMembership = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Planes disponibles con Reveniu
+  // Planes actualizados para Mercado Pago
   const defaultPlans: AvailablePlan[] = [
     {
       id: 'free',
@@ -75,8 +80,6 @@ const PilotMembership = () => {
       id: 'profesional',
       name: 'Plan Pro',
       price: 14990,
-      reveniu_plan_id: '9604', // ✅ ID del Plan Piloto en Reveniu sandbox
-      reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/pk2JYEwJVEDUT5vXiFy4M6B9UNwjKxSD', // Link de Reveniu sandbox
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
       features: [
         'Todo lo del Plan Gratis',
@@ -94,8 +97,6 @@ const PilotMembership = () => {
       id: 'empresa',
       name: 'Plan Empresa',
       price: 39990,
-      reveniu_plan_id: '9934', // ✅ ID del Plan Empresa en Reveniu sandbox
-      reveniu_checkout_link: 'https://sandbox.reveniu.com/checkout-custom-link/faD3XBeyoHUNvsd9zOv4XJuGrv0ugdCG', // Link de Reveniu sandbox para Plan Empresa
       description: 'Ideal para: Publicar Empresas para realizar servicios especializados con drones',
       features: [
         'Todo lo del Plan Pro',
@@ -108,6 +109,18 @@ const PilotMembership = () => {
       ]
     }
   ];
+
+  useEffect(() => {
+    // Inyectar SDK de Mercado Pago
+    const script = document.createElement('script');
+    script.src = 'https://sdk.mercadopago.com/js/v2';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   useEffect(() => {
     loadMembership();
@@ -320,7 +333,7 @@ const PilotMembership = () => {
     }
   };
 
-  const handleSubscribe = async (planId: string, flowPlanId?: string) => {
+  const handleSubscribe = async (planId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -336,154 +349,36 @@ const PilotMembership = () => {
       if (membership && membership.status === 'active') {
         toast({
           title: "Ya tienes una suscripción activa",
-          description: `Actualmente tienes el plan ${membership.plan_name} activo. Cancela tu suscripción actual antes de suscribirte a otro plan.`,
+          description: `Actualmente tienes el plan ${membership.plan_name} activo.`,
           variant: "default",
         });
         return;
       }
 
-
-      // Obtener el plan seleccionado
       const selectedPlan = availablePlans.find(p => p.id === planId);
+      if (!selectedPlan) return;
 
-      // Si el plan tiene un link de checkout de Reveniu, usar la API para crear la suscripción
-      if (selectedPlan?.reveniu_checkout_link) {
-        setSubscribing(planId);
+      setSubscribing(planId);
 
-        // Obtener email y nombre del usuario
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('email, full_name')
-          .eq('id', user.id)
-          .single();
+      // Crear preferencia en Mercado Pago
+      const response = await createPreference(selectedPlan.id, selectedPlan.name, selectedPlan.price);
 
-        if (!profile?.email) {
-          toast({
-            title: "Error",
-            description: "No se encontró el email del usuario",
-            variant: "destructive",
-          });
-          setSubscribing(null);
-          return;
-        }
-
-        // Verificar que el plan tenga un ID de Reveniu configurado
-        const reveniuPlanId = selectedPlan.reveniu_plan_id;
-        if (!reveniuPlanId) {
-          toast({
-            title: "Error de configuración",
-            description: "El plan no tiene un ID de Reveniu configurado. Contacta al administrador.",
-            variant: "destructive",
-          });
-          setSubscribing(null);
-          return;
-        }
-
-        try {
-          // Crear suscripción usando la API de Reveniu con external_id
-          console.log('Creating Reveniu subscription with:', {
-            plan_id: reveniuPlanId,
-            external_id: user.id,
-            email: profile.email
-          });
-
-          const subscriptionResponse = await createReveniuSubscription({
-            plan_id: reveniuPlanId,
-            external_id: user.id,  // ✅ Este es el campo clave que permite identificar al usuario
-            field_values: {
-              email: profile.email,
-              name: profile.full_name || undefined,
-            }
-          });
-
-          console.log('Reveniu API response:', subscriptionResponse);
-
-          // Reveniu retorna completion_url para redirigir al checkout
-          const checkoutUrl = subscriptionResponse.completion_url || subscriptionResponse.link || subscriptionResponse.checkout_url;
-
-          if (checkoutUrl) {
-            // Redirigir al checkout de Reveniu
-            window.location.href = checkoutUrl;
-          } else {
-            throw new Error('No se recibió URL de checkout de Reveniu. Respuesta: ' + JSON.stringify(subscriptionResponse));
-          }
-        } catch (error: any) {
-          console.error('Error creating Reveniu subscription:', error);
-          toast({
-            title: "Error al crear suscripción",
-            description: error.message || "No se pudo crear la suscripción con Reveniu. Intenta nuevamente.",
-            variant: "destructive",
-          });
-          setSubscribing(null);
-        }
-        return;
-      }
-
-
-      // Si no hay link de Reveniu, continuar con Flow
-      // Obtener email del usuario
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email, full_name')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.email) {
-        toast({
-          title: "Error",
-          description: "No se encontró el email del usuario",
-          variant: "destructive",
+      if (response.id) {
+        // Inicializar Checkout Pro (Modal) con la clave pública del usuario
+        const mp = new window.MercadoPago('TEST-eb10a1a3-71ba-4db1-a82d-67a48db30430', {
+          locale: 'es-CL'
         });
-        return;
-      }
 
-      if (!flowPlanId) {
-        toast({
-          title: "Error de configuración",
-          description: "El plan no tiene un ID de Flow configurado. Por favor, contacta al administrador para configurar los planes en Flow sandbox.",
-          variant: "destructive",
+        mp.checkout({
+          preference: {
+            id: response.id
+          },
+          autoOpen: true
         });
-        setSubscribing(null);
-        return;
-      }
-
-      // Crear suscripción en Flow
-      const appUrl = getBaseUrl();
-      // URL del webhook público de Supabase Edge Function
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-      const webhookUrl = supabaseUrl
-        ? `${supabaseUrl}/functions/v1/flow-webhook`
-        : `${appUrl}/api/flow-webhook`;
-      const successUrl = `${appUrl}/pilot/membership?success=true`;
-      const cancelUrl = `${appUrl}/pilot/membership?canceled=true`;
-
-      const subscriptionResponse = await createFlowSubscription({
-        planId: flowPlanId,
-        customerEmail: profile.email,
-        customerName: profile.full_name || undefined,
-        urlConfirmation: webhookUrl,
-        urlReturn: successUrl,
-        optional: {
-          urlCancel: cancelUrl,
-        }
-      });
-
-      // Flow retorna el token o URL para redirigir al checkout
-      const checkoutUrl = subscriptionResponse.url || subscriptionResponse.token;
-      if (checkoutUrl) {
-        // Si es un token, construir la URL de checkout
-        if (subscriptionResponse.token && !subscriptionResponse.url) {
-          const flowEnv = import.meta.env.VITE_FLOW_ENV || 'sandbox';
-          const flowBaseUrl = flowEnv === 'production'
-            ? 'https://www.flow.cl/pagar'
-            : 'https://sandbox.flow.cl/pagar';
-          window.location.href = `${flowBaseUrl}/${subscriptionResponse.token}`;
-        } else {
-          window.location.href = checkoutUrl;
-        }
       } else {
-        throw new Error('No se recibió URL de checkout de Flow');
+        throw new Error("No se pudo obtener el ID de la preferencia");
       }
+
     } catch (error: any) {
       console.error('Error creating subscription:', error);
       toast({
@@ -491,87 +386,25 @@ const PilotMembership = () => {
         description: error.message || "No se pudo crear la suscripción. Intenta nuevamente.",
         variant: "destructive",
       });
+    } finally {
       setSubscribing(null);
     }
   };
 
   const handleConfirmSubscribe = async () => {
     setShowEmailWarning(false);
-    const selectedPlan = availablePlans.find(p => p.id === pendingPlanId);
-    if (selectedPlan?.reveniu_checkout_link) {
-      // Obtener el user_id para enviarlo como external_id a Reveniu
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        // Agregar el user_id como parámetro external_id en la URL
-        const checkoutUrl = `${selectedPlan.reveniu_checkout_link}?external_id=${user.id}`;
-        window.location.href = checkoutUrl;
-      } else {
-        // Si no hay usuario, redirigir sin external_id (fallback)
-        window.location.href = selectedPlan.reveniu_checkout_link;
-      }
+    if (pendingPlanId) {
+      handleSubscribe(pendingPlanId);
     }
     setPendingPlanId(null);
     setPendingFlowPlanId(undefined);
   };
 
   const handleCancelSubscription = async () => {
-    if (!membership?.reveniu_subscription_id) {
-      toast({
-        title: "Error",
-        description: "No se encontró información de la suscripción",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Confirmación antes de cancelar
-    const confirmed = window.confirm(
-      '¿Estás seguro de que deseas cancelar tu suscripción?\n\n' +
-      'Tu acceso al plan continuará hasta la próxima fecha de cobro.\n' +
-      'Después de esa fecha, perderás acceso a las funcionalidades premium.'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setSubscribing('cancelling');
-
-      // Cancelar suscripción en Reveniu
-      await cancelReveniuSubscription(membership.reveniu_subscription_id);
-
-      // Actualizar estado en la base de datos
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase
-          .from('user_subscriptions')
-          .update({
-            status: 'cancelled',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-      }
-
-      toast({
-        title: "Suscripción cancelada",
-        description: "Tu suscripción ha sido cancelada exitosamente. Mantendrás acceso hasta la próxima fecha de cobro.",
-      });
-
-      // Recargar membresía
-      await loadMembership();
-    } catch (error: any) {
-      console.error('Error canceling subscription:', error);
-      toast({
-        title: "Error",
-        description: error.message || "No se pudo cancelar la suscripción. Intenta nuevamente o contacta a soporte.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubscribing(null);
-    }
+    toast({
+      title: "Función no disponible",
+      description: "Por favor, contacta a soporte para cancelar tu suscripción.",
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -886,7 +719,7 @@ const PilotMembership = () => {
                                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
                                 : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
                                 }`}
-                              onClick={() => handleSubscribe(plan.id, plan.flow_plan_id)}
+                              onClick={() => handleSubscribe(plan.id)}
                               disabled={isSubscribing || (membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis')}
                             >
                               {isSubscribing ? (
