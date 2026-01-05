@@ -195,12 +195,12 @@ const PilotMembership = () => {
         return;
       }
 
-      // Cargar suscripción desde Supabase (Verificar si está activa o cancelada pero aún vigente)
+      // Cargar suscripción desde Supabase (Verificar si está activa o recientemente cancelada)
       const { data: subscription, error } = await supabase
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .or('status.eq.active,and(status.eq.cancelled,renewal_date.gt.now())')
+        .or('status.eq.active,status.eq.cancelled')
         .maybeSingle();
 
       if (error) {

@@ -46,22 +46,28 @@ export function useSubscriptionPlan(userId?: string) {
 					targetUserId = user.id;
 				}
 
-				// Buscar suscripción activa o cancelada con fecha futura
+				// Buscar suscripción activa o recientemente cancelada
 				const { data: subscription, error: subError } = await supabase
 					.from('user_subscriptions')
 					.select('plan_name, status, renewal_date')
 					.eq('user_id', targetUserId)
-					.or('status.eq.active,and(status.eq.cancelled,renewal_date.gt.now())')
+					.or('status.eq.active,status.eq.cancelled')
 					.order('created_at', { ascending: false })
 					.limit(1)
 					.maybeSingle();
 
-				if (subError && subError.code !== 'PGRST116') {
+				if (subError) {
 					throw subError;
 				}
 
-				// Si no hay suscripción activa, el usuario tiene plan gratis
-				const planName = subscription?.plan_name || 'free';
+				// Validar si la suscripción sigue vigente
+				const isCurrentlyValid = subscription && (
+					subscription.status === 'active' ||
+					(subscription.status === 'cancelled' && subscription.renewal_date && new Date(subscription.renewal_date) > new Date())
+				);
+
+				// Si no hay suscripción válida, el usuario tiene plan gratis
+				const planName = isCurrentlyValid ? subscription.plan_name : 'free';
 				const normalizedPlan = normalizePlanName(planName);
 
 				if (mounted) {

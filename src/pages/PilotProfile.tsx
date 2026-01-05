@@ -389,20 +389,25 @@ const PilotProfile = () => {
         .eq('id', user.id)
         .single();
 
-      // Cargar suscripción (activa o cancelada con fecha futura)
-      const { data: subscriptionData, error: subscriptionError } = await supabase
+      const { data: subscription, error: subError } = await supabase
         .from('user_subscriptions')
-        .select('*')
+        .select('plan_name, status, renewal_date')
         .eq('user_id', user.id)
-        .or('status.eq.active,and(status.eq.cancelled,renewal_date.gt.now())')
+        .or('status.eq.active,status.eq.cancelled')
         .maybeSingle();
 
-      if (subscriptionError) {
-        console.error('Error loading subscription:', subscriptionError);
+      if (subError) {
+        console.error('Error loading subscription:', subError);
       }
 
-      if (subscriptionData) {
-        setSubscription(subscriptionData as Subscription);
+      // Validar si la suscripción es válida (activa o cancelada con fecha futura)
+      const isValid = subscription && (
+        subscription.status === 'active' ||
+        (subscription.status === 'cancelled' && subscription.renewal_date && new Date(subscription.renewal_date) > new Date())
+      );
+
+      if (isValid) {
+        setSubscription(subscription as any);
       }
 
       if (profileError) {
@@ -1245,8 +1250,8 @@ const PilotProfile = () => {
                       key={specialty}
                       variant={profile.specialties.includes(specialty) ? "default" : "outline"}
                       className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.specialties.includes(specialty)
-                          ? 'bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg hover:shadow-xl hover:scale-105'
-                          : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4]'
+                        ? 'bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg hover:shadow-xl hover:scale-105'
+                        : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4]'
                         }`}
                       onClick={() => toggleSpecialty(specialty)}
                     >
@@ -1373,8 +1378,8 @@ const PilotProfile = () => {
                             key={drone}
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
                             className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
-                                ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                                : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                              ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                              : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
                               }`}
                             onClick={() => toggleDroneType(drone)}
                           >
@@ -1403,8 +1408,8 @@ const PilotProfile = () => {
                             key={drone}
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
                             className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
-                                ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                                : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                              ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                              : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
                               }`}
                             onClick={() => toggleDroneType(drone)}
                           >
@@ -1433,8 +1438,8 @@ const PilotProfile = () => {
                             key={drone}
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
                             className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
-                                ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                                : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                              ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                              : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
                               }`}
                             onClick={() => toggleDroneType(drone)}
                           >
