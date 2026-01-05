@@ -11,7 +11,7 @@ export interface MercadoPagoPreferenceResponse {
  */
 export async function createPreference(planId: string, planName: string, price: number): Promise<MercadoPagoPreferenceResponse> {
 	const { data, error } = await supabase.functions.invoke("mercadopago-api", {
-		body: { planId, planName, price },
+		body: { action: "create_preference", planId, planName, price },
 	});
 
 	if (error) {
@@ -20,4 +20,20 @@ export async function createPreference(planId: string, planName: string, price: 
 	}
 
 	return data as MercadoPagoPreferenceResponse;
+}
+
+/**
+ * Procesa un pago directo (Checkout Bricks) llamando a la Edge Function
+ */
+export async function processPayment(formData: any): Promise<any> {
+	const { data, error } = await supabase.functions.invoke("mercadopago-api", {
+		body: { action: "process_payment", formData },
+	});
+
+	if (error) {
+		console.error("Error processing payment:", error);
+		throw error;
+	}
+
+	return data;
 }

@@ -20,7 +20,7 @@ import {
   ExternalLink,
   Loader2
 } from "lucide-react";
-import { createPreference } from "@/integrations/mercadopago/client";
+import { createPreference, processPayment } from "@/integrations/mercadopago/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 
 // Declaración para el SDK de Mercado Pago
@@ -56,8 +56,10 @@ const PilotMembership = () => {
   const [userType, setUserType] = useState<string | null>(null);
   const [showEmailWarning, setShowEmailWarning] = useState(false);
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null);
-  const [pendingFlowPlanId, setPendingFlowPlanId] = useState<string | undefined>(undefined);
   const [sponsoringCompany, setSponsoringCompany] = useState<string | null>(null);
+  const [showBricks, setShowBricks] = useState(false);
+  const [selectedPlanForBrick, setSelectedPlanForBrick] = useState<AvailablePlan | null>(null);
+  const [bricksController, setBricksController] = useState<any>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -358,26 +360,8 @@ const PilotMembership = () => {
       const selectedPlan = availablePlans.find(p => p.id === planId);
       if (!selectedPlan) return;
 
-      setSubscribing(planId);
-
-      // Crear preferencia en Mercado Pago
-      const response = await createPreference(selectedPlan.id, selectedPlan.name, selectedPlan.price);
-
-      if (response.id) {
-        // Inicializar Checkout Pro (Modal) con la clave pública del usuario
-        const mp = new window.MercadoPago('TEST-eb10a1a3-71ba-4db1-a82d-67a48db30430', {
-          locale: 'es-CL'
-        });
-
-        mp.checkout({
-          preference: {
-            id: response.id
-          },
-          autoOpen: true
-        });
-      } else {
-        throw new Error("No se pudo obtener el ID de la preferencia");
-      }
+      setSelectedPlanForBrick(selectedPlan);
+      setShowBricks(true);
 
     } catch (error: any) {
       console.error('Error creating subscription:', error);
@@ -397,8 +381,87 @@ const PilotMembership = () => {
       handleSubscribe(pendingPlanId);
     }
     setPendingPlanId(null);
-    setPendingFlowPlanId(undefined);
   };
+
+  useEffect(() => {
+    if (showBricks && selectedPlanForBrick && window.MercadoPago) {
+      const renderCardPaymentBrick = async (bricksBuilder: any) => {
+        const settings = {
+          initialization: {
+            amount: selectedPlanForBrick.price,
+            payer: {
+              email: (await supabase.auth.getUser()).data.user?.email,
+            },
+          },
+          customization: {
+            visual: {
+              style: {
+                theme: "default",
+              },
+            },
+            paymentMethods: {
+              maxInstallments: 1,
+            }
+          },
+          callbacks: {
+            onReady: () => {
+              console.log("Brick ready");
+            },
+            onSubmit: (formData: any) => {
+              return new Promise((resolve, reject) => {
+                processPayment({
+                  ...formData,
+                  planId: selectedPlanForBrick.id,
+                  description: `Suscripción Piloto de Drones - ${selectedPlanForBrick.name}`,
+                })
+                  .then((result) => {
+                    console.log("Payment result:", result);
+                    toast({
+                      title: "¡Pago exitoso!",
+                      description: "Tu suscripción ha sido activada correctamente.",
+                    });
+                    setShowBricks(false);
+                    loadMembership();
+                    resolve(result);
+                  })
+                  .catch((error) => {
+                    console.error("Payment error:", error);
+                    toast({
+                      title: "Error en el pago",
+                      description: error.message || "No se pudo procesar el pago. Intenta nuevamente.",
+                      variant: "destructive",
+                    });
+                    reject(error);
+                  });
+              });
+            },
+            onError: (error: any) => {
+              console.error("Brick error:", error);
+            },
+          },
+        };
+
+        const controller = await bricksBuilder.create(
+          "cardPayment",
+          "cardPaymentBrick_container",
+          settings
+        );
+        setBricksController(controller);
+      };
+
+      const mp = new window.MercadoPago('TEST-eb10a1a3-71ba-4db1-a82d-67a48db30430', {
+        locale: 'es-CL'
+      });
+      const bricksBuilder = mp.bricks();
+      renderCardPaymentBrick(bricksBuilder);
+    }
+
+    return () => {
+      if (bricksController) {
+        // bricksController.unmount(); // Mercado Pago a veces da error al desmontar así
+      }
+    };
+  }, [showBricks, selectedPlanForBrick]);
 
   const handleCancelSubscription = async () => {
     toast({
@@ -822,6 +885,31 @@ const PilotMembership = () => {
                 Continuar con el Pago
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Dialog de Checkout Bricks (Card Payment) */}
+        <Dialog open={showBricks} onOpenChange={(open) => {
+          if (!open && bricksController) {
+            // bricksController.unmount();
+          }
+          setShowBricks(open);
+        }}>
+          <DialogContent className="bg-white text-black max-w-md p-0 overflow-hidden rounded-2xl">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">Pago de Suscripción</h3>
+                <p className="text-sm text-gray-500">{selectedPlanForBrick?.name}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-xl font-bold text-blue-600">
+                  {selectedPlanForBrick ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(selectedPlanForBrick.price) : ''}
+                </span>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50/50">
+              <div id="cardPaymentBrick_container"></div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

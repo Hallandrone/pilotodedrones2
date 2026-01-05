@@ -22,52 +22,115 @@ Deno.serve(async (req) => {
 		const { data: { user }, error: authError } = await supabase.auth.getUser();
 		if (authError || !user) throw new Error("Unauthorized");
 
-		const { planId, planName, price } = await req.json();
+		const body = await req.json();
+		const { action } = body;
 
-		const preference = {
-			items: [
-				{
-					id: planId,
-					title: `Suscripción Piloto de Drones - ${planName}`,
-					quantity: 1,
-					unit_price: price,
-					currency_id: "CLP",
+		if (action === "create_preference") {
+			const { planId, planName, price } = body;
+			const preference = {
+				items: [
+					{
+						id: planId,
+						title: `Suscripción Piloto de Drones - ${planName}`,
+						quantity: 1,
+						unit_price: price,
+						currency_id: "CLP",
+					},
+				],
+				payer: {
+					email: user.email,
+					name: user.user_metadata?.full_name,
 				},
-			],
-			payer: {
-				email: user.email,
-				name: user.user_metadata?.full_name,
-			},
-			back_urls: {
-				success: `${req.headers.get("origin")}/pilot/membership?success=true`,
-				failure: `${req.headers.get("origin")}/pilot/membership?error=true`,
-				pending: `${req.headers.get("origin")}/pilot/membership?pending=true`,
-			},
-			auto_return: "approved",
-			notification_url: `${supabaseUrl}/functions/v1/mercadopago-webhook`,
-			external_reference: user.id, // Importante para identificar al usuario en el webhook
-		};
+				back_urls: {
+					success: `${req.headers.get("origin")}/pilot/membership?success=true`,
+					failure: `${req.headers.get("origin")}/pilot/membership?error=true`,
+					pending: `${req.headers.get("origin")}/pilot/membership?pending=true`,
+				},
+				auto_return: "approved",
+				notification_url: `${supabaseUrl}/functions/v1/mercadopago-webhook`,
+				external_reference: user.id,
+			};
 
-		const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${mpAccessToken}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(preference),
-		});
+			const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${mpAccessToken}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(preference),
+			});
 
-		const data = await response.json();
+			const data = await response.json();
+			if (!response.ok) throw new Error(data.message || "Error al crear la preferencia");
 
-		if (!response.ok) {
-			throw new Error(data.message || "Error al crear la preferencia");
+			return new Response(JSON.stringify({ id: data.id, init_point: data.init_point }), {
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+				status: 200,
+			});
+
+		} else if (action === "process_payment") {
+			const { formData } = body;
+
+			// Preparar el objeto de pago para Mercado Pago
+			const paymentData = {
+				token: formData.token,
+				issuer_id: formData.issuer_id,
+				payment_method_id: formData.payment_method_id,
+				transaction_amount: formData.transaction_amount,
+				installments: formData.installments,
+				description: formData.description,
+				payer: {
+					email: formData.payer.email,
+					identification: {
+						type: formData.payer.identification.type,
+						number: formData.payer.identification.number,
+					},
+				},
+				additional_info: {
+					items: [
+						{
+							id: formData.planId || "profesional", // Usamos el ID del plan para el webhook
+							title: formData.description,
+							quantity: 1,
+							unit_price: formData.transaction_amount,
+						}
+					],
+					payer: {
+						first_name: user.user_metadata?.full_name?.split(' ')[0] || "Usuario",
+						last_name: user.user_metadata?.full_name?.split(' ').slice(1).join(' ') || "",
+					}
+				},
+				notification_url: `${supabaseUrl}/functions/v1/mercadopago-webhook`,
+				external_reference: user.id,
+			};
+
+			const response = await fetch("https://api.mercadopago.com/v1/payments", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${mpAccessToken}`,
+					"Content-Type": "application/json",
+					"X-Idempotency-Key": crypto.randomUUID(),
+				},
+				body: JSON.stringify(paymentData),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				console.error("Mercado Pago Payment Error:", data);
+				throw new Error(data.message || "Error al procesar el pago");
+			}
+
+			return new Response(JSON.stringify(data), {
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+				status: 200,
+			});
 		}
 
-		return new Response(JSON.stringify({ id: data.id, init_point: data.init_point }), {
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
-			status: 200,
-		});
+		throw new Error("Acción no válida");
+
 	} catch (error) {
+		console.error("Edge Function Error:", error.message);
 		return new Response(JSON.stringify({ error: error.message }), {
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 			status: 400,
