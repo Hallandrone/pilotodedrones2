@@ -30,7 +30,7 @@ SELECT
   'empresa',
   'active',
   NOW(),
-  NOW() + INTERVAL '1 year',
+  NOW() + INTERVAL '1 month',
   'manual'
 FROM profiles
 WHERE email = 'demo@empresa.com'
@@ -39,7 +39,7 @@ DO UPDATE SET
   plan_name = 'empresa',
   status = 'active',
   start_date = NOW(),
-  renewal_date = NOW() + INTERVAL '1 year',
+  renewal_date = NOW() + INTERVAL '1 month',
   updated_at = NOW();
 
 -- Verificar que funcionó

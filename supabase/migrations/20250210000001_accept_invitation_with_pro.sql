@@ -57,7 +57,7 @@ BEGIN
     SET 
       plan_name = 'pro',
       status = 'active',
-      renewal_date = NOW() + INTERVAL '1 year',
+      renewal_date = NOW() + INTERVAL '1 month',
       payment_method = 'company_sponsored',
       updated_at = NOW()
     WHERE user_id = invitation_record.pilot_id;
@@ -73,7 +73,7 @@ BEGIN
       invitation_record.pilot_id,
       'pro',
       'active',
-      NOW() + INTERVAL '1 year',
+      NOW() + INTERVAL '1 month',
       'company_sponsored'
     );
   END IF;

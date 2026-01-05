@@ -16,7 +16,7 @@ SELECT
   id,
   'empresa',              -- Plan empresa (premium)
   'active',               -- Estado activo
-  NOW() + INTERVAL '1 year',  -- Renovación en 1 año
+  NOW() + INTERVAL '1 month',  -- Renovación en 1 mes
   'manual'                -- Método de pago manual (para demos)
 FROM profiles 
 WHERE email = 'demo@empresa.com'
@@ -24,7 +24,7 @@ ON CONFLICT (user_id)
 DO UPDATE SET 
   plan_name = 'empresa',
   status = 'active',
-  renewal_date = NOW() + INTERVAL '1 year',
+  renewal_date = NOW() + INTERVAL '1 month',
   payment_method = 'manual',
   updated_at = NOW();
 

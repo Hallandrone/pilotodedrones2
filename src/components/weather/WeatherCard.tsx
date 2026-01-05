@@ -158,50 +158,54 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 						Condiciones para Volar
 					</CardTitle>
 				</CardHeader>
-				<CardContent className="relative p-0">
-					{/* Teaser Data (Grisáceo/Inactivo) */}
-					<div className="p-6 space-y-4 opacity-30 grayscale blur-[1px] pointer-events-none">
-						<div className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
-							<span className="text-white/60 font-bold">CARGANDO ESTADO...</span>
-							<RefreshCw className="h-4 w-4 text-white/40" />
+				<CardContent className="p-4 sm:p-6">
+					<div className="relative bg-gradient-to-br from-[#2a2a2a] to-[#212121] border border-[#3d3d3d] rounded-2xl p-6 sm:p-8 overflow-hidden shadow-2xl">
+						{/* Iconos de fondo decorativos */}
+						<div className="absolute -right-4 -top-4 opacity-5 pointer-events-none">
+							<Cloud className="h-24 w-24 text-[#00b3f3]" />
+						</div>
+						<div className="absolute -left-4 -bottom-4 opacity-5 pointer-events-none">
+							<Sun className="h-20 w-20 text-yellow-500" />
 						</div>
 
-						<div className="grid grid-cols-2 gap-3">
-							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-								<Wind className="h-4 w-4 text-white/40 mx-auto mb-1" />
-								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
+						<div className="relative z-10 flex flex-col items-center text-center gap-4">
+							<div className="h-14 w-14 bg-[#00b3f3]/10 rounded-2xl flex items-center justify-center border border-[#00b3f3]/20 mb-1">
+								<Wind className="h-7 w-7 text-[#00b3f3]" />
 							</div>
-							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-								<Droplets className="h-4 w-4 text-white/40 mx-auto mb-1" />
-								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
-							</div>
-							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-								<Eye className="h-4 w-4 text-white/40 mx-auto mb-1" />
-								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
-							</div>
-							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
-								<Sunrise className="h-4 w-4 text-white/40 mx-auto mb-1" />
-								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
-							</div>
-						</div>
-					</div>
 
-					{/* Overlay de Bloqueo Atractivo - Centrado Perfecto */}
-					<div className="absolute inset-0 z-10 flex items-center justify-center p-4 text-center">
-						<div className="bg-[#2C2C2C]/95 border border-[#444444] p-8 rounded-2xl shadow-2xl w-full max-w-[300px] flex flex-col items-center">
-							<div className="h-16 w-16 bg-gradient-to-br from-[#00b3f3] to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
-								<Sun className="h-8 w-8 text-white" />
+							<div className="space-y-2">
+								<h4 className="text-white text-base sm:text-lg font-bold">Datos Meteorológicos Pro</h4>
+								<p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-[280px] mx-auto">
+									Accede a ráfagas de viento, visibilidad, humedad y alertas de vuelo en tiempo real para tu zona.
+								</p>
 							</div>
-							<h4 className="text-white text-lg font-bold mb-3">Desbloquea Meteo Pro</h4>
-							<p className="text-gray-400 text-sm mb-6 leading-relaxed">
-								Accede a datos en tiempo real de viento, visibilidad y condiciones aptas para el vuelo de tus drones.
-							</p>
+
 							<Button
-								className="w-full bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white font-bold h-12 rounded-xl shadow-lg hover:scale-105 transition-all text-base"
+								className="w-full sm:w-auto px-8 bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white font-bold h-11 rounded-xl shadow-lg hover:scale-105 transition-all mt-2"
 								onClick={() => window.location.href = '/pilot/membership'}
 							>
-								Ver Membresías
+								Activar Beneficios Pro
 							</Button>
+						</div>
+
+						{/* Indicadores visuales bloqueados (Teaser sutil) */}
+						<div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-4 gap-4 opacity-20 grayscale pointer-events-none">
+							<div className="flex flex-col items-center gap-1">
+								<Droplets className="h-4 w-4 text-white" />
+								<div className="h-1 w-6 bg-white/40 rounded"></div>
+							</div>
+							<div className="flex flex-col items-center gap-1">
+								<Eye className="h-4 w-4 text-white" />
+								<div className="h-1 w-6 bg-white/40 rounded"></div>
+							</div>
+							<div className="flex flex-col items-center gap-1">
+								<Sunrise className="h-4 w-4 text-white" />
+								<div className="h-1 w-6 bg-white/40 rounded"></div>
+							</div>
+							<div className="flex flex-col items-center gap-1">
+								<Sunset className="h-4 w-4 text-white" />
+								<div className="h-1 w-6 bg-white/40 rounded"></div>
+							</div>
 						</div>
 					</div>
 				</CardContent>
@@ -212,7 +216,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Estado de carga
 	if (loading) {
 		return (
-			<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
+			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
 				<CardHeader className="pb-3">
 					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
 						<Cloud className="h-5 w-5 text-[#00b3f3]" />
@@ -232,7 +236,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Estado de error
 	if (error || !conditions) {
 		return (
-			<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
+			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
 				<CardHeader className="pb-3">
 					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
 						<Cloud className="h-5 w-5 text-[#00b3f3]" />

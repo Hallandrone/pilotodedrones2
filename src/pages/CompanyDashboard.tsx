@@ -340,8 +340,13 @@ const CompanyDashboard = () => {
     );
   }
 
-  // Si no tiene suscripción activa, redirigir a membresía
-  if (companyData && subscription?.status !== 'active') {
+  // Si no tiene suscripción activa o vigente, redirigir a membresía
+  const isSubscriptionValid = subscription && (
+    subscription.status === 'active' ||
+    (subscription.status === 'cancelled' && subscription.renewal_date && new Date(subscription.renewal_date) > new Date())
+  );
+
+  if (companyData && !isSubscriptionValid) {
     return (
       <div className="min-h-screen bg-[#083b4e] relative overflow-hidden flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
@@ -482,7 +487,7 @@ const CompanyDashboard = () => {
               </div>
 
               {/* Weather Card */}
-              <WeatherCard hasActiveSubscription={subscription?.status === 'active'} />
+              <WeatherCard hasActiveSubscription={isSubscriptionValid} />
             </CardContent>
           </div>
         </Card>
@@ -610,7 +615,7 @@ const CompanyDashboard = () => {
                     </div>
                     <span className="text-white text-sm sm:text-xl">Membresía</span>
                   </div>
-                  {subscription && subscription.status === 'active' ? (
+                  {isSubscriptionValid ? (
                     <div className="h-8 w-16 sm:h-12 sm:w-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
                       <span className="text-xs sm:text-sm font-semibold text-emerald-400">Activa</span>
                     </div>
@@ -621,8 +626,8 @@ const CompanyDashboard = () => {
                   )}
                 </div>
                 <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                  {subscription && subscription.status === 'active'
-                    ? `${subscription.plan_name === 'empresa' ? 'Plan Empresa' : subscription.plan_name === 'profesional' ? 'Plan Profesional' : subscription.plan_name || 'Plan'}${subscription.renewal_date ? ` - Renovación el ${new Date(subscription.renewal_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`
+                  {isSubscriptionValid
+                    ? `${subscription.plan_name === 'empresa' ? 'Plan Empresa' : subscription.plan_name === 'profesional' ? 'Plan Profesional' : subscription.plan_name || 'Plan'}${subscription.renewal_date ? ` - ${subscription.status === 'active' ? 'Renovación el' : 'Vence el'} ${new Date(subscription.renewal_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`
                     : 'No tienes una suscripción activa'}
                 </p>
                 <Button

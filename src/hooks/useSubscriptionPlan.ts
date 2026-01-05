@@ -46,12 +46,12 @@ export function useSubscriptionPlan(userId?: string) {
 					targetUserId = user.id;
 				}
 
-				// Buscar suscripción activa del usuario
+				// Buscar suscripción activa o cancelada con fecha futura
 				const { data: subscription, error: subError } = await supabase
 					.from('user_subscriptions')
 					.select('plan_name, status, renewal_date')
 					.eq('user_id', targetUserId)
-					.eq('status', 'active')
+					.or('status.eq.active,and(status.eq.cancelled,renewal_date.gt.now())')
 					.order('created_at', { ascending: false })
 					.limit(1)
 					.maybeSingle();

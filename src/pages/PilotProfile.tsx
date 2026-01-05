@@ -11,13 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { 
-  ArrowLeft, 
-  Save, 
-  MapPin, 
-  User, 
-  Phone, 
-  Mail, 
+import {
+  ArrowLeft,
+  Save,
+  MapPin,
+  User,
+  Phone,
+  Mail,
   Map,
   Camera,
   Plane,
@@ -216,21 +216,21 @@ const PilotProfile = () => {
   // Function to clean and validate profile slug
   const cleanSlug = (input: string): string => {
     if (!input) return '';
-    
+
     let cleaned = input.trim().toLowerCase();
-    
+
     // Remove spaces and replace with hyphens
     cleaned = cleaned.replace(/\s+/g, '-');
-    
+
     // Remove special characters, only allow alphanumeric, hyphens, and underscores
     cleaned = cleaned.replace(/[^a-z0-9_-]/g, '');
-    
+
     // Remove multiple consecutive hyphens
     cleaned = cleaned.replace(/-+/g, '-');
-    
+
     // Remove leading/trailing hyphens and underscores
     cleaned = cleaned.replace(/^[-_]+|[-_]+$/g, '');
-    
+
     return cleaned;
   };
 
@@ -239,30 +239,30 @@ const PilotProfile = () => {
     if (!slug) {
       return { valid: false, error: 'El slug no puede estar vacío' };
     }
-    
+
     if (slug.length < 3) {
       return { valid: false, error: 'El slug debe tener al menos 3 caracteres' };
     }
-    
+
     if (slug.length > 30) {
       return { valid: false, error: 'El slug no puede tener más de 30 caracteres' };
     }
-    
+
     // Check if it matches the allowed pattern
     if (!/^[a-z0-9_-]+$/.test(slug)) {
       return { valid: false, error: 'El slug solo puede contener letras minúsculas, números, guiones y guiones bajos' };
     }
-    
+
     // Check if it starts with a number
     if (/^[0-9]/.test(slug)) {
       return { valid: false, error: 'El slug no puede comenzar con un número' };
     }
-    
+
     // Check reserved words
     if (RESERVED_WORDS.includes(slug)) {
       return { valid: false, error: 'Este nombre no está disponible (palabra reservada)' };
     }
-    
+
     return { valid: true };
   };
 
@@ -271,7 +271,7 @@ const PilotProfile = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user || !slug) return false;
-      
+
       // Use maybeSingle() instead of single() to avoid 406 errors
       const { data, error } = await supabase
         .from('profiles')
@@ -279,23 +279,23 @@ const PilotProfile = () => {
         .eq('public_profile_slug', slug)
         .neq('id', user.id)
         .maybeSingle();
-      
+
       // If data exists, slug is taken
       if (data) return false;
-      
+
       // If no data and no error, slug is available
       if (!data && !error) return true;
-      
+
       // If error, log it but assume slug is available if it's a "not found" type error
       if (error) {
         // PGRST116 = not found, which means slug is available
         if (error.code === 'PGRST116') return true;
-        
+
         // For other errors, log and return false to be safe
         console.error('Error checking slug availability:', error);
         return false;
       }
-      
+
       return true;
     } catch (error) {
       console.error('Error checking slug availability:', error);
@@ -309,11 +309,11 @@ const PilotProfile = () => {
     setProfile(prev => ({ ...prev, public_profile_slug: cleaned }));
     setSlugAvailable(null);
     setSlugFeedback(null);
-    
+
     if (!cleaned) {
       return;
     }
-    
+
     const validation = validateSlug(cleaned);
     if (!validation.valid) {
       setSlugFeedback({
@@ -332,7 +332,7 @@ const PilotProfile = () => {
       setSlugAvailable(null);
       return;
     }
-    
+
     const validation = validateSlug(profile.public_profile_slug);
     if (!validation.valid) {
       setSlugFeedback({
@@ -342,12 +342,12 @@ const PilotProfile = () => {
       setSlugAvailable(false);
       return;
     }
-    
+
     setCheckingSlug(true);
     const available = await checkSlugAvailability(profile.public_profile_slug);
     setCheckingSlug(false);
     setSlugAvailable(available);
-    
+
     if (available) {
       setSlugFeedback({
         type: 'success',
@@ -369,7 +369,7 @@ const PilotProfile = () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         toast({
           title: "Error",
@@ -389,25 +389,25 @@ const PilotProfile = () => {
         .eq('id', user.id)
         .single();
 
-      // Cargar suscripción
+      // Cargar suscripción (activa o cancelada con fecha futura)
       const { data: subscriptionData, error: subscriptionError } = await supabase
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .or('status.eq.active,and(status.eq.cancelled,renewal_date.gt.now())')
         .maybeSingle();
-      
-      if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+
+      if (subscriptionError) {
         console.error('Error loading subscription:', subscriptionError);
       }
-      
+
       if (subscriptionData) {
         setSubscription(subscriptionData as Subscription);
       }
 
       if (profileError) {
         console.error('Error loading profile:', profileError);
-        
+
         // Si no existe el perfil, crear uno básico
         if (profileError.code === 'PGRST116') {
           console.log('Profile not found, creating basic profile...');
@@ -461,7 +461,7 @@ const PilotProfile = () => {
       } else if (profileData) {
         console.log('Profile loaded successfully:', profileData);
         const data = profileData as any;
-        
+
         setProfile({
           full_name: data.full_name || '',
           email: data.email || user.email || '',
@@ -490,36 +490,36 @@ const PilotProfile = () => {
 
   const validateProfile = () => {
     const errors: string[] = [];
-    
+
     if (!profile.full_name.trim()) {
       errors.push('El nombre completo es requerido');
     }
-    
+
     if (!profile.email.trim()) {
       errors.push('El email es requerido');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
       errors.push('El email no tiene un formato válido');
     }
-    
+
     if (profile.phone && !/^[\+]?[0-9\s\-\(\)]{8,}$/.test(profile.phone)) {
       errors.push('El teléfono no tiene un formato válido');
     }
-    
+
     if (profile.experience_years < 0) {
       errors.push('Los años de experiencia no pueden ser negativos');
     }
-    
+
     if (profile.experience_years > 50) {
       errors.push('Los años de experiencia no pueden ser mayores a 50');
     }
-    
+
     return errors;
   };
 
   const handleSave = async () => {
     try {
       setSaving(true);
-      
+
       // Validar campos
       const validationErrors = validateProfile();
       if (validationErrors.length > 0) {
@@ -555,7 +555,7 @@ const PilotProfile = () => {
           });
           return;
         }
-        
+
         // Verificar disponibilidad si no se ha verificado antes
         if (slugAvailable === null) {
           const available = await checkSlugAvailability(profile.public_profile_slug);
@@ -609,9 +609,9 @@ const PilotProfile = () => {
           // Deactivate all current slugs for this user (should only be one, but be safe)
           await supabase
             .from('profile_slug_history')
-            .update({ 
-              is_current: false, 
-              deactivated_at: new Date().toISOString() 
+            .update({
+              is_current: false,
+              deactivated_at: new Date().toISOString()
             })
             .eq('user_id', user.id)
             .eq('is_current', true);
@@ -669,7 +669,7 @@ const PilotProfile = () => {
         description: `No se pudo guardar el perfil: ${error.message}`,
         variant: "destructive",
       });
-      
+
     } finally {
       setSaving(false);
     }
@@ -846,10 +846,10 @@ const PilotProfile = () => {
 
       // Recargar el perfil completo para asegurar sincronización
       await loadProfile();
-      
+
       // Forzar actualización del avatar agregando parámetro de caché
       setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
-      
+
       toast({
         title: "Avatar actualizado",
         description: "Tu foto de perfil ha sido actualizada correctamente",
@@ -870,7 +870,7 @@ const PilotProfile = () => {
 
   const handleAutoSave = async () => {
     if (!hasChanges) return;
-    
+
     try {
       const validationErrors = validateProfile();
       if (validationErrors.length > 0) return;
@@ -910,9 +910,9 @@ const PilotProfile = () => {
           // Deactivate all current slugs for this user (should only be one, but be safe)
           await supabase
             .from('profile_slug_history')
-            .update({ 
-              is_current: false, 
-              deactivated_at: new Date().toISOString() 
+            .update({
+              is_current: false,
+              deactivated_at: new Date().toISOString()
             })
             .eq('user_id', user.id)
             .eq('is_current', true);
@@ -969,7 +969,7 @@ const PilotProfile = () => {
   // Auto-save cada 30 segundos si hay cambios
   useEffect(() => {
     if (!hasChanges) return;
-    
+
     const timer = setTimeout(() => {
       handleAutoSave();
     }, 30000);
@@ -1006,7 +1006,7 @@ const PilotProfile = () => {
               <h1 className="text-xl font-bold text-[#E0E0E0]">
                 Editar Perfil
               </h1>
-             
+
             </div>
             <div className="ml-auto">
               <Button
@@ -1014,7 +1014,7 @@ const PilotProfile = () => {
                 onClick={async () => {
                   const { data: { user } } = await supabase.auth.getUser();
                   if (user) {
-                    const profileUrl = profile.public_profile_slug 
+                    const profileUrl = profile.public_profile_slug
                       ? `${window.location.origin}/${profile.public_profile_slug}`
                       : `${window.location.origin}/pilot/${user.id}`;
                     window.open(profileUrl, '_blank');
@@ -1044,119 +1044,119 @@ const PilotProfile = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 bg-card rounded-xl space-y-6">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
-              <Avatar className="h-32 w-32 ring-4 ring-accent/50">
-                <AvatarImage 
-                  src={avatarUrl || ''} 
-                  key={avatarUrl} // Forzar re-render cuando cambie la URL
-                  onError={(e) => {
-                    // Si falla la carga, intentar recargar sin parámetros de caché
-                    const target = e.target as HTMLImageElement;
-                    if (avatarUrl) {
-                      const baseUrl = avatarUrl.split('?')[0];
-                      if (target.src !== baseUrl) {
-                        target.src = baseUrl;
+              {/* Avatar Section */}
+              <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
+                <Avatar className="h-32 w-32 ring-4 ring-accent/50">
+                  <AvatarImage
+                    src={avatarUrl || ''}
+                    key={avatarUrl} // Forzar re-render cuando cambie la URL
+                    onError={(e) => {
+                      // Si falla la carga, intentar recargar sin parámetros de caché
+                      const target = e.target as HTMLImageElement;
+                      if (avatarUrl) {
+                        const baseUrl = avatarUrl.split('?')[0];
+                        if (target.src !== baseUrl) {
+                          target.src = baseUrl;
+                        }
                       }
-                    }
-                  }}
-                />
-                <AvatarFallback className="bg-accent text-white text-3xl">
-                  {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col items-center gap-2">
-                <Label htmlFor="avatar-upload" className="cursor-pointer">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
-                    {uploadingAvatar ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Subiendo...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Camera className="h-4 w-4" />
-                        <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
-                      </>
-                    )}
-                  </div>
+                    }}
+                  />
+                  <AvatarFallback className="bg-accent text-white text-3xl">
+                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col items-center gap-2">
+                  <Label htmlFor="avatar-upload" className="cursor-pointer">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
+                      {uploadingAvatar ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Subiendo...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="h-4 w-4" />
+                          <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
+                        </>
+                      )}
+                    </div>
+                  </Label>
+                  <Input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarSelect}
+                    disabled={uploadingAvatar}
+                  />
+                  <p className="text-xs text-white/60 text-center">
+                    JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="full_name" className="text-base font-semibold text-white">
+                  Nombre completo *
                 </Label>
                 <Input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarSelect}
-                  disabled={uploadingAvatar}
+                  id="full_name"
+                  value={profile.full_name}
+                  onChange={(e) => handleInputChange('full_name', e.target.value)}
+                  placeholder="Tu nombre completo"
+                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
                 />
-                <p className="text-xs text-white/60 text-center">
-                  JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
-                </p>
               </div>
-            </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="full_name" className="text-base font-semibold text-white">
-                Nombre completo *
-              </Label>
-              <Input
-                id="full_name"
-                value={profile.full_name}
-                onChange={(e) => handleInputChange('full_name', e.target.value)}
-                placeholder="Tu nombre completo"
-                className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-              />
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-base font-semibold text-white">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={profile.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="tu@email.com"
+                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
+                />
+                {subscription && subscription.status === 'active' && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="default" className="bg-accent text-accent-foreground">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Plan {subscription.plan_name || 'Pro'} Activo
+                    </Badge>
+                  </div>
+                )}
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="email" className="text-base font-semibold text-white">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={profile.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="tu@email.com"
-                className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-              />
-              {subscription && subscription.status === 'active' && (
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="default" className="bg-accent text-accent-foreground">
-                    <Crown className="h-3 w-3 mr-1" />
-                    Plan {subscription.plan_name || 'Pro'} Activo
-                  </Badge>
-                </div>
-              )}
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="phone" className="text-base font-semibold text-white flex items-center gap-2">
+                  <Phone className="h-5 w-5" />
+                  Teléfono
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={profile.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="+56 9 1234 5678"
+                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
+                />
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="phone" className="text-base font-semibold text-white flex items-center gap-2">
-                <Phone className="h-5 w-5" />
-                Teléfono
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={profile.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="+56 9 1234 5678"
-                className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="bio" className="text-base font-semibold text-white">
-                Biografía
-              </Label>
-              <Textarea
-                id="bio"
-                value={profile.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                placeholder="Cuéntanos sobre tu experiencia como piloto..."
-                className="rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 resize-none min-h-[120px] text-base"
-              />
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="bio" className="text-base font-semibold text-white">
+                  Biografía
+                </Label>
+                <Textarea
+                  id="bio"
+                  value={profile.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  placeholder="Cuéntanos sobre tu experiencia como piloto..."
+                  className="rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 resize-none min-h-[120px] text-base"
+                />
+              </div>
             </CardContent>
           </div>
         </Card>
@@ -1173,51 +1173,51 @@ const PilotProfile = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 bg-card rounded-xl space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="region" className="text-base font-semibold text-white">
-                Región *
-              </Label>
-              <Select value={profile.region} onValueChange={(value) => handleInputChange('region', value)}>
-                <SelectTrigger className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base">
-                  <SelectValue placeholder="Selecciona tu región" />
-                </SelectTrigger>
-                <SelectContent>
-                  {regions.map((region) => (
-                    <SelectItem key={region} value={region}>
-                      {region}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="region" className="text-base font-semibold text-white">
+                  Región *
+                </Label>
+                <Select value={profile.region} onValueChange={(value) => handleInputChange('region', value)}>
+                  <SelectTrigger className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base">
+                    <SelectValue placeholder="Selecciona tu región" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {regions.map((region) => (
+                      <SelectItem key={region} value={region}>
+                        {region}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="location" className="text-base font-semibold text-white flex items-center gap-2">
-                <Map className="h-5 w-5" />
-                Ciudad/Comuna
-              </Label>
-              <Input
-                id="location"
-                value={profile.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="Ej: Santiago, Las Condes"
-                className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
-              />
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="location" className="text-base font-semibold text-white flex items-center gap-2">
+                  <Map className="h-5 w-5" />
+                  Ciudad/Comuna
+                </Label>
+                <Input
+                  id="location"
+                  value={profile.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  placeholder="Ej: Santiago, Las Condes"
+                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
+                />
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="experience" className="text-sm font-semibold text-[#E0E0E0]">
-                Años de Experiencia
-              </Label>
-              <Input
-                id="experience"
-                type="number"
-                value={profile.experience_years}
-                onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
-                placeholder="0"
-                className="h-12 rounded-xl border-[#333333] bg-[#2C2C2C] text-[#E0E0E0] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200"
-              />
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="experience" className="text-sm font-semibold text-[#E0E0E0]">
+                  Años de Experiencia
+                </Label>
+                <Input
+                  id="experience"
+                  type="number"
+                  value={profile.experience_years}
+                  onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
+                  placeholder="0"
+                  className="h-12 rounded-xl border-[#333333] bg-[#2C2C2C] text-[#E0E0E0] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200"
+                />
+              </div>
             </CardContent>
           </div>
         </Card>
@@ -1244,11 +1244,10 @@ const PilotProfile = () => {
                     <Badge
                       key={specialty}
                       variant={profile.specialties.includes(specialty) ? "default" : "outline"}
-                      className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                        profile.specialties.includes(specialty)
+                      className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.specialties.includes(specialty)
                           ? 'bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg hover:shadow-xl hover:scale-105'
                           : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4]'
-                      }`}
+                        }`}
                       onClick={() => toggleSpecialty(specialty)}
                     >
                       {specialty}
@@ -1373,11 +1372,10 @@ const PilotProfile = () => {
                           <Badge
                             key={drone}
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                              profile.drone_types.includes(drone)
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
                                 ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
                                 : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                            }`}
+                              }`}
                             onClick={() => toggleDroneType(drone)}
                           >
                             {drone}
@@ -1404,11 +1402,10 @@ const PilotProfile = () => {
                           <Badge
                             key={drone}
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                              profile.drone_types.includes(drone)
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
                                 ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
                                 : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                            }`}
+                              }`}
                             onClick={() => toggleDroneType(drone)}
                           >
                             {drone}
@@ -1435,11 +1432,10 @@ const PilotProfile = () => {
                           <Badge
                             key={drone}
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${
-                              profile.drone_types.includes(drone)
+                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
                                 ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
                                 : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                            }`}
+                              }`}
                             onClick={() => toggleDroneType(drone)}
                           >
                             {drone}
@@ -1535,7 +1531,7 @@ const PilotProfile = () => {
                         ⚠️ Importante sobre cambios de URL
                       </p>
                       <p className="text-sm text-amber-300/90 leading-relaxed">
-                        Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio. 
+                        Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio.
                         Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
                       </p>
                     </div>
@@ -1548,10 +1544,10 @@ const PilotProfile = () => {
                     Nombre de usuario para tu perfil
                   </Label>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                      <div className="relative flex-1">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B0B0B0] text-sm">
-                          /
-                        </div>
+                    <div className="relative flex-1">
+                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B0B0B0] text-sm">
+                        /
+                      </div>
                       <Input
                         id="public_profile_slug"
                         type="text"
@@ -1594,9 +1590,8 @@ const PilotProfile = () => {
                   </div>
                   {slugFeedback && (
                     <p
-                      className={`text-xs flex items-center gap-1 mt-2 ${
-                        slugFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
-                      }`}
+                      className={`text-xs flex items-center gap-1 mt-2 ${slugFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
+                        }`}
                     >
                       {slugFeedback.type === 'success' ? (
                         <CheckCircle className="h-3 w-3" />
@@ -1632,7 +1627,7 @@ const PilotProfile = () => {
               </div>
             </div>
           )}
-          
+
           {lastSaved && !hasChanges && (
             <div className="text-center">
               <div className="inline-flex items-center gap-2 px-5 py-3 bg-card border-2 border-green-500 text-green-400 rounded-xl text-base font-semibold shadow-lg">

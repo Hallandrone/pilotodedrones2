@@ -34,6 +34,7 @@ interface Membership {
   plan_name: string;
   status: 'active' | 'pending' | 'expired' | 'cancelled' | 'inactive';
   renewal_date: string | null;
+  created_at: string | null;
   payment_method: string | null;
   price: number;
   features: string[];
@@ -194,19 +195,16 @@ const PilotMembership = () => {
         return;
       }
 
-      // Cargar suscripción desde Supabase
+      // Cargar suscripción desde Supabase (Verificar si está activa o cancelada pero aún vigente)
       const { data: subscription, error } = await supabase
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle(); // Usa maybeSingle() para evitar error 406 cuando no hay datos
+        .or('status.eq.active,and(status.eq.cancelled,renewal_date.gt.now())')
+        .maybeSingle();
 
       if (error) {
         console.error('Error loading subscription:', error);
-        // No lanzar error si no hay suscripción, simplemente continuar
-        if (error.code !== 'PGRST116') {
-          throw error;
-        }
       }
 
       if (subscription) {
@@ -227,6 +225,7 @@ const PilotMembership = () => {
           plan_name: planDetails.name,
           status: subscription.status as any,
           renewal_date: subscription.renewal_date,
+          created_at: subscription.created_at,
           payment_method: subscription.payment_method,
           price: planDetails.price,
           features: planDetails.features,
@@ -312,6 +311,7 @@ const PilotMembership = () => {
           price: 0,
           status: 'active',
           renewal_date: subscription?.renewal_date || null,
+          created_at: subscription?.created_at || null,
           payment_method: 'company_sponsored',
           features: defaultPlans.find(p => p.id === 'profesional')?.features || [],
           reveniu_subscription_id: (subscription as any)?.reveniu_subscription_id || null
@@ -414,15 +414,52 @@ const PilotMembership = () => {
                   planId: selectedPlanForBrick.id,
                   description: `Suscripción Piloto de Drones - ${selectedPlanForBrick.name}`,
                 })
-                  .then((result) => {
+                  .then(async (result) => {
                     console.log("Payment result:", result);
+                    setShowBricks(false);
+                    setLoading(true); // Mostrar estado de carga global mientras verificamos
+
                     toast({
                       title: "¡Pago exitoso!",
-                      description: "Tu suscripción ha sido activada correctamente.",
+                      description: "Estamos activando tu plan. Un momento por favor...",
                     });
-                    setShowBricks(false);
-                    loadMembership();
-                    resolve(result);
+
+                    // Función de sondeo (polling) para verificar el cambio en la base de datos
+                    let attempts = 0;
+                    const maxAttempts = 5;
+
+                    const checkActivation = async () => {
+                      await loadMembership();
+                      attempts++;
+
+                      // Obtenemos el estado más reciente después de loadMembership
+                      // Si el plan ya no es null y es Pro/Empresa, terminamos
+                      const { data: sub } = await supabase
+                        .from('user_subscriptions')
+                        .select('status, plan_name')
+                        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+                        .maybeSingle();
+
+                      if (sub && (sub.status === 'active' || sub.status === 'cancelled')) {
+                        setLoading(false);
+                        toast({
+                          title: "¡Plan Activado!",
+                          description: "Tu suscripción ya está disponible.",
+                        });
+                        resolve(result);
+                      } else if (attempts < maxAttempts) {
+                        setTimeout(checkActivation, 2000); // Reintentar cada 2 seg
+                      } else {
+                        setLoading(false);
+                        toast({
+                          title: "Activación en proceso",
+                          description: "Tu pago fue recibido. Si no ves el cambio en un momento, por favor refresca la página.",
+                        });
+                        resolve(result);
+                      }
+                    };
+
+                    setTimeout(checkActivation, 1000);
                   })
                   .catch((error) => {
                     console.error("Payment error:", error);
@@ -464,10 +501,37 @@ const PilotMembership = () => {
   }, [showBricks, selectedPlanForBrick]);
 
   const handleCancelSubscription = async () => {
-    toast({
-      title: "Función no disponible",
-      description: "Por favor, contacta a soporte para cancelar tu suscripción.",
-    });
+    try {
+      setSubscribing('cancelling');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({
+          status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Suscripción cancelada",
+        description: "Tu plan se ha cancelado. Seguirás teniendo acceso Pro/Empresa hasta que termine tu periodo actual.",
+      });
+
+      loadMembership();
+    } catch (error: any) {
+      console.error('Error cancelling subscription:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo cancelar la suscripción. Por favor contacta a soporte.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscribing(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -603,10 +667,20 @@ const PilotMembership = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {membership.renewal_date && (
+                  {membership.created_at && (
                     <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
-                      <span className="text-[#B0B0B0] font-medium">Próxima renovación</span>
-                      <span className="text-[#E0E0E0] font-semibold">
+                      <span className="text-[#B0B0B0] font-medium">Suscrito el</span>
+                      <span className="text-[#E0E0E0] font-semibold text-sm">
+                        {formatDate(membership.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  {membership.renewal_date && (membership.status === 'active' || (membership.status === 'cancelled' && new Date(membership.renewal_date) > new Date())) && (
+                    <div className="flex items-center justify-between p-3 bg-[#2C2C2C] border border-[#333333] rounded-xl">
+                      <span className="text-[#B0B0B0] font-medium">
+                        {membership.status === 'active' ? 'Próximo pago' : 'Tu plan termina el'}
+                      </span>
+                      <span className={`${membership.status === 'active' ? 'text-purple-400' : 'text-amber-400'} font-bold text-sm`}>
                         {formatDate(membership.renewal_date)}
                       </span>
                     </div>
@@ -646,30 +720,32 @@ const PilotMembership = () => {
                   </Button>
                 </div>
 
-                {/* Botón de cancelar suscripción - solo si está activa y tiene flow_subscription_id o reveniu_subscription_id */}
-                {membership.status === 'active' && (membership.flow_subscription_id || membership.reveniu_subscription_id) && (
+                {/* Botón de cancelar suscripción - Visible para suscripciones activas */}
+                {membership.status === 'active' && membership.plan_name !== 'Plan Gratis' && !sponsoringCompany && (
                   <div className="pt-4 border-t border-[#333333]">
                     <Button
                       variant="destructive"
                       onClick={handleCancelSubscription}
                       disabled={subscribing === 'cancelling'}
-                      className="w-full bg-red-600 hover:bg-red-700 text-white"
+                      className="w-full bg-red-600/10 border border-red-600/30 text-red-500 hover:bg-red-600 hover:text-white transition-all duration-200"
                     >
                       {subscribing === 'cancelling' ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Cancelando...
+                          Procesando...
                         </>
                       ) : (
                         <>
                           <AlertCircle className="h-4 w-4 mr-2" />
-                          Cancelar Suscripción
+                          Cancelar Plan
                         </>
                       )}
                     </Button>
-                    <p className="text-xs text-[#B0B0B0] mt-2 text-center">
-                      Tu acceso continuará hasta la próxima fecha de cobro
-                    </p>
+                    <div className="mt-3 p-3 bg-blue-500/5 border border-blue-500/10 rounded-lg">
+                      <p className="text-[11px] text-[#B0B0B0] text-center leading-tight">
+                        Al cancelar, tu suscripción no se renovará automáticamente, pero <span className="text-blue-400 font-medium">mantendrás tus beneficios Pro</span> hasta que finalice tu ciclo actual de facturación.
+                      </p>
+                    </div>
                   </div>
                 )}
               </CardContent>
@@ -767,7 +843,7 @@ const PilotMembership = () => {
                       </ul>
                       {!isCurrentPlan && (
                         <>
-                          {membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis' ? (
+                          {membership && (membership.status === 'active' || (membership.status === 'cancelled' && membership.renewal_date && new Date(membership.renewal_date) > new Date())) && membership.plan_name !== 'Plan Gratis' ? (
                             <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
                               <p className="text-[#E0E0E0] font-medium mb-2">
                                 Ya tienes un plan activo
@@ -783,7 +859,7 @@ const PilotMembership = () => {
                                 : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
                                 }`}
                               onClick={() => handleSubscribe(plan.id)}
-                              disabled={isSubscribing || (membership && membership.status === 'active' && membership.plan_name !== 'Plan Gratis')}
+                              disabled={isSubscribing || (membership && (membership.status === 'active' || (membership.status === 'cancelled' && membership.renewal_date && new Date(membership.renewal_date) > new Date())) && membership.plan_name !== 'Plan Gratis')}
                             >
                               {isSubscribing ? (
                                 <>

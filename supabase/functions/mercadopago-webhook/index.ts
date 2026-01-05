@@ -51,6 +51,14 @@ Deno.serve(async (req) => {
 					planName = "empresa";
 				}
 
+				// Calcular fechas
+				const now = new Date();
+				const createdAt = now.toISOString();
+				const renewalDate = new Date(now.setMonth(now.getMonth() + 1)).toISOString();
+
+				// featured_until es 24 horas después (reiniciar cálculo de now)
+				const featuredUntil = new Date(new Date().getTime() + 24 * 60 * 60 * 1000).toISOString();
+
 				// Actualizar la suscripción del usuario
 				const { error: upsertError } = await supabase
 					.from("user_subscriptions")
@@ -59,7 +67,10 @@ Deno.serve(async (req) => {
 						plan_name: planName,
 						status: "active",
 						payment_method: "Mercado Pago",
-						updated_at: new Date().toISOString(),
+						created_at: createdAt,
+						renewal_date: renewalDate,
+						featured_until: featuredUntil,
+						updated_at: createdAt,
 					}, {
 						onConflict: "user_id",
 					});
