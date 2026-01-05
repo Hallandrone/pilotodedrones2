@@ -9,9 +9,12 @@ export interface CompanyPilot {
 	created_at: string;
 	pilot?: {
 		id: string;
-		full_name: string;
-		email: string;
-		avatar_url: string | null;
+		profile: {
+			id: string;
+			full_name: string;
+			email: string;
+			avatar_url: string | null;
+		};
 	};
 }
 
@@ -119,11 +122,14 @@ export function useCompanyPilots(companyId?: string) {
           company_id,
           pilot_id,
           created_at,
-          pilot:profiles!company_pilots_pilot_id_fkey (
+          pilot:pilots (
             id,
-            full_name,
-            email,
-            avatar_url
+            profile:profiles (
+              id,
+              full_name,
+              email,
+              avatar_url
+            )
           )
         `)
 				.eq('company_id', companyId);

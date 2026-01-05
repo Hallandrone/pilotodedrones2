@@ -13,8 +13,10 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
+	DialogFooter,
 	DialogTrigger,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -114,62 +116,108 @@ export function CompanyPilotManagement({ companyId }: CompanyPilotManagementProp
 			{/* Header con contador */}
 			<Card>
 				<CardHeader>
-					<div className="flex items-center justify-between">
+					<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 						<div className="flex items-center gap-3">
-							<div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center">
+							<div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
 								<Users className="h-6 w-6 text-primary" />
 							</div>
 							<div>
-								<CardTitle>Mis Pilotos</CardTitle>
+								<CardTitle className="text-xl sm:text-2xl">Mis Pilotos</CardTitle>
 								<CardDescription>
 									{currentCount} de {maxPilots} pilotos
 								</CardDescription>
 							</div>
 						</div>
-						<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-							<DialogTrigger asChild>
-								<Button disabled={!canAddPilot}>
-									<UserPlus className="h-4 w-4 mr-2" />
-									Invitar Piloto
-								</Button>
-							</DialogTrigger>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>Invitar Piloto</DialogTitle>
-									<DialogDescription>
-										Invita a un piloto a unirse a tu empresa. El piloto debe tener una cuenta registrada con plan gratis.
-									</DialogDescription>
-								</DialogHeader>
-								<div className="space-y-4 py-4">
-									<div className="space-y-2">
-										<label className="text-sm font-medium">Email del piloto</label>
-										<Input
-											type="email"
-											placeholder="piloto@ejemplo.com"
-											value={email}
-											onChange={(e) => setEmail(e.target.value)}
-										/>
-									</div>
-									<div className="space-y-2">
-										<label className="text-sm font-medium">Mensaje (opcional)</label>
-										<Textarea
-											placeholder="Escribe un mensaje personalizado..."
-											value={message}
-											onChange={(e) => setMessage(e.target.value)}
-											rows={3}
-										/>
-									</div>
-								</div>
-								<div className="flex justify-end gap-3">
-									<Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-										Cancelar
+						<div className="flex flex-wrap gap-2 w-full sm:w-auto">
+							{/* Botón Historial */}
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button variant="outline" className="flex-1 sm:flex-none">
+										<Clock className="h-4 w-4 mr-2" />
+										<span className="inline">Historial</span>
 									</Button>
-									<Button onClick={handleSendInvitation} disabled={!email.trim() || sending}>
-										{sending ? 'Enviando...' : 'Enviar Invitación'}
+								</DialogTrigger>
+								<DialogContent className="max-w-md">
+									<DialogHeader>
+										<DialogTitle>Historial de Invitaciones</DialogTitle>
+										<DialogDescription>
+											Registro de todas las invitaciones enviadas y su estado.
+										</DialogDescription>
+									</DialogHeader>
+									<ScrollArea className="h-[300px] mt-4 pr-4">
+										<div className="space-y-3">
+											{invitations.filter(inv => inv.status !== 'pending').length > 0 ? (
+												invitations
+													.filter(inv => inv.status !== 'pending')
+													.map((invitation) => (
+														<div
+															key={invitation.id}
+															className="flex items-center justify-between p-3 rounded-lg border bg-accent/5"
+														>
+															<div className="flex flex-col">
+																<span className="font-medium text-sm">{invitation.pilot_email}</span>
+																<span className="text-[10px] text-muted-foreground">
+																	{new Date(invitation.invited_at).toLocaleDateString()}
+																</span>
+															</div>
+															{getStatusBadge(invitation.status)}
+														</div>
+													))
+											) : (
+												<div className="text-center py-8 text-muted-foreground">
+													No hay historial de invitaciones.
+												</div>
+											)}
+										</div>
+									</ScrollArea>
+								</DialogContent>
+							</Dialog>
+
+							<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+								<DialogTrigger asChild>
+									<Button disabled={!canAddPilot} className="flex-1 sm:flex-none">
+										<UserPlus className="h-4 w-4 mr-2" />
+										<span className="inline">Invitar Piloto</span>
 									</Button>
-								</div>
-							</DialogContent>
-						</Dialog>
+								</DialogTrigger>
+								<DialogContent>
+									<DialogHeader>
+										<DialogTitle>Invitar Piloto</DialogTitle>
+										<DialogDescription>
+											Invita a un piloto a unirse a tu empresa. El piloto debe tener una cuenta registrada con plan gratis.
+										</DialogDescription>
+									</DialogHeader>
+									<div className="space-y-4 py-4">
+										<div className="space-y-2">
+											<label className="text-sm font-medium">Email del piloto</label>
+											<Input
+												type="email"
+												placeholder="piloto@ejemplo.com"
+												value={email}
+												onChange={(e) => setEmail(e.target.value)}
+											/>
+										</div>
+										<div className="space-y-2">
+											<label className="text-sm font-medium">Mensaje (opcional)</label>
+											<Textarea
+												placeholder="Escribe un mensaje personalizado..."
+												value={message}
+												onChange={(e) => setMessage(e.target.value)}
+												rows={3}
+											/>
+										</div>
+									</div>
+									<div className="flex justify-end gap-3">
+										<Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+											Cancelar
+										</Button>
+										<Button onClick={handleSendInvitation} disabled={!email.trim() || sending}>
+											{sending ? 'Enviando...' : 'Enviar Invitación'}
+										</Button>
+									</div>
+								</DialogContent>
+							</Dialog>
+						</div>
 					</div>
 				</CardHeader>
 				<CardContent>
@@ -204,16 +252,16 @@ export function CompanyPilotManagement({ companyId }: CompanyPilotManagementProp
 								>
 									<div className="flex items-center gap-3">
 										<Avatar>
-											<AvatarImage src={pilot.pilot?.avatar_url || undefined} />
+											<AvatarImage src={pilot.pilot?.profile?.avatar_url || undefined} />
 											<AvatarFallback>
-												{pilot.pilot?.full_name?.charAt(0) || 'P'}
+												{pilot.pilot?.profile?.full_name?.charAt(0) || 'P'}
 											</AvatarFallback>
 										</Avatar>
 										<div>
-											<p className="font-medium">{pilot.pilot?.full_name || 'Piloto'}</p>
+											<p className="font-medium">{pilot.pilot?.profile?.full_name || 'Piloto'}</p>
 											<p className="text-sm text-muted-foreground">
-												{pilot.pilot?.email ||
-													invitations.find(i => i.pilot_id === pilot.pilot_id && i.status === 'accepted')?.pilot_email ||
+												{pilot.pilot?.profile?.email ||
+													invitations.find(i => i.pilot_id === (pilot.pilot?.profile?.id || pilot.pilot_id) && i.status === 'accepted')?.pilot_email ||
 													'Email no visible'}
 											</p>
 										</div>
@@ -288,30 +336,6 @@ export function CompanyPilotManagement({ companyId }: CompanyPilotManagementProp
 				</Card>
 			)}
 
-			{/* Historial de invitaciones */}
-			{invitations.filter(inv => inv.status !== 'pending').length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-lg">Historial de Invitaciones</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-2">
-							{invitations
-								.filter(inv => inv.status !== 'pending')
-								.slice(0, 5)
-								.map((invitation) => (
-									<div
-										key={invitation.id}
-										className="flex items-center justify-between p-2 rounded-lg text-sm"
-									>
-										<span className="text-muted-foreground">{invitation.pilot_email}</span>
-										{getStatusBadge(invitation.status)}
-									</div>
-								))}
-						</div>
-					</CardContent>
-				</Card>
-			)}
 
 			{/* Estado vacío */}
 			{pilots.length === 0 && pendingInvitations.length === 0 && (

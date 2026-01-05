@@ -279,7 +279,7 @@ const Pricing = () => {
               transition={{ duration: 0.6, type: "tween", ease: "easeOut" }}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">
-                Beneficios Incluidos en Todos los Planes
+                Potencia tu Perfil Profesional
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Herramientas profesionales diseñadas para hacer crecer tu negocio
