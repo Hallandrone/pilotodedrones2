@@ -86,8 +86,9 @@ const App = () => (
             {/* Ruta temporal para ver UserProfile sin auth */}
             <Route path="/user-profile" element={<div className="dark"><UserProfile /></div>} />
 
-            {/* Ruta para aceptar invitaciones de empresa */}
+            {/* Rutas para aceptar invitaciones de empresa */}
             <Route path="/invitation/:token" element={<InvitationAccept />} />
+            <Route path="/invitation/accept/:token" element={<InvitationAccept />} />
 
             {/* Perfil público del piloto (para QR) - mantener ruta antigua por compatibilidad */}
             <Route path="/pilot/:pilotId" element={<div className="dark"><PublicPilotProfile /></div>} />
