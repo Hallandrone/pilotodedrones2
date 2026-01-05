@@ -358,18 +358,22 @@ const PilotDashboard = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
       {/* Header */}
-      <div className="bg-[#083b4e]/80 backdrop-blur-lg border-b border-[#00b3f3]/20 shadow-lg sticky top-0 z-50 relative animate-fade-in">
-        <div className="px-3 sm:px-6 py-3 sm:py-5">
+      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50 relative animate-fade-in">
+        <div className="px-3 sm:px-6 py-4 sm:py-6">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <Logo size="lg" className="hover:scale-110 transition-all duration-300 filter drop-shadow-lg" showText={false} />
+            <Logo
+              size="xl"
+              className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&>div]:w-20"
+              showText={false}
+            />
             <Button
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="text-white hover:text-red-400 hover:bg-red-500/20 rounded-xl px-3 sm:px-5 py-2 sm:py-2.5 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-400/50 text-sm"
+              className="text-white hover:text-red-400 hover:bg-red-500/20 rounded-xl px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-400/50 text-base font-semibold"
             >
-              <LogOut className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
-              <span className="hidden sm:inline">Salir</span>
+              <LogOut className="h-5 w-5 sm:h-6 sm:w-6 sm:mr-3" />
+              <span className="hidden sm:inline">Cerrar Sesión</span>
             </Button>
           </div>
         </div>

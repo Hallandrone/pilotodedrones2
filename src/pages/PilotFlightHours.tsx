@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import Logo from "@/components/ui/logo";
 import {
   ArrowLeft,
   Plus,
@@ -513,22 +514,29 @@ const PilotFlightHours = () => {
     return (
       <div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
         {/* Header */}
-        <div className="bg-[#212121] border-b border-[#333333] shadow-sm sticky top-0 z-50">
-          <div className="px-4 py-4">
-            <div className="flex items-center gap-4">
+        <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
+          <div className="px-4 py-4 sm:py-6">
+            <div className="flex items-center gap-4 max-w-7xl mx-auto">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/pilot')}
-                className="h-10 w-10 rounded-full hover:bg-[#FF69B4]/10 hover:scale-105 transition-all duration-200"
+                className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-7 w-7" />
               </Button>
-              <div>
-                <h1 className="text-xl font-bold text-[#E0E0E0]">
+              <Logo
+                size="xl"
+                className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&>div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+                showText={false}
+              />
+              <div className="flex flex-col">
+                <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
                   Horas de Vuelo
                 </h1>
-                <p className="text-sm text-[#B0B0B0] font-medium">Característica Pro</p>
+                <p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
+                  Característica Pro
+                </p>
               </div>
             </div>
           </div>
@@ -591,22 +599,29 @@ const PilotFlightHours = () => {
   return (
     <div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
       {/* Header */}
-      <div className="bg-[#212121] border-b border-[#333333] shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-4">
-          <div className="flex items-center gap-4">
+      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
+        <div className="px-4 py-4 sm:py-6">
+          <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/pilot')}
-              className="h-10 w-10 rounded-full hover:bg-[#FF69B4]/10 hover:scale-105 transition-all duration-200"
+              className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-7 w-7" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold text-[#E0E0E0]">
+            <Logo
+              size="xl"
+              className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&>div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+              showText={false}
+            />
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
                 Horas de Vuelo
               </h1>
-              <p className="text-sm text-[#B0B0B0] font-medium">Registra y gestiona tus vuelos</p>
+              <p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
+                Área de Piloto
+              </p>
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { Mail, Phone, MessageCircle, Calendar, Search, ArrowLeft } from "lucide-
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import Logo from "@/components/ui/logo";
 
 interface Contact {
 	id: string;
@@ -23,12 +24,33 @@ const ProfileContacts = () => {
 	const [contacts, setContacts] = useState<Contact[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [searchTerm, setSearchTerm] = useState("");
+	const [userType, setUserType] = useState<string | null>(null);
 	const navigate = useNavigate();
 	const { toast } = useToast();
 
 	useEffect(() => {
 		loadContacts();
+		checkUserType();
 	}, []);
+
+	const checkUserType = async () => {
+		try {
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) return;
+
+			const { data: profile } = await supabase
+				.from('profiles')
+				.select('user_type')
+				.eq('id', user.id)
+				.single();
+
+			if (profile) {
+				setUserType(profile.user_type);
+			}
+		} catch (error) {
+			console.error('Error checking user type:', error);
+		}
+	};
 
 	const loadContacts = async () => {
 		try {
@@ -94,21 +116,29 @@ const ProfileContacts = () => {
 	return (
 		<div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
 			{/* Header */}
-			<div className="bg-[#212121] border-b border-[#333333] shadow-sm sticky top-0 z-50">
-				<div className="px-4 py-4">
-					<div className="flex items-center gap-4">
+			<div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
+				<div className="px-4 py-4 sm:py-6">
+					<div className="flex items-center gap-4 max-w-7xl mx-auto">
 						<Button
 							variant="ghost"
 							size="sm"
-							onClick={() => navigate(-1)}
-							className="h-10 w-10 rounded-full hover:bg-[#FF69B4]/10 hover:scale-105 transition-all duration-200"
+							onClick={() => {
+								const destination = userType === 'company' ? '/company' : '/pilot';
+								navigate(destination);
+							}}
+							className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
 						>
-							<ArrowLeft className="h-5 w-5" />
+							<ArrowLeft className="h-7 w-7" />
 						</Button>
-						<div className="flex-1">
-							<h1 className="text-xl font-bold text-[#E0E0E0]">Contactos Recibidos</h1>
-							<p className="text-sm text-[#B0B0B0] font-medium">
-								{unreadCount > 0 ? `${unreadCount} sin leer` : 'Todos leídos'}
+						<Logo
+							size="xl"
+							className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+							showText={false}
+						/>
+						<div className="flex flex-col">
+							<h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">Contactos</h1>
+							<p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
+								{unreadCount > 0 ? `${unreadCount} sin leer` : 'Mensajes Recibidos'}
 							</p>
 						</div>
 					</div>

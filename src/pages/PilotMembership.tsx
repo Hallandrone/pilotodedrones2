@@ -18,10 +18,12 @@ import {
   Star,
   HelpCircle,
   ExternalLink,
-  Loader2
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { createPreference, processPayment } from "@/integrations/mercadopago/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
+import Logo from "@/components/ui/logo";
 
 // Declaración para el SDK de Mercado Pago
 declare global {
@@ -61,6 +63,8 @@ const PilotMembership = () => {
   const [showBricks, setShowBricks] = useState(false);
   const [selectedPlanForBrick, setSelectedPlanForBrick] = useState<AvailablePlan | null>(null);
   const [bricksController, setBricksController] = useState<any>(null);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -534,6 +538,40 @@ const PilotMembership = () => {
     }
   };
 
+  const handleResumeSubscription = async () => {
+    try {
+      setSubscribing('resuming');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Suscripción reanudada",
+        description: "Tu plan se ha reactivado. Se cobrará en la fecha de renovación correspondiente.",
+      });
+
+      loadMembership();
+    } catch (error: any) {
+      console.error('Error resuming subscription:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo reanudar la suscripción. Por favor contacta a soporte.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscribing(null);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -603,26 +641,28 @@ const PilotMembership = () => {
   return (
     <div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
       {/* Header */}
-      <div className="bg-[#212121] border-b border-[#333333] shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-4">
-          <div className="flex items-center gap-4">
+      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
+        <div className="px-4 py-4 sm:py-6">
+          <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
-                // Detectar si viene de /company o /pilot basado en la ruta o user_type
                 const isCompany = location.pathname.includes('/company') || userType === 'company';
                 navigate(isCompany ? '/company' : '/pilot');
               }}
-              className="h-10 w-10 rounded-full hover:bg-blue-50 hover:scale-105 transition-all duration-200"
+              className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-7 w-7" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold text-[#E0E0E0]">
-                Membresía
-              </h1>
-              <p className="text-sm text-[#B0B0B0] font-medium">Gestiona tu plan y soporte</p>
+            <Logo
+              size="xl"
+              className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+              showText={false}
+            />
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">Membresía</h1>
+              <p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">Gestión de Planes</p>
             </div>
           </div>
         </div>
@@ -723,29 +763,129 @@ const PilotMembership = () => {
                 {/* Botón de cancelar suscripción - Visible para suscripciones activas */}
                 {membership.status === 'active' && membership.plan_name !== 'Plan Gratis' && !sponsoringCompany && (
                   <div className="pt-4 border-t border-[#333333]">
-                    <Button
-                      variant="destructive"
-                      onClick={handleCancelSubscription}
-                      disabled={subscribing === 'cancelling'}
-                      className="w-full bg-red-600/10 border border-red-600/30 text-red-500 hover:bg-red-600 hover:text-white transition-all duration-200"
-                    >
-                      {subscribing === 'cancelling' ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Procesando...
-                        </>
-                      ) : (
-                        <>
-                          <AlertCircle className="h-4 w-4 mr-2" />
-                          Cancelar Plan
-                        </>
-                      )}
-                    </Button>
+                    <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                      <Button
+                        variant="destructive"
+                        onClick={() => setShowCancelDialog(true)}
+                        disabled={subscribing === 'cancelling'}
+                        className="w-full bg-red-600/10 border border-red-600/30 text-red-500 hover:bg-red-600 hover:text-white transition-all duration-200"
+                      >
+                        {subscribing === 'cancelling' ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Procesando...
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="h-4 w-4 mr-2" />
+                            Cancelar Plan
+                          </>
+                        )}
+                      </Button>
+
+                      <DialogContent className="bg-[#212121] border border-[#333333] text-white max-w-sm sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            <AlertCircle className="h-6 w-6 text-red-500" />
+                            ¿Cancelar suscripción?
+                          </DialogTitle>
+                          <DialogDescription className="text-gray-400 py-4 text-base">
+                            Tu suscripción {membership.plan_name} dejará de renovarse automáticamente.
+                            <br /><br />
+                            Seguirás teniendo acceso a <span className="text-blue-400 font-bold">todas las características Pro</span> hasta el <span className="text-white font-bold">{membership.renewal_date ? formatDate(membership.renewal_date) : 'final de tu ciclo'}</span>.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            variant="ghost"
+                            onClick={() => setShowCancelDialog(false)}
+                            className="text-gray-400 hover:text-white hover:bg-white/5"
+                          >
+                            Mantener Plan
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={async () => {
+                              setShowCancelDialog(false);
+                              await handleCancelSubscription();
+                            }}
+                            className="bg-red-600 hover:bg-red-700 font-bold"
+                          >
+                            Confirmar Cancelación
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
                     <div className="mt-3 p-3 bg-blue-500/5 border border-blue-500/10 rounded-lg">
                       <p className="text-[11px] text-[#B0B0B0] text-center leading-tight">
                         Al cancelar, tu suscripción no se renovará automáticamente, pero <span className="text-blue-400 font-medium">mantendrás tus beneficios Pro</span> hasta que finalice tu ciclo actual de facturación.
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {/* Botón de reanudar suscripción - Visible para suscripciones canceladas pero aún vigentes */}
+                {membership.status === 'cancelled' && membership.renewal_date && new Date(membership.renewal_date) > new Date() && !sponsoringCompany && (
+                  <div className="pt-4 border-t border-[#333333]">
+                    <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowResumeDialog(true)}
+                        disabled={subscribing === 'resuming'}
+                        className="w-full bg-green-600/10 border border-green-600/30 text-green-500 hover:bg-green-600 hover:text-white transition-all duration-200"
+                      >
+                        {subscribing === 'resuming' ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Procesando...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Reanudar Suscripción
+                          </>
+                        )}
+                      </Button>
+
+                      <DialogContent className="bg-[#212121] border border-[#333333] text-white max-w-sm sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                            <CheckCircle className="h-6 w-6 text-green-500" />
+                            Reanudar Suscripción Pro
+                          </DialogTitle>
+                          <DialogDescription className="text-gray-400 py-4 text-base">
+                            Al reanudar, tu plan se activará de nuevo para renovarse automáticamente.
+                            <br /><br />
+                            <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl">
+                              <p className="text-blue-200 text-sm">
+                                <AlertCircle className="h-4 w-4 inline mr-2 text-blue-400" />
+                                <strong>¡No se cobrará nada ahora!</strong>
+                                <br /> Tu suscripción simplemente continuará y el próximo cobro será el día <span className="text-white font-bold">{formatDate(membership.renewal_date)}</span>.
+                              </p>
+                            </div>
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            variant="ghost"
+                            onClick={() => setShowResumeDialog(false)}
+                            className="text-gray-400 hover:text-white hover:bg-white/5"
+                          >
+                            Mantener como está
+                          </Button>
+                          <Button
+                            onClick={async () => {
+                              setShowResumeDialog(false);
+                              await handleResumeSubscription();
+                            }}
+                            className="bg-green-600 hover:bg-green-700 text-white font-bold"
+                          >
+                            Reanudar Ahora
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 )}
               </CardContent>

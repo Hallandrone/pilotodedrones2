@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Logo from "@/components/ui/logo";
 
 interface ProfileData {
   full_name: string;
@@ -44,6 +45,7 @@ interface ProfileData {
   specialties: string[];
   drone_types: string[];
   public_profile_slug?: string;
+  slug_updated_at?: string;
 }
 
 interface Subscription {
@@ -82,7 +84,9 @@ const PilotProfile = () => {
     region: '',
     experience_years: 0,
     specialties: [],
-    drone_types: []
+    drone_types: [],
+    public_profile_slug: '',
+    slug_updated_at: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -456,7 +460,8 @@ const PilotProfile = () => {
               experience_years: data.experience_years || 0,
               specialties: data.specialties || [],
               drone_types: data.drone_types || [],
-              public_profile_slug: data.public_profile_slug || ''
+              public_profile_slug: data.public_profile_slug || '',
+              slug_updated_at: data.slug_updated_at || ''
             });
             setAvatarUrl(data.avatar_url || null);
           }
@@ -533,6 +538,7 @@ const PilotProfile = () => {
           description: validationErrors.join(', '),
           variant: "destructive",
         });
+        setSaving(false);
         return;
       }
 
@@ -543,48 +549,15 @@ const PilotProfile = () => {
           description: "No hay usuario logueado",
           variant: "destructive",
         });
+        setSaving(false);
         return;
       }
 
       console.log('Saving profile for user:', user.id);
       console.log('Profile data:', profile);
 
-      // Validar slug si existe
-      if (profile.public_profile_slug) {
-        const validation = validateSlug(profile.public_profile_slug);
-        if (!validation.valid) {
-          toast({
-            title: "Error de validación",
-            description: validation.error || 'El formato del nombre de perfil no es válido',
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Verificar disponibilidad si no se ha verificado antes
-        if (slugAvailable === null) {
-          const available = await checkSlugAvailability(profile.public_profile_slug);
-          if (!available) {
-            toast({
-              title: "Nombre no disponible",
-              description: 'Este nombre ya está en uso. Por favor, verifica la disponibilidad antes de guardar.',
-              variant: "destructive",
-            });
-            return;
-          }
-        } else if (slugAvailable === false) {
-          toast({
-            title: "Nombre no disponible",
-            description: 'Este nombre ya está en uso. Por favor, elige otro.',
-            variant: "destructive",
-          });
-          return;
-        }
-      }
-
-      // Actualizar todos los datos en tabla profiles
+      // Preparar datos de actualización
       const updateData: any = {
-        id: user.id,
         full_name: profile.full_name,
         email: profile.email,
         user_type: 'pilot',
@@ -597,31 +570,56 @@ const PilotProfile = () => {
         drone_types: profile.drone_types || []
       };
 
-      // Incluir public_profile_slug si existe
+      // Validar slug si existe
       if (profile.public_profile_slug) {
-        // Check if slug has changed
+        const validation = validateSlug(profile.public_profile_slug);
+        if (!validation.valid) {
+          toast({
+            title: "Error de validación",
+            description: validation.error || 'El formato del nombre de perfil no es válido',
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
+        }
+
+        // Consultar perfil actual para comparar slug y fecha de cambio
         const { data: currentProfile } = await supabase
           .from('profiles')
-          .select('public_profile_slug')
+          .select('public_profile_slug, slug_updated_at')
           .eq('id', user.id)
           .single();
 
-        const oldSlug = currentProfile?.public_profile_slug;
-        const newSlug = profile.public_profile_slug;
+        if (currentProfile && currentProfile.public_profile_slug !== profile.public_profile_slug) {
+          // Si el slug cambió, verificar si han pasado 30 días
+          if (currentProfile.slug_updated_at) {
+            const lastUpdate = new Date(currentProfile.slug_updated_at);
+            const now = new Date();
+            const daysSinceLastUpdate = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24));
 
-        // If slug has changed, update history
-        if (oldSlug && oldSlug !== newSlug) {
-          // Deactivate all current slugs for this user (should only be one, but be safe)
-          await supabase
-            .from('profile_slug_history')
-            .update({
-              is_current: false,
-              deactivated_at: new Date().toISOString()
-            })
-            .eq('user_id', user.id)
-            .eq('is_current', true);
+            if (daysSinceLastUpdate < 30) {
+              toast({
+                title: "Cambio de URL no permitido",
+                description: `Solo puedes cambiar tu URL personalizada una vez al mes. Podrás hacerlo nuevamente en ${30 - daysSinceLastUpdate} días.`,
+                variant: "destructive",
+              });
+              setSaving(false);
+              return;
+            }
+          }
 
-          // Insert new slug in history (or update if it already exists)
+          // Si hubo cambio de slug, también actualizar historial
+          const oldSlug = currentProfile.public_profile_slug;
+          const newSlug = profile.public_profile_slug;
+
+          if (oldSlug) {
+            await supabase
+              .from('profile_slug_history')
+              .update({ is_current: false, deactivated_at: new Date().toISOString() })
+              .eq('user_id', user.id)
+              .eq('is_current', true);
+          }
+
           await supabase
             .from('profile_slug_history')
             .upsert({
@@ -629,35 +627,46 @@ const PilotProfile = () => {
               slug: newSlug,
               is_current: true,
               deactivated_at: null
-            }, {
-              onConflict: 'user_id,slug'
+            }, { onConflict: 'user_id,slug' });
+
+          // Si se permite el cambio, actualizar la fecha
+          updateData.slug_updated_at = new Date().toISOString();
+        }
+
+        // Verificar disponibilidad si no se ha verificado antes
+        if (slugAvailable === null) {
+          const available = await checkSlugAvailability(profile.public_profile_slug);
+          if (!available) {
+            toast({
+              title: "Nombre no disponible",
+              description: 'Este nombre ya está en uso. Por favor, verifica la disponibilidad antes de guardar.',
+              variant: "destructive",
             });
-        } else if (!oldSlug && newSlug) {
-          // First time setting a slug
-          await supabase
-            .from('profile_slug_history')
-            .upsert({
-              user_id: user.id,
-              slug: newSlug,
-              is_current: true,
-              deactivated_at: null
-            }, {
-              onConflict: 'user_id,slug'
-            });
+            setSaving(false);
+            return;
+          }
+        } else if (slugAvailable === false) {
+          toast({
+            title: "Nombre no disponible",
+            description: 'Este nombre ya está en uso. Por favor, elige otro.',
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
         }
 
         updateData.public_profile_slug = profile.public_profile_slug;
       }
 
-      const { error: profileError } = await supabase
+      // Guardar cambios en la base de datos
+      const { error: saveError } = await supabase
         .from('profiles')
-        .upsert(updateData, {
-          onConflict: 'id'
-        });
+        .update(updateData)
+        .eq('id', user.id);
 
-      if (profileError) {
-        console.error('Profile update error:', profileError);
-        throw profileError;
+      if (saveError) {
+        console.error('Profile update error:', saveError);
+        throw saveError;
       }
 
       console.log('Profile saved successfully');
@@ -984,36 +993,50 @@ const PilotProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-          <p className="text-muted-foreground">Cargando perfil...</p>
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center font-inter relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+        <div className="relative z-10 text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
+          <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando tu perfil...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
+    <div className="min-h-screen bg-[#020617] text-white font-inter relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20 pointer-events-none"></div>
+
       {/* Header */}
-      <div className="bg-[#212121] border-b border-[#333333] shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-4">
-          <div className="flex items-center gap-4">
+      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50 animate-fade-in">
+        <div className="px-4 py-4 sm:py-6">
+          <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/pilot')}
-              className="h-10 w-10 rounded-full hover:bg-[#FF69B4]/10 hover:scale-105 transition-all duration-200"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white border border-white/10 hover:border-[#00b3f3]/50"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 sm:h-7 sm:w-7" />
             </Button>
-            <div>
-              <h1 className="text-xl font-bold text-[#E0E0E0]">
+
+            <Logo
+              size="xl"
+              className="flex-shrink-0 [&>div]:h-12 [&>div]:w-12 sm:[&>div]:h-20 sm:[&>div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+              showText={false}
+            />
+
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
                 Editar Perfil
               </h1>
-
+              <p className="text-[10px] sm:text-sm text-[#00b3f3] font-bold uppercase tracking-[0.2em]">
+                Área de Piloto
+              </p>
             </div>
-            <div className="ml-auto">
+
+            <div className="ml-auto flex items-center gap-3">
               <Button
                 variant="outline"
                 onClick={async () => {
@@ -1025,9 +1048,9 @@ const PilotProfile = () => {
                     window.open(profileUrl, '_blank');
                   }
                 }}
-                className="bg-[#00b3f3]/20 hover:bg-[#00b3f3]/30 text-white border-[#00b3f3]/50"
+                className="hidden sm:flex bg-white/5 hover:bg-white/10 text-white border-white/10 hover:border-[#00b3f3]/50 transition-all rounded-xl gap-2"
               >
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="h-4 w-4 text-[#00b3f3]" />
                 Vista Previa
               </Button>
             </div>
@@ -1036,11 +1059,11 @@ const PilotProfile = () => {
       </div>
 
       {/* Content */}
-      <div className="p-6 space-y-6 pb-20 max-w-5xl mx-auto">
+      <div className="p-4 sm:p-6 space-y-8 pb-32 max-w-5xl mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {/* Basic Information */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
+            <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                   <User className="h-6 w-6 text-white" />
@@ -1048,7 +1071,7 @@ const PilotProfile = () => {
                 Información Básica
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
+            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
               {/* Avatar Section */}
               <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
                 <Avatar className="h-32 w-32 ring-4 ring-accent/50">
@@ -1109,7 +1132,7 @@ const PilotProfile = () => {
                   value={profile.full_name}
                   onChange={(e) => handleInputChange('full_name', e.target.value)}
                   placeholder="Tu nombre completo"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
+                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
                 />
               </div>
 
@@ -1123,7 +1146,7 @@ const PilotProfile = () => {
                   value={profile.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="tu@email.com"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
+                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
                 />
                 {subscription && subscription.status === 'active' && (
                   <div className="flex items-center gap-2 mt-2">
@@ -1146,20 +1169,20 @@ const PilotProfile = () => {
                   value={profile.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="+56 9 1234 5678"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
+                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
                 />
               </div>
 
               <div className="space-y-3">
                 <Label htmlFor="bio" className="text-base font-semibold text-white">
-                  Biografía
+                  Biografía Profesional
                 </Label>
                 <Textarea
                   id="bio"
                   value={profile.bio}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
                   placeholder="Cuéntanos sobre tu experiencia como piloto..."
-                  className="rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 resize-none min-h-[120px] text-base"
+                  className="rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 resize-none min-h-[120px] text-base"
                 />
               </div>
             </CardContent>
@@ -1167,9 +1190,9 @@ const PilotProfile = () => {
         </Card>
 
         {/* Location Information */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
+            <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                   <MapPin className="h-6 w-6 text-white" />
@@ -1177,13 +1200,13 @@ const PilotProfile = () => {
                 Ubicación y Zona de Trabajo
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
+            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
               <div className="space-y-3">
                 <Label htmlFor="region" className="text-base font-semibold text-white">
                   Región *
                 </Label>
                 <Select value={profile.region} onValueChange={(value) => handleInputChange('region', value)}>
-                  <SelectTrigger className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base">
+                  <SelectTrigger className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base">
                     <SelectValue placeholder="Selecciona tu región" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1206,7 +1229,7 @@ const PilotProfile = () => {
                   value={profile.location}
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="Ej: Santiago, Las Condes"
-                  className="h-14 rounded-xl border-2 border-border bg-input text-foreground focus:border-accent focus:ring-accent/20 transition-all duration-200 text-base"
+                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
                 />
               </div>
 
@@ -1220,7 +1243,7 @@ const PilotProfile = () => {
                   value={profile.experience_years}
                   onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
                   placeholder="0"
-                  className="h-12 rounded-xl border-[#333333] bg-[#2C2C2C] text-[#E0E0E0] focus:border-[#FF69B4] focus:ring-[#FF69B4]/20 transition-all duration-200"
+                  className="h-12 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                 />
               </div>
             </CardContent>
@@ -1228,9 +1251,9 @@ const PilotProfile = () => {
         </Card>
 
         {/* Specialties */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
+            <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                   <MapPin className="h-6 w-6 text-white" />
@@ -1241,7 +1264,7 @@ const PilotProfile = () => {
                 Selecciona las áreas en las que tienes experiencia
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
+            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
               <div className="space-y-4">
                 {/* Especialidades predefinidas */}
                 <div className="flex flex-wrap gap-3">
@@ -1250,8 +1273,8 @@ const PilotProfile = () => {
                       key={specialty}
                       variant={profile.specialties.includes(specialty) ? "default" : "outline"}
                       className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.specialties.includes(specialty)
-                        ? 'bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg hover:shadow-xl hover:scale-105'
-                        : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#FF69B4]/10 hover:border-[#FF69B4] hover:text-[#FF69B4]'
+                        ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                        : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
                         }`}
                       onClick={() => toggleSpecialty(specialty)}
                     >
@@ -1321,9 +1344,9 @@ const PilotProfile = () => {
         </Card>
 
         {/* Drone Types */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
+            <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                   <Plane className="h-6 w-6 text-white" />
@@ -1334,7 +1357,7 @@ const PilotProfile = () => {
                 Selecciona los modelos de drones que estás habilitado para pilotear
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
+            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
               <div className="space-y-6">
                 {/* Drones seleccionados */}
                 {profile.drone_types.length > 0 && (
@@ -1379,7 +1402,7 @@ const PilotProfile = () => {
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
                             className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
                               ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                              : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                              : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
                               }`}
                             onClick={() => toggleDroneType(drone)}
                           >
@@ -1409,7 +1432,7 @@ const PilotProfile = () => {
                             variant={profile.drone_types.includes(drone) ? "default" : "outline"}
                             className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
                               ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                              : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                              : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
                               }`}
                             onClick={() => toggleDroneType(drone)}
                           >
@@ -1491,13 +1514,13 @@ const PilotProfile = () => {
                         }
                       }}
                       placeholder="Escribe otro modelo de drone..."
-                      className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666]"
+                      className="bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/30"
                     />
                     <Button
                       type="button"
                       onClick={addCustomDrone}
                       disabled={!customDrone.trim() || profile.drone_types.includes(customDrone.trim())}
-                      className="bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-[#00b3f3] hover:bg-[#0099cc] text-white disabled:opacity-50"
                     >
                       Agregar
                     </Button>
@@ -1512,9 +1535,9 @@ const PilotProfile = () => {
         </Card>
 
         {/* URL Personalizada del Perfil Público */}
-        <Card className="bg-card/95 backdrop-blur-sm border-2 border-accent/20 shadow-xl rounded-2xl overflow-hidden">
+        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-card rounded-xl">
+            <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                   <Crown className="h-6 w-6 text-white" />
@@ -1525,7 +1548,7 @@ const PilotProfile = () => {
                 Personaliza la URL de tu perfil público.
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 bg-card rounded-xl space-y-6">
+            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
               <div className="space-y-4">
                 {/* Mensaje de advertencia */}
                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
@@ -1626,7 +1649,7 @@ const PilotProfile = () => {
           {/* Status indicator */}
           {hasChanges && (
             <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-5 py-3 bg-card border-2 border-accent text-accent rounded-xl text-base font-semibold shadow-lg">
+              <div className="inline-flex items-center gap-2 px-5 py-3 bg-transparent border-2 border-accent text-accent rounded-xl text-base font-semibold shadow-lg">
                 <div className="h-2.5 w-2.5 bg-amber-500 rounded-full animate-pulse"></div>
                 Tienes cambios sin guardar
               </div>
@@ -1635,7 +1658,7 @@ const PilotProfile = () => {
 
           {lastSaved && !hasChanges && (
             <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-5 py-3 bg-card border-2 border-green-500 text-green-400 rounded-xl text-base font-semibold shadow-lg">
+              <div className="inline-flex items-center gap-2 px-5 py-3 bg-transparent border-2 border-green-500 text-green-400 rounded-xl text-base font-semibold shadow-lg">
                 <div className="h-2.5 w-2.5 bg-green-500 rounded-full"></div>
                 Guardado {lastSaved.toLocaleTimeString()}
               </div>

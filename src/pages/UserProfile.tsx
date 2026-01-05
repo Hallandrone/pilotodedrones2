@@ -10,10 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2, CheckCircle, Camera } from "lucide-react";
+import { Upload, FileText, Check, Clock, X, CreditCard, Calendar, Phone, Mail, MapPin, Shield, Eye, AlertCircle, Link, Crown, Loader2, CheckCircle, Camera, Save } from "lucide-react";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { User } from '@supabase/supabase-js';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
 
 // Types
@@ -33,7 +34,7 @@ interface Certification {
   id: string;
   file_name: string;
   file_url: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'validated';
   uploaded_at: string;
   rejection_observations?: string | null;
 }
@@ -109,6 +110,8 @@ const UserProfile = () => {
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     loadUserData();
@@ -130,7 +133,7 @@ const UserProfile = () => {
         },
         (payload) => {
           console.log('Certification change detected in user profile:', payload);
-          
+
           // Si es una actualización, actualizar el certificado específico
           if (payload.eventType === 'UPDATE' && payload.new) {
             console.log('Actualizando certificado en tiempo real:', payload.new);
@@ -146,7 +149,7 @@ const UserProfile = () => {
               }
               return cert;
             }));
-            
+
             // Mostrar notificación si fue rechazado
             if (payload.new.status === 'rejected' && payload.new.rejection_observations) {
               toast({
@@ -199,7 +202,7 @@ const UserProfile = () => {
         },
         (payload) => {
           console.log('Flight log change detected in user profile:', payload);
-          
+
           if (payload.eventType === 'UPDATE' && payload.new) {
             setFlightLogs(prev => prev.map(log => {
               if (log.id === payload.new.id) {
@@ -212,7 +215,7 @@ const UserProfile = () => {
               }
               return log;
             }));
-            
+
             if (payload.new.status === 'rejected' && payload.new.rejection_observations) {
               toast({
                 title: "Vitacora rechazada",
@@ -250,7 +253,7 @@ const UserProfile = () => {
   const loadUserData = async () => {
     try {
       setLoading(true);
-      
+
       // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError) {
@@ -258,12 +261,12 @@ const UserProfile = () => {
         setLoading(false);
         return;
       }
-      
+
       if (!user) {
         setLoading(false);
         return;
       }
-      
+
       setUser(user);
 
       // Get user role
@@ -272,15 +275,15 @@ const UserProfile = () => {
         .select('role')
         .eq('id', user.id)
         .single();
-      
+
       if (roleError && roleError.code !== 'PGRST116') {
         // PGRST116 es "no rows returned", que es normal si no tiene rol aún
         console.error('Error loading role:', roleError);
       }
-      
+
       if (roleData) {
         setUserRole(roleData.role);
-        
+
         // If super admin, don't load personal profile data
         if (roleData.role === 'super_admin') {
           setLoading(false);
@@ -307,19 +310,19 @@ const UserProfile = () => {
         // Detectar si hay URLs completas para activar los toggles
         const hasInstagramUrl = !!(profileData.instagram_url);
         const hasLinkedInUrl = !!(profileData.linkedin_url);
-        
+
         setProfile({
           full_name: profileData.full_name || '',
           email: profileData.email || user.email || '',
           phone: profileData.phone || '',
-          address: '',
+          address: profileData.location || '',
           instagram_username: profileData.instagram_username || '',
           linkedin_username: profileData.linkedin_username || '',
           instagram_url: profileData.instagram_url || '',
           linkedin_url: profileData.linkedin_url || '',
           public_profile_slug: profileData.public_profile_slug || ''
         });
-        
+
         setUseInstagramUrl(hasInstagramUrl);
         setUseLinkedInUrl(hasLinkedInUrl);
         setAvatarUrl(profileData.avatar_url || null);
@@ -407,7 +410,7 @@ const UserProfile = () => {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle(); // Usa maybeSingle() para evitar error 406 cuando no hay datos
-      
+
       if (subError && subError.code !== 'PGRST116') {
         console.error('Error loading subscription:', subError);
       }
@@ -420,7 +423,7 @@ const UserProfile = () => {
           payment_method: subData.payment_method || 'No especificado'
         });
       }
-      
+
     } catch (error) {
       console.error('Error loading user data:', error);
       toast({
@@ -436,9 +439,9 @@ const UserProfile = () => {
   // Function to clean social media username (remove @, URLs, etc.)
   const cleanSocialUsername = (input: string): string => {
     if (!input) return '';
-    
+
     let cleaned = input.trim();
-    
+
     // Remove common URL patterns
     cleaned = cleaned.replace(/^https?:\/\//, '');
     cleaned = cleaned.replace(/^www\./, '');
@@ -446,16 +449,16 @@ const UserProfile = () => {
     cleaned = cleaned.replace(/^linkedin\.com\//, '');
     cleaned = cleaned.replace(/^linkedin\.com\/in\//, '');
     cleaned = cleaned.replace(/^\/in\//, ''); // Handle /in/username pattern
-    
+
     // Remove @ symbol
     cleaned = cleaned.replace(/^@/, '');
-    
+
     // Remove trailing slashes and query parameters
     cleaned = cleaned.split('/')[0].split('?')[0].split('#')[0];
-    
+
     // Only allow alphanumeric, dots, underscores, and hyphens
     cleaned = cleaned.replace(/[^a-zA-Z0-9._-]/g, '');
-    
+
     return cleaned;
   };
 
@@ -509,21 +512,21 @@ const UserProfile = () => {
   // Function to clean and validate profile slug
   const cleanSlug = (input: string): string => {
     if (!input) return '';
-    
+
     let cleaned = input.trim().toLowerCase();
-    
+
     // Remove spaces and replace with hyphens
     cleaned = cleaned.replace(/\s+/g, '-');
-    
+
     // Remove special characters, only allow alphanumeric, hyphens, and underscores
     cleaned = cleaned.replace(/[^a-z0-9_-]/g, '');
-    
+
     // Remove multiple consecutive hyphens
     cleaned = cleaned.replace(/-+/g, '-');
-    
+
     // Remove leading/trailing hyphens and underscores
     cleaned = cleaned.replace(/^[-_]+|[-_]+$/g, '');
-    
+
     return cleaned;
   };
 
@@ -532,37 +535,37 @@ const UserProfile = () => {
     if (!slug) {
       return { valid: false, error: 'El slug no puede estar vacío' };
     }
-    
+
     if (slug.length < 3) {
       return { valid: false, error: 'El slug debe tener al menos 3 caracteres' };
     }
-    
+
     if (slug.length > 30) {
       return { valid: false, error: 'El slug no puede tener más de 30 caracteres' };
     }
-    
+
     // Check if it matches the allowed pattern
     if (!/^[a-z0-9_-]+$/.test(slug)) {
       return { valid: false, error: 'El slug solo puede contener letras minúsculas, números, guiones y guiones bajos' };
     }
-    
+
     // Check if it starts with a number
     if (/^[0-9]/.test(slug)) {
       return { valid: false, error: 'El slug no puede comenzar con un número' };
     }
-    
+
     // Check reserved words
     if (RESERVED_WORDS.includes(slug)) {
       return { valid: false, error: 'Este nombre no está disponible (palabra reservada)' };
     }
-    
+
     return { valid: true };
   };
 
   // Function to check slug availability
   const checkSlugAvailability = async (slug: string): Promise<boolean> => {
     if (!slug || !user?.id) return false;
-    
+
     try {
       // Use maybeSingle() instead of single() to avoid 406 errors
       const { data, error } = await supabase
@@ -571,23 +574,23 @@ const UserProfile = () => {
         .eq('public_profile_slug', slug)
         .neq('id', user.id)
         .maybeSingle();
-      
+
       // If data exists, slug is taken
       if (data) return false;
-      
+
       // If no data and no error, slug is available
       if (!data && !error) return true;
-      
+
       // If error, log it but assume slug is available if it's a "not found" type error
       if (error) {
         // PGRST116 = not found, which means slug is available
         if (error.code === 'PGRST116') return true;
-        
+
         // For other errors, log and return false to be safe
         console.error('Error checking slug availability:', error);
         return false;
       }
-      
+
       return true;
     } catch (error) {
       console.error('Error checking slug availability:', error);
@@ -601,11 +604,11 @@ const UserProfile = () => {
     setProfile(prev => ({ ...prev, public_profile_slug: cleaned }));
     setSlugAvailable(null);
     setSlugFeedback(null);
-    
+
     if (!cleaned) {
       return;
     }
-    
+
     const validation = validateSlug(cleaned);
     if (!validation.valid) {
       setSlugFeedback({
@@ -624,7 +627,7 @@ const UserProfile = () => {
       setSlugAvailable(null);
       return;
     }
-    
+
     const validation = validateSlug(profile.public_profile_slug);
     if (!validation.valid) {
       setSlugFeedback({
@@ -634,12 +637,12 @@ const UserProfile = () => {
       setSlugAvailable(false);
       return;
     }
-    
+
     setCheckingSlug(true);
     const available = await checkSlugAvailability(profile.public_profile_slug);
     setCheckingSlug(false);
     setSlugAvailable(available);
-    
+
     if (available) {
       setSlugFeedback({
         type: 'success',
@@ -739,7 +742,7 @@ const UserProfile = () => {
 
   const handleSaveProfile = async () => {
     if (!user) return;
-    
+
     // Basic validation
     if (!profile.full_name.trim()) {
       toast({
@@ -786,11 +789,11 @@ const UserProfile = () => {
 
     try {
       setSaving(true);
-      
+
       // Procesar Instagram: construir URL completa según el modo
       let instagramUrlFinal = null;
       let instagramUsernameFinal = null;
-      
+
       if (useInstagramUrl && profile.instagram_url) {
         // Modo URL completa: guardar URL y extraer username como respaldo
         instagramUrlFinal = profile.instagram_url.trim();
@@ -805,7 +808,7 @@ const UserProfile = () => {
       // Procesar LinkedIn: construir URL completa según el modo
       let linkedinUrlFinal = null;
       let linkedinUsernameFinal = null;
-      
+
       if (useLinkedInUrl && profile.linkedin_url) {
         // Modo URL completa: guardar URL y extraer username como respaldo
         linkedinUrlFinal = profile.linkedin_url.trim();
@@ -816,12 +819,12 @@ const UserProfile = () => {
         linkedinUsernameFinal = cleaned;
         linkedinUrlFinal = buildLinkedInUrl(cleaned);
       }
-      
+
       // Clean slug
-      const cleanedSlug = profile.public_profile_slug 
-        ? cleanSlug(profile.public_profile_slug) 
+      const cleanedSlug = profile.public_profile_slug
+        ? cleanSlug(profile.public_profile_slug)
         : null;
-      
+
       // Check if slug has changed and update history
       if (cleanedSlug) {
         const { data: currentProfile } = await supabase
@@ -838,9 +841,9 @@ const UserProfile = () => {
           // Deactivate all current slugs for this user (should only be one, but be safe)
           await supabase
             .from('profile_slug_history')
-            .update({ 
-              is_current: false, 
-              deactivated_at: new Date().toISOString() 
+            .update({
+              is_current: false,
+              deactivated_at: new Date().toISOString()
             })
             .eq('user_id', user.id)
             .eq('is_current', true);
@@ -870,7 +873,7 @@ const UserProfile = () => {
             });
         }
       }
-      
+
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -878,6 +881,7 @@ const UserProfile = () => {
           full_name: profile.full_name.trim(),
           email: profile.email,
           phone: profile.phone || null,
+          location: profile.address || null,
           instagram_username: instagramUsernameFinal || null,
           linkedin_username: linkedinUsernameFinal || null,
           instagram_url: instagramUrlFinal || null,
@@ -890,7 +894,7 @@ const UserProfile = () => {
 
       toast({
         title: "Perfil actualizado",
-        description: cleanedSlug 
+        description: cleanedSlug
           ? `Tu perfil público está disponible en: ${appBaseUrl}/${cleanedSlug}`
           : "Tus datos han sido guardados correctamente",
       });
@@ -924,7 +928,7 @@ const UserProfile = () => {
     // Validate file type
     const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!allowedTypes.includes(fileExtension)) {
       toast({
         title: "Archivo no válido",
@@ -994,7 +998,7 @@ const UserProfile = () => {
       if (error) throw error;
 
       setCertifications(prev => prev.filter(cert => cert.id !== id));
-      
+
       toast({
         title: "Certificación eliminada",
         description: "La certificación ha sido eliminada correctamente",
@@ -1017,7 +1021,7 @@ const UserProfile = () => {
     // Validate file type
     const allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+
     if (!allowedTypes.includes(fileExtension)) {
       toast({
         title: "Archivo no válido",
@@ -1105,7 +1109,7 @@ const UserProfile = () => {
     try {
       // Get the flight log to delete the file
       const logToDelete = flightLogs.find(log => log.id === id);
-      
+
       if (logToDelete) {
         // Delete file from storage
         const { error: storageError } = await supabase.storage
@@ -1126,7 +1130,7 @@ const UserProfile = () => {
       if (error) throw error;
 
       setFlightLogs(prev => prev.filter(log => log.id !== id));
-      
+
       toast({
         title: "Vitacora eliminada",
         description: "La vitacora ha sido eliminada correctamente",
@@ -1205,17 +1209,17 @@ const UserProfile = () => {
       // Already a full URL, return as is
       return filePath;
     }
-    
+
     // It's a path, create signed URL
     const { data, error } = await supabase.storage
       .from('certifications')
       .createSignedUrl(filePath, 3600); // 1 hour expiration
-    
+
     if (error) {
       console.error('Error creating signed URL:', error);
       throw error;
     }
-    
+
     return data.signedUrl;
   };
 
@@ -1223,7 +1227,7 @@ const UserProfile = () => {
     try {
       const cert = certifications.find(c => c.id === certId);
       if (!cert) return;
-      
+
       const signedUrl = await getSignedUrl(cert.file_url);
       window.open(signedUrl, '_blank');
     } catch (error) {
@@ -1238,10 +1242,11 @@ const UserProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Cargando perfil...</p>
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center font-inter relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+        <div className="relative z-10 text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
+          <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando tu perfil...</p>
         </div>
       </div>
     );
@@ -1250,11 +1255,22 @@ const UserProfile = () => {
   // Si no hay usuario, mostrar mensaje
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-2">No autenticado</h1>
-          <p className="text-muted-foreground">Por favor, inicia sesión para ver tu perfil</p>
-        </div>
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 font-inter relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+        <Card className="max-w-md w-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl relative z-10">
+          <CardHeader>
+            <CardTitle className="text-center text-white text-3xl font-bold tracking-tight">No autenticado</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center text-white/70 space-y-6">
+            <p className="text-lg">Por favor, inicia sesión para gestionar tu información profesional.</p>
+            <Button
+              onClick={() => navigate('/auth')}
+              className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
+            >
+              Iniciar Sesión
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -1277,7 +1293,7 @@ const UserProfile = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Como super administrador, utiliza las herramientas de gestión disponibles en el panel principal.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => window.history.back()}
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
@@ -1293,51 +1309,54 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-primary">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+    <div className="min-h-screen bg-[#020617] text-white font-inter relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20 pointer-events-none"></div>
+
+      <div className="container mx-auto px-4 py-8 max-w-5xl relative z-10">
         {/* Header */}
-        <div className="mb-8 flex items-center gap-4">
-          <Logo size="xl" className="flex-shrink-0 [&>div]:h-24 [&>div]:w-24" showText={false} />
-          <div>
-            <h1 className="text-4xl font-bold text-white mb-2">Mi Perfil</h1>
-            <p className="text-white/80 text-lg">Gestiona tu información personal y certificaciones</p>
+        <div className="mb-12 flex flex-col sm:flex-row items-center gap-6 animate-fade-in">
+          <Logo size="xl" className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] md:[&>div]:h-28 md:[&>div]:w-28" showText={false} />
+          <div className="text-center sm:text-left">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2 tracking-tight">Mi Perfil</h1>
+            <p className="text-[#00b3f3] text-lg font-medium">Gestiona tu información personal y certificaciones</p>
           </div>
         </div>
 
         <div className="grid gap-6">
           {/* Personal Information */}
-          <Card className="shadow-xl border-2 border-accent/20 bg-white/95 backdrop-blur-sm">
-            <CardHeader className="border-b border-accent/10 bg-gradient-to-r from-accent/5 to-transparent">
-              <CardTitle className="flex items-center gap-3 text-primary text-2xl">
-                <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center">
-                  <Mail className="h-5 w-5 text-white" />
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <CardHeader className="p-8 bg-transparent">
+              <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
+                <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
+                  <Mail className="h-6 w-6 text-white" />
                 </div>
                 Información Personal
               </CardTitle>
-              <CardDescription className="text-base">
+              <CardDescription className="text-white/70 text-lg mt-2">
                 Actualiza tu información básica de contacto
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="p-8 pt-0">
               {/* Avatar Section */}
-              <div className="flex flex-col items-center gap-4 pb-6 mb-6 border-b border-border/50">
-                <Avatar className="h-32 w-32 ring-4 ring-accent/50">
-                  <AvatarImage src={avatarUrl || ''} />
-                  <AvatarFallback className="bg-accent text-white text-3xl">
+              <div className="flex flex-col items-center gap-6 pb-8 mb-8 border-b border-white/10">
+                <Avatar className="h-40 w-40 ring-4 ring-[#00b3f3]/50 shadow-2xl">
+                  <AvatarImage src={avatarUrl || ''} className="object-cover" />
+                  <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-4xl font-bold">
                     {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-center gap-2">
                   <Label htmlFor="avatar-upload" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
+                    <div className="flex items-center gap-2 px-6 py-3 bg-[#00b3f3] hover:bg-[#0099cc] text-white rounded-xl transition-all duration-300 font-bold shadow-lg hover:shadow-[#00b3f3]/20 hover:scale-105">
                       {uploadingAvatar ? (
                         <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-5 w-5 animate-spin" />
                           <span>Subiendo...</span>
                         </>
                       ) : (
                         <>
-                          <Camera className="h-4 w-4" />
+                          <Camera className="h-5 w-5" />
                           <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
                         </>
                       )}
@@ -1367,13 +1386,13 @@ const UserProfile = () => {
                     type="text"
                     value={profile.full_name}
                     onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
-                    className="border-border/50 focus:border-accent"
+                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
                     placeholder="Tu nombre completo"
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-foreground font-medium">
+                  <Label htmlFor="email" className="text-white font-semibold">
                     Email
                   </Label>
                   <Input
@@ -1381,15 +1400,15 @@ const UserProfile = () => {
                     type="email"
                     value={profile.email}
                     onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
-                    className="border-border/50 focus:border-accent bg-muted/30"
+                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white/50 focus:border-[#00b3f3] transition-all duration-200 text-lg cursor-not-allowed"
                     placeholder="tu@email.com"
                     disabled
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-foreground font-medium">
-                    <Phone className="inline h-4 w-4 mr-1" />
+                  <Label htmlFor="phone" className="text-white font-semibold">
+                    <Phone className="inline h-5 w-5 mr-2 text-[#00b3f3]" />
                     Teléfono
                   </Label>
                   <Input
@@ -1397,14 +1416,14 @@ const UserProfile = () => {
                     type="tel"
                     value={profile.phone}
                     onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                    className="border-border/50 focus:border-accent"
+                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
                     placeholder="+56 9 1234 5678"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address" className="text-foreground font-medium">
-                    <MapPin className="inline h-4 w-4 mr-1" />
+                  <Label htmlFor="address" className="text-white font-semibold">
+                    <MapPin className="inline h-5 w-5 mr-2 text-[#00b3f3]" />
                     Dirección
                   </Label>
                   <Input
@@ -1412,18 +1431,17 @@ const UserProfile = () => {
                     type="text"
                     value={profile.address}
                     onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
-                    className="border-border/50 focus:border-accent"
+                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
                     placeholder="Tu dirección"
                   />
                 </div>
 
                 {/* Redes Sociales */}
-                <div className="space-y-4 pt-4 border-t border-border/50">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Redes Sociales</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Agrega tus redes sociales. Puedes ingresar solo tu alias (ej: juan_perez) o la URL completa. 
-                      El sistema construirá automáticamente la URL completa desde tu alias, o puedes usar el toggle para ingresar la URL directamente.
+                <div className="space-y-4 pt-8 border-t border-white/10">
+                  <div className="mb-6">
+                    <h3 className="text-2xl font-bold text-white mb-2">Redes Sociales</h3>
+                    <p className="text-sm text-white/60">
+                      Agrega tus redes sociales. Puedes ingresar solo tu alias (ej: juan_perez) o la URL completa.
                     </p>
                   </div>
 
@@ -1471,13 +1489,12 @@ const UserProfile = () => {
                         onChange={(e) => {
                           const value = e.target.value;
                           setProfile(prev => ({ ...prev, instagram_url: value }));
-                          // Extraer username automáticamente para mostrarlo como referencia
                           if (value && isUrl(value)) {
                             const username = extractInstagramUsername(value);
                             setProfile(prev => ({ ...prev, instagram_username: username }));
                           }
                         }}
-                        className="border-border/50 focus:border-accent"
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                         placeholder="https://instagram.com/juan_perez"
                       />
                     ) : (
@@ -1487,7 +1504,6 @@ const UserProfile = () => {
                         value={profile.instagram_username || ''}
                         onChange={(e) => {
                           const value = e.target.value;
-                          // Si detecta URL, extraer username automáticamente
                           if (isUrl(value)) {
                             const username = extractInstagramUsername(value);
                             setProfile(prev => ({ ...prev, instagram_username: username }));
@@ -1496,12 +1512,12 @@ const UserProfile = () => {
                             setProfile(prev => ({ ...prev, instagram_username: cleaned }));
                           }
                         }}
-                        className="border-border/50 focus:border-accent"
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                         placeholder="juan_perez"
                       />
                     )}
                     <p className="text-xs text-muted-foreground">
-                      {useInstagramUrl 
+                      {useInstagramUrl
                         ? "Ingresa la URL completa de tu perfil de Instagram"
                         : "Ingresa solo tu nombre de usuario (ej: juan_perez). El sistema construirá la URL automáticamente."}
                     </p>
@@ -1551,13 +1567,12 @@ const UserProfile = () => {
                         onChange={(e) => {
                           const value = e.target.value;
                           setProfile(prev => ({ ...prev, linkedin_url: value }));
-                          // Extraer username automáticamente para mostrarlo como referencia
                           if (value && isUrl(value)) {
                             const username = extractLinkedInUsername(value);
                             setProfile(prev => ({ ...prev, linkedin_username: username }));
                           }
                         }}
-                        className="border-border/50 focus:border-accent"
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                         placeholder="https://linkedin.com/in/juan-perez"
                       />
                     ) : (
@@ -1567,7 +1582,6 @@ const UserProfile = () => {
                         value={profile.linkedin_username || ''}
                         onChange={(e) => {
                           const value = e.target.value;
-                          // Si detecta URL, extraer username automáticamente
                           if (isUrl(value)) {
                             const username = extractLinkedInUsername(value);
                             setProfile(prev => ({ ...prev, linkedin_username: username }));
@@ -1576,12 +1590,12 @@ const UserProfile = () => {
                             setProfile(prev => ({ ...prev, linkedin_username: cleaned }));
                           }
                         }}
-                        className="border-border/50 focus:border-accent"
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                         placeholder="juan-perez"
                       />
                     )}
                     <p className="text-xs text-muted-foreground">
-                      {useLinkedInUrl 
+                      {useLinkedInUrl
                         ? "Ingresa la URL completa de tu perfil de LinkedIn"
                         : "Ingresa solo tu nombre de usuario (ej: juan-perez). El sistema construirá la URL automáticamente."}
                     </p>
@@ -1601,7 +1615,7 @@ const UserProfile = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Personaliza la URL de tu perfil público.
                   </p>
-                  
+
                   {/* Mensaje de advertencia */}
                   <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
                     <div className="flex items-start gap-3">
@@ -1611,13 +1625,13 @@ const UserProfile = () => {
                           ⚠️ Importante sobre cambios de URL
                         </p>
                         <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">
-                          Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio. 
+                          Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio.
                           Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
                         </p>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
                       <Link className="inline h-4 w-4 mr-1" />
@@ -1625,7 +1639,7 @@ const UserProfile = () => {
                     </Label>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                       <div className="relative flex-1">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/30 text-sm">
                           /
                         </div>
                         <Input
@@ -1633,7 +1647,7 @@ const UserProfile = () => {
                           type="text"
                           value={profile.public_profile_slug || ''}
                           onChange={(e) => handleSlugChange(e.target.value)}
-                          className="border-border/50 focus:border-accent pl-8"
+                          className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 pl-8"
                           placeholder="nombreusuario"
                         />
                         {checkingSlug && (
@@ -1656,7 +1670,7 @@ const UserProfile = () => {
                         variant="outline"
                         onClick={handleSlugVerification}
                         disabled={checkingSlug || !profile.public_profile_slug}
-                        className="sm:w-auto w-full"
+                        className="sm:w-auto w-full h-14 bg-[#00b3f3] hover:bg-[#0099cc] text-white border-[#00b3f3] rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-[#00b3f3]/20"
                       >
                         {checkingSlug ? (
                           <span className="flex items-center gap-2">
@@ -1670,9 +1684,8 @@ const UserProfile = () => {
                     </div>
                     {slugFeedback && (
                       <p
-                        className={`text-xs flex items-center gap-1 mt-2 ${
-                          slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
-                        }`}
+                        className={`text-xs flex items-center gap-1 mt-2 ${slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
+                          }`}
                       >
                         {slugFeedback.type === 'success' ? (
                           <CheckCircle className="h-3 w-3" />
@@ -1695,33 +1708,34 @@ const UserProfile = () => {
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end">
-                <Button 
+              <div className="mt-8 flex justify-center">
+                <Button
                   onClick={handleSaveProfile}
                   disabled={saving}
                   size="lg"
-                  className="bg-accent hover:bg-accent/90 text-white px-8 shadow-lg hover:shadow-xl transition-all duration-200"
+                  className="w-full sm:w-auto h-16 bg-[#00b3f3] hover:bg-[#0099cc] text-white px-12 rounded-2xl font-bold shadow-xl hover:shadow-[#00b3f3]/20 transition-all duration-300 hover:scale-105"
                 >
-                  {saving ? 'Guardando...' : 'Guardar Cambios'}
+                  <Save className="h-6 w-6 mr-3" />
+                  {saving ? 'Guardando...' : 'Guardar Datos Personales'}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Certifications */}
-          <Card className="shadow-xl border-2 border-accent/20 bg-white/95 backdrop-blur-sm">
-            <CardHeader className="border-b border-accent/10 bg-gradient-to-r from-accent/5 to-transparent">
-              <CardTitle className="flex items-center gap-3 text-primary text-2xl">
-                <div className="h-10 w-10 rounded-xl bg-accent flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-white" />
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <CardHeader className="p-8 bg-transparent">
+              <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
+                <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
+                  <FileText className="h-6 w-6 text-white" />
                 </div>
                 Certificaciones
               </CardTitle>
-              <CardDescription className="text-base">
+              <CardDescription className="text-white/70 text-lg mt-2">
                 Gestiona tus certificaciones y registros de vuelo
               </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="p-8 pt-0">
               {/* Apartado 1: Certificados de Academia Drone Chile */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -1730,7 +1744,7 @@ const UserProfile = () => {
                     Certificados de Academia Drone Chile
                   </Label>
                 </div>
-                
+
                 {/* Info Message */}
                 <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <div className="flex items-start gap-3">
@@ -1753,12 +1767,12 @@ const UserProfile = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Upload Area - Apartado 1 */}
                 <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
                   <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground mb-2">
-                    Arrastra y suelta tu certificación aquí, o 
+                    Arrastra y suelta tu certificación aquí, o
                   </p>
                   <Label htmlFor="certification-upload" className="cursor-pointer">
                     <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
@@ -1818,13 +1832,12 @@ const UserProfile = () => {
                           </div>
                         </div>
                         {cert.rejection_observations && (
-                          <div className={`mt-3 p-3 rounded-lg border ${
-                            cert.status === 'rejected'
-                              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                              : cert.status === 'validated'
+                          <div className={`mt-3 p-3 rounded-lg border ${cert.status === 'rejected'
+                            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                            : cert.status === 'validated'
                               ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
                               : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
-                          }`}>
+                            }`}>
                             <div className="flex items-start gap-2">
                               {cert.status === 'rejected' ? (
                                 <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
@@ -1834,27 +1847,25 @@ const UserProfile = () => {
                                 <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                               )}
                               <div className="flex-1">
-                                <p className={`text-sm font-semibold mb-1 ${
-                                  cert.status === 'rejected'
-                                    ? 'text-red-800 dark:text-red-300'
-                                    : cert.status === 'validated'
+                                <p className={`text-sm font-semibold mb-1 ${cert.status === 'rejected'
+                                  ? 'text-red-800 dark:text-red-300'
+                                  : cert.status === 'validated'
                                     ? 'text-green-800 dark:text-green-300'
                                     : 'text-blue-800 dark:text-blue-300'
-                                }`}>
+                                  }`}>
                                   {cert.status === 'rejected'
                                     ? 'Observaciones del administrador (Rechazado):'
                                     : cert.status === 'validated'
-                                    ? 'Observaciones del administrador (Validado):'
-                                    : 'Observaciones del administrador:'
+                                      ? 'Observaciones del administrador (Validado):'
+                                      : 'Observaciones del administrador:'
                                   }
                                 </p>
-                                <p className={`text-sm whitespace-pre-wrap ${
-                                  cert.status === 'rejected'
-                                    ? 'text-red-700 dark:text-red-400'
-                                    : cert.status === 'validated'
+                                <p className={`text-sm whitespace-pre-wrap ${cert.status === 'rejected'
+                                  ? 'text-red-700 dark:text-red-400'
+                                  : cert.status === 'validated'
                                     ? 'text-green-700 dark:text-green-400'
                                     : 'text-blue-700 dark:text-blue-400'
-                                }`}>
+                                  }`}>
                                   {cert.rejection_observations}
                                 </p>
                               </div>
@@ -1881,12 +1892,12 @@ const UserProfile = () => {
                 <p className="text-sm text-muted-foreground mb-4">
                   Sube certificados adicionales o registros de vuelo (archivos PDF o imagen) para validación.
                 </p>
-                
+
                 {/* Upload Area - Apartado 2 */}
                 <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
                   <Upload className={`mx-auto h-8 w-8 ${uploadingFlightLog ? 'text-muted-foreground/50' : 'text-muted-foreground'} mb-2`} />
                   <p className="text-sm text-muted-foreground mb-2">
-                    Arrastra y suelta tu certificado o registro de vuelo aquí, o 
+                    Arrastra y suelta tu certificado o registro de vuelo aquí, o
                   </p>
                   <Label htmlFor="flight-log-upload" className="cursor-pointer">
                     <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
@@ -1959,13 +1970,12 @@ const UserProfile = () => {
                             </div>
                           </div>
                           {log.rejection_observations && (
-                            <div className={`mt-3 p-3 rounded-lg border ${
-                              log.status === 'rejected'
-                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                                : log.status === 'validated'
+                            <div className={`mt-3 p-3 rounded-lg border ${log.status === 'rejected'
+                              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                              : log.status === 'validated'
                                 ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
                                 : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
-                            }`}>
+                              }`}>
                               <div className="flex items-start gap-2">
                                 {log.status === 'rejected' ? (
                                   <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
@@ -1975,27 +1985,25 @@ const UserProfile = () => {
                                   <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                                 )}
                                 <div className="flex-1">
-                                  <p className={`text-sm font-semibold mb-1 ${
-                                    log.status === 'rejected'
-                                      ? 'text-red-800 dark:text-red-300'
-                                      : log.status === 'validated'
+                                  <p className={`text-sm font-semibold mb-1 ${log.status === 'rejected'
+                                    ? 'text-red-800 dark:text-red-300'
+                                    : log.status === 'validated'
                                       ? 'text-green-800 dark:text-green-300'
                                       : 'text-blue-800 dark:text-blue-300'
-                                  }`}>
+                                    }`}>
                                     {log.status === 'rejected'
                                       ? 'Observaciones del administrador (Rechazado):'
                                       : log.status === 'validated'
-                                      ? 'Observaciones del administrador (Validado):'
-                                      : 'Observaciones del administrador:'
+                                        ? 'Observaciones del administrador (Validado):'
+                                        : 'Observaciones del administrador:'
                                     }
                                   </p>
-                                  <p className={`text-sm whitespace-pre-wrap ${
-                                    log.status === 'rejected'
-                                      ? 'text-red-700 dark:text-red-400'
-                                      : log.status === 'validated'
+                                  <p className={`text-sm whitespace-pre-wrap ${log.status === 'rejected'
+                                    ? 'text-red-700 dark:text-red-400'
+                                    : log.status === 'validated'
                                       ? 'text-green-700 dark:text-green-400'
                                       : 'text-blue-700 dark:text-blue-400'
-                                  }`}>
+                                    }`}>
                                     {log.rejection_observations}
                                   </p>
                                 </div>

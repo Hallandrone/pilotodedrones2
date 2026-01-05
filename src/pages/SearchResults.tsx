@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { ArrowLeft, MapPin, DollarSign, Shield, Briefcase, Search, Filter, Phone, Mail, Instagram, Linkedin } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import Logo from "@/components/ui/logo";
 
 interface PilotWithServices {
   id: string;
@@ -104,7 +105,7 @@ const loadSpecialtyTypes = async (): Promise<string[]> => {
     }
 
     // Convertir a array y ordenar
-    const sortedSpecialties = Array.from(specialtySet).sort((a, b) => 
+    const sortedSpecialties = Array.from(specialtySet).sort((a, b) =>
       a.localeCompare(b, 'es', { sensitivity: 'base' })
     );
 
@@ -199,7 +200,7 @@ const SearchResults = () => {
       .from("companies")
       .select("id, company_name")
       .order("company_name");
-    
+
     setCompanies(data || []);
   };
 
@@ -229,7 +230,7 @@ const SearchResults = () => {
       // Obtener perfiles
       const userIds = pilotsData.map(p => p.user_id);
       const pilotIds = pilotsData.map(p => p.id);
-      
+
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
@@ -243,7 +244,7 @@ const SearchResults = () => {
         .select("user_id, status, plan_name")
         .in("user_id", userIds)
         .eq("status", "active");
-      
+
       if (subscriptionsError) {
         console.error('Error fetching subscriptions:', subscriptionsError);
         // Continuar sin suscripciones si hay error
@@ -309,7 +310,7 @@ const SearchResults = () => {
           subscription
         };
       });
-      
+
       setPilots(pilotsWithServices);
     } catch (error) {
       console.error("Error fetching pilots:", error);
@@ -338,10 +339,10 @@ const SearchResults = () => {
         const pilotRegion = (p.region || "").toLowerCase();
         const pilotLocation = (p.location || "").toLowerCase();
         // Buscar coincidencias parciales en región o ubicación
-        return pilotRegion.includes(regionLower) || 
-               pilotLocation.includes(regionLower) ||
-               regionLower.includes(pilotRegion) ||
-               regionLower.includes(pilotLocation);
+        return pilotRegion.includes(regionLower) ||
+          pilotLocation.includes(regionLower) ||
+          regionLower.includes(pilotRegion) ||
+          regionLower.includes(pilotLocation);
       });
     }
 
@@ -383,7 +384,7 @@ const SearchResults = () => {
 
     // Filtro por empresa
     if (selectedCompany && selectedCompany !== "all") {
-      filtered = filtered.filter(p => 
+      filtered = filtered.filter(p =>
         p.company_name && p.company_name === selectedCompany
       );
     }
@@ -397,58 +398,72 @@ const SearchResults = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#083b4e] relative overflow-hidden font-inter">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+
       {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
+        <div className="px-4 py-4 sm:py-6">
+          <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
+              size="sm"
               onClick={() => navigate("/")}
-              className="gap-2"
+              className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Volver
+              <ArrowLeft className="h-7 w-7" />
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">Buscar Pilotos</h1>
-            <div className="w-20" />
+            <Logo
+              size="xl"
+              className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+              showText={false}
+            />
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
+                Buscar Pilotos
+              </h1>
+              <p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
+                Explora profesionales certificados
+              </p>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filtros - Desktop */}
           <aside className="hidden lg:block space-y-6">
-            <Card className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
-              <h2 className="font-semibold text-lg mb-4 flex items-center gap-2">
-                <Filter className="h-5 w-5" />
+            <Card className="p-6 max-h-[calc(100vh-12rem)] overflow-y-auto bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl">
+              <h2 className="font-bold text-xl mb-6 flex items-center gap-3 text-white">
+                <Filter className="h-6 w-6 text-[#00b3f3]" />
                 Filtros
               </h2>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {/* Búsqueda */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Búsqueda</label>
+                  <label className="text-sm font-bold text-white/70 mb-2 block uppercase tracking-wider">Búsqueda</label>
                   <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-3 top-3.5 h-4 w-4 text-[#00b3f3]" />
                     <Input
                       placeholder="Nombre o ubicación"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 h-11 bg-[#020617]/40 border-[#00b3f3]/20 text-white focus:border-[#00b3f3] focus:ring-1 focus:ring-[#00b3f3] transition-all"
                     />
                   </div>
                 </div>
 
                 {/* Región */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Región</label>
+                  <label className="text-sm font-bold text-white/70 mb-2 block uppercase tracking-wider">Región</label>
                   <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-11 bg-[#020617]/40 border-[#00b3f3]/20 text-white focus:border-[#00b3f3]">
                       <SelectValue placeholder="Todas las regiones" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#020617] border-[#00b3f3]/30 text-white">
                       <SelectItem value="all">Todas las regiones</SelectItem>
                       {regions.map(region => (
                         <SelectItem key={region} value={region}>{region}</SelectItem>
@@ -574,37 +589,40 @@ const SearchResults = () => {
           <div className="lg:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="w-full gap-2">
-                  <Filter className="h-4 w-4" />
+                <Button className="w-full gap-2 bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 rounded-xl shadow-lg transition-all active:scale-95">
+                  <Filter className="h-5 w-5" />
                   Filtros ({filteredPilots.length} resultados)
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>Filtros</SheetTitle>
+              <SheetContent side="left" className="overflow-y-auto bg-[#020617] border-[#00b3f3]/20 text-white w-[85%] sm:w-[400px]">
+                <SheetHeader className="mb-6">
+                  <SheetTitle className="text-white text-2xl font-bold flex items-center gap-2">
+                    <Filter className="h-6 w-6 text-[#00b3f3]" />
+                    Filtros
+                  </SheetTitle>
                 </SheetHeader>
-                <div className="space-y-4 mt-4 pb-6">
+                <div className="space-y-6 pb-12">
                   {/* Same filters as desktop */}
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Búsqueda</label>
+                    <label className="text-sm font-bold text-white/70 mb-2 block uppercase tracking-wider">Búsqueda</label>
                     <div className="relative">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Search className="absolute left-3 top-3.5 h-4 w-4 text-[#00b3f3]" />
                       <Input
                         placeholder="Nombre o ubicación"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
+                        className="pl-10 h-11 bg-white/5 border-white/10 text-white focus:border-[#00b3f3]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Región</label>
+                    <label className="text-sm font-bold text-white/70 mb-2 block uppercase tracking-wider">Región</label>
                     <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 bg-white/5 border-white/10 text-white">
                         <SelectValue placeholder="Todas las regiones" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#020617] border-white/20 text-white">
                         <SelectItem value="all">Todas las regiones</SelectItem>
                         {regions.map(region => (
                           <SelectItem key={region} value={region}>{region}</SelectItem>
@@ -614,12 +632,12 @@ const SearchResults = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Especialidad</label>
+                    <label className="text-sm font-bold text-white/70 mb-2 block uppercase tracking-wider">Especialidad</label>
                     <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 bg-white/5 border-white/10 text-white">
                         <SelectValue placeholder="Todas las especialidades" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#020617] border-white/20 text-white">
                         <SelectItem value="all">Todas las especialidades</SelectItem>
                         {specialtyTypes.map(type => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
@@ -629,12 +647,12 @@ const SearchResults = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Tipo de Drone</label>
+                    <label className="text-sm font-bold text-white/70 mb-2 block uppercase tracking-wider">Tipo de Drone</label>
                     <Select value={selectedDroneType} onValueChange={setSelectedDroneType}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 bg-white/5 border-white/10 text-white">
                         <SelectValue placeholder="Todos los drones" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#020617] border-white/20 text-white">
                         <SelectItem value="all">Todos los drones</SelectItem>
                         {droneTypes.map(type => (
                           <SelectItem key={type} value={type}>{type}</SelectItem>
@@ -644,12 +662,12 @@ const SearchResults = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Experiencia Mínima</label>
+                    <label className="text-sm font-bold text-white/70 mb-2 block uppercase tracking-wider">Experiencia</label>
                     <Select value={selectedExperience} onValueChange={setSelectedExperience}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 bg-white/5 border-white/10 text-white">
                         <SelectValue placeholder="Cualquier experiencia" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#020617] border-white/20 text-white">
                         <SelectItem value="all">Cualquier experiencia</SelectItem>
                         <SelectItem value="1">1+ años</SelectItem>
                         <SelectItem value="3">3+ años</SelectItem>
@@ -659,60 +677,45 @@ const SearchResults = () => {
                     </Select>
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Empresa</label>
-                    <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Todas las empresas" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas las empresas</SelectItem>
-                        {companies.map(company => (
-                          <SelectItem key={company.id} value={company.company_name}>
-                            {company.company_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/10">
                     <input
                       type="checkbox"
                       id="certified-mobile"
                       checked={certifiedOnly}
                       onChange={(e) => setCertifiedOnly(e.target.checked)}
-                      className="rounded"
+                      className="h-5 w-5 rounded border-white/30 bg-[#020617] text-[#00b3f3] focus:ring-[#00b3f3]"
                     />
-                    <label htmlFor="certified-mobile" className="text-sm">
+                    <label htmlFor="certified-mobile" className="text-sm font-medium text-white select-none">
                       Solo pilotos certificados
                     </label>
                   </div>
 
-                  <Button
-                    className="w-full gap-2"
-                    onClick={applyFilters}
-                  >
-                    <Search className="h-4 w-4" />
-                    Buscar
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setSearchTerm("");
-                      setSelectedRegion("all");
-                      setSelectedSpecialty("all");
-                      setSelectedDroneType("all");
-                      setSelectedExperience("all");
-                      setSelectedCompany("all");
-                      setCertifiedOnly(false);
-                      applyFilters();
-                    }}
-                  >
-                    Limpiar filtros
-                  </Button>
+                  <div className="pt-4 grid grid-cols-2 gap-4">
+                    <Button
+                      variant="outline"
+                      className="border-white/10 text-white hover:bg-white/5"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSelectedRegion("all");
+                        setSelectedSpecialty("all");
+                        setSelectedDroneType("all");
+                        setSelectedExperience("all");
+                        setSelectedCompany("all");
+                        setCertifiedOnly(false);
+                        applyFilters();
+                      }}
+                    >
+                      Limpiar
+                    </Button>
+                    <Button
+                      className="bg-[#00b3f3] hover:bg-[#0099cc] text-white"
+                      onClick={() => {
+                        applyFilters();
+                      }}
+                    >
+                      Aplicar
+                    </Button>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -720,9 +723,14 @@ const SearchResults = () => {
 
           {/* Resultados */}
           <div className="lg:col-span-3 space-y-6">
-            <div className="flex items-center justify-between">
-              <p className="text-muted-foreground">
-                {loading ? "Cargando..." : `${filteredPilots.length} pilotos encontrados`}
+            <div className="flex items-center justify-between bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
+              <p className="text-white font-medium">
+                {loading ? "Cargando..." : (
+                  <>
+                    <span className="text-[#00b3f3] font-bold text-xl">{filteredPilots.length}</span>
+                    <span className="ml-2 text-white/70">pilotos encontrados</span>
+                  </>
+                )}
               </p>
             </div>
 
@@ -739,65 +747,61 @@ const SearchResults = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPilots.map((pilot) => (
-                  <Card key={pilot.id} className="p-6 hover:shadow-lg transition-shadow">
-                    <div className="flex gap-4">
-                      <div className="flex-shrink-0">
-                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
-                          {pilot.avatar_url ? (
-                            <img
-                              src={pilot.avatar_url}
-                              alt={pilot.full_name}
-                              className="w-full h-full rounded-full object-cover"
-                            />
-                          ) : (
-                            pilot.full_name.charAt(0).toUpperCase()
-                          )}
+                  <Card
+                    key={pilot.id}
+                    className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/20 shadow-xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] hover:-translate-y-1 cursor-pointer"
+                    onClick={() => navigate(`/${pilot.public_profile_slug || pilot.id}`)}
+                  >
+                    <div className="p-6">
+                      <div className="flex gap-4 mb-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00b3f3]/20 to-[#00b3f3]/5 flex items-center justify-center text-3xl font-bold text-white border-2 border-[#00b3f3]/30 shadow-inner overflow-hidden group-hover:scale-105 transition-transform">
+                            {pilot.avatar_url ? (
+                              <img
+                                src={pilot.avatar_url}
+                                alt={pilot.full_name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              pilot.full_name.charAt(0).toUpperCase()
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-lg text-foreground truncate">
-                              {pilot.full_name}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1 flex-wrap">
-                              {pilot.certification_status && (
-                                <Badge variant="secondary" className="gap-1 text-xs">
-                                  <Shield className="h-3 w-3" />
-                                  Certificado
-                                </Badge>
-                              )}
-                              {pilot.subscription?.plan_name && (
-                                <Badge variant="outline" className="text-xs">
-                                  {pilot.subscription.plan_name}
-                                </Badge>
-                              )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-bold text-xl text-white truncate group-hover:text-[#00b3f3] transition-colors">
+                                {pilot.full_name}
+                              </h3>
+                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                {pilot.certification_status && (
+                                  <Badge className="bg-[#00b3f3] text-white border-0 px-2.5 py-1 text-xs font-bold rounded-lg shadow-lg">
+                                    <Shield className="h-3.3 w-3.3 mr-1" />
+                                    Certificado
+                                  </Badge>
+                                )}
+                                {pilot.subscription?.plan_name && (
+                                  <Badge className="bg-white/10 text-white/80 border-[#00b3f3]/30 text-[10px] uppercase tracking-wider">
+                                    {pilot.subscription.plan_name}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                        <div className="space-y-4">
                           {pilot.location && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-[#00b3f3]" />
                               {pilot.location}
                             </div>
                           )}
                           {pilot.company_name && (
-                            <div className="flex items-center gap-1">
-                              <Briefcase className="h-3 w-3" />
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="h-4 w-4 text-[#00b3f3]" />
                               {pilot.company_name}
-                            </div>
-                          )}
-                          {pilot.certification_academy && (
-                            <div className="text-xs text-muted-foreground">
-                              Certificado por: {pilot.certification_academy}
-                            </div>
-                          )}
-                          {pilot.experience_years > 0 && (
-                            <div className="text-xs text-muted-foreground">
-                              {pilot.experience_years} años de experiencia
                             </div>
                           )}
                         </div>
@@ -873,7 +877,7 @@ const SearchResults = () => {
                         <Button
                           className="w-full mt-4"
                           onClick={() => {
-                            const profileUrl = pilot.public_profile_slug 
+                            const profileUrl = pilot.public_profile_slug
                               ? `/${pilot.public_profile_slug}`
                               : `/pilot/${pilot.id}`;
                             navigate(profileUrl, {
