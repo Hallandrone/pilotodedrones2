@@ -158,29 +158,9 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 						Condiciones para Volar
 					</CardTitle>
 				</CardHeader>
-				<CardContent className="pt-6 relative">
-					{/* Overlay de Bloqueo Atractivo */}
-					<div className="absolute inset-0 bg-[#212121]/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
-						<div className="bg-[#2C2C2C]/90 border border-[#333333] p-6 rounded-2xl shadow-2xl max-w-[280px]">
-							<div className="h-12 w-12 bg-gradient-to-br from-[#00b3f3] to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
-								<Sun className="h-6 w-6 text-white" />
-							</div>
-							<h4 className="text-white font-bold mb-2">Desbloquea Meteo Pro</h4>
-							<p className="text-gray-400 text-xs mb-4 leading-relaxed">
-								Accede a datos en tiempo real de viento, visibilidad y condiciones aptas para el vuelo de tus drones.
-							</p>
-							<Button
-								size="sm"
-								className="w-full bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition-transform"
-								onClick={() => window.location.href = '/pilot/membership'}
-							>
-								Ver Membresías
-							</Button>
-						</div>
-					</div>
-
+				<CardContent className="relative p-0">
 					{/* Teaser Data (Grisáceo/Inactivo) */}
-					<div className="space-y-4 opacity-30 grayscale blur-[1px] pointer-events-none">
+					<div className="p-6 space-y-4 opacity-30 grayscale blur-[1px] pointer-events-none">
 						<div className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
 							<span className="text-white/60 font-bold">CARGANDO ESTADO...</span>
 							<RefreshCw className="h-4 w-4 text-white/40" />
@@ -203,6 +183,25 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 								<Sunrise className="h-4 w-4 text-white/40 mx-auto mb-1" />
 								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
 							</div>
+						</div>
+					</div>
+
+					{/* Overlay de Bloqueo Atractivo - Centrado Perfecto */}
+					<div className="absolute inset-0 z-10 flex items-center justify-center p-4 text-center">
+						<div className="bg-[#2C2C2C]/95 border border-[#444444] p-8 rounded-2xl shadow-2xl w-full max-w-[300px] flex flex-col items-center">
+							<div className="h-16 w-16 bg-gradient-to-br from-[#00b3f3] to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/20">
+								<Sun className="h-8 w-8 text-white" />
+							</div>
+							<h4 className="text-white text-lg font-bold mb-3">Desbloquea Meteo Pro</h4>
+							<p className="text-gray-400 text-sm mb-6 leading-relaxed">
+								Accede a datos en tiempo real de viento, visibilidad y condiciones aptas para el vuelo de tus drones.
+							</p>
+							<Button
+								className="w-full bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white font-bold h-12 rounded-xl shadow-lg hover:scale-105 transition-all text-base"
+								onClick={() => window.location.href = '/pilot/membership'}
+							>
+								Ver Membresías
+							</Button>
 						</div>
 					</div>
 				</CardContent>
