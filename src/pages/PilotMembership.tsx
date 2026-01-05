@@ -92,7 +92,7 @@ const PilotMembership = () => {
         'Perfil destacado en búsquedas',
         'Datos meteorológicos geolocalizados',
         'Horarios de amanecer/atardecer para fotogrametría',
-        'Soporte por correo electrónico'
+        'Soporte por Whatsapp'
       ]
     },
     {

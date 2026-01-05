@@ -56,7 +56,7 @@ const Pricing = () => {
         'Perfil destacado en búsquedas',
         'Datos meteorológicos geolocalizados',
         'Horarios de amanecer/atardecer para fotogrametría',
-        'Soporte por correo electrónico'
+        'Soporte por whatsapp'
       ],
       icon: Plane,
       color: 'from-blue-500 to-cyan-500'
