@@ -151,26 +151,59 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Si no tiene suscripción activa
 	if (!hasActiveSubscription) {
 		return (
-			<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
-				<CardHeader className="pb-3">
+			<Card className="mt-4 sm:mt-6 bg-[#212121] border border-[#333333] shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+				<CardHeader className="pb-3 border-b border-[#333333]/50">
 					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
 						<Cloud className="h-5 w-5 text-[#00b3f3]" />
 						Condiciones para Volar
 					</CardTitle>
 				</CardHeader>
-				<CardContent>
-					<div className="text-center py-6">
-						<Cloud className="h-12 w-12 text-white/40 mx-auto mb-3" />
-						<p className="text-white/60 text-sm mb-3">
-							Esta función está disponible solo para usuarios con suscripción activa
-						</p>
-						<Button
-							size="sm"
-							className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
-							onClick={() => window.location.href = '/pricing'}
-						>
-							Ver Planes
-						</Button>
+				<CardContent className="pt-6 relative">
+					{/* Overlay de Bloqueo Atractivo */}
+					<div className="absolute inset-0 bg-[#212121]/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
+						<div className="bg-[#2C2C2C]/90 border border-[#333333] p-6 rounded-2xl shadow-2xl max-w-[280px]">
+							<div className="h-12 w-12 bg-gradient-to-br from-[#00b3f3] to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-500/20">
+								<Sun className="h-6 w-6 text-white" />
+							</div>
+							<h4 className="text-white font-bold mb-2">Desbloquea Meteo Pro</h4>
+							<p className="text-gray-400 text-xs mb-4 leading-relaxed">
+								Accede a datos en tiempo real de viento, visibilidad y condiciones aptas para el vuelo de tus drones.
+							</p>
+							<Button
+								size="sm"
+								className="w-full bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition-transform"
+								onClick={() => window.location.href = '/pilot/membership'}
+							>
+								Ver Membresías
+							</Button>
+						</div>
+					</div>
+
+					{/* Teaser Data (Grisáceo/Inactivo) */}
+					<div className="space-y-4 opacity-30 grayscale blur-[1px] pointer-events-none">
+						<div className="bg-white/5 border border-white/10 rounded-lg p-4 flex items-center justify-between">
+							<span className="text-white/60 font-bold">CARGANDO ESTADO...</span>
+							<RefreshCw className="h-4 w-4 text-white/40" />
+						</div>
+
+						<div className="grid grid-cols-2 gap-3">
+							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
+								<Wind className="h-4 w-4 text-white/40 mx-auto mb-1" />
+								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
+							</div>
+							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
+								<Droplets className="h-4 w-4 text-white/40 mx-auto mb-1" />
+								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
+							</div>
+							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
+								<Eye className="h-4 w-4 text-white/40 mx-auto mb-1" />
+								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
+							</div>
+							<div className="bg-white/5 rounded-lg p-3 border border-white/10 text-center">
+								<Sunrise className="h-4 w-4 text-white/40 mx-auto mb-1" />
+								<div className="h-2 w-12 bg-white/20 rounded mx-auto"></div>
+							</div>
+						</div>
 					</div>
 				</CardContent>
 			</Card>
