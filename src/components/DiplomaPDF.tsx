@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
 	// Asumiendo diseño original de ~6000px ancho
 	qrCode: {
 		position: 'absolute',
-		left: 733,  // X: 5236.2 * (842/6000) ≈ 733
+		left: 725,  // X: 5236.2 * (842/6000) ≈ 733
 		top: 72,    // Y: 514.6 * (595/4243) ≈ 72
 		width: 61,  // 437 * (842/6000) ≈ 61
 		height: 61, // 437 * (595/4243) ≈ 61
