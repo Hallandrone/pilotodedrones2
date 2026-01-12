@@ -136,7 +136,7 @@ export function Pilots() {
             .from('user_subscriptions')
             .select('status, plan_name')
             .eq('user_id', pilot.user_id)
-            .single();
+            .maybeSingle();
 
           return {
             ...pilot,
