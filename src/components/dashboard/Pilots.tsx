@@ -27,6 +27,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PilotDetailsModal } from "./PilotDetailsModal";
@@ -41,7 +51,8 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from "lucide-react";
 import {
   getCertificationStatus,
@@ -84,6 +95,8 @@ export function Pilots() {
   const [loading, setLoading] = useState(true);
   const [selectedPilot, setSelectedPilot] = useState<PilotProfile | null>(null);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pilotToDelete, setPilotToDelete] = useState<PilotProfile | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -215,6 +228,43 @@ export function Pilots() {
   const openPilotDetails = (pilot: PilotProfile) => {
     setSelectedPilot(pilot);
     setDetailsModalOpen(true);
+  };
+
+  const openDeleteDialog = (pilot: PilotProfile) => {
+    setPilotToDelete(pilot);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!pilotToDelete) return;
+
+    try {
+      // Delete user from auth.users (this will cascade delete related data)
+      const { error } = await supabase.rpc('delete_user', {
+        user_id: pilotToDelete.user_id
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Usuario eliminado",
+        description: `El usuario ${pilotToDelete.profiles.full_name || 'sin nombre'} y toda su información han sido eliminados permanentemente.`,
+      });
+
+      // Refresh the pilots list
+      fetchPilots();
+      setDeleteDialogOpen(false);
+      setPilotToDelete(null);
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar el usuario. Asegúrate de tener los permisos necesarios.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -474,6 +524,14 @@ export function Pilots() {
                               <Ban className="mr-2 h-4 w-4" />
                               {pilot.status === 'active' ? 'Suspender' : 'Desactivar'}
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive font-bold"
+                              onClick={() => openDeleteDialog(pilot)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Eliminar Usuario Permanentemente
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -492,6 +550,52 @@ export function Pilots() {
         pilot={selectedPilot}
         onStatusUpdate={handleStatusUpdate}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">
+              ⚠️ Eliminar Usuario Permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="font-semibold">
+                Estás a punto de eliminar al usuario:{" "}
+                <span className="text-foreground">
+                  {pilotToDelete?.profiles.full_name || 'Sin nombre'}
+                </span>
+              </p>
+              <p className="text-destructive font-bold">
+                ⚠️ ADVERTENCIA: Esta acción es IRREVERSIBLE
+              </p>
+              <div className="bg-destructive/10 p-3 rounded-md border border-destructive/30">
+                <p className="text-sm">Se eliminará permanentemente:</p>
+                <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+                  <li>La cuenta del usuario en el sistema</li>
+                  <li>Todos los datos del perfil</li>
+                  <li>Servicios publicados</li>
+                  <li>Certificaciones y validaciones</li>
+                  <li>Historial de suscripciones</li>
+                  <li>Toda la información relacionada</li>
+                </ul>
+              </div>
+              <p className="text-sm font-semibold mt-4">
+                Una vez eliminado, NO se podrá recuperar la información.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Sí, Eliminar Permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
