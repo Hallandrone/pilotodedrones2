@@ -131,10 +131,8 @@ const Index = () => {
       // Get user ids with active subscriptions
       const activeUserIds = new Set((subscriptions || [])?.map(s => s.user_id) || []);
 
-      // SOLO mostrar pilotos con suscripción activa
-      const pilotsWithSubscription = pilotsData?.filter(pilot =>
-        activeUserIds.has(pilot.user_id)
-      ) || [];
+      // YA NO filtramos solo por suscripción activa, los incluimos todos
+      const pilotsWithSubscription = pilotsData || [];
 
       // Separar pilotos destacados (featured_until > NOW) de los demás
       const now = new Date();
@@ -158,16 +156,46 @@ const Index = () => {
         }
       });
 
-      // Priorizar: primero los destacados, luego los regulares
-      // Mezclar aleatoriamente dentro de cada grupo
-      const shuffledFeatured = featuredPilots.sort(() => Math.random() - 0.5);
-      const shuffledRegular = regularPilots.sort(() => Math.random() - 0.5);
+      // Función para calcular completitud similar a SearchResults
+      const getScore = (pilot: any) => {
+        let score = 0;
+        const prof = pilot.profiles;
+        if (prof?.full_name) score += 10;
+        if (prof?.avatar_url) score += 15;
+        if (prof?.region || prof?.location) score += 10;
+        if (prof?.experience_years) score += 10;
+        if (prof?.specialties && prof?.specialties.length > 0) score += 15;
+        if (prof?.drone_types && prof?.drone_types.length > 0) score += 10;
+        if (pilot.certification_status) score += 15;
+        return score;
+      };
 
-      // Combinar: destacados primero, luego regulares, hasta 6 en total
+      // Función para obtener tier de suscripción
+      const getTier = (userId: string) => {
+        const sub = subscriptions?.find(s => s.user_id === userId);
+        if (sub?.status === 'active') {
+          if (sub.plan_name === 'premium' || sub.plan_name === 'empresa') return 2;
+          if (sub.plan_name === 'pro' || sub.plan_name === 'basic' || sub.plan_name === 'profesional') return 1;
+        }
+        return 0;
+      };
+
+      // Ordenar pilotos regulares por tier y luego por score
+      const sortedRegular = regularPilots.sort((a, b) => {
+        const tierA = getTier(a.user_id);
+        const tierB = getTier(b.user_id);
+        if (tierA !== tierB) return tierB - tierA;
+        return getScore(b) - getScore(a);
+      });
+
+      // Ordenar pilotos destacados por score
+      const sortedFeatured = featuredPilots.sort((a, b) => getScore(b) - getScore(a));
+
+      // Combinar: destacados primero, luego regulares ordenados
       const allQualifiedPilots = [
-        ...shuffledFeatured,
-        ...shuffledRegular
-      ].slice(0, 6);
+        ...sortedFeatured,
+        ...sortedRegular
+      ].slice(0, 12); // Aumentamos un poco el límite para tener de donde elegir
 
       // Obtener todos los IDs de pilotos seleccionados para buscar empresas y servicios
       const selectedPilotIds = allQualifiedPilots.map(p => p.id);
@@ -219,9 +247,8 @@ const Index = () => {
         company_name: companyMap.get(pilot.id) || null,
       }));
 
-      // Randomize (ya no necesitamos slice porque ya limitamos arriba)
-      const shuffled = transformedPilots.sort(() => Math.random() - 0.5);
-      setFeaturedPilots(shuffled);
+      // Ya no aleatorizamos para respetar el orden de prioridad (Subscription Tier + Profile Completeness)
+      setFeaturedPilots(transformedPilots);
     } catch (error) {
       console.error('Error loading featured pilots:', error);
       setFeaturedPilots([]);
@@ -435,9 +462,20 @@ const Index = () => {
   };
 
   // Combinar pilotos y empresas destacados, limitando a 6 en total
-  const combinedFeatured = [...featuredPilots, ...featuredCompanies]
-    .sort(() => Math.random() - 0.5) // Mezclar aleatoriamente
-    .slice(0, 6); // Limitar a 6 tarjetas en total
+  // Las empresas en loadFeaturedCompanies ya vienen filtradas por Plan Empresa.
+  // Los pilotos en loadFeaturedPilots vienen ordenados por Tier y Completitud.
+  const combinedFeatured = [...featuredCompanies, ...featuredPilots]
+    .sort((a: any, b: any) => {
+      // Prioridad absoluta a Empresas (Plan Empresa) si el piloto no es Premium
+      const aIsCompany = 'is_company' in a;
+      const bIsCompany = 'is_company' in b;
+
+      if (aIsCompany && !bIsCompany) return -1;
+      if (!aIsCompany && bIsCompany) return 1;
+
+      return 0; // Mantener orden interno si ambos son del mismo tipo
+    })
+    .slice(0, 6);
 
   const listToRender = results.length ? results : combinedFeatured;
 
@@ -748,6 +786,22 @@ const Index = () => {
                       <p className="text-xl text-white/90 mb-8 leading-relaxed">
                         Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
                       </p>
+
+                      {/* Drone Image 2 */}
+                      <motion.div
+                        className="mt-10 mb-8 flex justify-center"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <img
+                          src="/drone-hero-2.png"
+                          alt="Drone FPV profesional"
+                          className="rounded-2xl shadow-2xl max-w-md w-full h-auto"
+                        />
+                      </motion.div>
+
                       <Button
                         variant="secondary"
                         size="lg"
@@ -778,6 +832,22 @@ const Index = () => {
                   >
                     ¿Por qué elegir Piloto de Drones?
                   </motion.h3>
+
+                  {/* Drone Image 1 */}
+                  <motion.div
+                    className="mb-12 flex justify-center"
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                  >
+                    <img
+                      src="/drone-hero-1.png"
+                      alt="Drone profesional sobre paisaje chileno"
+                      className="rounded-2xl shadow-2xl max-w-2xl w-full h-auto"
+                    />
+                  </motion.div>
+
                   <div className="grid md:grid-cols-3 gap-12">
                     <motion.div
                       className="text-center group"
@@ -1045,6 +1115,7 @@ const Index = () => {
                       <Button
                         variant="outline"
                         size="lg"
+                        onClick={() => navigate('/search')}
                         className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
                       >
                         Ver Todos los Pilotos
@@ -1381,6 +1452,7 @@ const Index = () => {
                       <Button
                         variant="outline"
                         size="lg"
+                        onClick={() => navigate('/search')}
                         className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
                       >
                         Ver Todos los Pilotos

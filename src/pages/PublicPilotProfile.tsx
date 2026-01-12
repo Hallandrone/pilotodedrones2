@@ -15,7 +15,9 @@ import {
   Briefcase,
   Award,
   ArrowLeft,
-  MessageCircle
+  MessageCircle,
+  Share2,
+  Copy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -86,6 +88,7 @@ const PublicPilotProfile = () => {
     message: ''
   });
   const [submittingContact, setSubmittingContact] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [currentUserType, setCurrentUserType] = useState<string | null>(null);
 
@@ -120,6 +123,60 @@ const PublicPilotProfile = () => {
       navigate("/search");
     }
   };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: isCompany && companyData?.company_name
+        ? `Perfil de ${companyData.company_name}`
+        : `Perfil de ${profile?.full_name || 'Piloto'}`,
+      text: `Revisa el perfil de ${isCompany && companyData?.company_name ? companyData.company_name : profile?.full_name || 'este piloto'} en Piloto de Drones`,
+      url: profileUrl
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast({
+          title: "¡Perfil compartido!",
+          description: "El perfil se compartió exitosamente.",
+        });
+      } else {
+        // Fallback: copiar al portapapeles
+        await navigator.clipboard.writeText(profileUrl);
+        toast({
+          title: "Link copiado",
+          description: "El link del perfil se copió al portapapeles.",
+        });
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+        toast({
+          title: "Error",
+          description: "No se pudo compartir el perfil.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      toast({
+        title: "¡Link copiado!",
+        description: "El link del perfil se copió al portapapeles.",
+      });
+    } catch (error) {
+      console.error('Error copying link:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo copiar el link.",
+        variant: "destructive",
+      });
+    }
+  };
+
 
   useEffect(() => {
     loadPilotProfile();
@@ -234,29 +291,6 @@ const PublicPilotProfile = () => {
         }
       }
 
-      // Verificar que el usuario tenga suscripción activa o cancelada pero vigente
-      const { data: subscription } = await supabase
-        .from('user_subscriptions')
-        .select('status, renewal_date')
-        .eq('user_id', userId)
-        .or('status.eq.active,status.eq.cancelled')
-        .maybeSingle();
-
-      const isSubValid = subscription && (
-        subscription.status === 'active' ||
-        (subscription.status === 'cancelled' && subscription.renewal_date && new Date(subscription.renewal_date) > new Date())
-      );
-
-      if (!isSubValid) {
-        // No tiene suscripción activa o vigente, mostrar mensaje de error
-        toast({
-          title: "Perfil no disponible",
-          description: "Este perfil requiere una suscripción activa para ser visible.",
-          variant: "destructive",
-        });
-        navigate('/');
-        return;
-      }
 
       // Verificar si es empresa
       const userType = profileData.user_type;
@@ -322,6 +356,18 @@ const PublicPilotProfile = () => {
       setPilotData(pilotInfo);
       setServices(servicesData || []);
       setFlightHours(totalHours);
+
+      // Verificar si el piloto tiene suscripción activa
+      if (userId) {
+        const { data: subscription } = await supabase
+          .from('user_subscriptions')
+          .select('status')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        setHasActiveSubscription(!!subscription);
+      }
 
       // Registrar vista del perfil
       if (userId) {
@@ -389,10 +435,9 @@ const PublicPilotProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-inter">
         <div className="relative z-10 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-b-[#00b3f3] mb-6"></div>
           <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando perfil...</p>
         </div>
       </div>
@@ -401,17 +446,16 @@ const PublicPilotProfile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
-        <Card className="max-w-md w-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl relative z-10">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-inter">
+        <Card className="max-w-md w-full bg-white border border-gray-200 shadow-lg rounded-2xl">
           <CardHeader>
-            <CardTitle className="text-center text-white text-3xl font-bold tracking-tight">Perfil no encontrado</CardTitle>
+            <CardTitle className="text-center text-gray-900 text-3xl font-bold tracking-tight">Perfil no encontrado</CardTitle>
           </CardHeader>
-          <CardContent className="text-center text-white/70 space-y-6">
+          <CardContent className="text-center text-gray-600 space-y-6">
             <p className="text-lg">No se encontró el perfil profesional que buscas.</p>
             <Button
               onClick={() => navigate('/')}
-              className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
+              className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-gray-900 font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
             >
               Volver al Inicio
             </Button>
@@ -422,19 +466,17 @@ const PublicPilotProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#083b4e] relative overflow-hidden font-inter">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+    <div className="min-h-screen bg-gray-50 font-inter">
 
       {/* Header */}
-      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
+      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
         <div className="px-4 py-4 sm:py-6">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
+              className="h-12 w-12 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-700"
             >
               <ArrowLeft className="h-7 w-7" />
             </Button>
@@ -444,7 +486,7 @@ const PublicPilotProfile = () => {
               showText={false}
             />
             <div className="flex flex-col">
-              <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">
                 {isCompany ? 'Perfil de Empresa' : 'Perfil Profesional'}
               </h1>
               <p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
@@ -459,15 +501,15 @@ const PublicPilotProfile = () => {
       <div className="px-4 py-8 md:py-12 relative z-10">
         <div className="max-w-5xl mx-auto space-y-8">
           {/* Profile Header Card */}
-          <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+          <Card className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
             <CardContent className="p-0">
               {/* Header Section */}
-              <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-[#00b3f3]/10 p-8 md:p-10 border-b border-[#00b3f3]/20">
+              <div className="bg-gradient-to-br from-[#00b3f3]/10 via-gray-50 to-[#00b3f3]/5 p-8 md:p-10 border-b border-gray-200">
                 <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
                   {/* Avatar Section */}
                   <div className="flex flex-col items-center gap-6 w-full lg:w-auto">
                     <div className="relative">
-                      <div className="h-40 w-40 bg-[#020617] rounded-2xl flex items-center justify-center text-5xl font-semibold text-white border-4 border-[#00b3f3]/30 shadow-2xl ring-4 ring-[#00b3f3]/10">
+                      <div className="h-40 w-40 bg-gray-100 rounded-2xl flex items-center justify-center text-5xl font-semibold text-gray-700 border-4 border-gray-200 shadow-lg ring-4 ring-[#00b3f3]/10">
                         {profile.avatar_url ? (
                           <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-full w-full rounded-2xl object-cover" />
                         ) : (
@@ -476,7 +518,7 @@ const PublicPilotProfile = () => {
                       </div>
                       {(pilotData?.certification_status || companyData?.certification_status) && (
                         <div className="absolute -bottom-2 -right-2 bg-[#00b3f3] rounded-full p-2 border-4 border-white shadow-md">
-                          <CheckCircle className="h-5 w-5 text-white" />
+                          <CheckCircle className="h-5 w-5 text-gray-900" />
                         </div>
                       )}
                     </div>
@@ -486,7 +528,7 @@ const PublicPilotProfile = () => {
                   <div className="flex-1 w-full text-center lg:text-left">
                     <div className="flex flex-col lg:flex-row lg:items-start gap-4 mb-6">
                       <div className="flex-1">
-                        <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 tracking-tight">
+                        <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">
                           {isCompany && companyData?.company_name ? companyData.company_name : profile.full_name}
                         </h1>
                         {profile.location && (
@@ -512,26 +554,45 @@ const PublicPilotProfile = () => {
                       </div>
                     </div>
 
+                    {/* Share Buttons */}
+                    <div className="flex flex-wrap gap-3 justify-center lg:justify-start mb-6">
+                      <Button
+                        onClick={handleShare}
+                        className="bg-[#00b3f3] text-white hover:bg-[#0099cc] font-semibold flex items-center gap-2"
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Compartir Perfil
+                      </Button>
+                      <Button
+                        onClick={handleCopyLink}
+                        variant="outline"
+                        className="border-[#00b3f3] text-[#00b3f3] hover:bg-[#00b3f3]/10 font-semibold flex items-center gap-2"
+                      >
+                        <Copy className="h-4 w-4" />
+                        Copiar Link
+                      </Button>
+                    </div>
+
                     {profile.bio && (
-                      <div className="bg-[#00b3f3]/10 backdrop-blur-md rounded-2xl p-6 mb-8 border border-[#00b3f3]/20 shadow-inner">
-                        <p className="text-white/90 text-lg leading-relaxed italic">"{profile.bio}"</p>
+                      <div className="bg-[#00b3f3]/10 backdrop-blur-md rounded-2xl p-6 mb-8 border border-gray-200 shadow-inner">
+                        <p className="text-gray-700 text-lg leading-relaxed italic">"{profile.bio}"</p>
                       </div>
                     )}
 
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                       {/* Flight Hours */}
-                      <div className="bg-[#020617]/40 backdrop-blur-md border-2 border-[#00b3f3]/20 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
+                      <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
                         <Clock className="h-8 w-8 text-[#00b3f3] mb-3 group-hover:scale-110 transition-transform" />
-                        <div className="text-white text-4xl font-bold mb-1">{flightHours}</div>
+                        <div className="text-gray-900 text-4xl font-bold mb-1">{flightHours}</div>
                         <div className="text-[#00b3f3]/70 text-sm font-bold uppercase tracking-wider">Horas de Vuelo</div>
                       </div>
 
                       {/* Experience */}
                       {profile.experience_years && profile.experience_years > 0 && (
-                        <div className="bg-[#020617]/40 backdrop-blur-md border-2 border-[#00b3f3]/20 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
+                        <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
                           <Star className="h-8 w-8 text-[#00b3f3] mb-3 group-hover:scale-110 transition-transform" />
-                          <div className="text-white text-4xl font-bold mb-1">{profile.experience_years}</div>
+                          <div className="text-gray-900 text-4xl font-bold mb-1">{profile.experience_years}</div>
                           <div className="text-[#00b3f3]/70 text-sm font-bold uppercase tracking-wider">Años Experiencia</div>
                         </div>
                       )}
@@ -539,24 +600,24 @@ const PublicPilotProfile = () => {
 
                     {/* Certification Badge */}
                     {pilotData?.certification_academy && (
-                      <div className="bg-[#00b3f3]/10 border-2 border-[#00b3f3]/30 rounded-2xl p-6 mb-8 flex items-center gap-5">
+                      <div className="bg-[#00b3f3]/10 border-2 border-gray-200 rounded-2xl p-6 mb-8 flex items-center gap-5">
                         <div className="bg-[#00b3f3] rounded-xl p-4 shadow-[0_0_20px_rgba(0,179,243,0.4)]">
                           <Award className="h-10 w-10 text-white" />
                         </div>
                         <div>
                           <div className="text-[#00b3f3]/70 font-bold text-xs uppercase tracking-[0.2em] mb-1">Certificado por</div>
-                          <div className="text-white font-bold text-2xl">{pilotData.certification_academy}</div>
+                          <div className="text-gray-900 font-bold text-2xl">{pilotData.certification_academy}</div>
                         </div>
                       </div>
                     )}
                     {companyData?.certification_status && (
                       <div className="bg-[#00b3f3]/20 border-2 border-[#00b3f3]/40 rounded-2xl p-6 mb-8 flex items-center gap-5">
                         <div className="bg-[#00b3f3] rounded-xl p-4 shadow-[0_0_20px_rgba(0,179,243,0.4)]">
-                          <Shield className="h-10 w-10 text-white" />
+                          <Shield className="h-10 w-10 text-gray-900" />
                         </div>
                         <div>
                           <div className="text-[#00b3f3]/70 font-bold text-xs uppercase tracking-[0.2em] mb-1">Empresa Certificada</div>
-                          <div className="text-white font-bold text-2xl">Validada y verificada</div>
+                          <div className="text-gray-900 font-bold text-2xl">Validada y verificada</div>
                         </div>
                       </div>
                     )}
@@ -565,14 +626,14 @@ const PublicPilotProfile = () => {
                     <div className="grid md:grid-cols-2 gap-6">
                       {/* Specialties */}
                       {profile.specialties && profile.specialties.length > 0 && (
-                        <div className="bg-[#020617]/40 backdrop-blur-md border-2 border-[#00b3f3]/20 rounded-2xl p-6">
-                          <h3 className="text-white font-bold mb-5 text-xl flex items-center gap-3">
+                        <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6">
+                          <h3 className="text-gray-900 font-bold mb-5 text-xl flex items-center gap-3">
                             <div className="h-2 w-2 bg-[#00b3f3] rounded-full animate-pulse"></div>
                             Especialidades
                           </h3>
                           <div className="flex flex-wrap gap-2">
                             {profile.specialties.map((specialty, index) => (
-                              <Badge key={index} className="bg-[#00b3f3]/10 text-white border-2 border-[#00b3f3]/30 px-3 py-1.5 text-sm font-medium hover:bg-[#00b3f3]/20 transition-all rounded-lg">
+                              <Badge key={index} className="bg-[#00b3f3]/10 text-gray-900 border-2 border-gray-200 px-3 py-1.5 text-sm font-medium hover:bg-[#00b3f3]/20 transition-all rounded-lg">
                                 {specialty}
                               </Badge>
                             ))}
@@ -582,14 +643,14 @@ const PublicPilotProfile = () => {
 
                       {/* Drone Types */}
                       {profile.drone_types && profile.drone_types.length > 0 && (
-                        <div className="bg-[#020617]/40 backdrop-blur-md border-2 border-[#00b3f3]/20 rounded-2xl p-6">
-                          <h3 className="text-white font-bold mb-5 text-xl flex items-center gap-3">
+                        <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6">
+                          <h3 className="text-gray-900 font-bold mb-5 text-xl flex items-center gap-3">
                             <div className="h-2 w-2 bg-[#00b3f3] rounded-full animate-pulse"></div>
                             Tipos de Drones
                           </h3>
                           <div className="flex flex-wrap gap-2">
                             {profile.drone_types.map((drone, index) => (
-                              <Badge key={index} className="bg-[#00b3f3]/10 text-white border-2 border-[#00b3f3]/30 px-3 py-1.5 text-sm font-medium hover:bg-[#00b3f3]/20 transition-all rounded-lg">
+                              <Badge key={index} className="bg-[#00b3f3]/10 text-gray-900 border-2 border-gray-200 px-3 py-1.5 text-sm font-medium hover:bg-[#00b3f3]/20 transition-all rounded-lg">
                                 {drone}
                               </Badge>
                             ))}
@@ -606,9 +667,9 @@ const PublicPilotProfile = () => {
 
           {/* Redes Sociales - Solo si tiene */}
           {(profile.instagram_url || profile.instagram_username || profile.linkedin_url || profile.linkedin_username) && (
-            <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-              <CardHeader className="bg-[#020617]/40 border-b border-[#00b3f3]/20">
-                <CardTitle className="text-white text-2xl font-bold flex items-center gap-3">
+            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+              <CardHeader className="bg-white border-b border-gray-200">
+                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
                   <div className="bg-[#00b3f3]/10 rounded-lg p-2">
                     <MessageCircle className="h-6 w-6 text-[#00b3f3]" />
                   </div>
@@ -622,14 +683,14 @@ const PublicPilotProfile = () => {
                       href={profile.instagram_url || `https://instagram.com/${profile.instagram_username}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-5 p-6 bg-[#020617]/40 border-2 border-[#00b3f3]/20 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
+                      className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
                     >
                       <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-                        <span className="text-white text-2xl font-bold">📷</span>
+                        <span className="text-gray-900 text-2xl font-bold">📷</span>
                       </div>
                       <div className="flex-1">
                         <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">Instagram</p>
-                        <p className="font-bold text-white text-lg">
+                        <p className="font-bold text-gray-900 text-lg">
                           @{profile.instagram_username || (profile.instagram_url ? profile.instagram_url.split('/').pop() : '')}
                         </p>
                       </div>
@@ -640,14 +701,14 @@ const PublicPilotProfile = () => {
                       href={profile.linkedin_url || `https://linkedin.com/in/${profile.linkedin_username}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-center gap-5 p-6 bg-[#020617]/40 border-2 border-[#00b3f3]/20 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
+                      className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
                     >
                       <div className="h-14 w-14 bg-[#0077b5] rounded-xl flex items-center justify-center transform group-hover:-rotate-12 transition-transform shadow-[0_0_15px_rgba(0,119,181,0.4)]">
-                        <span className="text-white text-2xl font-bold">💼</span>
+                        <span className="text-gray-900 text-2xl font-bold">💼</span>
                       </div>
                       <div className="flex-1">
                         <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">LinkedIn</p>
-                        <p className="font-bold text-white text-lg">
+                        <p className="font-bold text-gray-900 text-lg">
                           {profile.linkedin_username || (profile.linkedin_url ? profile.linkedin_url.split('/').pop() : '')}
                         </p>
                       </div>
@@ -660,9 +721,9 @@ const PublicPilotProfile = () => {
 
           {/* Servicios Card - Solo para empresas */}
           {isCompany && profile.services && profile.services.length > 0 && (
-            <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-              <CardHeader className="bg-[#020617]/40 border-b border-[#00b3f3]/20">
-                <CardTitle className="text-white text-2xl font-bold flex items-center gap-3">
+            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+              <CardHeader className="bg-white border-b border-gray-200">
+                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
                   <div className="bg-[#00b3f3]/10 rounded-lg p-2">
                     <Briefcase className="h-6 w-6 text-[#00b3f3]" />
                   </div>
@@ -686,9 +747,9 @@ const PublicPilotProfile = () => {
 
           {/* Website Card - Solo si tiene website */}
           {isCompany && profile.website && (
-            <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-              <CardHeader className="bg-[#020617]/40 border-b border-[#00b3f3]/20">
-                <CardTitle className="text-white text-2xl font-bold flex items-center gap-3">
+            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+              <CardHeader className="bg-white border-b border-gray-200">
+                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
                   <div className="bg-[#00b3f3]/10 rounded-lg p-2">
                     <Mail className="h-6 w-6 text-[#00b3f3]" />
                   </div>
@@ -700,7 +761,7 @@ const PublicPilotProfile = () => {
                   href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-5 p-6 bg-[#020617]/40 border-2 border-[#00b3f3]/20 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
+                  className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
                 >
                   <div className="h-14 w-14 bg-[#00b3f3] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
                     <span className="text-white text-2xl font-bold">🌐</span>
@@ -721,10 +782,10 @@ const PublicPilotProfile = () => {
               <CardContent className="p-6 text-center">
                 <div className="flex flex-col items-center gap-4">
                   <div className="bg-white/20 rounded-full p-4">
-                    <MessageCircle className="h-8 w-8 text-white" />
+                    <MessageCircle className="h-8 w-8 text-gray-900" />
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold text-white mb-2">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
                       {isCompany ? '¿Interesado en nuestros servicios?' : '¿Interesado en mis servicios?'}
                     </h3>
                     <p className="text-white/90 mb-4">
@@ -804,10 +865,98 @@ const PublicPilotProfile = () => {
             </Card>
           )}
 
+          {/* Contact Form Card - Solo para usuarios con suscripción activa */}
+          {hasActiveSubscription && (
+            <Card className="bg-gradient-to-br from-[#00b3f3]/10 to-white border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-[#00b3f3]/5 to-transparent border-b border-[#00b3f3]/20">
+                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
+                  <div className="bg-[#00b3f3] rounded-lg p-2">
+                    <MessageCircle className="h-6 w-6 text-white" />
+                  </div>
+                  ¿Interesado en mis servicios?
+                </CardTitle>
+                <CardDescription className="text-gray-700 text-base mt-2">
+                  Déjame tus datos y te contactaré a la brevedad
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 text-lg rounded-xl shadow-lg transition-all hover:scale-105">
+                      <Phone className="h-5 w-5 mr-2" />
+                      Te llamaremos
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Déjanos tus datos</DialogTitle>
+                      <DialogDescription>
+                        Te contactaremos a la brevedad para ofrecerte nuestros servicios
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleContactSubmit} className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Nombre completo *</Label>
+                        <Input
+                          id="name"
+                          required
+                          value={contactForm.name}
+                          onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                          placeholder="Tu nombre"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          required
+                          value={contactForm.email}
+                          onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                          placeholder="tu@email.com"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Teléfono</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={contactForm.phone}
+                          onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                          placeholder="+56 9 1234 5678"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="message">Mensaje (opcional)</Label>
+                        <Textarea
+                          id="message"
+                          value={contactForm.message}
+                          onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                          placeholder="Cuéntanos sobre tu proyecto..."
+                          className="mt-1 min-h-[100px]"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        disabled={submittingContact}
+                        className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white"
+                      >
+                        {submittingContact ? 'Enviando...' : 'Enviar solicitud'}
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Contact Card */}
-          <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-            <CardHeader className="bg-[#020617]/40 border-b border-[#00b3f3]/20">
-              <CardTitle className="text-white text-2xl font-bold flex items-center gap-3">
+          <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+            <CardHeader className="bg-white border-b border-gray-200">
+              <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
                 <div className="bg-[#00b3f3]/10 rounded-lg p-2">
                   <Mail className="h-6 w-6 text-[#00b3f3]" />
                 </div>
@@ -819,28 +968,28 @@ const PublicPilotProfile = () => {
                 {profile.email && (
                   <a
                     href={`mailto:${profile.email}`}
-                    className="group flex items-center gap-5 p-6 bg-[#020617]/40 border-2 border-[#00b3f3]/20 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
+                    className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
                   >
-                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-xl flex items-center justify-center border-2 border-[#00b3f3]/30 group-hover:scale-110 transition-transform">
+                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-xl flex items-center justify-center border-2 border-gray-200 group-hover:scale-110 transition-transform">
                       <Mail className="h-7 w-7 text-[#00b3f3]" />
                     </div>
                     <div className="flex-1">
                       <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">Email</p>
-                      <p className="font-bold text-white text-lg break-all">{profile.email}</p>
+                      <p className="font-bold text-gray-900 text-lg break-all">{profile.email}</p>
                     </div>
                   </a>
                 )}
                 {profile.phone && (
                   <a
                     href={`tel:${profile.phone}`}
-                    className="group flex items-center gap-5 p-6 bg-[#020617]/40 border-2 border-[#00b3f3]/20 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
+                    className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
                   >
-                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-xl flex items-center justify-center border-2 border-[#00b3f3]/30 group-hover:scale-110 transition-transform">
+                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-xl flex items-center justify-center border-2 border-gray-200 group-hover:scale-110 transition-transform">
                       <Phone className="h-7 w-7 text-[#00b3f3]" />
                     </div>
                     <div className="flex-1">
                       <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">Teléfono</p>
-                      <p className="font-bold text-white text-lg">{profile.phone}</p>
+                      <p className="font-bold text-gray-900 text-lg">{profile.phone}</p>
                     </div>
                   </a>
                 )}
@@ -854,3 +1003,4 @@ const PublicPilotProfile = () => {
 };
 
 export default PublicPilotProfile;
+

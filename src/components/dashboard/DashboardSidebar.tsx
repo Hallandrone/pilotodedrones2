@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { 
+import {
   User2,
-  Plane, 
-  Settings, 
-  BarChart3, 
-  Shield, 
-  Building, 
-  MapPin, 
+  Plane,
+  Settings,
+  BarChart3,
+  Shield,
+  Building,
+  MapPin,
   Bell,
   LogOut,
   Home,
-  FileCheck
+  FileCheck,
+  Award
 } from "lucide-react";
 import {
   Sidebar,
@@ -65,6 +66,12 @@ const menuItems = [
     roles: ["super_admin", "admin"]
   },
   {
+    title: "Diplomas",
+    url: "/dashboard/diplomas",
+    icon: Award,
+    roles: ["super_admin", "admin"]
+  },
+  {
     title: "Notificaciones",
     url: "/dashboard/notifications",
     icon: Bell,
@@ -101,15 +108,14 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
     }
   };
 
-  const filteredItems = menuItems.filter(item => 
+  const filteredItems = menuItems.filter(item =>
     userRole && item.roles.includes(userRole)
   );
 
   const getNavClassName = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-      isActive 
-        ? "bg-white/10 text-white font-medium shadow-sm" 
-        : "text-white hover:text-white hover:bg-white/20"
+    `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive
+      ? "bg-white/10 text-white font-medium shadow-sm"
+      : "text-white hover:text-white hover:bg-white/20"
     }`;
 
   return (
@@ -144,7 +150,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
             <Home className="h-4 w-4" />
             {!collapsed && <span className="ml-2">Ir al Sitio</span>}
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"

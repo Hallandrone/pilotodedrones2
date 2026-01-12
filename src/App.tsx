@@ -32,6 +32,8 @@ import CompanyProfile from "./pages/CompanyProfile";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import ProfileContacts from "./pages/ProfileContacts";
 import InvitationAccept from "./pages/InvitationAccept";
+import DiplomaGenerator from "./pages/DiplomaGenerator";
+import QRRedirect from "./pages/QRRedirect";
 import NotFound from "./pages/NotFound";
 import "./lib/debug-auth"; // Importar funciones de debug
 import "./lib/force-create-role"; // Importar función para crear rol
@@ -73,6 +75,7 @@ const App = () => (
             <Route path="/company/contacts" element={<div className="dark"><ProfileContacts /></div>} />
             <Route path="/pilot/contacts" element={<div className="dark"><ProfileContacts /></div>} />
             <Route path="/admin/certificates" element={<div className="dark"><AdminCertificates /></div>} />
+            <Route path="/diplomas" element={<div className="dark"><DiplomaGenerator /></div>} />
 
             {/* Rutas de debug/fix */}
             <Route path="/debug-auth" element={<DebugAuth />} />
@@ -89,6 +92,9 @@ const App = () => (
             {/* Rutas para aceptar invitaciones de empresa */}
             <Route path="/invitation/:token" element={<InvitationAccept />} />
             <Route path="/invitation/accept/:token" element={<InvitationAccept />} />
+
+            {/* Ruta para QR codes de diplomas */}
+            <Route path="/qr/:token" element={<QRRedirect />} />
 
             {/* Perfil público del piloto (para QR) - mantener ruta antigua por compatibilidad */}
             <Route path="/pilot/:pilotId" element={<div className="dark"><PublicPilotProfile /></div>} />

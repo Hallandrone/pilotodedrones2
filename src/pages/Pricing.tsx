@@ -73,7 +73,7 @@ const Pricing = () => {
         'Sello digital "Empresa Certificada"',
         'Perfil destacado en recomendaciones',
         'Gestión de múltiples certificaciones',
-        'Soporte prioritario por WhatsApp'
+        'Soporte por WhatsApp'
       ],
       icon: Building2,
       color: 'from-purple-500 to-pink-500'
@@ -256,9 +256,7 @@ const Pricing = () => {
                         <ArrowRight className="h-4 w-4 ml-2" />
                       </Button>
 
-                      <p className="text-xs text-center text-muted-foreground">
-                        Sin compromiso. Cancela cuando quieras.
-                      </p>
+
                     </CardContent>
                   </Card>
                 </motion.div>

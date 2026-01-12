@@ -19,6 +19,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
+  const [qrToken, setQrToken] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -27,6 +28,7 @@ const Auth = () => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
     const tokenParam = params.get('invitation');
+    const qrTokenParam = params.get('qr_token');
 
     // Recuperar token de almacenamiento local si existe
     const storedToken = localStorage.getItem('pendingInvitationToken');
@@ -41,6 +43,13 @@ const Auth = () => {
       setInvitationToken(effectiveToken);
       // Asegurar que esté guardado para persistencia
       if (tokenParam) localStorage.setItem('pendingInvitationToken', tokenParam);
+    }
+
+    // Detectar QR token
+    if (qrTokenParam) {
+      console.log('QR token detectado:', qrTokenParam);
+      setQrToken(qrTokenParam);
+      localStorage.setItem('pendingQrToken', qrTokenParam);
     }
   }, [location]);
 
@@ -81,6 +90,25 @@ const Auth = () => {
               // La página de Invitación lo limpiará si es exitosa, o lo mantendrá si falla auth
               navigate(`/invitation/${effectiveToken}`);
               return;
+            }
+
+            // Asociar QR token si existe
+            const storedQrToken = localStorage.getItem('pendingQrToken');
+            if (storedQrToken && session.user.id) {
+              try {
+                await supabase
+                  .from('diploma_qr_tokens')
+                  .update({
+                    user_id: session.user.id,
+                    associated_at: new Date().toISOString()
+                  })
+                  .eq('token', storedQrToken);
+
+                console.log('QR token asociado al perfil:', storedQrToken);
+                localStorage.removeItem('pendingQrToken');
+              } catch (error) {
+                console.error('Error asociando QR token:', error);
+              }
             }
 
             if (profile?.user_type === 'company') {

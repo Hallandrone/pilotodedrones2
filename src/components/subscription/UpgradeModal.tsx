@@ -50,7 +50,7 @@ export function UpgradeModal({
 				'Sello digital "Empresa Certificada"',
 				'Perfil destacado en recomendaciones',
 				'Estadísticas de vistas y contactos',
-				'Soporte prioritario por WhatsApp',
+				'Soporte por WhatsApp',
 			],
 		},
 	};
