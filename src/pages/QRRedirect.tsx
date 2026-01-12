@@ -7,6 +7,7 @@ const QRRedirect = () => {
 	const { token } = useParams<{ token: string }>();
 	const navigate = useNavigate();
 	const [status, setStatus] = useState<'loading' | 'error'>('loading');
+	const [errorMessage, setErrorMessage] = useState<string>('');
 
 	useEffect(() => {
 		const handleRedirect = async () => {
@@ -16,52 +17,54 @@ const QRRedirect = () => {
 			}
 
 			try {
-				// Buscar el token en la base de datos
+				// Buscar el token en la base de datos (query simple sin JOIN)
 				const { data, error } = await supabase
 					.from('diploma_qr_tokens')
-					.select(`
-            user_id,
-            profiles:user_id (
-              public_profile_slug,
-              id
-            )
-          `)
+					.select('user_id, token')
 					.eq('token', token)
 					.maybeSingle();
 
 				if (error) {
 					console.error('Error fetching QR token:', error);
+					setErrorMessage(error.message || 'Error al buscar el token en la base de datos');
 					setStatus('error');
-					setTimeout(() => navigate('/auth'), 3000);
+					setTimeout(() => navigate(`/auth?qr_token=${token}`), 3000);
 					return;
 				}
 
 				// Si el token no existe, redirigir a autenticación
 				if (!data) {
+					console.log('Token no encontrado, redirigiendo a auth');
 					navigate(`/auth?qr_token=${token}`);
 					return;
 				}
 
-				// Si el token ya está asociado a un usuario, redirigir a su perfil público
-				if (data.user_id && data.profiles) {
-					const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
+				// Si el token ya está asociado a un usuario, buscar su perfil
+				if (data.user_id) {
+					// Segunda query para obtener el perfil del usuario
+					const { data: profileData, error: profileError } = await supabase
+						.from('profiles')
+						.select('public_profile_slug, id')
+						.eq('id', data.user_id)
+						.maybeSingle();
 
-					if (profile?.public_profile_slug) {
-						navigate(`/${profile.public_profile_slug}`);
-					} else if (profile?.id) {
-						navigate(`/pilot/${profile.id}`);
-					} else {
-						navigate(`/auth?qr_token=${token}`);
+					if (!profileError && profileData) {
+						if (profileData.public_profile_slug) {
+							navigate(`/${profileData.public_profile_slug}`);
+						} else {
+							navigate(`/pilot/${profileData.id}`);
+						}
+						return;
 					}
-					return;
 				}
 
 				// Si no está asociado, redirigir a autenticación con el token
 				navigate(`/auth?qr_token=${token}`);
-			} catch (err) {
+			} catch (err: any) {
 				console.error('Error in QR redirect:', err);
+				setErrorMessage(err.message || 'Error inesperado');
 				setStatus('error');
-				setTimeout(() => navigate('/auth'), 3000);
+				setTimeout(() => navigate(`/auth?qr_token=${token}`), 3000);
 			}
 		};
 
@@ -71,10 +74,15 @@ const QRRedirect = () => {
 	if (status === 'error') {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gray-50">
-				<div className="text-center">
+				<div className="text-center max-w-md px-4">
 					<h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
 					<p className="text-gray-600 mb-4">No se pudo procesar el código QR</p>
-					<p className="text-sm text-gray-500">Redirigiendo...</p>
+					{errorMessage && (
+						<p className="text-sm text-red-600 mb-4 p-3 bg-red-50 rounded-lg">
+							{errorMessage}
+						</p>
+					)}
+					<p className="text-sm text-gray-500">Redirigiendo a página de autenticación...</p>
 				</div>
 			</div>
 		);
