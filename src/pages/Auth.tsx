@@ -72,18 +72,21 @@ const Auth = () => {
             if (storedQrToken && session.user.id) {
               console.log('Asociando QR token:', storedQrToken, 'al usuario:', session.user.id);
               try {
-                const { error: updateError } = await supabase
+                const { data: updatedData, error: updateError } = await supabase
                   .from('diploma_qr_tokens')
                   .update({
                     user_id: session.user.id,
                     associated_at: new Date().toISOString()
                   })
-                  .eq('token', storedQrToken);
+                  .eq('token', storedQrToken)
+                  .select();
 
                 if (updateError) {
-                  console.error('Error asociando QR token:', updateError);
+                  console.error('❌ Error asociando QR token:', updateError);
+                } else if (!updatedData || updatedData.length === 0) {
+                  console.error('⚠️ No se actualizó ningún token. ¿Existe el token en BD?');
                 } else {
-                  console.log('✅ QR token asociado exitosamente');
+                  console.log('✅ QR token asociado exitosamente:', updatedData);
                   localStorage.removeItem('pendingQrToken');
                 }
               } catch (error) {
