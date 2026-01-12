@@ -67,6 +67,30 @@ const Auth = () => {
         // Solo redirigir si hay sesión y no estamos en proceso de login/signup
         if (session?.user && event !== 'SIGNED_OUT') {
           try {
+            // PRIORIDAD 0: Asociar QR token PRIMERO si existe
+            const storedQrToken = localStorage.getItem('pendingQrToken');
+            if (storedQrToken && session.user.id) {
+              console.log('Asociando QR token:', storedQrToken, 'al usuario:', session.user.id);
+              try {
+                const { error: updateError } = await supabase
+                  .from('diploma_qr_tokens')
+                  .update({
+                    user_id: session.user.id,
+                    associated_at: new Date().toISOString()
+                  })
+                  .eq('token', storedQrToken);
+
+                if (updateError) {
+                  console.error('Error asociando QR token:', updateError);
+                } else {
+                  console.log('✅ QR token asociado exitosamente');
+                  localStorage.removeItem('pendingQrToken');
+                }
+              } catch (error) {
+                console.error('Error en asociación de QR token:', error);
+              }
+            }
+
             const { data: profile, error } = await supabase
               .from('profiles')
               .select('user_type')
@@ -90,25 +114,6 @@ const Auth = () => {
               // La página de Invitación lo limpiará si es exitosa, o lo mantendrá si falla auth
               navigate(`/invitation/${effectiveToken}`);
               return;
-            }
-
-            // Asociar QR token si existe
-            const storedQrToken = localStorage.getItem('pendingQrToken');
-            if (storedQrToken && session.user.id) {
-              try {
-                await supabase
-                  .from('diploma_qr_tokens')
-                  .update({
-                    user_id: session.user.id,
-                    associated_at: new Date().toISOString()
-                  })
-                  .eq('token', storedQrToken);
-
-                console.log('QR token asociado al perfil:', storedQrToken);
-                localStorage.removeItem('pendingQrToken');
-              } catch (error) {
-                console.error('Error asociando QR token:', error);
-              }
             }
 
             if (profile?.user_type === 'company') {
