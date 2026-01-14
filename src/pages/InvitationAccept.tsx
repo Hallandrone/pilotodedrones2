@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -391,18 +391,32 @@ const InvitationAcceptPage = () => {
 								)}
 							</Button>
 						) : (
-							<div className="space-y-3">
-								<p className="text-center text-gray-600 text-sm">
-									Para aceptar esta invitación, primero debes iniciar sesión o crear una cuenta
-								</p>
-								<Button
-									onClick={() => navigate(`/auth?invitation=${token}`)}
-									className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-semibold py-6 text-lg shadow-lg shadow-blue-500/20"
-									size="lg"
-								>
-									Iniciar sesión / Registrarse
-									<ArrowRight className="h-5 w-5 ml-2" />
-								</Button>
+							<div className="space-y-4 pt-4">
+								<div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-2">
+									<p className="text-center text-blue-800 text-sm font-medium">
+										¿Aún no tienes cuenta? ¡No te preocupes! Regístrate ahora para aceptar tu invitación y activar tu Plan Pro.
+									</p>
+								</div>
+
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									<Button
+										onClick={() => navigate(`/auth?invitation=${token}&tab=signup${invitation.pilot_email ? `&email=${encodeURIComponent(invitation.pilot_email)}` : ''}`)}
+										className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-semibold py-6 text-lg shadow-lg shadow-blue-500/20 order-1 sm:order-2"
+										size="lg"
+									>
+										Crear mi Cuenta
+										<ArrowRight className="h-5 w-5 ml-2" />
+									</Button>
+
+									<Button
+										onClick={() => navigate(`/auth?invitation=${token}&tab=login${invitation.pilot_email ? `&email=${encodeURIComponent(invitation.pilot_email)}` : ''}`)}
+										variant="outline"
+										className="w-full border-gray-300 text-gray-700 py-6 text-lg order-2 sm:order-1 hover:bg-gray-50"
+										size="lg"
+									>
+										Ya tengo cuenta
+									</Button>
+								</div>
 							</div>
 						)}
 

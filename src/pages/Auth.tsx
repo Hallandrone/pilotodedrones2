@@ -20,6 +20,7 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState("login");
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [qrToken, setQrToken] = useState<string | null>(null);
+  const [initialEmail, setInitialEmail] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -29,6 +30,11 @@ const Auth = () => {
     const tabParam = params.get('tab');
     const tokenParam = params.get('invitation');
     const qrTokenParam = params.get('qr_token');
+    const emailParam = params.get('email');
+
+    if (emailParam) {
+      setInitialEmail(emailParam);
+    }
 
     // Recuperar token de almacenamiento local si existe
     const storedToken = localStorage.getItem('pendingInvitationToken');
@@ -590,8 +596,14 @@ const Auth = () => {
   );
 
   const LoginForm = () => {
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(initialEmail);
     const [password, setPassword] = useState("");
+
+    useEffect(() => {
+      if (initialEmail) {
+        setEmail(initialEmail);
+      }
+    }, [initialEmail]);
 
     const onSubmit = (e: React.FormEvent) => {
       e.preventDefault();
@@ -660,8 +672,14 @@ const Auth = () => {
   };
 
   const SignUpForm = () => {
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(initialEmail);
     const [password, setPassword] = useState("");
+
+    useEffect(() => {
+      if (initialEmail) {
+        setEmail(initialEmail);
+      }
+    }, [initialEmail]);
     const [name, setName] = useState("");
     const [userType, setUserType] = useState("pilot");
 

@@ -184,7 +184,7 @@ export function CompanyPilotManagement({ companyId }: CompanyPilotManagementProp
 									<DialogHeader>
 										<DialogTitle>Invitar Piloto</DialogTitle>
 										<DialogDescription>
-											Invita a un piloto a unirse a tu empresa. El piloto debe tener una cuenta registrada con plan gratis.
+											Invita a un piloto a unirse a tu equipo mediante su correo electrónico. Si no tiene cuenta aún, podrá registrarse para aceptar la invitación.
 										</DialogDescription>
 									</DialogHeader>
 									<div className="space-y-4 py-4">
