@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
     }
 
     // Delete user using admin client
-    console.log('Attempting to delete user with admin client...');
+    console.log('Attempting to delete user from Auth (this will trigger cascade delete on profiles, subscriptions, etc.)...');
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
     if (deleteError) {
@@ -146,9 +146,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('User deleted successfully:', userId);
+    console.log('User and all associated data deleted successfully:', userId);
     return new Response(
-      JSON.stringify({ message: 'User deleted successfully' }),
+      JSON.stringify({ message: 'User and all associated data deleted successfully' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

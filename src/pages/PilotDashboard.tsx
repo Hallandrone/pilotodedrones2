@@ -145,7 +145,6 @@ const PilotDashboard = () => {
       }
 
       await loadPilotData(session.user.id);
-      await checkSubscription(session.user.id);
     } catch (error) {
       console.error('Error checking auth:', error);
       navigate('/auth');
@@ -336,35 +335,6 @@ const PilotDashboard = () => {
     }
   };
 
-  const checkSubscription = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select('status, renewal_date')
-        .eq('user_id', userId)
-        .or('status.eq.active,status.eq.cancelled')
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        if (data.status === 'active') {
-          setHasActiveSubscription(true);
-        } else if (data.status === 'cancelled' && data.renewal_date) {
-          // Si está cancelado, verificar que aún no venza
-          const isStillValid = new Date(data.renewal_date) > new Date();
-          setHasActiveSubscription(isStillValid);
-        } else {
-          setHasActiveSubscription(false);
-        }
-      } else {
-        setHasActiveSubscription(false);
-      }
-    } catch (error) {
-      console.error('Error checking subscription:', error);
-      setHasActiveSubscription(false);
-    }
-  };
 
   const handleSignOut = async () => {
     try {
@@ -512,7 +482,7 @@ const PilotDashboard = () => {
               </div>
 
               {/* Weather Card */}
-              <WeatherCard hasActiveSubscription={hasActiveSubscription} />
+              <WeatherCard hasActiveSubscription={plan?.isPaid || false} />
             </CardContent>
           </div>
         </Card>
