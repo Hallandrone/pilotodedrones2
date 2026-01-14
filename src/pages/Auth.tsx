@@ -54,17 +54,6 @@ const Auth = () => {
   }, [location]);
 
   useEffect(() => {
-    // Mostrar mensaje si hay QR token pendiente
-    if (qrToken) {
-      toast({
-        title: "Asociar Diploma",
-        description: "Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil",
-        duration: 6000,
-      });
-    }
-  }, [qrToken, toast]);
-
-  useEffect(() => {
     let mounted = true;
 
     // Set up auth state listener
@@ -83,33 +72,51 @@ const Auth = () => {
             let shouldRedirectToProfile = false;
 
             if (storedQrToken && session.user.id) {
-              console.log('Asociando QR token:', storedQrToken, 'al usuario:', session.user.id);
+              console.log('🔍 Intentando asociar QR token:', storedQrToken, 'al usuario:', session.user.id);
               try {
-                const { data: updatedData, error: updateError } = await supabase
+                // Primero verificar si el token existe y no está ya asociado a otro usuario
+                const { data: existingToken, error: checkError } = await supabase
                   .from('diploma_qr_tokens')
-                  .update({
-                    user_id: session.user.id,
-                    associated_at: new Date().toISOString()
-                  })
+                  .select('*')
                   .eq('token', storedQrToken)
-                  .select();
+                  .maybeSingle();
 
-                if (updateError) {
-                  console.error('❌ Error asociando QR token:', updateError);
-                } else if (!updatedData || updatedData.length === 0) {
-                  console.error('⚠️ No se actualizó ningún token. ¿Existe el token en BD?');
+                if (checkError) {
+                  console.error('❌ Error verificando token:', checkError);
+                } else if (!existingToken) {
+                  console.error('⚠️ Token no encontrado en la base de datos');
+                } else if (existingToken.user_id && existingToken.user_id !== session.user.id) {
+                  console.error('⚠️ Token ya asociado a otro usuario');
                 } else {
-                  console.log('✅ QR token asociado exitosamente:', updatedData);
-                  localStorage.removeItem('pendingQrToken');
-                  shouldRedirectToProfile = true;
+                  // Token existe y no está asociado o está asociado a este usuario
+                  console.log('📝 Token encontrado, procediendo a asociar:', existingToken);
 
-                  toast({
-                    title: "¡Diploma asociado!",
-                    description: "Tu diploma ha sido asociado a tu perfil exitosamente",
-                  });
+                  const { data: updatedData, error: updateError } = await supabase
+                    .from('diploma_qr_tokens')
+                    .update({
+                      user_id: session.user.id,
+                      associated_at: new Date().toISOString()
+                    })
+                    .eq('token', storedQrToken)
+                    .select();
+
+                  if (updateError) {
+                    console.error('❌ Error asociando QR token:', updateError);
+                  } else if (!updatedData || updatedData.length === 0) {
+                    console.error('⚠️ No se actualizó ningún token');
+                  } else {
+                    console.log('✅ QR token asociado exitosamente:', updatedData);
+                    localStorage.removeItem('pendingQrToken');
+                    shouldRedirectToProfile = true;
+
+                    toast({
+                      title: "¡Diploma asociado!",
+                      description: "Tu diploma ha sido asociado a tu perfil exitosamente",
+                    });
+                  }
                 }
               } catch (error) {
-                console.error('Error en asociación de QR token:', error);
+                console.error('💥 Error en asociación de QR token:', error);
               }
             }
 
@@ -180,33 +187,51 @@ const Auth = () => {
           let shouldRedirectToProfile = false;
 
           if (storedQrToken && session.user.id) {
-            console.log('Asociando QR token desde sesión existente:', storedQrToken);
+            console.log('🔍 [Sesión Existente] Intentando asociar QR token:', storedQrToken);
             try {
-              const { data: updatedData, error: updateError } = await supabase
+              // Primero verificar si el token existe y no está ya asociado a otro usuario
+              const { data: existingToken, error: checkError } = await supabase
                 .from('diploma_qr_tokens')
-                .update({
-                  user_id: session.user.id,
-                  associated_at: new Date().toISOString()
-                })
+                .select('*')
                 .eq('token', storedQrToken)
-                .select();
+                .maybeSingle();
 
-              if (updateError) {
-                console.error('❌ Error asociando QR token:', updateError);
-              } else if (!updatedData || updatedData.length === 0) {
-                console.error('⚠️ No se actualizó ningún token. ¿Existe el token en BD?');
+              if (checkError) {
+                console.error('❌ Error verificando token:', checkError);
+              } else if (!existingToken) {
+                console.error('⚠️ Token no encontrado en la base de datos');
+              } else if (existingToken.user_id && existingToken.user_id !== session.user.id) {
+                console.error('⚠️ Token ya asociado a otro usuario');
               } else {
-                console.log('✅ QR token asociado exitosamente:', updatedData);
-                localStorage.removeItem('pendingQrToken');
-                shouldRedirectToProfile = true;
+                // Token existe y no está asociado o está asociado a este usuario
+                console.log('📝 Token encontrado, procediendo a asociar:', existingToken);
 
-                toast({
-                  title: "¡Diploma asociado!",
-                  description: "Tu diploma ha sido asociado a tu perfil exitosamente",
-                });
+                const { data: updatedData, error: updateError } = await supabase
+                  .from('diploma_qr_tokens')
+                  .update({
+                    user_id: session.user.id,
+                    associated_at: new Date().toISOString()
+                  })
+                  .eq('token', storedQrToken)
+                  .select();
+
+                if (updateError) {
+                  console.error('❌ Error asociando QR token:', updateError);
+                } else if (!updatedData || updatedData.length === 0) {
+                  console.error('⚠️ No se actualizó ningún token');
+                } else {
+                  console.log('✅ QR token asociado exitosamente:', updatedData);
+                  localStorage.removeItem('pendingQrToken');
+                  shouldRedirectToProfile = true;
+
+                  toast({
+                    title: "¡Diploma asociado!",
+                    description: "Tu diploma ha sido asociado a tu perfil exitosamente",
+                  });
+                }
               }
             } catch (error) {
-              console.error('Error en asociación de QR token:', error);
+              console.error('💥 Error en asociación de QR token:', error);
             }
           }
 
