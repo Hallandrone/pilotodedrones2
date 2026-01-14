@@ -54,6 +54,17 @@ const Auth = () => {
   }, [location]);
 
   useEffect(() => {
+    // Mostrar mensaje si hay QR token pendiente
+    if (qrToken) {
+      toast({
+        title: "Asociar Diploma",
+        description: "Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil",
+        duration: 6000,
+      });
+    }
+  }, [qrToken, toast]);
+
+  useEffect(() => {
     let mounted = true;
 
     // Set up auth state listener
@@ -164,15 +175,60 @@ const Auth = () => {
 
       if (session?.user) {
         try {
+          // IMPORTANTE: Asociar QR token si existe y hay sesión activa
+          const storedQrToken = localStorage.getItem('pendingQrToken');
+          let shouldRedirectToProfile = false;
+
+          if (storedQrToken && session.user.id) {
+            console.log('Asociando QR token desde sesión existente:', storedQrToken);
+            try {
+              const { data: updatedData, error: updateError } = await supabase
+                .from('diploma_qr_tokens')
+                .update({
+                  user_id: session.user.id,
+                  associated_at: new Date().toISOString()
+                })
+                .eq('token', storedQrToken)
+                .select();
+
+              if (updateError) {
+                console.error('❌ Error asociando QR token:', updateError);
+              } else if (!updatedData || updatedData.length === 0) {
+                console.error('⚠️ No se actualizó ningún token. ¿Existe el token en BD?');
+              } else {
+                console.log('✅ QR token asociado exitosamente:', updatedData);
+                localStorage.removeItem('pendingQrToken');
+                shouldRedirectToProfile = true;
+
+                toast({
+                  title: "¡Diploma asociado!",
+                  description: "Tu diploma ha sido asociado a tu perfil exitosamente",
+                });
+              }
+            } catch (error) {
+              console.error('Error en asociación de QR token:', error);
+            }
+          }
+
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('user_type')
+            .select('user_type, public_profile_slug, id')
             .eq('id', session.user.id)
             .single();
 
           // Si hay error o no hay perfil, no redirigir
           if (profileError || !profile) {
             console.log('No profile found, staying on auth page');
+            return;
+          }
+
+          // Si acabamos de asociar un QR token, redirigir al perfil público
+          if (shouldRedirectToProfile) {
+            if (profile.public_profile_slug) {
+              navigate(`/${profile.public_profile_slug}`);
+            } else {
+              navigate(`/pilot/${profile.id}`);
+            }
             return;
           }
 
