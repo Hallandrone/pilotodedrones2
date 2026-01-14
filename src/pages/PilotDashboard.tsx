@@ -528,24 +528,34 @@ const PilotDashboard = () => {
           <Button
             variant="outline"
             size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/pilot/certificates')}
+            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
+            onClick={() => plan?.isPaid ? navigate('/pilot/certificates') : navigate('/pilot/membership')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
               <FileText className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+              {!plan?.isPaid && (
+                <div className="absolute -top-1 -right-1 bg-[#FF69B4] rounded-full p-1 border-2 border-[#083b4e] shadow-lg">
+                  <Lock className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
+                </div>
+              )}
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Certificados</span>
           </Button>
           <Button
             variant="outline"
             size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/pilot/flight-hours')}
+            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
+            onClick={() => plan?.isPaid ? navigate('/pilot/flight-hours') : navigate('/pilot/membership')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
               <Clock className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+              {!plan?.isPaid && (
+                <div className="absolute -top-1 -right-1 bg-[#FF69B4] rounded-full p-1 border-2 border-[#083b4e] shadow-lg">
+                  <Lock className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
+                </div>
+              )}
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Horas de Vuelo</span>
           </Button>
