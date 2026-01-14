@@ -47,9 +47,16 @@ const Auth = () => {
 
     // Detectar QR token
     if (qrTokenParam) {
-      console.log('QR token detectado:', qrTokenParam);
+      console.log('🎯 QR token detectado en URL:', qrTokenParam);
       setQrToken(qrTokenParam);
       localStorage.setItem('pendingQrToken', qrTokenParam);
+      console.log('💾 QR token guardado en localStorage:', localStorage.getItem('pendingQrToken'));
+    } else {
+      // Verificar si hay un token pendiente en localStorage
+      const storedQrToken = localStorage.getItem('pendingQrToken');
+      if (storedQrToken) {
+        console.log('📦 QR token encontrado en localStorage (de visita anterior):', storedQrToken);
+      }
     }
   }, [location]);
 
