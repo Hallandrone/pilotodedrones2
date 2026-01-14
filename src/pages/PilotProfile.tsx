@@ -1538,14 +1538,22 @@ const PilotProfile = () => {
         <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
             <CardHeader className="p-8 bg-transparent rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <Crown className="h-6 w-6 text-white" />
+              <CardTitle className="flex items-center justify-between gap-3 text-2xl font-bold text-white">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                    <Crown className="h-6 w-6 text-white" />
+                  </div>
+                  URL Personalizada del Perfil Público
                 </div>
-                URL Personalizada del Perfil Público
+                {!subscription && (
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 flex items-center gap-1.5 px-3 py-1">
+                    <Lock className="h-3.5 w-3.5" />
+                    Función Pro
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription className="text-[#B0B0B0] font-medium">
-                Personaliza la URL de tu perfil público.
+                Personaliza la URL de tu perfil público para que sea más fácil de compartir.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
@@ -1581,8 +1589,9 @@ const PilotProfile = () => {
                         type="text"
                         value={profile.public_profile_slug || ''}
                         onChange={(e) => handleSlugChange(e.target.value)}
-                        className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666] pl-8"
-                        placeholder="nombreusuario"
+                        disabled={!subscription}
+                        className={`bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666] pl-8 ${!subscription ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        placeholder={subscription ? "nombreusuario" : "Disponible en Plan Pro"}
                       />
                       {checkingSlug && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1603,7 +1612,7 @@ const PilotProfile = () => {
                       type="button"
                       variant="outline"
                       onClick={handleSlugVerification}
-                      disabled={checkingSlug || !profile.public_profile_slug}
+                      disabled={checkingSlug || !profile.public_profile_slug || !subscription}
                       className="sm:w-auto w-full bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white border-[#00b3f3] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {checkingSlug ? (
@@ -1634,6 +1643,14 @@ const PilotProfile = () => {
                       <Loader2 className="h-3 w-3 animate-spin" />
                       Verificando disponibilidad...
                     </p>
+                  )}
+                  {!subscription && (
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-xs text-blue-400 font-medium leading-relaxed">
+                        🚀 La URL personalizada es un beneficio exclusivo del Plan Pro.
+                        Mejora tu cuenta para poder elegir cómo se verá tu link profesional.
+                      </p>
+                    </div>
                   )}
                   <p className="text-xs text-[#B0B0B0]">
                     Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.

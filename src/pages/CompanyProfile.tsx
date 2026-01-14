@@ -1254,9 +1254,15 @@ export default function CompanyProfile() {
           </Card>
 
           <Card
-            className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group"
+            className={`bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group relative ${!subscription ? 'opacity-90' : ''}`}
             onClick={() => setOpenModal('url')}
           >
+            {!subscription && (
+              <div className="absolute top-4 right-4 h-8 px-2 bg-amber-500/20 border border-amber-500/30 rounded-lg flex items-center gap-1.5 z-10 backdrop-blur-md">
+                <Lock className="h-3.5 w-3.5 text-amber-500" />
+                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
+              </div>
+            )}
             <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
               <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
                 <Crown className="h-10 w-10 text-white" />
@@ -2013,11 +2019,19 @@ export default function CompanyProfile() {
         <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-[#020617] border border-white/10 rounded-3xl shadow-2xl">
           <Card className="bg-transparent border-0 shadow-none">
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
-              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
-                <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
-                  <Crown className="h-6 w-6 text-white" />
+              <CardTitle className="flex items-center justify-between gap-4 text-3xl font-bold text-white">
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
+                    <Crown className="h-6 w-6 text-white" />
+                  </div>
+                  URL Personalizada
                 </div>
-                URL Personalizada
+                {!subscription && (
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 flex items-center gap-1.5 px-3 py-1">
+                    <Lock className="h-4 w-4" />
+                    Función Pro
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription className="text-white/60 text-lg mt-2">
                 Personaliza la URL de tu perfil público para que sea más fácil de compartir
@@ -2055,14 +2069,15 @@ export default function CompanyProfile() {
                         type="text"
                         value={publicProfileSlug}
                         onChange={(e) => handleSlugChange(e.target.value)}
-                        className="h-12 sm:h-14 border-2 pl-8"
-                        placeholder="nombreempresa"
+                        disabled={!subscription}
+                        className={`h-12 sm:h-14 border-2 pl-8 ${!subscription ? 'opacity-50' : ''}`}
+                        placeholder={subscription ? "nombreempresa" : "Disponible en Plan Empresa"}
                       />
                     </div>
                     <Button
                       onClick={handleSlugVerification}
-                      disabled={checkingSlug || !publicProfileSlug}
-                      className="bg-accent hover:bg-accent/90 text-white"
+                      disabled={checkingSlug || !publicProfileSlug || !subscription}
+                      className="bg-accent hover:bg-accent/90 text-white disabled:opacity-50"
                     >
                       {checkingSlug ? (
                         <>
@@ -2087,6 +2102,14 @@ export default function CompanyProfile() {
                       {slugFeedback.text}
                     </p>
                   )}
+                  {!subscription && (
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                      <p className="text-sm text-blue-400 font-medium leading-relaxed">
+                        🚀 La URL personalizada es un beneficio exclusivo del Plan Empresa.
+                        Mejora tu cuenta para poder posicionar tu marca con un link profesional único.
+                      </p>
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
                   </p>
@@ -2100,7 +2123,7 @@ export default function CompanyProfile() {
                 <Button onClick={async () => {
                   await handleSave();
                   setOpenModal(null);
-                }} disabled={saving}>
+                }} disabled={saving || !subscription}>
                   {saving ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
