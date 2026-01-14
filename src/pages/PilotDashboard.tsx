@@ -15,7 +15,6 @@ import {
   MapPin,
   Clock,
   FileText,
-  QrCode,
   Settings,
   LogOut,
   CheckCircle,
@@ -31,7 +30,11 @@ import {
   CreditCard,
   HelpCircle,
   MessageCircle,
-  ArrowRight
+  ArrowRight,
+  Lock,
+  Award,
+  Hash,
+  QrCode as QrCodeIcon
 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
 import {
@@ -43,6 +46,7 @@ import {
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 import DiplomaPDF from '@/components/DiplomaPDF';
+import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
 
 interface PilotData {
   id: string;
@@ -106,6 +110,7 @@ const PilotDashboard = () => {
   });
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [diplomas, setDiplomas] = useState<Diploma[]>([]);
+  const { plan, loading: planLoading } = useSubscriptionPlan();
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -534,7 +539,7 @@ const PilotDashboard = () => {
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-              <QrCode className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+              <QrCodeIcon className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Mi QR</span>
           </Button>
@@ -574,7 +579,7 @@ const PilotDashboard = () => {
 
         {/* Mis Diplomas */}
         <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.27s' }}>
-          <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+          <Card className={`bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 ${plan?.isPaid ? 'hover:border-[#00b3f3]/50' : 'opacity-80'}`}>
             <CardHeader className="p-6 border-b border-[#00b3f3]/20">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-white text-xl sm:text-2xl font-bold flex items-center gap-3">
@@ -583,11 +588,32 @@ const PilotDashboard = () => {
                   </div>
                   Mis Diplomas Asociados
                 </CardTitle>
-                <Badge className="bg-[#00b3f3] text-white font-bold">{diplomas.length}</Badge>
+                {plan?.isPaid ? (
+                  <Badge className="bg-[#00b3f3] text-white font-bold">{diplomas.length}</Badge>
+                ) : (
+                  <Badge variant="outline" className="border-[#00b3f3] text-[#00b3f3] font-bold">Plan Pro</Badge>
+                )}
               </div>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6">
-              {diplomas.length === 0 ? (
+            <CardContent className="p-4 sm:p-6 relative">
+              {!plan?.isPaid ? (
+                /* Bloqueo para usuarios Free */
+                <div className="text-center py-12 px-4">
+                  <div className="h-20 w-20 bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-full flex items-center justify-center mx-auto mb-6 border border-[#00b3f3]/40">
+                    <Lock className="h-10 w-10 text-[#00b3f3]" />
+                  </div>
+                  <h3 className="text-white text-xl font-bold mb-3">Característica Pro</h3>
+                  <p className="text-white/70 max-w-sm mx-auto mb-8 text-lg">
+                    La visualización y descarga de tus diplomas asociados es exclusiva para usuarios con <strong>Plan Pro</strong>.
+                  </p>
+                  <Button
+                    onClick={() => navigate('/pilot/membership')}
+                    className="bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 px-8 rounded-xl shadow-lg hover:shadow-[#00b3f3]/30 transition-all hover:scale-105"
+                  >
+                    Mejorar mi Plan
+                  </Button>
+                </div>
+              ) : diplomas.length === 0 ? (
                 <div className="text-center py-10">
                   <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
                     <Award className="h-8 w-8 text-white/20" />
