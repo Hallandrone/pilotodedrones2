@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
 import Logo from "@/components/ui/logo";
+import { isPaidPlan, PlanType, normalizePlanName } from "@/lib/planFeatures";
 
 interface Company {
   id: string;
@@ -264,8 +265,11 @@ export default function CompanyProfile() {
         console.error('Error loading subscription:', subscriptionError);
       }
 
-      if (subscriptionData) {
+      const normalizedPlan = normalizePlanName(subscriptionData?.plan_name || '');
+      if (subscriptionData && isPaidPlan(normalizedPlan)) {
         setSubscription(subscriptionData);
+      } else {
+        setSubscription(null);
       }
 
       if (companyData) {

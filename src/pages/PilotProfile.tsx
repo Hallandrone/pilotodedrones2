@@ -33,6 +33,7 @@ import {
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/ui/logo";
+import { isPaidPlan, PlanType, normalizePlanName } from "@/lib/planFeatures";
 
 interface ProfileData {
   full_name: string;
@@ -410,8 +411,12 @@ const PilotProfile = () => {
         (subscription.status === 'cancelled' && subscription.renewal_date && new Date(subscription.renewal_date) > new Date())
       );
 
-      if (isValid) {
+      // Solo consideramos suscripción si el plan es de pago
+      const normalizedPlan = normalizePlanName(subscription?.plan_name || '');
+      if (isValid && isPaidPlan(normalizedPlan)) {
         setSubscription(subscription as any);
+      } else {
+        setSubscription(null);
       }
 
       if (profileError) {
