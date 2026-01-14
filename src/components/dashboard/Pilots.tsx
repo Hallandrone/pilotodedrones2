@@ -241,7 +241,7 @@ export function Pilots() {
     try {
       // Delete user from auth.users (this will cascade delete related data)
       const { error } = await supabase.rpc('delete_user', {
-        user_id: pilotToDelete.user_id
+        target_user_id: pilotToDelete.user_id
       });
 
       if (error) {

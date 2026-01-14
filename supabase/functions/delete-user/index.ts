@@ -7,7 +7,7 @@ const corsHeaders = {
 
 Deno.serve(async (req) => {
   console.log('Delete user function called');
-  
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     // Verify user is authenticated and has admin role
     console.log('Verifying user authentication...');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError) {
       console.error('Auth error:', authError);
       return new Response(
@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('id', user.id)
+      .eq('user_id', user.id)
       .single();
 
     if (roleError) {
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     console.log('Parsing request body...');
     const requestBody = await req.json();
     const { userId } = requestBody;
-    
+
     console.log('User to delete:', userId);
 
     if (!userId) {
