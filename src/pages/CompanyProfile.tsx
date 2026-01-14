@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map as MapIcon, Link as LinkIcon, Crown, Lock, Briefcase } from "lucide-react";
+import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map as MapIcon, Link as LinkIcon, Crown, Lock as LockIcon, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
@@ -1250,7 +1250,7 @@ export default function CompanyProfile() {
           >
             <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
               <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <Link className="h-10 w-10 text-white" />
+                <LinkIcon className="h-10 w-10 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white tracking-tight">Redes Sociales</CardTitle>
               <CardDescription className="text-white/60 text-base">Instagram y LinkedIn</CardDescription>
@@ -1263,7 +1263,7 @@ export default function CompanyProfile() {
           >
             {!subscription && (
               <div className="absolute top-4 right-4 h-8 px-2 bg-amber-500/20 border border-amber-500/30 rounded-lg flex items-center gap-1.5 z-10 backdrop-blur-md">
-                <Lock className="h-3.5 w-3.5 text-amber-500" />
+                <LockIcon className="h-3.5 w-3.5 text-amber-500" />
                 <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
               </div>
             )}
@@ -1295,7 +1295,7 @@ export default function CompanyProfile() {
           >
             <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
               <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <Lock className="h-10 w-10 text-white" />
+                <LockIcon className="h-10 w-10 text-white" />
               </div>
               <CardTitle className="text-xl font-bold text-white tracking-tight">Seguridad</CardTitle>
               <CardDescription className="text-white/60 text-base">Cambiar contraseña y email</CardDescription>
@@ -2032,7 +2032,7 @@ export default function CompanyProfile() {
                 </div>
                 {!subscription && (
                   <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 flex items-center gap-1.5 px-3 py-1">
-                    <Lock className="h-4 w-4" />
+                    <LockIcon className="h-4 w-4" />
                     Función Pro
                   </Badge>
                 )}
@@ -2269,7 +2269,7 @@ export default function CompanyProfile() {
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
               <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
-                  <Lock className="h-6 w-6 text-white" />
+                  <LockIcon className="h-6 w-6 text-white" />
                 </div>
                 Seguridad
               </CardTitle>
