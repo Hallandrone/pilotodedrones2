@@ -151,65 +151,27 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Si no tiene suscripción activa
 	if (!hasActiveSubscription) {
 		return (
-			<Card className="mt-4 sm:mt-6 bg-[#212121] border border-[#333333] shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
-				<CardHeader className="pb-3 border-b border-[#333333]/50">
-					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
-						<Cloud className="h-5 w-5 text-[#00b3f3]" />
-						Condiciones para Volar
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="p-4 sm:p-6">
-					<div className="relative bg-gradient-to-br from-[#2a2a2a] to-[#212121] border border-[#3d3d3d] rounded-2xl p-6 sm:p-8 overflow-hidden shadow-2xl">
-						{/* Iconos de fondo decorativos */}
-						<div className="absolute -right-4 -top-4 opacity-5 pointer-events-none">
-							<Cloud className="h-24 w-24 text-[#00b3f3]" />
+			<div className="mt-4 sm:mt-6 group relative overflow-hidden bg-gradient-to-br from-[#00b3f3]/10 to-transparent rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-white/10 hover:border-[#00b3f3]/30 transition-all duration-300">
+				<div className="flex items-center justify-between gap-4">
+					<div className="flex items-center gap-3">
+						<div className="h-10 w-10 sm:h-12 sm:w-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
+							<Cloud className="h-5 w-5 sm:h-6 sm:w-6 text-[#00b3f3]/60" />
 						</div>
-						<div className="absolute -left-4 -bottom-4 opacity-5 pointer-events-none">
-							<Sun className="h-20 w-20 text-yellow-500" />
-						</div>
-
-						<div className="relative z-10 flex flex-col items-center text-center gap-4">
-							<div className="h-14 w-14 bg-[#00b3f3]/10 rounded-2xl flex items-center justify-center border border-[#00b3f3]/20 mb-1">
-								<Wind className="h-7 w-7 text-[#00b3f3]" />
-							</div>
-
-							<div className="space-y-2">
-								<h4 className="text-white text-base sm:text-lg font-bold">Datos Meteorológicos Pro</h4>
-								<p className="text-gray-400 text-xs sm:text-sm leading-relaxed max-w-[280px] mx-auto">
-									Accede a ráfagas de viento, visibilidad, humedad y alertas de vuelo en tiempo real para tu zona.
-								</p>
-							</div>
-
-							<Button
-								className="w-full sm:w-auto px-8 bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white font-bold h-11 rounded-xl shadow-lg hover:scale-105 transition-all mt-2"
-								onClick={() => window.location.href = '/pilot/membership'}
-							>
-								Activar Beneficios Pro
-							</Button>
-						</div>
-
-						{/* Indicadores visuales bloqueados (Teaser sutil) */}
-						<div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-4 gap-4 opacity-20 grayscale pointer-events-none">
-							<div className="flex flex-col items-center gap-1">
-								<Droplets className="h-4 w-4 text-white" />
-								<div className="h-1 w-6 bg-white/40 rounded"></div>
-							</div>
-							<div className="flex flex-col items-center gap-1">
-								<Eye className="h-4 w-4 text-white" />
-								<div className="h-1 w-6 bg-white/40 rounded"></div>
-							</div>
-							<div className="flex flex-col items-center gap-1">
-								<Sunrise className="h-4 w-4 text-white" />
-								<div className="h-1 w-6 bg-white/40 rounded"></div>
-							</div>
-							<div className="flex flex-col items-center gap-1">
-								<Sunset className="h-4 w-4 text-white" />
-								<div className="h-1 w-6 bg-white/40 rounded"></div>
-							</div>
+						<div>
+							<h4 className="text-white text-sm sm:text-base font-bold">Clima Pro</h4>
+							<p className="text-white/40 text-[10px] sm:text-xs">Ubicación real y ráfagas de viento</p>
 						</div>
 					</div>
-				</CardContent>
-			</Card>
+					<Button
+						size="sm"
+						variant="ghost"
+						className="bg-[#FF69B4]/10 hover:bg-[#FF69B4]/20 text-[#FF69B4] text-[10px] sm:text-xs h-8 px-3 rounded-lg border border-[#FF69B4]/20 transition-all"
+						onClick={() => window.location.href = '/pilot/membership'}
+					>
+						Activar Pro
+					</Button>
+				</div>
+			</div>
 		);
 	}
 

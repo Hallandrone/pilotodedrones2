@@ -11,6 +11,7 @@ import { DEFAULT_AVATAR_URL } from "@/hooks/useDefaultAvatar";
 import Logo from "@/components/ui/logo";
 import WeatherCard from "@/components/weather/WeatherCard";
 import {
+  Cloud,
   Plane,
   MapPin,
   Clock,
@@ -458,7 +459,7 @@ const PilotDashboard = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:gap-6">
+              <div className={`grid grid-cols-2 ${!plan?.isPaid ? 'lg:grid-cols-3' : ''} gap-3 sm:gap-6`}>
                 <div className="relative group overflow-hidden bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-[#00b3f3]/30 hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,179,243,0.3)] hover:scale-105">
                   <div className="absolute inset-0 bg-[#00b3f3]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                   <div className="relative">
@@ -479,10 +480,33 @@ const PilotDashboard = () => {
                     <div className="text-xs sm:text-base text-white/90">Último Mes</div>
                   </div>
                 </div>
+                {/* Weather Card integrated into grid when locked or as 3rd item */}
+                {!plan?.isPaid && (
+                  <div
+                    className="relative group overflow-hidden bg-gradient-to-br from-[#FF69B4]/10 to-transparent rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-[#FF69B4]/20 hover:border-[#FF69B4]/40 transition-all duration-300 hover:scale-105 cursor-pointer col-span-2 lg:col-span-1"
+                    onClick={() => navigate('/pilot/membership')}
+                  >
+                    <div className="absolute inset-0 bg-[#FF69B4]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <div className="relative flex flex-col h-full justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 text-[#FF69B4] mb-1 sm:mb-2">
+                          <Cloud className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Clima Pro</span>
+                        </div>
+                        <div className="text-white font-bold text-sm sm:text-base leading-tight">
+                          Activa ráfagas y visibilidad
+                        </div>
+                      </div>
+                      <div className="mt-2 text-[#FF69B4] text-[10px] sm:text-xs font-semibold flex items-center gap-1">
+                        Mejorar ahora <ArrowRight className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Weather Card */}
-              <WeatherCard hasActiveSubscription={plan?.isPaid || false} />
+              {/* Weather Card showing full content if Pro */}
+              {plan?.isPaid && <WeatherCard hasActiveSubscription={true} />}
             </CardContent>
           </div>
         </Card>
@@ -591,20 +615,22 @@ const PilotDashboard = () => {
             </CardHeader>
             <CardContent className="p-4 sm:p-6 relative">
               {!plan?.isPaid ? (
-                /* Bloqueo para usuarios Free */
-                <div className="text-center py-12 px-4">
-                  <div className="h-20 w-20 bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-full flex items-center justify-center mx-auto mb-6 border border-[#00b3f3]/40">
-                    <Lock className="h-10 w-10 text-[#00b3f3]" />
+                /* Bloqueo para usuarios Free - Versión Compacta */
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-6 bg-gradient-to-br from-[#00b3f3]/10 to-transparent rounded-2xl border border-[#00b3f3]/30">
+                  <div className="flex items-center gap-4 text-center sm:text-left">
+                    <div className="h-12 w-12 sm:h-16 sm:w-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
+                      <Lock className="h-6 w-6 sm:h-8 sm:w-8 text-[#00b3f3]" />
+                    </div>
+                    <div>
+                      <h3 className="text-white text-base sm:text-lg font-bold">Diplomas Digitales</h3>
+                      <p className="text-white/60 text-xs sm:text-sm">Asocia y descarga tus diplomas oficiales.</p>
+                    </div>
                   </div>
-                  <h3 className="text-white text-xl font-bold mb-3">Característica Pro</h3>
-                  <p className="text-white/70 max-w-sm mx-auto mb-8 text-lg">
-                    La visualización y descarga de tus diplomas asociados es exclusiva para usuarios con <strong>Plan Pro</strong>.
-                  </p>
                   <Button
                     onClick={() => navigate('/pilot/membership')}
-                    className="bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 px-8 rounded-xl shadow-lg hover:shadow-[#00b3f3]/30 transition-all hover:scale-105"
+                    className="w-full sm:w-auto bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-10 px-6 rounded-xl shadow-lg transition-all hover:scale-105 shrink-0"
                   >
-                    Mejorar mi Plan
+                    Activar con Pro
                   </Button>
                 </div>
               ) : diplomas.length === 0 ? (
