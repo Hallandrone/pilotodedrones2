@@ -40,6 +40,9 @@ import {
   formatExpirationDate,
   type CertificationStatus
 } from "@/utils/certificationHelpers";
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import QRCode from 'qrcode';
+import DiplomaPDF from '@/components/DiplomaPDF';
 
 interface PilotData {
   id: string;
@@ -80,6 +83,19 @@ interface Contact {
   contacted_at: string;
 }
 
+interface Diploma {
+  id: string;
+  student_name: string;
+  course_date: string;
+  course_hours: string;
+  course_title: string;
+  instructor_name: string;
+  city: string;
+  certificate_number: string;
+  token: string;
+  qrCodeDataUrl?: string; // Para generar el PDF
+}
+
 const PilotDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [pilotData, setPilotData] = useState<PilotData | null>(null);
@@ -89,6 +105,7 @@ const PilotDashboard = () => {
     last_flight: null
   });
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [diplomas, setDiplomas] = useState<Diploma[]>([]);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -227,6 +244,8 @@ const PilotDashboard = () => {
       // Load contacts
       await loadContacts(userId);
 
+      // Load diplomas
+      await loadDiplomas(userId);
     } catch (error) {
       console.error('Error loading pilot data:', error);
       toast({
@@ -242,21 +261,49 @@ const PilotDashboard = () => {
     }
   };
 
-  const loadContacts = async (userId: string) => {
+  const loadDiplomas = async (userId: string) => {
     try {
+      console.log('Loading diplomas for user:', userId);
       const { data, error } = await supabase
-        .from('profile_contacts')
-        .select('*')
-        .eq('profile_id', userId)
-        .order('contacted_at', { ascending: false })
-        .limit(5); // Solo mostrar los últimos 5
+        .from('diploma_qr_tokens')
+        .select(`
+          token,
+          diploma_id,
+          diplomas (*)
+        `)
+        .eq('user_id', userId);
 
       if (error) throw error;
 
-      setContacts(data || []);
+      if (data) {
+        // Formatear la data y generar QR para cada diploma
+        const formattedDiplomas = await Promise.all(data
+          .filter(item => item.diplomas) // Solo si hay diploma vinculado
+          .map(async (item: any) => {
+            const diploma = item.diplomas;
+            const qrUrl = `https://www.pilotodedrones.cl/qr/${item.token}`;
+
+            let qrCodeDataUrl = '';
+            try {
+              qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
+                width: 200,
+                margin: 1,
+              });
+            } catch (err) {
+              console.error('Error generating QR for dashboard diploma:', err);
+            }
+
+            return {
+              ...diploma,
+              token: item.token,
+              qrCodeDataUrl
+            };
+          }));
+
+        setDiplomas(formattedDiplomas);
+      }
     } catch (error) {
-      console.error('Error loading contacts:', error);
-      // No mostrar error al usuario, solo log
+      console.error('Error loading diplomas:', error);
     }
   };
 
@@ -524,6 +571,95 @@ const PilotDashboard = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Mis Diplomas */}
+        <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.27s' }}>
+          <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+            <CardHeader className="p-6 border-b border-[#00b3f3]/20">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-white text-xl sm:text-2xl font-bold flex items-center gap-3">
+                  <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl flex items-center justify-center">
+                    <Award className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  Mis Diplomas Asociados
+                </CardTitle>
+                <Badge className="bg-[#00b3f3] text-white font-bold">{diplomas.length}</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              {diplomas.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                    <Award className="h-8 w-8 text-white/20" />
+                  </div>
+                  <p className="text-white/60 mb-2">No tienes diplomas asociados aún.</p>
+                  <p className="text-[#00b3f3] text-sm font-medium">Escanea el QR de tu diploma para que aparezca aquí.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {diplomas.map((diploma) => (
+                    <div key={diploma.id} className="group relative bg-[#020617]/40 border-2 border-white/10 rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#00b3f3]/50 hover:bg-[#020617]/60">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 sm:h-16 sm:w-16 bg-[#00b3f3]/20 border border-[#00b3f3]/40 rounded-xl flex items-center justify-center text-[#00b3f3]">
+                            <FileText className="h-6 w-6 sm:h-8 sm:w-8" />
+                          </div>
+                          <div>
+                            <h4 className="text-white font-bold text-lg sm:text-xl leading-tight mb-1">{diploma.course_title}</h4>
+                            <div className="flex flex-wrap gap-y-1 gap-x-4">
+                              <p className="text-white/60 text-xs sm:text-sm flex items-center gap-1.5">
+                                <Calendar className="h-3.5 w-3.5" />
+                                {new Date(diploma.course_date).toLocaleDateString('es-CL')}
+                              </p>
+                              <p className="text-[#00b3f3]/80 text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+                                <Hash className="h-3.5 w-3.5" />
+                                N° {diploma.certificate_number}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <PDFDownloadLink
+                          document={
+                            <DiplomaPDF
+                              data={{
+                                studentName: diploma.student_name,
+                                courseDate: diploma.course_date,
+                                instructorName: diploma.instructor_name,
+                                certificateNumber: diploma.certificate_number,
+                                courseHours: diploma.course_hours,
+                                city: diploma.city,
+                                courseTitle: diploma.course_title,
+                                qrCodeDataUrl: diploma.qrCodeDataUrl
+                              }}
+                            />
+                          }
+                          fileName={`Diploma_${diploma.course_title}_${diploma.student_name}.pdf`}
+                          className="w-full sm:w-auto"
+                        >
+                          {({ loading }) => (
+                            <Button
+                              variant="outline"
+                              disabled={loading}
+                              className="w-full sm:w-auto border-[#00b3f3] text-[#00b3f3] hover:bg-[#00b3f3] hover:text-white rounded-xl h-11 px-6 font-bold shadow-lg shadow-[#00b3f3]/10 transition-all duration-300 hover:scale-105"
+                            >
+                              {loading ? (
+                                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                              ) : (
+                                <Download className="h-4 w-4 mr-2" />
+                              )}
+                              Descargar PDF
+                            </Button>
+                          )}
+                        </PDFDownloadLink>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Status Cards */}
         <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>

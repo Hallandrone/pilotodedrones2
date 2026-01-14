@@ -65,16 +65,42 @@ const DiplomaGenerator = () => {
 	};
 
 	const handlePDFGenerated = async () => {
-		// Guardar el token en la base de datos cuando se genera el PDF
-		if (qrToken) {
+		// Guardar el diploma y el token en la base de datos cuando se genera el PDF
+		if (qrToken && isFormValid) {
 			try {
-				await supabase.from('diploma_qr_tokens').insert({
+				// 1. Insertar el diploma primero
+				const { data: diplomaData, error: diplomaError } = await supabase
+					.from('diplomas')
+					.insert({
+						student_name: formData.studentName,
+						course_date: formData.courseDate,
+						course_hours: formData.courseHours,
+						course_title: formData.courseTitle,
+						instructor_name: formData.instructorName,
+						city: formData.city,
+						certificate_number: formData.certificateNumber
+					})
+					.select()
+					.single();
+
+				if (diplomaError) throw diplomaError;
+
+				// 2. Insertar el token vinculado al diploma
+				const { error: tokenError } = await supabase.from('diploma_qr_tokens').insert({
 					token: qrToken,
-					// diploma_id se puede agregar después si existe tabla diplomas
+					diploma_id: diplomaData.id
 				});
-				console.log('QR token saved:', qrToken);
+
+				if (tokenError) throw tokenError;
+
+				console.log('Diploma and QR token saved successfully');
 			} catch (error) {
-				console.error('Error saving QR token:', error);
+				console.error('Error saving diploma data:', error);
+				toast({
+					title: "Error",
+					description: "No se pudo registrar el diploma en la base de datos.",
+					variant: "destructive"
+				});
 			}
 		}
 	};
