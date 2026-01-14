@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const QRRedirect = () => {
 	const { token } = useParams<{ token: string }>();
 	const navigate = useNavigate();
+	const { toast } = useToast();
 	const [status, setStatus] = useState<'loading' | 'error'>('loading');
 	const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -35,7 +37,14 @@ const QRRedirect = () => {
 				// Si el token no existe, redirigir a autenticación
 				if (!data) {
 					console.log('Token no encontrado, redirigiendo a auth');
-					navigate(`/auth?qr_token=${token}`);
+					toast({
+						title: "Asociar Diploma",
+						description: "Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil",
+						duration: 8000,
+					});
+					setTimeout(() => {
+						navigate(`/auth?qr_token=${token}`);
+					}, 500);
 					return;
 				}
 
@@ -59,7 +68,14 @@ const QRRedirect = () => {
 				}
 
 				// Si no está asociado, redirigir a autenticación con el token
-				navigate(`/auth?qr_token=${token}`);
+				toast({
+					title: "Asociar Diploma",
+					description: "Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil",
+					duration: 8000,
+				});
+				setTimeout(() => {
+					navigate(`/auth?qr_token=${token}`);
+				}, 500);
 			} catch (err: any) {
 				console.error('Error in QR redirect:', err);
 				setErrorMessage(err.message || 'Error inesperado');
