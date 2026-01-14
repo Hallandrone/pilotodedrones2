@@ -246,4 +246,5 @@ Este proyecto está bajo la **Licencia MIT**. Ver el archivo [LICENSE](LICENSE) 
 
 **Desarrollado con ❤️ por [Alvaro Cofré](https://www.alvarocofre.dev) para la comunidad de pilotos de drones en Chile**
 
-*Última actualización: Diciembre 2024*
+*Última actualización: Diciembre 2024*#   F o r c e   r e d e p l o y  
+ 
