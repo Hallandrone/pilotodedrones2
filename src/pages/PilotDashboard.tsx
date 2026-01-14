@@ -296,10 +296,18 @@ const PilotDashboard = () => {
 
       if (error) throw error;
 
-      if (data) {
+      console.log('📦 Raw diploma tokens data:', data);
+
+      if (data && data.length > 0) {
         // Formatear la data y generar QR para cada diploma
         const formattedDiplomas = await Promise.all(data
-          .filter(item => item.diplomas) // Solo si hay diploma vinculado
+          .filter(item => {
+            if (!item.diplomas) {
+              console.warn('⚠️ Token sin diploma vinculado o RLS bloqueando acceso:', item.token);
+              return false;
+            }
+            return true;
+          }) // Solo si hay diploma vinculado
           .map(async (item: any) => {
             const diploma = item.diplomas;
             const qrUrl = `https://www.pilotodedrones.cl/qr/${item.token}`;
