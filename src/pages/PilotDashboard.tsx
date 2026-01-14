@@ -820,13 +820,13 @@ const PilotDashboard = () => {
 
                       <Button
                         size="lg"
-                        onClick={() => navigate('/pilot/certificates')}
+                        onClick={() => plan?.isPaid ? navigate('/pilot/certificates') : navigate('/pilot/membership')}
                         className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${certStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
                           certStatus === 'expiring_soon' || certStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
                             'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
-                          }`}
+                          } ${!plan?.isPaid ? 'opacity-90' : ''}`}
                       >
-                        {certStatus === 'not_validated' ? 'Subir Certificados' :
+                        {certStatus === 'not_validated' ? (plan?.isPaid ? 'Subir Certificados' : 'Activar Pro para Validar') :
                           certStatus === 'expired' ? 'Renovar Certificación' :
                             'Ver Certificados'}
                       </Button>
@@ -848,19 +848,26 @@ const PilotDashboard = () => {
                     </div>
                     <span className="text-white text-sm sm:text-xl">Membresía</span>
                   </div>
-                  <div className="h-8 w-16 sm:h-12 sm:w-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                    <span className="text-xs sm:text-sm font-semibold text-emerald-400">Activa</span>
+                  <div className={`h-8 px-3 sm:h-12 sm:px-6 border-2 rounded-full flex items-center justify-center shadow-lg flex-shrink-0 ${plan?.isPaid ? 'bg-emerald-500/20 border-emerald-400' : 'bg-gray-500/20 border-gray-400'}`}>
+                    <span className={`text-xs sm:text-sm font-bold ${plan?.isPaid ? 'text-emerald-400' : 'text-gray-400'}`}>
+                      {plan?.isPaid ? 'Pro' : 'Gratis'}
+                    </span>
                   </div>
                 </div>
                 <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                  Plan Profesional - Renovación el 15 de Febrero
+                  {plan?.isPaid
+                    ? `Plan ${plan.name} - ${plan.status === 'active' ? 'Suscripción Activa' : 'Finaliza pronto'}`
+                    : 'Plan Gratis - Acceso Limitado'}
                 </p>
                 <Button
                   size="lg"
                   onClick={() => navigate('/pilot/membership')}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                  className={`w-full hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 border-0 ${plan?.isPaid
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
+                      : 'bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white'
+                    }`}
                 >
-                  Gestionar Membresía
+                  {plan?.isPaid ? 'Gestionar Membresía' : 'Mejorar a Plan Pro'}
                 </Button>
               </CardContent>
             </div>

@@ -216,27 +216,32 @@ const PilotMembership = () => {
         // BD usa: 'basic', 'pro', 'premium'
         // Frontend usa: 'profesional', 'empresa'
         const planDetails = defaultPlans.find(p => {
-          if (subscription.plan_name === 'pro') return p.id === 'profesional';
-          if (subscription.plan_name === 'premium') return p.id === 'empresa';
-          if (subscription.plan_name === 'basic') return p.id === 'profesional'; // fallback
+          if (subscription.plan_name === 'pro' || subscription.plan_name === 'profesional') return p.id === 'profesional';
+          if (subscription.plan_name === 'premium' || subscription.plan_name === 'empresa') return p.id === 'empresa';
+          if (subscription.plan_name === 'basic') return p.id === 'profesional';
           return p.id === subscription.plan_name;
-        }) || defaultPlans[0];
-
-        // Cast para acceder a propiedades que pueden no estar en el tipo
-        const subscriptionWithExtras = subscription as any;
-
-        setMembership({
-          plan_name: planDetails.name,
-          status: subscription.status as any,
-          renewal_date: subscription.renewal_date,
-          created_at: subscription.created_at,
-          payment_method: subscription.payment_method,
-          price: planDetails.price,
-          features: planDetails.features,
-          reveniu_subscription_id: subscriptionWithExtras.reveniu_subscription_id || null,
-          flow_subscription_id: subscriptionWithExtras.flow_subscription_id || null,
-          flow_plan_id: subscriptionWithExtras.flow_plan_id || null
         });
+
+        // Solo seteamos membresía si es un plan de pago (pro o empresa)
+        if (planDetails && planDetails.id !== 'free') {
+          // Cast para acceder a propiedades que pueden no estar en el tipo
+          const subscriptionWithExtras = subscription as any;
+
+          setMembership({
+            plan_name: planDetails.name,
+            status: subscription.status as any,
+            renewal_date: subscription.renewal_date,
+            created_at: subscription.created_at,
+            payment_method: subscription.payment_method,
+            price: planDetails.price,
+            features: planDetails.features,
+            reveniu_subscription_id: subscriptionWithExtras.reveniu_subscription_id || null,
+            flow_subscription_id: subscriptionWithExtras.flow_subscription_id || null,
+            flow_plan_id: subscriptionWithExtras.flow_plan_id || null
+          });
+        } else {
+          setMembership(null);
+        }
       } else {
         // Usuario sin suscripción
         setMembership(null);
@@ -983,7 +988,7 @@ const PilotMembership = () => {
                       </ul>
                       {!isCurrentPlan && (
                         <>
-                          {membership && (membership.status === 'active' || (membership.status === 'cancelled' && membership.renewal_date && new Date(membership.renewal_date) > new Date())) && membership.plan_name !== 'Plan Gratis' ? (
+                          {membership && (membership.status === 'active' || (membership.status === 'cancelled' && membership.renewal_date && new Date(membership.renewal_date) > new Date())) ? (
                             <div className="w-full mt-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-center">
                               <p className="text-[#E0E0E0] font-medium mb-2">
                                 Ya tienes un plan activo
@@ -999,7 +1004,7 @@ const PilotMembership = () => {
                                 : 'bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white'
                                 }`}
                               onClick={() => handleSubscribe(plan.id)}
-                              disabled={isSubscribing || (membership && (membership.status === 'active' || (membership.status === 'cancelled' && membership.renewal_date && new Date(membership.renewal_date) > new Date())) && membership.plan_name !== 'Plan Gratis')}
+                              disabled={isSubscribing || (membership && (membership.status === 'active' || (membership.status === 'cancelled' && membership.renewal_date && new Date(membership.renewal_date) > new Date())))}
                             >
                               {isSubscribing ? (
                                 <>
