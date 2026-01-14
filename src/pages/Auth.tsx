@@ -69,6 +69,8 @@ const Auth = () => {
           try {
             // PRIORIDAD 0: Asociar QR token PRIMERO si existe
             const storedQrToken = localStorage.getItem('pendingQrToken');
+            let shouldRedirectToProfile = false;
+
             if (storedQrToken && session.user.id) {
               console.log('Asociando QR token:', storedQrToken, 'al usuario:', session.user.id);
               try {
@@ -88,6 +90,12 @@ const Auth = () => {
                 } else {
                   console.log('✅ QR token asociado exitosamente:', updatedData);
                   localStorage.removeItem('pendingQrToken');
+                  shouldRedirectToProfile = true;
+
+                  toast({
+                    title: "¡Diploma asociado!",
+                    description: "Tu diploma ha sido asociado a tu perfil exitosamente",
+                  });
                 }
               } catch (error) {
                 console.error('Error en asociación de QR token:', error);
@@ -96,13 +104,23 @@ const Auth = () => {
 
             const { data: profile, error } = await supabase
               .from('profiles')
-              .select('user_type')
+              .select('user_type, public_profile_slug, id')
               .eq('id', session.user.id)
               .single();
 
             // Si hay error o no hay perfil, no redirigir (dejar que el usuario se registre)
             if (error || !profile) {
               console.log('No profile found, staying on auth page');
+              return;
+            }
+
+            // Si acabamos de asociar un QR token, redirigir al perfil público
+            if (shouldRedirectToProfile) {
+              if (profile.public_profile_slug) {
+                navigate(`/${profile.public_profile_slug}`);
+              } else {
+                navigate(`/pilot/${profile.id}`);
+              }
               return;
             }
 
