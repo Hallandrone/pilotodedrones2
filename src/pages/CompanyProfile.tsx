@@ -13,7 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map, Link, Crown, Lock, Briefcase } from "lucide-react";
+import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map as MapIcon, Link as LinkIcon, Crown, Lock, Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
@@ -1509,7 +1509,7 @@ export default function CompanyProfile() {
 
                     <div className="space-y-3">
                       <Label htmlFor="location_modal" className="text-base font-semibold flex items-center gap-2">
-                        <Map className="h-5 w-5" />
+                        <MapIcon className="h-5 w-5" />
                         Ciudad/Comuna
                       </Label>
                       <Input
@@ -1852,7 +1852,7 @@ export default function CompanyProfile() {
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
               <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
-                  <Link className="h-6 w-6 text-white" />
+                  <LinkIcon className="h-6 w-6 text-white" />
                 </div>
                 Redes Sociales
               </CardTitle>
@@ -2060,7 +2060,7 @@ export default function CompanyProfile() {
 
                 <div className="space-y-2">
                   <Label htmlFor="public_profile_slug_modal" className="font-medium flex items-center gap-2">
-                    <Link className="h-4 w-4" />
+                    <LinkIcon className="h-4 w-4" />
                     Nombre de usuario para tu perfil
                   </Label>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">

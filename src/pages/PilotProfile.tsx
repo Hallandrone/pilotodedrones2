@@ -18,13 +18,13 @@ import {
   User,
   Phone,
   Mail,
-  Map,
+  Map as MapIcon,
   Camera,
   Plane,
   Upload,
   X,
   Crown,
-  Link,
+  Link as LinkIcon,
   Loader2,
   CheckCircle,
   AlertCircle,
@@ -50,11 +50,12 @@ interface ProfileData {
 }
 
 interface Subscription {
-  id: string;
+  id?: string;
   status: string;
   plan_name: string;
   plan_type?: string;
   payment_method?: string;
+  renewal_date?: string | null;
 }
 
 // Campos que existen en la tabla profiles
@@ -406,14 +407,16 @@ const PilotProfile = () => {
       }
 
       // Validar si la suscripción es válida (activa o cancelada con fecha futura)
-      const isValid = subscription && (
+      const isSubscriptionValid = !!(subscription && (
         subscription.status === 'active' ||
         (subscription.status === 'cancelled' && subscription.renewal_date && new Date(subscription.renewal_date) > new Date())
-      );
+      ));
 
       // Solo consideramos suscripción si el plan es de pago
-      const normalizedPlan = normalizePlanName(subscription?.plan_name || '');
-      if (isValid && isPaidPlan(normalizedPlan)) {
+      const currentPlan = subscription?.plan_name || '';
+      const normalizedPlan = normalizePlanName(currentPlan);
+
+      if (isSubscriptionValid && isPaidPlan(normalizedPlan)) {
         setSubscription(subscription as any);
       } else {
         setSubscription(null);
@@ -1226,7 +1229,7 @@ const PilotProfile = () => {
 
               <div className="space-y-3">
                 <Label htmlFor="location" className="text-base font-semibold text-white flex items-center gap-2">
-                  <Map className="h-5 w-5" />
+                  <MapIcon className="h-5 w-5" />
                   Ciudad/Comuna
                 </Label>
                 <Input
@@ -1581,7 +1584,7 @@ const PilotProfile = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="public_profile_slug" className="text-[#E0E0E0] font-medium flex items-center gap-2">
-                    <Link className="h-4 w-4" />
+                    <LinkIcon className="h-4 w-4" />
                     Nombre de usuario para tu perfil
                   </Label>
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
