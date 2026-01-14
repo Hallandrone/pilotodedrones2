@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DEFAULT_AVATAR_URL } from "@/hooks/useDefaultAvatar";
 import {
   Table,
   TableBody,
@@ -373,9 +374,9 @@ export function Pilots() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={pilot.profiles.avatar_url || ''} />
+                            <AvatarImage src={pilot.profiles.avatar_url || DEFAULT_AVATAR_URL} />
                             <AvatarFallback>
-                              {pilot.profiles.full_name?.charAt(0) || 'P'}
+                              <img src={DEFAULT_AVATAR_URL} alt="Default Avatar" className="h-full w-full object-cover" />
                             </AvatarFallback>
                           </Avatar>
                           <span className="font-medium">

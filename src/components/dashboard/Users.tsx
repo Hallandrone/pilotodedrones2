@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { DEFAULT_AVATAR_URL } from "@/hooks/useDefaultAvatar";
 import {
   Table,
   TableBody,
@@ -41,15 +42,15 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CreateUserDialog } from "./CreateUserDialog";
 import { EditUserDialog } from "./EditUserDialog";
-import { 
-  Loader2, 
-  Users as UsersIcon, 
-  Mail, 
-  Calendar, 
-  Plus, 
-  MoreHorizontal, 
-  Eye, 
-  Edit, 
+import {
+  Loader2,
+  Users as UsersIcon,
+  Mail,
+  Calendar,
+  Plus,
+  MoreHorizontal,
+  Eye,
+  Edit,
   Trash2,
   CheckCircle,
   XCircle,
@@ -161,7 +162,7 @@ export function Users() {
       const { data, error } = await supabase.functions.invoke('delete-user', {
         body: { userId: selectedUserId }
       });
-      
+
       if (error) {
         console.error('Function invocation error:', error);
         throw new Error(error.message || 'Error al invocar la función');
@@ -295,9 +296,9 @@ export function Users() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={user.avatar_url || ''} />
+                            <AvatarImage src={user.avatar_url || DEFAULT_AVATAR_URL} />
                             <AvatarFallback>
-                              {user.full_name?.charAt(0) || 'U'}
+                              <img src={DEFAULT_AVATAR_URL} alt="Default Avatar" className="h-full w-full object-cover" />
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex items-center gap-2">
@@ -362,7 +363,7 @@ export function Users() {
                               Editar
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => openDeleteDialog(user.id)}
                             >
@@ -381,13 +382,13 @@ export function Users() {
         </CardContent>
       </Card>
 
-      <CreateUserDialog 
+      <CreateUserDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onSuccess={fetchUsers}
       />
 
-      <EditUserDialog 
+      <EditUserDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         userId={selectedUserId}
