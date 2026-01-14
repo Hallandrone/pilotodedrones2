@@ -45,6 +45,7 @@ const QRRedirect = () => {
 
 				// Si el token ya está asociado a un usuario, buscar su perfil
 				if (data.user_id) {
+					console.log('🔗 Token ya está asociado al usuario:', data.user_id);
 					// Segunda query para obtener el perfil del usuario
 					const { data: profileData, error: profileError } = await supabase
 						.from('profiles')
@@ -52,13 +53,20 @@ const QRRedirect = () => {
 						.eq('id', data.user_id)
 						.maybeSingle();
 
+					console.log('👤 Perfil obtenido:', profileData);
+					console.log('❌ Error al obtener perfil:', profileError);
+
 					if (!profileError && profileData) {
 						if (profileData.public_profile_slug) {
+							console.log('➡️ Redirigiendo a perfil personalizado:', profileData.public_profile_slug);
 							navigate(`/${profileData.public_profile_slug}`);
 						} else {
+							console.log('➡️ Redirigiendo a perfil por defecto:', `/pilot/${profileData.id}`);
 							navigate(`/pilot/${profileData.id}`);
 						}
 						return;
+					} else {
+						console.log('⚠️ No se pudo obtener el perfil, mostrando modal');
 					}
 				}
 
