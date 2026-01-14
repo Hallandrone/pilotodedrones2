@@ -266,6 +266,22 @@ const PilotDashboard = () => {
     }
   };
 
+  const loadContacts = async (userId: string) => {
+    try {
+      console.log('Loading contacts for user:', userId);
+      const { data, error } = await supabase
+        .from('profile_contacts')
+        .select('*')
+        .eq('profile_id', userId)
+        .order('contacted_at', { ascending: false });
+
+      if (error) throw error;
+      setContacts(data || []);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+    }
+  };
+
   const loadDiplomas = async (userId: string) => {
     try {
       console.log('Loading diplomas for user:', userId);
