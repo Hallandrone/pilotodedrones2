@@ -440,6 +440,19 @@ const CompanyDashboard = () => {
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 max-w-7xl mx-auto relative animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {/* Profile Card */}
         <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
+          <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-[#00b3f3]/10 p-1">
+            <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-4 sm:mb-8">
+                <div className="relative">
+                  <Avatar className="relative h-20 w-20 sm:h-28 sm:w-28 ring-4 ring-[#00b3f3]/50 shadow-2xl">
+                    <AvatarImage src={companyData?.logo_url || companyData?.profiles.avatar_url || DEFAULT_AVATAR_URL} />
+                    <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-2xl sm:text-3xl">
+                      <img src={DEFAULT_AVATAR_URL} alt="Default Avatar" className="h-full w-full object-cover" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-1 -right-1 h-6 w-6 sm:h-8 sm:w-8 bg-green-500 rounded-full border-4 border-[#083b4e] flex items-center justify-center shadow-lg">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  </div>
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h2 className="text-xl sm:text-3xl font-semibold text-white mb-2 tracking-tight">
@@ -478,14 +491,14 @@ const CompanyDashboard = () => {
                 </div>
               </div>
 
-              {/* Weather Card */ }
-  <WeatherCard hasActiveSubscription={isSubscriptionValid} />
-            </CardContent >
-          </div >
-        </Card >
+              {/* Weather Card */}
+              <WeatherCard hasActiveSubscription={isSubscriptionValid} />
+            </CardContent>
+          </div>
+        </Card>
 
-  {/* Quick Actions */ }
-  < div className = "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-fade-in" style = {{ animationDelay: '0.2s' }}>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <Button
             variant="outline"
             size="lg"
@@ -523,162 +536,160 @@ const CompanyDashboard = () => {
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Mi QR</span>
           </Button>
-        </div >
+        </div>
 
-  {/* Status Cards */ }
-  < div className = "space-y-4 sm:space-y-6 animate-fade-in" style = {{ animationDelay: '0.3s' }}>
-    {/* Certification Status */ }
-    < Card className = "group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]" >
-      <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-emerald-500/10 p-1">
-        <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${certificationStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
-                certificationStatus === 'expiring_soon' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
-                  certificationStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
-                    'bg-gradient-to-br from-gray-500 to-gray-600'
-                }`}>
-                <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-              </div>
-              <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
+        {/* Status Cards */}
+        <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          {/* Certification Status */}
+          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
+            <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-emerald-500/10 p-1">
+              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${certificationStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
+                      certificationStatus === 'expiring_soon' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
+                        certificationStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
+                          'bg-gradient-to-br from-gray-500 to-gray-600'
+                      }`}>
+                      <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                    </div>
+                    <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
+                  </div>
+                  {certificationStatus === 'valid' ? (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-400" />
+                    </div>
+                  ) : certificationStatus === 'expiring_soon' ? (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
+                    </div>
+                  ) : certificationStatus === 'expired' ? (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-red-500/20 border-2 border-red-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <XCircle className="h-5 w-5 sm:h-7 sm:w-7 text-red-400" />
+                    </div>
+                  ) : (
+                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                  {certificationStatus === 'valid' && (
+                    <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
+                      <p className="text-white text-sm sm:text-base font-medium mb-1">
+                        ✓ Certificación Vigente
+                      </p>
+                      <p className="text-white/80 text-xs sm:text-sm">
+                        Tienes certificados AOC/CEO validados
+                      </p>
+                    </div>
+                  )}
+
+                  {certificationStatus === 'not_validated' && (
+                    <p className="text-white/80 text-sm sm:text-base leading-relaxed">
+                      Pendiente de validación de certificaciones AOC/CEO
+                    </p>
+                  )}
+                </div>
+
+                <Button
+                  size="lg"
+                  onClick={() => navigate('/company/certificates')}
+                  className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${certificationStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
+                    certificationStatus === 'expiring_soon' || certificationStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
+                      'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+                    }`}
+                >
+                  {certificationStatus === 'not_validated' ? 'Subir Certificados AOC/CEO' :
+                    certificationStatus === 'expired' ? 'Renovar Certificación' :
+                      'Ver Certificados'}
+                </Button>
+              </CardContent>
             </div>
-            {certificationStatus === 'valid' ? (
-              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-400" />
-              </div>
-            ) : certificationStatus === 'expiring_soon' ? (
-              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
-              </div>
-            ) : certificationStatus === 'expired' ? (
-              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-red-500/20 border-2 border-red-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                <XCircle className="h-5 w-5 sm:h-7 sm:w-7 text-red-400" />
-              </div>
-            ) : (
-              <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
-              </div>
-            )}
-          </div>
+          </Card>
 
-          <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-            {certificationStatus === 'valid' && (
-              <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
-                <p className="text-white text-sm sm:text-base font-medium mb-1">
-                  ✓ Certificación Vigente
+          {/* Membership Status */}
+          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
+            <div className="bg-gradient-to-br from-purple-500/20 via-transparent to-pink-500/10 p-1">
+              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                      <CreditCard className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                    </div>
+                    <span className="text-white text-sm sm:text-xl">Membresía</span>
+                  </div>
+                  {isSubscriptionValid ? (
+                    <div className="h-8 w-16 sm:h-12 sm:w-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
+                      <span className="text-xs sm:text-sm font-semibold text-emerald-400">Activa</span>
+                    </div>
+                  ) : (
+                    <div className="h-8 w-20 sm:h-12 sm:w-24 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
+                      <span className="text-xs sm:text-sm font-semibold text-yellow-400">Inactiva</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
+                  {isSubscriptionValid
+                    ? `${subscription.plan_name === 'empresa' ? 'Plan Empresa' : subscription.plan_name === 'profesional' ? 'Plan Profesional' : subscription.plan_name || 'Plan'}${subscription.renewal_date ? ` - ${subscription.status === 'active' ? 'Renovación el' : 'Vence el'} ${new Date(subscription.renewal_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`
+                    : 'No tienes una suscripción activa'}
                 </p>
-                <p className="text-white/80 text-xs sm:text-sm">
-                  Tienes certificados AOC/CEO validados
+                <Button
+                  size="lg"
+                  onClick={() => navigate('/company/membership')}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                >
+                  Gestionar Membresía
+                </Button>
+              </CardContent>
+            </div>
+          </Card>
+
+          {/* Support Section */}
+          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
+              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+                <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                    <HelpCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+                  </div>
+                  <span className="text-white text-sm sm:text-xl">Soporte</span>
+                </div>
+                <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
+                  ¿Necesitas ayuda? Nuestro equipo está aquí para asistirte.
                 </p>
-              </div>
-            )}
+                <div className="space-y-3 sm:space-y-4">
+                  <Button
+                    size="lg"
+                    className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                    onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
+                  >
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                    Enviar Email
+                  </Button>
+                  <Button
+                    size="lg"
+                    className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                    onClick={() => window.open('https://wa.me/56912345678')}
+                  >
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                    Soporte WhatsApp
+                  </Button>
+                </div>
+              </CardContent>
+            </div>
+          </Card>
+        </div>
 
-            {certificationStatus === 'not_validated' && (
-              <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-                Pendiente de validación de certificaciones AOC/CEO
-              </p>
-            )}
+        {/* Gestión de Pilotos */}
+        {companyData?.id && (
+          <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <CompanyPilotManagement companyId={companyData.id} />
           </div>
-
-          <Button
-            size="lg"
-            onClick={() => navigate('/company/certificates')}
-            className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${certificationStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
-              certificationStatus === 'expiring_soon' || certificationStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
-                'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
-              }`}
-          >
-            {certificationStatus === 'not_validated' ? 'Subir Certificados AOC/CEO' :
-              certificationStatus === 'expired' ? 'Renovar Certificación' :
-                'Ver Certificados'}
-          </Button>
-        </CardContent>
+        )}
       </div>
-          </Card >
-
-  {/* Membership Status */ }
-  < Card className = "group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]" >
-    <div className="bg-gradient-to-br from-purple-500/20 via-transparent to-pink-500/10 p-1">
-      <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-              <CreditCard className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <span className="text-white text-sm sm:text-xl">Membresía</span>
-          </div>
-          {isSubscriptionValid ? (
-            <div className="h-8 w-16 sm:h-12 sm:w-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-              <span className="text-xs sm:text-sm font-semibold text-emerald-400">Activa</span>
-            </div>
-          ) : (
-            <div className="h-8 w-20 sm:h-12 sm:w-24 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-              <span className="text-xs sm:text-sm font-semibold text-yellow-400">Inactiva</span>
-            </div>
-          )}
-        </div>
-        <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-          {isSubscriptionValid
-            ? `${subscription.plan_name === 'empresa' ? 'Plan Empresa' : subscription.plan_name === 'profesional' ? 'Plan Profesional' : subscription.plan_name || 'Plan'}${subscription.renewal_date ? ` - ${subscription.status === 'active' ? 'Renovación el' : 'Vence el'} ${new Date(subscription.renewal_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`
-            : 'No tienes una suscripción activa'}
-        </p>
-        <Button
-          size="lg"
-          onClick={() => navigate('/company/membership')}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-        >
-          Gestionar Membresía
-        </Button>
-      </CardContent>
     </div>
-          </Card >
-
-  {/* Support Section */ }
-  < Card className = "group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] animate-fade-in" style = {{ animationDelay: '0.4s' }}>
-    <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
-      <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-        <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-            <HelpCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-          </div>
-          <span className="text-white text-sm sm:text-xl">Soporte</span>
-        </div>
-        <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-          ¿Necesitas ayuda? Nuestro equipo está aquí para asistirte.
-        </p>
-        <div className="space-y-3 sm:space-y-4">
-          <Button
-            size="lg"
-            className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-            onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
-          >
-            <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-            Enviar Email
-          </Button>
-          <Button
-            size="lg"
-            className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-            onClick={() => window.open('https://wa.me/56912345678')}
-          >
-            <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-            Soporte WhatsApp
-          </Button>
-        </div>
-      </CardContent>
-    </div>
-          </Card >
-        </div >
-
-  {/* Gestión de Pilotos */ }
-{
-  companyData?.id && (
-    <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
-      <CompanyPilotManagement companyId={companyData.id} />
-    </div>
-  )
-}
-      </div >
-    </div >
   );
 };
 
