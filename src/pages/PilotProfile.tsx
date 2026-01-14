@@ -28,7 +28,8 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Eye
+  Eye,
+  Lock as LockIcon
 } from "lucide-react";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -1555,7 +1556,7 @@ const PilotProfile = () => {
                 </div>
                 {!subscription && (
                   <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 flex items-center gap-1.5 px-3 py-1">
-                    <Lock className="h-3.5 w-3.5" />
+                    <LockIcon className="h-3.5 w-3.5" />
                     Función Pro
                   </Badge>
                 )}
