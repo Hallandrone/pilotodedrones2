@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Loader2, GraduationCap } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const QRRedirect = () => {
 	const { token } = useParams<{ token: string }>();
 	const navigate = useNavigate();
-	const { toast } = useToast();
-	const [status, setStatus] = useState<'loading' | 'error'>('loading');
+	const [status, setStatus] = useState<'loading' | 'error' | 'redirect'>('loading');
 	const [errorMessage, setErrorMessage] = useState<string>('');
 
 	useEffect(() => {
@@ -34,17 +33,13 @@ const QRRedirect = () => {
 					return;
 				}
 
-				// Si el token no existe, redirigir a autenticación
+				// Si el token no existe, mostrar mensaje y redirigir a autenticación
 				if (!data) {
 					console.log('Token no encontrado, redirigiendo a auth');
-					toast({
-						title: "Asociar Diploma",
-						description: "Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil",
-						duration: 8000,
-					});
+					setStatus('redirect');
 					setTimeout(() => {
 						navigate(`/auth?qr_token=${token}`);
-					}, 500);
+					}, 3000);
 					return;
 				}
 
@@ -67,15 +62,11 @@ const QRRedirect = () => {
 					}
 				}
 
-				// Si no está asociado, redirigir a autenticación con el token
-				toast({
-					title: "Asociar Diploma",
-					description: "Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil",
-					duration: 8000,
-				});
+				// Si no está asociado, mostrar mensaje y redirigir a autenticación con el token
+				setStatus('redirect');
 				setTimeout(() => {
 					navigate(`/auth?qr_token=${token}`);
-				}, 500);
+				}, 3000);
 			} catch (err: any) {
 				console.error('Error in QR redirect:', err);
 				setErrorMessage(err.message || 'Error inesperado');
@@ -87,31 +78,69 @@ const QRRedirect = () => {
 		handleRedirect();
 	}, [token, navigate]);
 
+	if (status === 'redirect') {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+				<Card className="w-full max-w-md mx-auto shadow-2xl border-2 border-[#00b3f3]/30 bg-white/95 backdrop-blur-xl animate-fade-in">
+					<CardHeader className="text-center pb-4">
+						<div className="mx-auto mb-4 h-16 w-16 sm:h-20 sm:w-20 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-full flex items-center justify-center shadow-lg">
+							<GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
+						</div>
+						<CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
+							Asociar Diploma
+						</CardTitle>
+						<CardDescription className="text-sm sm:text-base text-gray-600 mt-2">
+							Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="text-center pb-6">
+						<div className="flex justify-center mb-4">
+							<Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-[#00b3f3]" />
+						</div>
+						<p className="text-xs sm:text-sm text-gray-500">Redirigiendo a la página de inicio de sesión...</p>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
 	if (status === 'error') {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-gray-50">
-				<div className="text-center max-w-md px-4">
-					<h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-					<p className="text-gray-600 mb-4">No se pudo procesar el código QR</p>
-					{errorMessage && (
-						<p className="text-sm text-red-600 mb-4 p-3 bg-red-50 rounded-lg">
-							{errorMessage}
-						</p>
-					)}
-					<p className="text-sm text-gray-500">Redirigiendo a página de autenticación...</p>
-				</div>
+			<div className="min-h-screen flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+				<Card className="w-full max-w-md mx-auto shadow-2xl border-2 border-red-500/30 bg-white/95 backdrop-blur-xl animate-fade-in">
+					<CardHeader className="text-center pb-4">
+						<CardTitle className="text-xl sm:text-2xl font-bold text-red-600">Error</CardTitle>
+						<CardDescription className="text-sm sm:text-base text-gray-600 mt-2">
+							No se pudo procesar el código QR
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="text-center pb-6">
+						{errorMessage && (
+							<p className="text-xs sm:text-sm text-red-600 mb-4 p-3 bg-red-50 rounded-lg">
+								{errorMessage}
+							</p>
+						)}
+						<div className="flex justify-center mb-4">
+							<Loader2 className="h-8 w-8 sm:h-10 sm:w-10 animate-spin text-red-500" />
+						</div>
+						<p className="text-xs sm:text-sm text-gray-500">Redirigiendo a página de autenticación...</p>
+					</CardContent>
+				</Card>
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-50">
-			<div className="text-center">
-				<Loader2 className="h-12 w-12 animate-spin text-[#00b3f3] mx-auto mb-4" />
-				<p className="text-gray-600">Procesando código QR...</p>
-			</div>
+		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#083b4e] to-[#0a4a61] p-4">
+			<Card className="w-full max-w-md mx-auto shadow-2xl border-2 border-[#00b3f3]/30 bg-white/95 backdrop-blur-xl animate-fade-in">
+				<CardContent className="text-center py-12">
+					<Loader2 className="h-12 w-12 sm:h-16 sm:w-16 animate-spin text-[#00b3f3] mx-auto mb-4" />
+					<p className="text-sm sm:text-base text-gray-600">Procesando código QR...</p>
+				</CardContent>
+			</Card>
 		</div>
 	);
 };
 
 export default QRRedirect;
+
