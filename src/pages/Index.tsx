@@ -919,12 +919,11 @@ const Index = () => {
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {/* Característica 1 */}
                     <motion.div
-                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50 hover:border-accent/50 group hover:-translate-y-2"
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.3 }}
                       transition={{ duration: 0.5, delay: 0.1 }}
-                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <FileCheck className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -937,12 +936,11 @@ const Index = () => {
 
                     {/* Característica 2 */}
                     <motion.div
-                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50 hover:border-accent/50 group hover:-translate-y-2"
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.3 }}
                       transition={{ duration: 0.5, delay: 0.2 }}
-                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Search className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -955,12 +953,11 @@ const Index = () => {
 
                     {/* Característica 3 */}
                     <motion.div
-                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50 hover:border-accent/50 group hover:-translate-y-2"
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.3 }}
                       transition={{ duration: 0.5, delay: 0.3 }}
-                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <QrCode className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -973,12 +970,11 @@ const Index = () => {
 
                     {/* Característica 4 */}
                     <motion.div
-                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50 hover:border-accent/50 group hover:-translate-y-2"
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.3 }}
                       transition={{ duration: 0.5, delay: 0.4 }}
-                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Globe className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -991,12 +987,11 @@ const Index = () => {
 
                     {/* Característica 5 */}
                     <motion.div
-                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50 hover:border-accent/50 group hover:-translate-y-2"
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.3 }}
                       transition={{ duration: 0.5, delay: 0.5 }}
-                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Award className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
@@ -1009,12 +1004,11 @@ const Index = () => {
 
                     {/* Característica 6 */}
                     <motion.div
-                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-accent/50 group"
+                      className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50 hover:border-accent/50 group hover:-translate-y-2"
                       initial={{ opacity: 0, y: 50 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.3 }}
                       transition={{ duration: 0.5, delay: 0.6 }}
-                      whileHover={{ y: -10, rotateX: 5, scale: 1.02 }}
                     >
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-accent/10 group-hover:bg-accent transition-all duration-300 mb-6">
                         <Zap className="h-8 w-8 text-accent group-hover:text-white transition-colors duration-300" />
