@@ -215,7 +215,7 @@ const CompanyDashboard = () => {
       setUser(session.user);
 
       // Get user role
-      const { data: roleData } = await getUserRole(session.user.id);
+      const roleData = await getUserRole(session.user.id);
 
       if (!roleData || roleData.role !== 'company') {
         toast({
