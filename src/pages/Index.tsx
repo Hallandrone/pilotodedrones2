@@ -500,7 +500,7 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/pricing')}
+                onClick={() => navigate('/planes')}
                 className="sm:h-11 sm:px-6 hover:bg-accent/10 transition-all duration-200 whitespace-nowrap"
               >
                 Precios
@@ -590,7 +590,7 @@ const Index = () => {
                       className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        navigate('/pricing');
+                        navigate('/planes');
                       }}
                     >
                       Precios
@@ -1502,7 +1502,7 @@ const Index = () => {
             >
               <Button
                 size="lg"
-                onClick={() => navigate('/pricing')}
+                onClick={() => navigate('/planes')}
                 className="bg-accent hover:bg-accent/90 text-white text-lg px-10 py-6 h-auto shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105"
               >
                 Ver Planes y Precios
@@ -1544,6 +1544,13 @@ const Index = () => {
                   className="hover:text-foreground transition-colors"
                 >
                   Buscar Pilotos
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/verificar-diploma')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Verificar Diploma
                 </button>
                 <span className="text-border">•</span>
                 <button

@@ -17,10 +17,14 @@ import {
   ArrowLeft,
   MessageCircle,
   Share2,
-  Copy
+  Copy,
+  ExternalLink,
+  Play,
+  MonitorPlay,
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,6 +66,42 @@ interface PilotService {
   is_published: boolean;
 }
 
+interface UserCertification {
+  id: string;
+  file_name: string;
+  file_url: string;
+  status: string;
+  signedUrl?: string;
+}
+
+interface Diploma {
+  id: string;
+  course_title: string;
+  course_date: string;
+  course_hours: string;
+  student_name: string;
+  instructor_name: string;
+  city: string;
+  certificate_number: string;
+  token?: string;
+}
+
+interface PortfolioItem {
+  id: string;
+  type: 'image' | 'video';
+  url: string;
+  thumbnail_url?: string;
+  title: string;
+  description: string;
+  display_order: number;
+}
+
+const getYouTubeId = (url: string) => {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
 const PublicPilotProfile = () => {
   const params = useParams();
   // Obtener el parámetro de cualquiera de las dos rutas: /pilot/:pilotId o /:slug
@@ -91,6 +131,10 @@ const PublicPilotProfile = () => {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [currentUserType, setCurrentUserType] = useState<string | null>(null);
+  const [diplomas, setDiplomas] = useState<Diploma[]>([]);
+  const [userCertifications, setUserCertifications] = useState<UserCertification[]>([]);
+  const [isFlightHoursValidated, setIsFlightHoursValidated] = useState(false);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
 
   // Generate profile URL - use slug if available, otherwise use ID
   const profileUrl = profileSlug
@@ -188,6 +232,16 @@ const PublicPilotProfile = () => {
       if (!pilotId || pilotId === 'undefined' || pilotId.trim() === '') {
         throw new Error('Parámetro de perfil no válido');
       }
+
+      setLoading(true);
+      setProfile(null);
+      setServices([]);
+      setPilotData(null);
+      setHasActiveSubscription(false);
+      setDiplomas([]);
+      setUserCertifications([]);
+      setIsFlightHoursValidated(false);
+      setPortfolio([]);
 
       let profileData = null;
       let userId = null;
@@ -349,24 +403,126 @@ const PublicPilotProfile = () => {
         .eq('pilot_id', userId)
         .eq('is_published', true);
 
-      // TODO: Load flight hours when table is created
-      const totalHours = 0;
 
       setProfile(profileData as unknown as PilotProfile);
       setPilotData(pilotInfo);
       setServices(servicesData || []);
-      setFlightHours(totalHours);
 
-      // Verificar si el piloto tiene suscripción activa
+      // Verificar si el piloto tiene suscripción activa (PRO o Empresa)
       if (userId) {
+        let isPro = false;
+
+        // 1. Verificar suscripción directa activa
         const { data: subscription } = await supabase
           .from('user_subscriptions')
-          .select('status')
+          .select('status, plan_name')
           .eq('user_id', userId)
           .eq('status', 'active')
           .maybeSingle();
 
-        setHasActiveSubscription(!!subscription);
+        if (subscription && subscription.plan_name !== 'free') {
+          isPro = true;
+        } else {
+          // 2. Si no tiene suscripción directa, verificar si es piloto de una empresa (los cuales son Pro por extensión)
+          const { data: pilotRecord } = await supabase
+            .from('pilots')
+            .select('id')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+          if (pilotRecord) {
+            const { data: companyPilot } = await supabase
+              .from('company_pilots')
+              .select('id')
+              .eq('pilot_id', pilotRecord.id)
+              .maybeSingle();
+
+            if (companyPilot) {
+              isPro = true;
+            }
+          }
+        }
+
+        setHasActiveSubscription(isPro);
+
+        // Cargar Diplomas oficiales
+        const { data: diplomasData } = await supabase
+          .from('diploma_qr_tokens')
+          .select(`
+            token,
+            diploma_id,
+            diplomas (*)
+          `)
+          .eq('user_id', userId);
+
+        if (diplomasData) {
+          const formattedDiplomas = diplomasData
+            .filter((item: any) => item.diplomas)
+            .map((item: any) => ({
+              ...item.diplomas,
+              token: item.token
+            }));
+          setDiplomas(formattedDiplomas);
+        }
+
+        // Cargar Certificaciones validadas (subidas por el usuario)
+        const { data: certsData } = await supabase
+          .from('user_certifications')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('status', 'validated');
+
+        if (certsData) {
+          const certsWithUrls = await Promise.all(certsData.map(async (cert) => {
+            let signedUrl = cert.file_url;
+            if (!cert.file_url.startsWith('http')) {
+              try {
+                const { data } = await supabase.storage
+                  .from('certifications')
+                  .createSignedUrl(cert.file_url, 3600);
+                signedUrl = data?.signedUrl || cert.file_url;
+              } catch (err) {
+                console.error('Error generating signed URL for cert:', cert.id, err);
+              }
+            }
+            return { ...cert, signedUrl };
+          }));
+          setUserCertifications(certsWithUrls);
+        }
+
+        // Cargar Portafolio
+        const { data: portfolioData } = await supabase
+          .from('pilot_portfolio')
+          .select('*')
+          .eq('user_id', userId)
+          .order('display_order', { ascending: true })
+          .order('created_at', { ascending: false });
+
+        setPortfolio(portfolioData || []);
+
+        // Cargar todas las Horas de Vuelo (validadas y por validar)
+        const { data: flightLogsData } = await supabase
+          .from('flight_logs')
+          .select('flight_hours, duration_hours, status')
+          .eq('user_id', userId);
+
+        if (flightLogsData) {
+          // El total de horas es la suma de todas las horas registradas (por certificado o manuales)
+          const totalHours = flightLogsData.reduce((acc: number, curr: any) => {
+            const certHours = Number(curr.flight_hours) || 0;
+            const manualHours = Number(curr.duration_hours) || 0;
+            return acc + certHours + manualHours;
+          }, 0);
+
+          setFlightHours(totalHours);
+
+          // El sello de validación solo se muestra si hay al menos un registro validado por el administrador
+          const hasValidatedDocs = flightLogsData.some((log: any) => log.status === 'validated');
+          setIsFlightHoursValidated(hasValidatedDocs);
+        } else {
+          setFlightHours(0);
+          setIsFlightHoursValidated(false);
+        }
       }
 
       // Registrar vista del perfil
@@ -470,7 +626,7 @@ const PublicPilotProfile = () => {
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-4 sm:py-6">
+        <div className="px-4 py-2 sm:py-4">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
@@ -482,7 +638,7 @@ const PublicPilotProfile = () => {
             </Button>
             <Logo
               size="xl"
-              className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+              className="flex-shrink-0 [&>div]:h-20 [&>div]:w-20 sm:[&>div]:h-28 sm:[&>div]:w-28 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
               showText={false}
             />
             <div className="flex flex-col">
@@ -513,7 +669,11 @@ const PublicPilotProfile = () => {
                         {profile.avatar_url ? (
                           <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-full w-full rounded-2xl object-cover" />
                         ) : (
-                          profile.full_name?.charAt(0).toUpperCase()
+                          <img
+                            src="/piloto de drones-logo.png"
+                            alt="Piloto de Drones"
+                            className="h-full w-full rounded-2xl object-contain p-2 opacity-80"
+                          />
                         )}
                       </div>
                       {(pilotData?.certification_status || companyData?.certification_status) && (
@@ -582,10 +742,25 @@ const PublicPilotProfile = () => {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                       {/* Flight Hours */}
-                      <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
-                        <Clock className="h-8 w-8 text-[#00b3f3] mb-3 group-hover:scale-110 transition-transform" />
-                        <div className="text-gray-900 text-4xl font-bold mb-1">{flightHours}</div>
-                        <div className="text-[#00b3f3]/70 text-sm font-bold uppercase tracking-wider">Horas de Vuelo</div>
+                      <div className="flex flex-col gap-2">
+                        <div className="relative bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
+                          <div className="flex justify-between items-start mb-3">
+                            <Clock className="h-8 w-8 text-[#00b3f3] group-hover:scale-110 transition-transform" />
+                            {isFlightHoursValidated && (
+                              <div className="bg-green-100 p-1.5 rounded-full shadow-sm border border-green-200" title="Información Certificada">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-gray-900 text-4xl font-bold mb-1">{flightHours}</div>
+                          <div className="text-[#00b3f3]/70 text-sm font-bold uppercase tracking-wider">Horas de Vuelo</div>
+                        </div>
+                        {isFlightHoursValidated && (
+                          <div className="flex items-center gap-2 px-2 text-[10px] text-green-600 font-bold uppercase tracking-tighter italic">
+                            <Shield className="h-3 w-3" />
+                            Horas certificadas con documentos oficiales
+                          </div>
+                        )}
                       </div>
 
                       {/* Experience */}
@@ -776,106 +951,157 @@ const PublicPilotProfile = () => {
           )}
 
 
-          {/* Contact Button Card - Solo para Plan Empresa */}
-          {actualUserId && (
-            <Card className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] border-0 shadow-lg overflow-hidden">
-              <CardContent className="p-6 text-center">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="bg-white/20 rounded-full p-4">
-                    <MessageCircle className="h-8 w-8 text-gray-900" />
+          {/* Portafolio Profesional */}
+          {portfolio.length > 0 && (
+            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 my-8">
+              <CardHeader className="bg-white border-b border-gray-200">
+                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
+                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
+                    <MonitorPlay className="h-6 w-6 text-[#00b3f3]" />
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                      {isCompany ? '¿Interesado en nuestros servicios?' : '¿Interesado en mis servicios?'}
-                    </h3>
-                    <p className="text-white/90 mb-4">
-                      {isCompany ? 'Déjanos tus datos y te contactaremos a la brevedad' : 'Déjame tus datos y te contactaré a la brevedad'}
-                    </p>
-                    <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="lg"
-                          className="bg-white text-[#00b3f3] hover:bg-white/90 font-semibold"
-                        >
-                          Te llamaremos
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Déjanos tus datos</DialogTitle>
-                          <DialogDescription>
-                            Completa el formulario y te contactaremos pronto
-                          </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleContactSubmit} className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="contact-name">Nombre completo *</Label>
-                            <Input
-                              id="contact-name"
-                              value={contactForm.name}
-                              onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                              required
-                              placeholder="Tu nombre"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="contact-email">Email *</Label>
-                            <Input
-                              id="contact-email"
-                              type="email"
-                              value={contactForm.email}
-                              onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                              required
-                              placeholder="tu@email.com"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="contact-phone">Teléfono</Label>
-                            <Input
-                              id="contact-phone"
-                              type="tel"
-                              value={contactForm.phone}
-                              onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                              placeholder="+56 9 1234 5678"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="contact-message">Mensaje (opcional)</Label>
-                            <Textarea
-                              id="contact-message"
-                              value={contactForm.message}
-                              onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                              placeholder="Cuéntanos sobre tu proyecto..."
-                              rows={4}
-                            />
-                          </div>
-                          <Button
-                            type="submit"
-                            className="w-full"
-                            disabled={submittingContact}
+                  Portafolio Profesional
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {portfolio.map((item) => (
+                    <div key={item.id} className="group relative bg-gray-50 rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-[#00b3f3]/50 transition-all duration-300 shadow-sm hover:shadow-xl">
+                      <div className="aspect-video relative overflow-hidden bg-gray-200">
+                        {item.type === 'image' ? (
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <div className="cursor-zoom-in w-full h-full">
+                                <img
+                                  src={item.url}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                />
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl bg-black/90 border-0 p-0 overflow-hidden">
+                              <DialogClose className="absolute top-4 right-4 z-50 rounded-full bg-white/10 p-2 hover:bg-white/20 text-white transition-all backdrop-blur-md">
+                                <X className="h-6 w-6" />
+                              </DialogClose>
+                              <img src={item.url} alt={item.title} className="w-full h-auto max-h-[85vh] object-contain" />
+                              <div className="p-6 bg-black/50 backdrop-blur-md">
+                                <h3 className="text-white text-xl font-bold">{item.title}</h3>
+                                {item.description && <p className="text-white/70 mt-2">{item.description}</p>}
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        ) : (
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-full h-full relative group/video cursor-pointer"
                           >
-                            {submittingContact ? 'Enviando...' : 'Enviar solicitud'}
-                          </Button>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                            {getYouTubeId(item.url) ? (
+                              <>
+                                <img
+                                  src={`https://img.youtube.com/vi/${getYouTubeId(item.url)}/hqdefault.jpg`}
+                                  className="w-full h-full object-cover group-hover/video:scale-110 transition-transform duration-500"
+                                  alt={item.title}
+                                />
+                                <div className="absolute inset-0 bg-black/40 group-hover/video:bg-black/20 transition-colors flex items-center justify-center">
+                                  <div className="h-12 w-12 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover/video:scale-125 transition-transform duration-300">
+                                    <Play className="h-6 w-6 text-white fill-current ml-0.5" />
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#083b4e]">
+                                <Play className="h-10 w-10 text-white/50" />
+                                <span className="text-white/50 text-xs font-mono">VER VIDEO</span>
+                              </div>
+                            )}
+                          </a>
+                        )}
+                        <div className="absolute top-2 left-2">
+                          <Badge className={item.type === 'image' ? "bg-[#00b3f3] text-white" : "bg-red-600 text-white"}>
+                            {item.type === 'image' ? 'TRABAJO' : 'VIDEO'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-white border-t-2 border-gray-100">
+                        <h4 className="font-bold text-gray-900 group-hover:text-[#00b3f3] transition-colors truncate">{item.title}</h4>
+                        {item.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           )}
 
+
+          {/* Capacitaciones y Diplomas Section */}
+          {(diplomas.length > 0 || userCertifications.length > 0) && (
+            <div className="space-y-8 my-16">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-2">
+                {/* Official Diplomas */}
+                {diplomas.map((diploma) => (
+                  <div key={diploma.id} className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 group bg-white select-none">
+                    <img
+                      src="/DIPLOMA_2026.jpg"
+                      className="absolute inset-0 w-full h-full object-cover opacity-80"
+                      alt="Diploma Background"
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+                      <p className="text-[4.5vw] sm:text-[2.2vw] font-serif font-bold text-black leading-tight mb-2 tracking-tight">{diploma.student_name}</p>
+                      <p className="text-[3.5vw] sm:text-[1.6vw] font-bold text-[#00A8E1]">{diploma.course_title}</p>
+                      <p className="text-[2vw] sm:text-[1vw] italic text-gray-500 mt-2 font-medium">
+                        {new Date(diploma.course_date).toLocaleDateString('es-CL')}
+                      </p>
+                    </div>
+                    {/* Protection overlay */}
+                    <div
+                      className="absolute inset-0 bg-transparent z-10"
+                      onContextMenu={(e) => e.preventDefault()}
+                    ></div>
+                  </div>
+                ))}
+
+                {/* Uploaded Certificates */}
+                {userCertifications.map((cert) => (
+                  <div key={cert.id} className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 group bg-white select-none">
+                    {cert.signedUrl && /\.(jpg|jpeg|png|webp)$/i.test(cert.file_name) ? (
+                      <img
+                        src={cert.signedUrl}
+                        className="w-full h-full object-cover"
+                        alt={cert.file_name}
+                        onContextMenu={(e) => e.preventDefault()}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-300 p-8 text-center">
+                        <Award className="h-20 w-20 opacity-10 mb-2" />
+                        <span className="text-[10px] uppercase tracking-widest opacity-30 font-bold break-all">{cert.file_name}</span>
+                      </div>
+                    )}
+                    {/* Protection overlay */}
+                    <div
+                      className="absolute inset-0 bg-transparent z-10 cursor-default"
+                      onContextMenu={(e) => e.preventDefault()}
+                    ></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+
           {/* Contact Form Card - Solo para usuarios con suscripción activa */}
           {hasActiveSubscription && (
-            <Card className="bg-gradient-to-br from-[#00b3f3]/10 to-white border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-[#00b3f3]/5 to-transparent border-b border-[#00b3f3]/20">
-                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
-                  <div className="bg-[#00b3f3] rounded-lg p-2">
+            <Card className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] border-0 shadow-2xl rounded-3xl overflow-hidden">
+              <CardHeader className="bg-white/10 border-b border-white/20">
+                <CardTitle className="text-white text-2xl font-bold flex items-center gap-3">
+                  <div className="bg-white/20 rounded-lg p-2">
                     <MessageCircle className="h-6 w-6 text-white" />
                   </div>
                   ¿Interesado en mis servicios?
                 </CardTitle>
-                <CardDescription className="text-gray-700 text-base mt-2">
+                <CardDescription className="text-white/90 text-base mt-2">
                   Déjame tus datos y te contactaré a la brevedad
                 </CardDescription>
               </CardHeader>
@@ -952,6 +1178,7 @@ const PublicPilotProfile = () => {
               </CardContent>
             </Card>
           )}
+
 
           {/* Contact Card */}
           <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">

@@ -2,13 +2,11 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 
 // Registro de fuentes personalizadas
-// Fuentes disponibles en public/fonts/
 Font.register({
 	family: 'Euphorigenic',
-	src: '/fonts/Euphorigenic.otf', // OTF funciona igual que TTF
+	src: '/fonts/Euphorigenic.otf',
 });
 
-// Usaremos Montserrat-Bold para el título del curso (no tenemos Croogla4F)
 Font.register({
 	family: 'Montserrat',
 	fonts: [
@@ -24,20 +22,16 @@ Font.register({
 	],
 });
 
-// Croogla 4F - Para el título del curso
 Font.register({
 	family: 'Croogla4F',
 	src: '/fonts/fonnts.com-croogla_4f-regular.otf',
 });
 
-// OpenSans - registrado sin especificar weight/style para evitar conflictos
 Font.register({
 	family: 'OpenSans',
 	src: '/fonts/OpenSans-Italic-VariableFont_wdth,wght.ttf',
-	// No especificamos fontWeight ni fontStyle para que acepte cualquier combinación
 });
 
-// A4 Landscape: 842x595 pts - Full Bleed sin márgenes
 const styles = StyleSheet.create({
 	page: {
 		width: 842,
@@ -51,18 +45,16 @@ const styles = StyleSheet.create({
 		left: 0,
 		width: 842,
 		height: 595,
-		objectFit: 'fill', // Estirar para llenar sin recortar
+		objectFit: 'fill',
 	},
-	// Contenedor para todos los elementos con posicionamiento absoluto
 	content: {
 		position: 'absolute',
 		top: 0,
 		left: 0,
 		width: '100%',
 		height: '100%',
-		zIndex: 1, // Contenido por encima del fondo
+		zIndex: 1,
 	},
-	// Título "CERTIFICADO"
 	title: {
 		position: 'absolute',
 		top: 80,
@@ -75,7 +67,6 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		letterSpacing: 2,
 	},
-	// Línea debajo de CERTIFICADO
 	titleUnderline: {
 		position: 'absolute',
 		top: 158,
@@ -84,7 +75,6 @@ const styles = StyleSheet.create({
 		height: 2,
 		backgroundColor: '#00A8E1',
 	},
-	// Texto introductorio - debajo de la línea de CERTIFICADO
 	introText: {
 		position: 'absolute',
 		top: 150,
@@ -95,7 +85,6 @@ const styles = StyleSheet.create({
 		color: '#666',
 		textAlign: 'center',
 	},
-	// Nombre del estudiante
 	studentName: {
 		position: 'absolute',
 		top: 170,
@@ -106,7 +95,6 @@ const styles = StyleSheet.create({
 		color: '#1a1a1a',
 		textAlign: 'center',
 	},
-	// Descripción del curso
 	description: {
 		position: 'absolute',
 		top: 245,
@@ -118,19 +106,17 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		lineHeight: 1.5,
 	},
-	// Título del curso "OPERADOR DE DRONES"
 	courseTitle: {
 		position: 'absolute',
 		top: 300,
-		left: 80,  // Margen izquierdo
-		right: 80, // Margen derecho
+		left: 80,
+		right: 80,
 		fontFamily: 'Croogla4F',
 		fontWeight: 400,
 		color: '#00A8E1',
 		textAlign: 'center',
 		letterSpacing: 2,
 	},
-	// Fecha
 	dateCity: {
 		position: 'absolute',
 		top: 370,
@@ -155,7 +141,6 @@ const styles = StyleSheet.create({
 		color: '#666',
 		textAlign: 'center',
 	},
-	// Firma del instructor
 	signature: {
 		position: 'absolute',
 		top: 480,
@@ -177,18 +162,13 @@ const styles = StyleSheet.create({
 		color: '#666',
 		textAlign: 'center',
 	},
-	// QR Code - Posición ajustada según especificaciones
-	// Valores originales: X:5236.2px Y:514.6px Size:437x437px
-	// Escalados proporcionalmente al PDF A4 landscape (842x595 pts)
-	// Asumiendo diseño original de ~6000px ancho
 	qrCode: {
 		position: 'absolute',
-		left: 710,  // Ajustado un poco más a la izquierda (antes 730)
-		top: 72,    // Y: 514.6 * (595/4243) ≈ 72
-		width: 61,  // 437 * (842/6000) ≈ 61
-		height: 61, // 437 * (595/4243) ≈ 61
+		left: 710,
+		top: 72,
+		width: 61,
+		height: 61,
 	},
-	// Logo HDrones
 	logoHDronesContainer: {
 		position: 'absolute',
 		bottom: 120,
@@ -201,7 +181,6 @@ const styles = StyleSheet.create({
 		height: '100%',
 		objectFit: 'contain',
 	},
-	// Footer izquierdo - DGAC
 	footerLeft: {
 		position: 'absolute',
 		bottom: 50,
@@ -222,7 +201,6 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 		textAlign: 'center',
 	},
-	// Footer derecho - Piloto de Drones
 	footerRight: {
 		position: 'absolute',
 		bottom: 50,
@@ -243,7 +221,6 @@ const styles = StyleSheet.create({
 		marginTop: 8,
 		textAlign: 'center',
 	},
-	// Footer bottom
 	footerBottom: {
 		position: 'absolute',
 		bottom: 30,
@@ -254,34 +231,76 @@ const styles = StyleSheet.create({
 		fontFamily: 'OpenSans',
 		color: '#00A8E1',
 	},
+	serialNumber: {
+		position: 'absolute',
+		top: 80,
+		left: 60,
+		fontSize: 7,
+		fontFamily: 'Helvetica',
+		color: '#999999',
+	},
+	validationCode: {
+		position: 'absolute',
+		top: 135,
+		left: 680,
+		width: 120,
+		fontSize: 6,
+		fontFamily: 'Helvetica',
+		color: '#333',
+		textAlign: 'center',
+	},
+	legalText: {
+		position: 'absolute',
+		top: 155,
+		left: 680,
+		width: 120,
+		fontSize: 5,
+		fontFamily: 'Helvetica',
+		color: '#666',
+		textAlign: 'center',
+		lineHeight: 1.2,
+	},
 });
 
-// Función para formatear fecha de YYYY-MM-DD a "DD de Mes del YYYY"
 const formatDateToSpanish = (dateString: string): string => {
 	if (!dateString) return '';
-
-	const months = [
-		'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-		'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-	];
-
+	const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 	const date = new Date(dateString + 'T00:00:00');
-	const day = date.getDate();
-	const month = months[date.getMonth()];
-	const year = date.getFullYear();
-
-	return `${day} de ${month} del ${year}`;
+	return `${date.getDate()} de ${months[date.getMonth()]} del ${date.getFullYear()}`;
 };
 
-interface DiplomaData {
+const formatDateRange = (start?: string, end?: string): string => {
+	if (!start || !end) return '';
+	const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+	const sDate = new Date(start + 'T00:00:00');
+	const eDate = new Date(end + 'T00:00:00');
+	const sDay = sDate.getDate();
+	const sMonth = months[sDate.getMonth()];
+	const sYear = sDate.getFullYear();
+	const eDay = eDate.getDate();
+	const eMonth = months[eDate.getMonth()];
+	const eYear = eDate.getFullYear();
+
+	if (sMonth === eMonth && sYear === eYear) {
+		return `desde el ${sDay} al ${eDay} de ${eMonth} del ${eYear}`;
+	} else {
+		return `desde el ${sDay} de ${sMonth} hasta el ${eDay} de ${eMonth} del ${eYear}`;
+	}
+};
+
+export interface DiplomaData {
 	studentName: string;
 	courseDate: string;
 	instructorName: string;
 	certificateNumber: string;
 	courseHours?: string;
 	city?: string;
-	courseTitle?: string; // Título del curso (ej: "OPERADOR DE DRONES", "PILOTO PROFESIONAL")
-	qrCodeDataUrl?: string; // Data URL del código QR generado
+	courseTitle?: string;
+	qrCodeDataUrl?: string;
+	correlativeNumber?: number;
+	startDate?: string;
+	endDate?: string;
+	qrToken?: string;
 }
 
 interface DiplomaPDFProps {
@@ -294,13 +313,12 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 	const formattedDate = formatDateToSpanish(data.courseDate);
 	const courseTitle = data.courseTitle || 'OPERADOR DE DRONES';
 
-	// Calcular tamaño de fuente dinámico basado en la longitud del título
 	const getCourseTitleFontSize = (title: string): number => {
 		const length = title.length;
-		if (length <= 20) return 40;      // Títulos cortos: tamaño normal
-		if (length <= 30) return 35;      // Títulos medios: un poco más pequeño
-		if (length <= 40) return 30;      // Títulos largos: más pequeño
-		return 26;                        // Títulos muy largos: tamaño mínimo
+		if (length <= 20) return 40;
+		if (length <= 30) return 35;
+		if (length <= 40) return 30;
+		return 26;
 	};
 
 	const courseTitleFontSize = getCourseTitleFontSize(courseTitle);
@@ -308,41 +326,36 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 	return (
 		<Document>
 			<Page size="A4" orientation="landscape" style={styles.page}>
-				{/* Background Image - DIPLOMA_2026.jpg */}
-				<Image
-					src="/DIPLOMA_2026.jpg"
-					style={styles.backgroundImage}
-				/>
-
-				{/* Textos directamente en la Page - Sin contenedor wrapper */}
-				{/* Intro Text con número de certificado dinámico */}
+				<Image src="/DIPLOMA_2026.jpg" style={styles.backgroundImage} />
 				<Text style={styles.introText}>
 					Academia de Drones de Chile, AOC N°{data.certificateNumber}, entrega el presente certificado a:
 				</Text>
-
-				{/* Student Name - Euphorigenic 60pt */}
 				<Text style={styles.studentName}>{data.studentName}</Text>
-
-				{/* Description - OpenSans */}
 				<Text style={styles.description}>
-					Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico de {hours} horas cronológicas.
+					Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
+					{data.startDate && data.endDate ? (
+						` ${formatDateRange(data.startDate, data.endDate)}`
+					) : data.startDate ? (
+						` el día ${formatDateToSpanish(data.startDate)}`
+					) : ''} de {hours} horas cronológicas.
 				</Text>
-
-				{/* Course Title - Montserrat Bold, azul, tamaño dinámico */}
-				<Text style={{ ...styles.courseTitle, fontSize: courseTitleFontSize }}>
-					{courseTitle}
-				</Text>
-
-				{/* Date and City - Montserrat Light Italic 14pt */}
+				<Text style={{ ...styles.courseTitle, fontSize: courseTitleFontSize }}>{courseTitle}</Text>
 				<Text style={styles.dateCity}>{formattedDate}</Text>
 				<Text style={styles.city}>{city}</Text>
-
-				{/* QR Code */}
-				{data.qrCodeDataUrl && (
-					<Image
-						src={data.qrCodeDataUrl}
-						style={styles.qrCode}
-					/>
+				{data.qrCodeDataUrl && <Image src={data.qrCodeDataUrl} style={styles.qrCode} />}
+				{data.qrToken && (
+					<>
+						<Text style={styles.validationCode}>{data.qrToken}</Text>
+						<Text style={styles.legalText}>
+							Este código QR valida la autenticidad de este diploma.{'\n'}
+							Sin este código QR, los diplomas emitidos por Academia de Drones de Chile no son válidos.
+						</Text>
+					</>
+				)}
+				{data.correlativeNumber && (
+					<Text style={styles.serialNumber}>
+						#{String(data.correlativeNumber).padStart(4, '0')}
+					</Text>
 				)}
 			</Page>
 		</Document>

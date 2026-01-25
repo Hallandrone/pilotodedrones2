@@ -44,18 +44,24 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	const [currentLocation, setCurrentLocation] = useState<{ latitude: number, longitude: number }>(DEFAULT_LOCATION);
 	const [sunData, setSunData] = useState<SunriseSunsetData | null>(null);
 	const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+	const [isActivated, setIsActivated] = useState(false);
 	const { toast } = useToast();
 
 	const CACHE_KEY = 'weather_cache';
 	const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos en milisegundos
 
 	useEffect(() => {
-		if (hasActiveSubscription) {
+		if (hasActiveSubscription && isActivated) {
 			loadWeatherWithCache();
 		} else {
 			setLoading(false);
 		}
-	}, [hasActiveSubscription]);
+	}, [hasActiveSubscription, isActivated]);
+
+	const handleActivate = () => {
+		setIsActivated(true);
+		setLoading(true);
+	};
 
 	const loadWeatherWithCache = async () => {
 		try {
@@ -172,6 +178,38 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 					</Button>
 				</div>
 			</div>
+		);
+	}
+
+	// Si no está activado manualmente
+	if (!isActivated) {
+		return (
+			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+				<CardHeader className="pb-3">
+					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
+						<Cloud className="h-5 w-5 text-[#00b3f3]" />
+						Condiciones para Volar
+					</CardTitle>
+				</CardHeader>
+				<CardContent className="flex flex-col items-center justify-center py-6 text-center space-y-4">
+					<div className="h-16 w-16 bg-[#00b3f3]/10 rounded-full flex items-center justify-center">
+						<Cloud className="h-8 w-8 text-[#00b3f3] animate-pulse" />
+					</div>
+					<div>
+						<p className="text-white font-medium mb-1">Ver condiciones meteorológicas</p>
+						<p className="text-white/60 text-sm max-w-xs mx-auto">
+							Haz clic para cargar los datos de clima, viento y visibilidad en tu ubicación actual.
+						</p>
+					</div>
+					<Button
+						onClick={handleActivate}
+						className="bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white shadow-lg hover:shadow-[#00b3f3]/25 transition-all duration-300"
+					>
+						<RefreshCw className="h-4 w-4 mr-2" />
+						Ver condiciones actuales
+					</Button>
+				</CardContent>
+			</Card>
 		);
 	}
 

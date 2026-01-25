@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Plane, Building, TrendingUp, Activity, MapPin } from "lucide-react";
+import { Users, Plane, Building, TrendingUp, Activity, MapPin, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface StatsData {
@@ -11,6 +11,7 @@ interface StatsData {
   newUsersThisMonth: number;
   activeUsers: number;
   totalLocations: number;
+  totalDiplomas: number;
 }
 
 export function DashboardStats() {
@@ -55,13 +56,19 @@ export function DashboardStats() {
       const activeUsers = Math.floor((totalUsers || 0) * 0.7); // 70% active rate
       const totalLocations = Math.floor((totalPilots || 0) * 1.2); // Assuming pilots have multiple locations
 
+      // Get total diplomas count
+      const { count: totalDiplomas } = await supabase
+        .from('diplomas')
+        .select('*', { count: 'exact', head: true });
+
       setStats({
         totalUsers: totalUsers || 0,
         totalPilots: totalPilots || 0,
         totalCompanies: totalCompanies || 0,
         newUsersThisMonth: newUsersThisMonth || 0,
         activeUsers,
-        totalLocations
+        totalLocations,
+        totalDiplomas: totalDiplomas || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -137,6 +144,14 @@ export function DashboardStats() {
       icon: MapPin,
       trend: "Cobertura nacional",
       color: "text-cyan-600"
+    },
+    {
+      title: "Diplomas Generados",
+      value: stats?.totalDiplomas || 0,
+      description: "Certificados emitidos",
+      icon: Award,
+      trend: "Control correlativo",
+      color: "text-amber-600"
     }
   ];
 

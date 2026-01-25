@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import {
 	Cloud,
 	Wind,
@@ -15,6 +16,7 @@ import {
 	Thermometer,
 	Gauge,
 	Clock,
+	X,
 } from 'lucide-react';
 import type { FlightConditions } from '@/types/weather';
 import {
@@ -37,14 +39,21 @@ const WeatherDetailModal = ({ open, onClose, conditions }: WeatherDetailModalPro
 	return (
 		<Dialog open={open} onOpenChange={onClose}>
 			<DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-[#083b4e] border-[#00b3f3]/30 w-[95vw] sm:w-full">
-				<DialogHeader>
-					<DialogTitle className="text-lg sm:text-2xl text-white flex items-center gap-2">
+				<DialogHeader className="relative">
+					<DialogTitle className="text-lg sm:text-2xl text-white flex items-center gap-2 pr-10">
 						<Cloud className="h-5 w-5 sm:h-6 sm:w-6 text-[#00b3f3]" />
 						Pronóstico Meteorológico
 					</DialogTitle>
 					<DialogDescription className="text-white/60 text-xs sm:text-sm">
 						Condiciones actuales y pronóstico
 					</DialogDescription>
+					<button
+						onClick={onClose}
+						className="absolute right-0 top-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/20 hover:border-white/40"
+						aria-label="Cerrar"
+					>
+						<X className="h-5 w-5" />
+					</button>
 				</DialogHeader>
 
 				<div className="space-y-4 sm:space-y-6 mt-4">
@@ -206,6 +215,17 @@ const WeatherDetailModal = ({ open, onClose, conditions }: WeatherDetailModalPro
 							</div>
 						</CardContent>
 					</Card>
+
+					{/* Botón Cerrar Inferior */}
+					<div className="flex justify-center pt-2 pb-4">
+						<Button
+							onClick={onClose}
+							variant="outline"
+							className="w-full sm:w-auto min-w-[200px] border-[#00b3f3] text-[#00b3f3] hover:bg-[#00b3f3] hover:text-white transition-all"
+						>
+							Cerrar
+						</Button>
+					</div>
 				</div>
 			</DialogContent>
 		</Dialog>

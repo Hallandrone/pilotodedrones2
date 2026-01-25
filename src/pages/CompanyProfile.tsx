@@ -1096,8 +1096,8 @@ export default function CompanyProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+      <div className="min-h-screen bg-[#083b4e] flex items-center justify-center font-inter relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
         <div className="relative z-10 text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
           <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando perfil...</p>
@@ -1107,19 +1107,22 @@ export default function CompanyProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-inter relative overflow-hidden">
+    <div className="min-h-screen bg-[#083b4e] text-white font-inter relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
       {/* Header */}
-      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50 animate-fade-in">
+      <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 animate-fade-in">
         <div className="px-4 py-4 sm:py-6">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/company/dashboard')}
-              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white border border-white/10 hover:border-[#00b3f3]/50"
+              onClick={() => navigate('/company')}
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-gray-100/50 hover:scale-110 transition-all duration-300 text-slate-700 border border-transparent hover:border-gray-200"
             >
               <ArrowLeft className="h-5 w-5 sm:h-7 sm:w-7" />
             </Button>
@@ -1131,7 +1134,7 @@ export default function CompanyProfile() {
             />
 
             <div className="flex flex-col">
-              <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                 Editar Perfil de Empresa
               </h1>
               <p className="text-[10px] sm:text-sm text-[#00b3f3] font-bold uppercase tracking-[0.2em]">
@@ -1219,86 +1222,63 @@ export default function CompanyProfile() {
 
           {/* Redes Sociales */}
           <Card
-            className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group"
-            onClick={() => setOpenModal('basic')}
-          >
-            <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <Building2 className="h-10 w-10 text-white" />
-              </div>
-              <CardTitle className="text-xl font-bold text-white tracking-tight">Información y Ubicación</CardTitle>
-              <CardDescription className="text-white/60 text-base">Datos de contacto, ubicación y experiencia</CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group"
-            onClick={() => setOpenModal('services')}
-          >
-            <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <Briefcase className="h-10 w-10 text-white" />
-              </div>
-              <CardTitle className="text-xl font-bold text-white tracking-tight">Servicios y Drones</CardTitle>
-              <CardDescription className="text-white/60 text-base">Servicios y modelos de drones</CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
             onClick={() => setOpenModal('social')}
           >
-            <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <LinkIcon className="h-10 w-10 text-white" />
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                <LinkIcon className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white tracking-tight">Redes Sociales</CardTitle>
-              <CardDescription className="text-white/60 text-base">Instagram y LinkedIn</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Redes Sociales</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Instagram y LinkedIn</CardDescription>
             </CardContent>
           </Card>
 
+          {/* URL Personalizada */}
           <Card
-            className={`bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group relative ${!subscription ? 'opacity-90' : ''}`}
+            className={`bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group relative ${!subscription ? 'opacity-90' : ''}`}
             onClick={() => setOpenModal('url')}
           >
             {!subscription && (
-              <div className="absolute top-4 right-4 h-8 px-2 bg-amber-500/20 border border-amber-500/30 rounded-lg flex items-center gap-1.5 z-10 backdrop-blur-md">
-                <LockIcon className="h-3.5 w-3.5 text-amber-500" />
-                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
+              <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-amber-500/20 border border-amber-500/30 rounded flex items-center gap-1 z-10 backdrop-blur-md">
+                <LockIcon className="h-3 w-3 text-amber-500" />
+                <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
               </div>
             )}
-            <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <Crown className="h-10 w-10 text-white" />
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                <Crown className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white tracking-tight">URL Personalizada</CardTitle>
-              <CardDescription className="text-white/60 text-base">Personaliza la URL de tu perfil</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">URL Personalizada</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Personaliza tu URL</CardDescription>
             </CardContent>
           </Card>
 
+          {/* Certificados */}
           <Card
-            className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
             onClick={() => setOpenModal('certificates')}
           >
-            <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <FileText className="h-10 w-10 text-white" />
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                <FileText className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white tracking-tight">Certificados</CardTitle>
-              <CardDescription className="text-white/60 text-base">AOC y CEO</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Certificados</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">AOC y CEO</CardDescription>
             </CardContent>
           </Card>
 
+          {/* Seguridad */}
           <Card
-            className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden cursor-pointer hover:scale-[1.02] transition-all duration-300 hover:border-[#00b3f3]/50 group"
+            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
             onClick={() => setOpenModal('security')}
           >
-            <CardContent className="p-8 flex flex-col items-center text-center space-y-4">
-              <div className="h-20 w-20 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_10px_30px_rgba(0,179,243,0.3)] group-hover:scale-110 transition-transform duration-300">
-                <LockIcon className="h-10 w-10 text-white" />
+            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                <LockIcon className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-white tracking-tight">Seguridad</CardTitle>
-              <CardDescription className="text-white/60 text-base">Cambiar contraseña y email</CardDescription>
+              <CardTitle className="text-sm sm:text-base font-bold text-white">Seguridad</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-white/70">Contraseña y email</CardDescription>
             </CardContent>
           </Card>
         </div>
@@ -1350,10 +1330,10 @@ export default function CompanyProfile() {
       {/* Modals */}
       {/* Basic Information and Location Modal */}
       <Dialog open={openModal === 'basic'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto p-0 bg-[#020617] border border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto p-0 bg-[#083b4e] border border-white/10 rounded-3xl shadow-2xl [&>button]:text-white [&>button]:top-8 [&>button]:right-8 [&>button]:z-50">
           <Card className="bg-transparent border-0 shadow-none">
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
-              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
+              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white pr-10">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
                   <Building2 className="h-6 w-6 text-white" />
                 </div>
@@ -1404,7 +1384,7 @@ export default function CompanyProfile() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="company_name_modal" className="text-base font-semibold">
+                  <Label htmlFor="company_name_modal" className="text-base font-semibold text-white">
                     Nombre de la Empresa *
                   </Label>
                   <Input
@@ -1418,7 +1398,7 @@ export default function CompanyProfile() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-3">
-                    <Label htmlFor="email_modal" className="text-base font-semibold">
+                    <Label htmlFor="email_modal" className="text-base font-semibold text-white">
                       Email de Contacto
                     </Label>
                     <Input
@@ -1440,7 +1420,7 @@ export default function CompanyProfile() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="phone_modal" className="text-base font-semibold flex items-center gap-2">
+                    <Label htmlFor="phone_modal" className="text-base font-semibold flex items-center gap-2 text-white">
                       <Phone className="h-5 w-5" />
                       Teléfono
                     </Label>
@@ -1456,7 +1436,7 @@ export default function CompanyProfile() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="website_modal" className="text-base font-semibold">
+                  <Label htmlFor="website_modal" className="text-base font-semibold text-white">
                     Sitio Web
                   </Label>
                   <Input
@@ -1465,12 +1445,12 @@ export default function CompanyProfile() {
                     value={formData.website}
                     onChange={(e) => handleInputChange('website', e.target.value)}
                     placeholder="https://www.empresa.cl"
-                    className="h-12 sm:h-14 rounded-xl border-2"
+                    className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <Label htmlFor="description_modal" className="text-base font-semibold">
+                  <Label htmlFor="description_modal" className="text-base font-semibold text-white">
                     Biografía Profesional
                   </Label>
                   <Textarea
@@ -1478,23 +1458,23 @@ export default function CompanyProfile() {
                     value={formData.description}
                     onChange={(e) => handleInputChange('description', e.target.value)}
                     placeholder="Describe los servicios que ofrece tu empresa..."
-                    className="rounded-xl border-2 resize-none min-h-[120px]"
+                    className="rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 resize-none min-h-[120px]"
                   />
                 </div>
 
                 {/* Location Section */}
                 <div className="pt-6 border-t border-border/50">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
                     <MapPin className="h-5 w-5" />
                     Ubicación y Zona de Trabajo
                   </h3>
                   <div className="space-y-6">
                     <div className="space-y-3">
-                      <Label htmlFor="region_modal" className="text-base font-semibold">
+                      <Label htmlFor="region_modal" className="text-base font-semibold text-white">
                         Región *
                       </Label>
                       <Select value={formData.region} onValueChange={(value) => handleInputChange('region', value)}>
-                        <SelectTrigger className="h-12 sm:h-14 rounded-xl border-2">
+                        <SelectTrigger className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200">
                           <SelectValue placeholder="Selecciona tu región" />
                         </SelectTrigger>
                         <SelectContent>
@@ -1508,7 +1488,7 @@ export default function CompanyProfile() {
                     </div>
 
                     <div className="space-y-3">
-                      <Label htmlFor="location_modal" className="text-base font-semibold flex items-center gap-2">
+                      <Label htmlFor="location_modal" className="text-base font-semibold flex items-center gap-2 text-white">
                         <MapIcon className="h-5 w-5" />
                         Ciudad/Comuna
                       </Label>
@@ -1517,12 +1497,12 @@ export default function CompanyProfile() {
                         value={formData.location}
                         onChange={(e) => handleInputChange('location', e.target.value)}
                         placeholder="Ej: Santiago, Las Condes"
-                        className="h-12 sm:h-14 rounded-xl border-2"
+                        className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                       />
                     </div>
 
                     <div className="space-y-3">
-                      <Label htmlFor="experience_years_modal" className="text-base font-semibold">
+                      <Label htmlFor="experience_years_modal" className="text-base font-semibold text-white">
                         Años de Experiencia Operando
                       </Label>
                       <Input
@@ -1531,7 +1511,7 @@ export default function CompanyProfile() {
                         value={formData.experience_years}
                         onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
                         placeholder="0"
-                        className="h-12 sm:h-14 rounded-xl border-2"
+                        className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                       />
                     </div>
                   </div>
@@ -1566,10 +1546,10 @@ export default function CompanyProfile() {
 
       {/* Services and Drones Modal */}
       <Dialog open={openModal === 'services'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-[#020617] border border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-[#083b4e] border border-white/10 rounded-3xl shadow-2xl [&>button]:text-white [&>button]:top-8 [&>button]:right-8 [&>button]:z-50">
           <Card className="bg-transparent border-0 shadow-none">
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
-              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
+              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white pr-10">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
                   <Briefcase className="h-6 w-6 text-white" />
                 </div>
@@ -1599,7 +1579,7 @@ export default function CompanyProfile() {
 
                 {formData.services.filter(isCustomService).length > 0 && (
                   <div className="pt-4 border-t border-border/50">
-                    <Label className="text-sm mb-3 block font-medium">
+                    <Label className="text-sm mb-3 block font-medium text-white">
                       Servicios personalizados:
                     </Label>
                     <div className="flex flex-wrap gap-3">
@@ -1619,7 +1599,7 @@ export default function CompanyProfile() {
                 )}
 
                 <div className="pt-4 border-t border-border/50">
-                  <Label htmlFor="custom-service-modal" className="text-sm mb-2 block font-medium">
+                  <Label htmlFor="custom-service-modal" className="text-sm mb-2 block font-medium text-white">
                     Otra
                   </Label>
                   <div className="flex gap-2">
@@ -1635,7 +1615,7 @@ export default function CompanyProfile() {
                         }
                       }}
                       placeholder="Escribe otro servicio..."
-                      className="border-2"
+                      className="border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                     />
                     <Button
                       type="button"
@@ -1650,14 +1630,14 @@ export default function CompanyProfile() {
 
                 {/* Drones Section */}
                 <div className="pt-6 border-t border-border/50">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
                     <Camera className="h-5 w-5" />
                     Tipos de Drones
                   </h3>
                   <div className="space-y-6">
                     {formData.drone_types.length > 0 && (
                       <div className="pb-4 border-b border-border/50">
-                        <Label className="text-sm mb-3 block font-medium">
+                        <Label className="text-sm mb-3 block font-medium text-white">
                           Drones seleccionados ({formData.drone_types.length}):
                         </Label>
                         <div className="flex flex-wrap gap-2">
@@ -1681,8 +1661,8 @@ export default function CompanyProfile() {
                         <AccordionTrigger className="hover:no-underline py-3">
                           <div className="flex items-center gap-2">
                             <span className="text-lg">🟢</span>
-                            <span className="font-semibold">Nivel Básico/Principiante</span>
-                            <Badge variant="outline" className="ml-2 text-xs">
+                            <span className="font-semibold text-white">Nivel Básico/Principiante</span>
+                            <Badge variant="outline" className="ml-2 text-xs text-white border-white/20">
                               {basicDrones.filter(d => formData.drone_types.includes(d)).length}/{basicDrones.length}
                             </Badge>
                           </div>
@@ -1710,8 +1690,8 @@ export default function CompanyProfile() {
                         <AccordionTrigger className="hover:no-underline py-3">
                           <div className="flex items-center gap-2">
                             <span className="text-lg">🟡</span>
-                            <span className="font-semibold">Nivel Intermedio</span>
-                            <Badge variant="outline" className="ml-2 text-xs">
+                            <span className="font-semibold text-white">Nivel Intermedio</span>
+                            <Badge variant="outline" className="ml-2 text-xs text-white border-white/20">
                               {intermediateDrones.filter(d => formData.drone_types.includes(d)).length}/{intermediateDrones.length}
                             </Badge>
                           </div>
@@ -1739,8 +1719,8 @@ export default function CompanyProfile() {
                         <AccordionTrigger className="hover:no-underline py-3">
                           <div className="flex items-center gap-2">
                             <span className="text-lg">🔴</span>
-                            <span className="font-semibold">Nivel Profesional</span>
-                            <Badge variant="outline" className="ml-2 text-xs">
+                            <span className="font-semibold text-white">Nivel Profesional</span>
+                            <Badge variant="outline" className="ml-2 text-xs text-white border-white/20">
                               {professionalDrones.filter(d => formData.drone_types.includes(d)).length}/{professionalDrones.length}
                             </Badge>
                           </div>
@@ -1767,7 +1747,7 @@ export default function CompanyProfile() {
 
                     {formData.drone_types.filter(isCustomDrone).length > 0 && (
                       <div className="pt-4 border-t border-border/50">
-                        <Label className="text-sm mb-3 block font-medium">
+                        <Label className="text-sm mb-3 block font-medium text-white">
                           Modelos personalizados:
                         </Label>
                         <div className="flex flex-wrap gap-3">
@@ -1787,7 +1767,7 @@ export default function CompanyProfile() {
                     )}
 
                     <div className="pt-4 border-t border-border/50">
-                      <Label htmlFor="custom-drone-modal" className="text-sm mb-2 block font-medium">
+                      <Label htmlFor="custom-drone-modal" className="text-sm mb-2 block font-medium text-white">
                         Otra
                       </Label>
                       <div className="flex gap-2">
@@ -1803,7 +1783,7 @@ export default function CompanyProfile() {
                             }
                           }}
                           placeholder="Escribe otro modelo de drone..."
-                          className="border-2"
+                          className="border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                         />
                         <Button
                           type="button"
@@ -1847,10 +1827,10 @@ export default function CompanyProfile() {
 
       {/* Social Media Modal */}
       <Dialog open={openModal === 'social'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-[#020617] border border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-[#083b4e] border border-white/10 rounded-3xl shadow-2xl [&>button]:text-white [&>button]:top-8 [&>button]:right-8 [&>button]:z-50">
           <Card className="bg-transparent border-0 shadow-none">
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
-              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
+              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white pr-10">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
                   <LinkIcon className="h-6 w-6 text-white" />
                 </div>
@@ -1865,7 +1845,7 @@ export default function CompanyProfile() {
                 {/* Instagram */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="instagram_modal" className="font-medium">
+                    <Label htmlFor="instagram_modal" className="font-medium text-white">
                       <span className="inline-block mr-1">📷</span>
                       Instagram
                     </Label>
@@ -1903,7 +1883,7 @@ export default function CompanyProfile() {
                           handleInputChange('instagram_username', username);
                         }
                       }}
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                       placeholder="https://instagram.com/empresa"
                     />
                   ) : (
@@ -1921,7 +1901,7 @@ export default function CompanyProfile() {
                           handleInputChange('instagram_username', cleaned);
                         }
                       }}
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                       placeholder="empresa_drones"
                     />
                   )}
@@ -1930,7 +1910,7 @@ export default function CompanyProfile() {
                 {/* LinkedIn */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="linkedin_modal" className="font-medium">
+                    <Label htmlFor="linkedin_modal" className="font-medium text-white">
                       <span className="inline-block mr-1">💼</span>
                       LinkedIn
                     </Label>
@@ -1968,7 +1948,7 @@ export default function CompanyProfile() {
                           handleInputChange('linkedin_username', username);
                         }
                       }}
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                       placeholder="https://linkedin.com/company/empresa"
                     />
                   ) : (
@@ -1986,7 +1966,7 @@ export default function CompanyProfile() {
                           handleInputChange('linkedin_username', cleaned);
                         }
                       }}
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                       placeholder="empresa-drones"
                     />
                   )}
@@ -2020,10 +2000,10 @@ export default function CompanyProfile() {
       </Dialog >
 
       <Dialog open={openModal === 'url'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-[#020617] border border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-2xl max-h-[90vh] overflow-y-auto p-0 bg-[#083b4e] border border-white/10 rounded-3xl shadow-2xl [&>button]:text-white [&>button]:top-8 [&>button]:right-8 [&>button]:z-50">
           <Card className="bg-transparent border-0 shadow-none">
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
-              <CardTitle className="flex items-center justify-between gap-4 text-3xl font-bold text-white">
+              <CardTitle className="flex items-center justify-between gap-4 text-3xl font-bold text-white pr-10">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
                     <Crown className="h-6 w-6 text-white" />
@@ -2059,7 +2039,7 @@ export default function CompanyProfile() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="public_profile_slug_modal" className="font-medium flex items-center gap-2">
+                  <Label htmlFor="public_profile_slug_modal" className="font-medium flex items-center gap-2 text-white">
                     <LinkIcon className="h-4 w-4" />
                     Nombre de usuario para tu perfil
                   </Label>
@@ -2074,7 +2054,7 @@ export default function CompanyProfile() {
                         value={publicProfileSlug}
                         onChange={(e) => handleSlugChange(e.target.value)}
                         disabled={!subscription}
-                        className={`h-12 sm:h-14 border-2 pl-8 ${!subscription ? 'opacity-50' : ''}`}
+                        className={`h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 pl-8 ${!subscription ? 'opacity-50' : ''}`}
                         placeholder={subscription ? "nombreempresa" : "Disponible en Plan Empresa"}
                       />
                     </div>
@@ -2147,10 +2127,10 @@ export default function CompanyProfile() {
       </Dialog >
 
       <Dialog open={openModal === 'certificates'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto p-0 bg-[#020617] border border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-3xl max-h-[90vh] overflow-y-auto p-0 bg-[#083b4e] border border-white/10 rounded-3xl shadow-2xl [&>button]:text-white [&>button]:top-8 [&>button]:right-8 [&>button]:z-50">
           <Card className="bg-transparent border-0 shadow-none">
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
-              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
+              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white pr-10">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
                   <FileText className="h-6 w-6 text-white" />
                 </div>
@@ -2164,7 +2144,7 @@ export default function CompanyProfile() {
               <div className="space-y-6 mt-4">
                 {/* AOC Certificate */}
                 <div className="space-y-2">
-                  <Label htmlFor="aoc-certificate-modal">Certificado AOC</Label>
+                  <Label htmlFor="aoc-certificate-modal" className="text-white">Certificado AOC</Label>
                   <Input
                     id="aoc-certificate-modal"
                     type="file"
@@ -2179,7 +2159,7 @@ export default function CompanyProfile() {
 
                 {/* CEO Certificate */}
                 <div className="space-y-2">
-                  <Label htmlFor="ceo-certificate-modal">Certificado CEO</Label>
+                  <Label htmlFor="ceo-certificate-modal" className="text-white">Certificado CEO</Label>
                   <Input
                     id="ceo-certificate-modal"
                     type="file"
@@ -2195,7 +2175,7 @@ export default function CompanyProfile() {
                 {/* Lista de certificados subidos */}
                 {certifications.length > 0 && (
                   <div className="space-y-2 pt-4 border-t">
-                    <Label>Certificados Subidos</Label>
+                    <Label className="text-white">Certificados Subidos</Label>
                     <div className="space-y-2">
                       {certifications.map((cert) => (
                         <div key={cert.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -2264,10 +2244,10 @@ export default function CompanyProfile() {
       </Dialog >
 
       <Dialog open={openModal === 'security'} onOpenChange={(open) => !open && setOpenModal(null)}>
-        <DialogContent className="w-[95vw] sm:w-full max-w-xl max-h-[90vh] overflow-y-auto p-0 bg-[#020617] border border-white/10 rounded-3xl shadow-2xl">
+        <DialogContent className="w-[95vw] sm:w-full max-w-xl max-h-[90vh] overflow-y-auto p-0 bg-[#083b4e] border border-white/10 rounded-3xl shadow-2xl [&>button]:text-white [&>button]:top-8 [&>button]:right-8 [&>button]:z-50">
           <Card className="bg-transparent border-0 shadow-none">
             <CardHeader className="p-8 border-b border-white/10 bg-white/5">
-              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white">
+              <CardTitle className="flex items-center gap-4 text-3xl font-bold text-white pr-10">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.3)]">
                   <LockIcon className="h-6 w-6 text-white" />
                 </div>
@@ -2285,36 +2265,36 @@ export default function CompanyProfile() {
                 </TabsList>
                 <TabsContent value="password" className="space-y-4 mt-4">
                   <div className="space-y-3">
-                    <Label htmlFor="current-password">Contraseña Actual</Label>
+                    <Label htmlFor="current-password" className="text-white">Contraseña Actual</Label>
                     <Input
                       id="current-password"
                       type="password"
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       placeholder="Ingresa tu contraseña actual"
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                     />
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="new-password">Nueva Contraseña</Label>
+                    <Label htmlFor="new-password" className="text-white">Nueva Contraseña</Label>
                     <Input
                       id="new-password"
                       type="password"
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Mínimo 6 caracteres"
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                     />
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="confirm-password">Confirmar Nueva Contraseña</Label>
+                    <Label htmlFor="confirm-password" className="text-white">Confirmar Nueva Contraseña</Label>
                     <Input
                       id="confirm-password"
                       type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirma tu nueva contraseña"
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                     />
                   </div>
                   <div className="flex justify-end gap-3 pt-4">
@@ -2340,36 +2320,36 @@ export default function CompanyProfile() {
                 </TabsContent>
                 <TabsContent value="email" className="space-y-4 mt-4">
                   <div className="space-y-3">
-                    <Label htmlFor="new-email">Nuevo Email</Label>
+                    <Label htmlFor="new-email" className="text-white">Nuevo Email</Label>
                     <Input
                       id="new-email"
                       type="email"
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                       placeholder="nuevo@email.com"
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                     />
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="confirm-email">Confirmar Nuevo Email</Label>
+                    <Label htmlFor="confirm-email" className="text-white">Confirmar Nuevo Email</Label>
                     <Input
                       id="confirm-email"
                       type="email"
                       value={confirmEmail}
                       onChange={(e) => setConfirmEmail(e.target.value)}
                       placeholder="Confirma el nuevo email"
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                     />
                   </div>
                   <div className="space-y-3">
-                    <Label htmlFor="password-for-email">Contraseña Actual</Label>
+                    <Label htmlFor="password-for-email" className="text-white">Contraseña Actual</Label>
                     <Input
                       id="password-for-email"
                       type="password"
                       value={passwordForEmailChange}
                       onChange={(e) => setPasswordForEmailChange(e.target.value)}
                       placeholder="Ingresa tu contraseña para confirmar"
-                      className="h-12 sm:h-14 border-2"
+                      className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                     />
                     <p className="text-xs text-muted-foreground">
                       Necesitamos tu contraseña actual para cambiar el email

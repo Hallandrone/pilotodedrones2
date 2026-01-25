@@ -409,6 +409,29 @@ const Auth = () => {
             description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
           });
         } else {
+          // Intentar aceptar invitaciones por email automáticamente
+          try {
+            console.log('Verificando invitaciones por email...');
+            const { data: invData, error: invError } = await supabase.functions.invoke('send-invitation-email', {
+              body: {
+                action: 'check_and_accept_by_email'
+              }
+            });
+
+            if (!invError && invData?.success && invData?.found) {
+              console.log('Invitación por email aceptada automáticamente:', invData);
+              toast({
+                title: "¡Invitación Aceptada!",
+                description: `Has sido añadido automáticamente a ${invData.companyName || 'tu empresa'} y tu Plan Pro está activo.`,
+                duration: 5000
+              });
+              // Pequeño delay para que vean el toast antes de redirigir (si aplica)
+              await new Promise(resolve => setTimeout(resolve, 1500));
+            }
+          } catch (e) {
+            console.error('Error verificando invitaciones por email:', e);
+          }
+
           // Verificar si hay invitación pendiente (usando storage o URL)
           const storedToken = localStorage.getItem('pendingInvitationToken');
           const currentParams = new URLSearchParams(window.location.search);

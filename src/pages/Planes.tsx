@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import Logo from "@/components/ui/logo";
 
-const Pricing = () => {
+const Planes = () => {
   const navigate = useNavigate();
 
   const plans = [
@@ -414,5 +414,5 @@ const Pricing = () => {
   );
 };
 
-export default Pricing;
+export default Planes;
 

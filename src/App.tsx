@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
-import Pricing from "./pages/Pricing";
+import Planes from "./pages/Planes";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Auth from "./pages/Auth";
@@ -18,6 +18,7 @@ import AdminCertificates from "./pages/AdminCertificates";
 import PilotFlightHours from "./pages/PilotFlightHours";
 import PilotQR from "./pages/PilotQR";
 import PilotMembership from "./pages/PilotMembership";
+import PilotPortfolio from "./pages/PilotPortfolio";
 import SearchResults from "./pages/SearchResults";
 import DebugAuth from "./pages/DebugAuth";
 import FixAuth from "./pages/FixAuth";
@@ -28,6 +29,7 @@ import ProfileSaveFix from "./pages/ProfileSaveFix";
 import AccessFix from "./pages/AccessFix";
 import UserProfile from "./pages/UserProfile";
 import PublicPilotProfile from "./pages/PublicPilotProfile";
+import DiplomaVerification from "./pages/DiplomaVerification";
 import CompanyProfile from "./pages/CompanyProfile";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import ProfileContacts from "./pages/ProfileContacts";
@@ -51,12 +53,13 @@ const App = () => (
           <Routes>
             {/* Rutas con tema CLARO (Landing) */}
             <Route path="/" element={<Index />} />
-            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/planes" element={<Planes />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/demo" element={<DemoAuth />} />
             <Route path="/search" element={<SearchResults />} />
+            <Route path="/verificar-diploma" element={<DiplomaVerification />} />
 
             {/* Rutas con tema OSCURO (Dashboards) */}
             <Route path="/dashboard/*" element={<div className="dark"><Dashboard /></div>} />
@@ -76,6 +79,8 @@ const App = () => (
             <Route path="/pilot/contacts" element={<div className="dark"><ProfileContacts /></div>} />
             <Route path="/admin/certificates" element={<div className="dark"><AdminCertificates /></div>} />
             <Route path="/diplomas" element={<div className="dark"><DiplomaGenerator /></div>} />
+            <Route path="/pilot/portfolio" element={<div className="dark"><PilotPortfolio /></div>} />
+            <Route path="/company/portfolio" element={<div className="dark"><PilotPortfolio /></div>} />
 
             {/* Rutas de debug/fix */}
             <Route path="/debug-auth" element={<DebugAuth />} />

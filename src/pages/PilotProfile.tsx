@@ -1002,8 +1002,8 @@ const PilotProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
+      <div className="min-h-screen bg-[#083b4e] flex items-center justify-center font-inter relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
         <div className="relative z-10 text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
           <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando tu perfil...</p>
@@ -1013,19 +1013,22 @@ const PilotProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-inter relative overflow-hidden">
+    <div className="min-h-screen bg-[#083b4e] text-white font-inter relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
       {/* Header */}
-      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50 animate-fade-in">
+      <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 animate-fade-in">
         <div className="px-4 py-4 sm:py-6">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/pilot')}
-              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white border border-white/10 hover:border-[#00b3f3]/50"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-gray-100/50 hover:scale-110 transition-all duration-300 text-slate-700 border border-transparent hover:border-gray-200"
             >
               <ArrowLeft className="h-5 w-5 sm:h-7 sm:w-7" />
             </Button>
@@ -1037,7 +1040,7 @@ const PilotProfile = () => {
             />
 
             <div className="flex flex-col">
-              <h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">
                 Editar Perfil
               </h1>
               <p className="text-[10px] sm:text-sm text-[#00b3f3] font-bold uppercase tracking-[0.2em]">
@@ -1057,7 +1060,7 @@ const PilotProfile = () => {
                     window.open(profileUrl, '_blank');
                   }
                 }}
-                className="hidden sm:flex bg-white/5 hover:bg-white/10 text-white border-white/10 hover:border-[#00b3f3]/50 transition-all rounded-xl gap-2"
+                className="hidden sm:flex bg-white hover:bg-gray-50 text-slate-700 border-gray-200 hover:border-[#00b3f3]/50 transition-all rounded-xl gap-2 shadow-sm"
               >
                 <Eye className="h-4 w-4 text-[#00b3f3]" />
                 Vista Previa
@@ -1303,7 +1306,7 @@ const PilotProfile = () => {
                         <Badge
                           key={specialty}
                           variant="default"
-                          className="bg-[#FF69B4] text-white border-[#FF69B4] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                          className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
                           onClick={() => removeCustomSpecialty(specialty)}
                         >
                           {specialty}
@@ -1332,13 +1335,13 @@ const PilotProfile = () => {
                         }
                       }}
                       placeholder="Escribe otra especialidad..."
-                      className="bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#FF69B4] placeholder:text-[#666666]"
+                      className="bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/40"
                     />
                     <Button
                       type="button"
                       onClick={addCustomSpecialty}
                       disabled={!customSpecialty.trim() || profile.specialties.includes(customSpecialty.trim())}
-                      className="bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Agregar
                     </Button>
@@ -1398,7 +1401,7 @@ const PilotProfile = () => {
                       <div className="flex items-center gap-2">
                         <span className="text-lg">🟢</span>
                         <span className="font-semibold">Nivel Básico/Principiante</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-[#333333] text-[#B0B0B0] bg-[#2C2C2C]">
+                        <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
                           {basicDrones.filter(d => profile.drone_types.includes(d)).length}/{basicDrones.length}
                         </Badge>
                       </div>
@@ -1428,7 +1431,7 @@ const PilotProfile = () => {
                       <div className="flex items-center gap-2">
                         <span className="text-lg">🟡</span>
                         <span className="font-semibold">Nivel Intermedio</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-[#333333] text-[#B0B0B0] bg-[#2C2C2C]">
+                        <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
                           {intermediateDrones.filter(d => profile.drone_types.includes(d)).length}/{intermediateDrones.length}
                         </Badge>
                       </div>
@@ -1458,7 +1461,7 @@ const PilotProfile = () => {
                       <div className="flex items-center gap-2">
                         <span className="text-lg">🔴</span>
                         <span className="font-semibold">Nivel Profesional</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-[#333333] text-[#B0B0B0] bg-[#2C2C2C]">
+                        <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
                           {professionalDrones.filter(d => profile.drone_types.includes(d)).length}/{professionalDrones.length}
                         </Badge>
                       </div>
@@ -1599,7 +1602,7 @@ const PilotProfile = () => {
                         value={profile.public_profile_slug || ''}
                         onChange={(e) => handleSlugChange(e.target.value)}
                         disabled={!subscription}
-                        className={`bg-[#1A1A1A] border-[#333333] text-[#E0E0E0] focus:border-[#00b3f3] placeholder:text-[#666666] pl-8 ${!subscription ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/40 pl-8 ${!subscription ? 'opacity-50 cursor-not-allowed' : ''}`}
                         placeholder={subscription ? "nombreusuario" : "Disponible en Plan Pro"}
                       />
                       {checkingSlug && (

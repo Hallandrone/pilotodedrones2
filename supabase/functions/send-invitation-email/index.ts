@@ -386,6 +386,164 @@ serve(async (req) => {
       }
     }
 
+    // Acción: Verificar y aceptar por email (para registros independientes)
+    if (body.action === 'check_and_accept_by_email') {
+      console.log('🔍 Verificando invitaciones por email para nuevo usuario')
+      const authHeader = req.headers.get('Authorization')
+
+      if (!authHeader) {
+        return new Response(JSON.stringify({ success: false, error: 'No autorizado' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Validar usuario
+      const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } })
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+
+      if (userError || !user || !user.email) {
+        return new Response(JSON.stringify({ success: false, error: 'Usuario no autenticado o sin email' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      const userEmail = user.email.toLowerCase().trim()
+      console.log('👤 Buscando invitaciones para:', userEmail)
+
+      const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+      // Buscar invitación pendiente
+      const { data: invitation, error: invError } = await supabaseAdmin
+        .from('company_pilot_invitations')
+        .select('*')
+        .eq('pilot_email', userEmail) // Búsqueda exacta (asegurar que se guarda en lowercase al crear)
+        .eq('status', 'pending')
+        .order('invited_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (!invitation) {
+        console.log('ℹ️ No se encontraron invitaciones pendientes para', userEmail)
+        return new Response(JSON.stringify({ success: true, message: 'No hay invitaciones pendientes', found: false }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      console.log('✅ Invitación encontrada:', invitation.id)
+      const invitationId = invitation.id
+
+      // --- LÓGICA DE ACEPTACIÓN (Replicada de accept_invitation) ---
+
+      // 1. Actualizar invitación con ID real
+      await supabaseAdmin
+        .from('company_pilot_invitations')
+        .update({ pilot_id: user.id })
+        .eq('id', invitationId)
+
+      // 2. ASEGURAR que el registro en COMPANIES existe
+      const { data: existingCompany } = await supabaseAdmin
+        .from('companies')
+        .select('id')
+        .eq('user_id', invitation.company_id)
+        .maybeSingle()
+
+      let companyRecordId = existingCompany?.id
+
+      if (!companyRecordId) {
+        const { data: companyProfile } = await supabaseAdmin
+          .from('profiles')
+          .select('company_name, full_name')
+          .eq('id', invitation.company_id)
+          .single()
+
+        const { data: newCompany } = await supabaseAdmin
+          .from('companies')
+          .insert({
+            user_id: invitation.company_id,
+            company_name: companyProfile?.company_name || companyProfile?.full_name || 'Empresa'
+          })
+          .select('id')
+          .single()
+
+        if (newCompany) companyRecordId = newCompany.id
+      }
+
+      if (!companyRecordId) {
+        throw new Error('Error crítico: No se pudo determinar ID de empresa')
+      }
+
+      // 3. ASEGURAR que el registro en PILOTS existe
+      const { data: existingPilotRecord } = await supabaseAdmin
+        .from('pilots')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      let pilotRecordId = existingPilotRecord?.id
+
+      if (!pilotRecordId) {
+        const { data: newPilot } = await supabaseAdmin
+          .from('pilots')
+          .insert({ user_id: user.id })
+          .select('id')
+          .single()
+
+        if (newPilot) pilotRecordId = newPilot.id
+      }
+
+      // 4. Agregar a company_pilots
+      if (companyRecordId && pilotRecordId) {
+        const { data: existingAssociation } = await supabaseAdmin
+          .from('company_pilots')
+          .select('id')
+          .eq('company_id', companyRecordId)
+          .eq('pilot_id', pilotRecordId)
+          .maybeSingle()
+
+        if (!existingAssociation) {
+          await supabaseAdmin
+            .from('company_pilots')
+            .insert({
+              company_id: companyRecordId,
+              pilot_id: pilotRecordId
+            })
+        }
+      }
+
+      // 5. ACTIVAR PLAN PRO
+      const unAnioMas = new Date()
+      unAnioMas.setFullYear(unAnioMas.getFullYear() + 1)
+
+      await supabaseAdmin.from('user_subscriptions').upsert({
+        user_id: user.id,
+        plan_name: 'pro',
+        status: 'active',
+        payment_method: 'company_sponsored_auto',
+        renewal_date: unAnioMas.toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
+
+      // 6. Marcar invitación como aceptada
+      await supabaseAdmin
+        .from('company_pilot_invitations')
+        .update({
+          status: 'accepted',
+          responded_at: new Date().toISOString(),
+          pilot_id: user.id
+        })
+        .eq('id', invitationId)
+
+      // 7. Notificación
+      await supabaseAdmin
+        .from('notifications')
+        .insert({
+          user_id: user.id,
+          type: 'welcome_company',
+          title: 'Bienvenido al equipo',
+          message: 'Se ha detectado tu invitación y se ha activado tu Plan Pro.',
+          data: { company_id: invitation.company_id }
+        })
+
+      return new Response(
+        JSON.stringify({ success: true, message: 'Invitación aceptada automáticamente', found: true, companyName: 'la empresa' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // POST: Enviar email de invitación (si tiene datos de email)
     if (req.method === 'POST' && body.pilotEmail) {
       const { invitationId, pilotEmail, pilotName, companyName, message } = body

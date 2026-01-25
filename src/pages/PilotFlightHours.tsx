@@ -115,32 +115,29 @@ const PilotFlightHours = () => {
 
   const loadFlightRecords = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
 
-      // Mock data for now - replace with actual Supabase query
-      const mockRecords: FlightRecord[] = [
-        {
-          id: '1',
-          date: '2024-01-15',
-          duration: 2.5,
-          location: 'Santiago, RM',
-          purpose: 'Fotografía Aérea',
-          notes: 'Sesión de fotos para proyecto inmobiliario',
-          created_at: '2024-01-15T10:00:00Z'
-        },
-        {
-          id: '2',
-          date: '2024-01-12',
-          duration: 1.5,
-          location: 'Valparaíso, V',
-          purpose: 'Inspección Industrial',
-          notes: 'Inspección de torres de alta tensión',
-          created_at: '2024-01-12T14:30:00Z'
-        }
-      ];
+      const { data, error } = await supabase
+        .from('flight_logs')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .not('duration_hours', 'is', null)
+        .order('flight_date', { ascending: false });
 
-      setFlightRecords(mockRecords);
+      if (error) throw error;
+
+      if (data) {
+        setFlightRecords(data.map(record => ({
+          id: record.id,
+          date: record.flight_date || record.uploaded_at?.split('T')[0] || '',
+          duration: Number(record.duration_hours) || 0,
+          location: record.location || '',
+          purpose: record.purpose || '',
+          notes: record.notes || '',
+          created_at: record.created_at
+        })));
+      }
     } catch (error) {
       console.error('Error loading flight records:', error);
       toast({
@@ -167,35 +164,47 @@ const PilotFlightHours = () => {
 
     try {
       setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
 
-      const newRecord: FlightRecord = {
-        id: editingRecord?.id || Date.now().toString(),
-        date: formData.date,
-        duration: parseFloat(formData.duration),
+      const recordData = {
+        user_id: currentUser.id,
+        flight_date: formData.date,
+        duration_hours: parseFloat(formData.duration),
         location: formData.location,
         purpose: formData.purpose,
         notes: formData.notes,
-        created_at: editingRecord?.created_at || new Date().toISOString()
+        status: 'pending',
+        file_name: 'Registro Manual', // Placeholder
+        file_url: 'manual-entry'      // Placeholder
       };
 
       if (editingRecord) {
-        setFlightRecords(prev =>
-          prev.map(record => record.id === editingRecord.id ? newRecord : record)
-        );
+        const { error } = await supabase
+          .from('flight_logs')
+          .update(recordData)
+          .eq('id', editingRecord.id);
+
+        if (error) throw error;
+
         toast({
           title: "Registro actualizado",
           description: "Las horas de vuelo han sido actualizadas",
         });
       } else {
-        setFlightRecords(prev => [newRecord, ...prev]);
+        const { error } = await supabase
+          .from('flight_logs')
+          .insert(recordData);
+
+        if (error) throw error;
+
         toast({
           title: "Registro agregado",
           description: "Las horas de vuelo han sido registradas",
         });
       }
 
+      await loadFlightRecords();
       resetForm();
     } catch (error) {
       console.error('Error saving flight record:', error);
@@ -235,6 +244,13 @@ const PilotFlightHours = () => {
 
   const handleDelete = async (id: string) => {
     try {
+      const { error } = await supabase
+        .from('flight_logs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       setFlightRecords(prev => prev.filter(record => record.id !== id));
       toast({
         title: "Registro eliminado",
@@ -861,7 +877,7 @@ const PilotFlightHours = () => {
                 Certificados de Horas de Vuelo o Itinerarios
               </CardTitle>
               <CardDescription className="text-[#B0B0B0] mt-2">
-                Sube certificados o itinerarios de vuelo para validación por el administrador
+                Sube archivos como "flight data center" para validación de horas de vuelo por el administrador
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-4">

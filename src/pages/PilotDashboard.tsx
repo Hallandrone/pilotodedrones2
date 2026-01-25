@@ -35,7 +35,8 @@ import {
   Lock,
   Award,
   Hash,
-  QrCode as QrCodeIcon
+  QrCode as QrCodeIcon,
+  MonitorPlay
 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
 import {
@@ -406,19 +407,19 @@ const PilotDashboard = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
       {/* Header */}
-      <div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50 relative animate-fade-in">
-        <div className="px-3 sm:px-6 py-4 sm:py-6">
+      <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 relative animate-fade-in">
+        <div className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <Logo
               size="xl"
-              className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&>div]:w-20"
+              className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] [&>div]:h-20 [&>div]:w-20 sm:[&>div]:h-28 sm:[&>div]:w-28"
               showText={false}
             />
             <Button
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="text-white hover:text-red-400 hover:bg-red-500/20 rounded-xl px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-400/50 text-base font-semibold"
+              className="text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-200 text-base font-semibold"
             >
               <LogOut className="h-5 w-5 sm:h-6 sm:w-6 sm:mr-3" />
               <span className="hidden sm:inline">Cerrar Sesión</span>
@@ -570,6 +571,23 @@ const PilotDashboard = () => {
               <QrCodeIcon className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Mi QR</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
+            onClick={() => plan?.isPaid ? navigate('/pilot/portfolio') : navigate('/pilot/membership')}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
+            <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+              <MonitorPlay className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+              {!plan?.isPaid && (
+                <div className="absolute -top-1 -right-1 bg-[#FF69B4] rounded-full p-1 border-2 border-[#083b4e] shadow-lg">
+                  <Lock className="h-2 w-2 sm:h-3 sm:w-3 text-white" />
+                </div>
+              )}
+            </div>
+            <span className="relative text-xs sm:text-base text-white px-1">Portafolio</span>
           </Button>
         </div>
 
@@ -856,15 +874,15 @@ const PilotDashboard = () => {
                 </div>
                 <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
                   {plan?.isPaid
-                    ? `Plan ${plan.name} - ${plan.status === 'active' ? 'Suscripción Activa' : 'Finaliza pronto'}`
+                    ? `Plan ${plan.displayName} - ${plan.status === 'active' ? 'Suscripción Activa' : 'Finaliza pronto'}`
                     : 'Plan Gratis - Acceso Limitado'}
                 </p>
                 <Button
                   size="lg"
                   onClick={() => navigate('/pilot/membership')}
                   className={`w-full hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 border-0 ${plan?.isPaid
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
-                      : 'bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
+                    : 'bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white'
                     }`}
                 >
                   {plan?.isPaid ? 'Gestionar Membresía' : 'Mejorar a Plan Pro'}
