@@ -95,14 +95,14 @@ export const CompanyLogoBanner = ({
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="flex flex-col sm:flex-row gap-3">
-						<div className="flex-1 relative">
-							<div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 text-sm">
+						<div className="flex-1 flex items-center bg-white/5 border border-white/10 h-12 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500/50 transition-all">
+							<span className="pl-4 text-white/40 text-sm whitespace-nowrap bg-white/5 h-full flex items-center border-r border-white/10 px-3">
 								{appBaseUrl}/
-							</div>
+							</span>
 							<Input
 								value={publicProfileSlug}
 								onChange={(e) => handleSlugChange(e.target.value)}
-								className="bg-white/5 border-white/10 text-white pl-[140px] h-12 rounded-xl"
+								className="bg-transparent border-none text-white h-full grow focus-visible:ring-0 focus-visible:ring-offset-0"
 								placeholder="nombre-empresa"
 							/>
 						</div>

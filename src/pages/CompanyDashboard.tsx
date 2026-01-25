@@ -43,6 +43,10 @@ import { CompanyBasicInfo } from "@/components/company/CompanyBasicInfo";
 import { CompanyServices } from "@/components/company/CompanyServices";
 import { CompanyLogoBanner } from "@/components/company/CompanyLogoBanner";
 import { CompanySocialLinks } from "@/components/company/CompanySocialLinks";
+import { CompanyCertificates } from "@/components/company/CompanyCertificates";
+import { CompanyQR } from "@/components/company/CompanyQR";
+import { CompanyMembership } from "@/components/company/CompanyMembership";
+import { CompanyPortfolio } from "@/components/company/CompanyPortfolio";
 
 interface CompanyData {
   id: string;
@@ -368,7 +372,7 @@ const CompanyDashboard = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-[#083b4e] relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L2dzdmc+')] opacity-50"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
         <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
         <DashboardSidebar userRole="company" />
@@ -529,10 +533,10 @@ const CompanyDashboard = () => {
                   </div>
                 } />
                 <Route path="/pilots" element={companyData?.id ? <CompanyPilotManagement companyId={companyData.id} /> : <div>Cargando...</div>} />
-                <Route path="/certificates" element={<div className="text-white p-4">Sección Certificados (En construcción)</div>} />
-                <Route path="/qr" element={<div className="text-white p-4">Sección QR (En construcción)</div>} />
-                <Route path="/membership" element={<div className="text-white p-4">Sección Membresía (En construcción)</div>} />
-                <Route path="/portfolio" element={<div className="text-white p-4">Sección Portafolio (En construcción)</div>} />
+                <Route path="/certificates" element={<CompanyCertificates />} />
+                <Route path="/qr" element={<CompanyQR />} />
+                <Route path="/membership" element={<CompanyMembership />} />
+                <Route path="/portfolio" element={<CompanyPortfolio />} />
               </Routes>
             </div>
           </main>
