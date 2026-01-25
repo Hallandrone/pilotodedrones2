@@ -323,84 +323,86 @@ const PilotPortfolio = () => {
 
 	return (
 		<div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
-			{/* Header */}
-			<div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
-				<div className="px-4 py-4 sm:py-6">
-					<div className="flex items-center gap-4 max-w-7xl mx-auto">
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={() => {
-								const isCompany = location.pathname.includes('/company') || userType === 'company';
-								navigate(isCompany ? '/company' : '/pilot');
-							}}
-							className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
-						>
-							<ArrowLeft className="h-7 w-7" />
-						</Button>
+		{/* Header */}
+		<div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-2xl sticky top-0 z-50">
+			<div className="px-3 sm:px-4 py-3 sm:py-4">
+				<div className="flex items-center gap-2 sm:gap-4 max-w-7xl mx-auto">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => {
+							const isCompany = location.pathname.includes('/company') || userType === 'company';
+							navigate(isCompany ? '/company' : '/pilot');
+						}}
+						className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-gray-100 transition-all duration-300 text-gray-900 shrink-0"
+					>
+						<ArrowLeft className="h-5 w-5 sm:h-7 sm:w-7" />
+					</Button>
 
-						<Logo
-							size="xl"
-							className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
-							showText={false}
-						/>
+					<Logo
+						size="lg"
+						className="flex-shrink-0 [&>div]:h-10 [&>div]:w-10 sm:[&>div]:h-14 sm:[&>div]:w-14 transition-all duration-300"
+						showText={false}
+					/>
 
-						<div className="flex flex-col">
-							<h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">
-								Portafolio
-							</h1>
-							<p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
-								Imágenes y Videos de Trabajos
-							</p>
-						</div>
+					<div className="flex flex-col min-w-0">
+						<h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight truncate">
+							Portafolio
+						</h1>
+						<p className="text-[10px] sm:text-sm text-gray-600 font-medium uppercase tracking-wider truncate">
+							Imágenes y Videos
+						</p>
 					</div>
 				</div>
 			</div>
+		</div>
 
-			{/* Content */}
-			<div className="p-4 space-y-6 pb-20 max-w-7xl mx-auto">
-				{/* Help Info */}
-				<div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 flex gap-4 items-start">
-					<ImageIcon className="h-6 w-6 text-blue-400 flex-shrink-0 mt-1" />
-					<div className="text-sm">
-						<p className="font-bold text-blue-300">Portafolio Profesional</p>
-						<p className="text-blue-100/70">Muestra tus mejores tomas y videos editados para generar confianza en tus clientes. Este material será visible directamente en tu Perfil Público.</p>
-					</div>
+		{/* Content */}
+		<div className="p-3 sm:p-4 space-y-4 sm:space-y-6 pb-20 max-w-7xl mx-auto">
+			{/* Help Info */}
+			<div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-3 sm:p-4 flex gap-3 sm:gap-4 items-start">
+				<ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 flex-shrink-0 mt-0.5" />
+				<div className="text-xs sm:text-sm min-w-0">
+					<p className="font-bold text-blue-300">Portafolio Profesional</p>
+					<p className="text-blue-100/70">Muestra tus mejores tomas y videos editados para generar confianza en tus clientes.</p>
 				</div>
+			</div>
 
-				{/* Action Tabs */}
-				<Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-					<div className="bg-gradient-to-r from-[#00b3f3]/20 via-[#00b3f3]/10 to-[#00b3f3]/20 p-1">
-						<CardHeader className="p-6 bg-[#2C2C2C] rounded-xl flex flex-row items-center justify-between space-y-0">
-							<div className="flex items-center gap-3">
-								<div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-									<Plus className="h-5 w-5 text-white" />
+			{/* Action Tabs */}
+			<Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
+				<div className="bg-gradient-to-r from-[#00b3f3]/20 via-[#00b3f3]/10 to-[#00b3f3]/20 p-1">
+					<CardHeader className="p-4 sm:p-6 bg-[#2C2C2C] rounded-xl">
+						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+							<div className="flex items-center gap-3 min-w-0">
+								<div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+									<Plus className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
 								</div>
-								<CardTitle className="text-xl font-bold text-[#E0E0E0]">
+								<CardTitle className="text-base sm:text-xl font-bold text-[#E0E0E0] truncate">
 									Añadir al Portafolio
 								</CardTitle>
 							</div>
-							<div className="flex bg-[#1A1A1A] p-1 rounded-xl">
+							<div className="flex bg-[#1A1A1A] p-1 rounded-xl shrink-0 self-start sm:self-auto">
 								<Button
 									variant={newItemType === 'image' ? 'default' : 'ghost'}
 									size="sm"
 									onClick={() => setNewItemType('image')}
-									className={newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}
+									className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}
 								>
-									<ImageIcon className="h-4 w-4 mr-2" />
+									<ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
 									Imagen
 								</Button>
 								<Button
 									variant={newItemType === 'video' ? 'default' : 'ghost'}
 									size="sm"
 									onClick={() => setNewItemType('video')}
-									className={newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}
+									className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}
 								>
-									<Video className="h-4 w-4 mr-2" />
+									<Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
 									Video
 								</Button>
 							</div>
-						</CardHeader>
+						</div>
+					</CardHeader>
 						<CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-4">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-4">

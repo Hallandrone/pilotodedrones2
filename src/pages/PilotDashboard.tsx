@@ -89,6 +89,7 @@ interface Contact {
   contact_phone: string | null;
   message: string | null;
   contacted_at: string | null;
+  status: string | null;
 }
 
 interface Diploma {
@@ -408,20 +409,20 @@ const PilotDashboard = () => {
 
       {/* Header */}
       <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 relative animate-fade-in">
-        <div className="px-3 sm:px-6 py-2 sm:py-4">
+        <div className="px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between max-w-7xl mx-auto">
             <Logo
-              size="xl"
-              className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] [&>div]:h-20 [&>div]:w-20 sm:[&>div]:h-28 sm:[&>div]:w-28"
+              size="lg"
+              className="hover:scale-105 transition-all duration-300"
               showText={false}
             />
             <Button
               variant="ghost"
               size="sm"
               onClick={handleSignOut}
-              className="text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-200 text-base font-semibold"
+              className="text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl px-4 py-2.5 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-200 font-semibold"
             >
-              <LogOut className="h-5 w-5 sm:h-6 sm:w-6 sm:mr-3" />
+              <LogOut className="h-5 w-5 sm:mr-2" />
               <span className="hidden sm:inline">Cerrar Sesión</span>
             </Button>
           </div>
@@ -591,37 +592,58 @@ const PilotDashboard = () => {
           </Button>
         </div>
 
-        {/* Contactos Recibidos - Botón */}
-        <Card
-          className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 cursor-pointer group animate-fade-in"
-          style={{ animationDelay: '0.25s' }}
-          onClick={() => navigate('/pilot/contacts')}
-        >
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+        {/* Contactos Recibidos - Botón con notificación de no leídos */}
+        {(() => {
+          const unreadContacts = contacts.filter(c => c.status !== 'read').length;
+          return (
+            <Card
+              className={`bg-white/10 backdrop-blur-xl border-2 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer group animate-fade-in ${unreadContacts > 0 ? 'border-[#FF69B4]/50 hover:border-[#FF69B4] shadow-[0_0_20px_rgba(255,105,180,0.2)]' : 'border-[#00b3f3]/30 hover:border-[#00b3f3]/50'}`}
+              style={{ animationDelay: '0.25s' }}
+              onClick={() => navigate('/pilot/contacts')}
+            >
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative h-10 w-10 sm:h-12 sm:w-12 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                      {unreadContacts > 0 && (
+                        <span className="absolute -top-2 -right-2 h-5 w-5 sm:h-6 sm:w-6 bg-[#FF69B4] rounded-full flex items-center justify-center text-white text-[10px] sm:text-xs font-bold border-2 border-[#083b4e] animate-pulse shadow-lg">
+                          {unreadContacts > 9 ? '9+' : unreadContacts}
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold text-base sm:text-lg flex items-center gap-2">
+                        Contactos Recibidos
+                        {unreadContacts > 0 && (
+                          <Badge className="bg-[#FF69B4] text-white text-[10px] animate-pulse">
+                            {unreadContacts} nuevo{unreadContacts !== 1 ? 's' : ''}
+                          </Badge>
+                        )}
+                      </h3>
+                      <p className="text-white/60 text-xs sm:text-sm">
+                        {contacts.length === 0
+                          ? 'Aún no has recibido contactos'
+                          : unreadContacts > 0 
+                            ? `${unreadContacts} sin leer de ${contacts.length} total`
+                            : `${contacts.length} contacto${contacts.length !== 1 ? 's' : ''} reciente${contacts.length !== 1 ? 's' : ''}`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {unreadContacts > 0 ? (
+                      <div className="h-3 w-3 bg-[#FF69B4] rounded-full animate-pulse shadow-lg shadow-[#FF69B4]/50" />
+                    ) : contacts.length > 0 ? (
+                      <Badge className="bg-[#00b3f3] text-white">{contacts.length}</Badge>
+                    ) : null}
+                    <ArrowRight className="h-5 w-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-white font-semibold text-base sm:text-lg">Contactos Recibidos</h3>
-                  <p className="text-white/60 text-xs sm:text-sm">
-                    {contacts.length === 0
-                      ? 'Aún no has recibido contactos'
-                      : `${contacts.length} contacto${contacts.length !== 1 ? 's' : ''} reciente${contacts.length !== 1 ? 's' : ''}`
-                    }
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {contacts.length > 0 && (
-                  <Badge className="bg-[#00b3f3] text-white">{contacts.length}</Badge>
-                )}
-                <ArrowRight className="h-5 w-5 text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Mis Diplomas */}
         <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.27s' }}>

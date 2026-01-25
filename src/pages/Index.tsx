@@ -8,30 +8,22 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Componente para el efecto parallax del background del Hero
+// Componente para el background del Hero (sin parallax para evitar errores de React)
 const HeroParallaxBackground = () => {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 500], [0, -100]);
-
   return (
-    <motion.div
+    <div
       className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-40"
-      style={{ y }}
     />
   );
 };
 
-// Componente para el efecto parallax del background del CTA
+// Componente para el background del CTA (sin parallax para evitar errores de React)
 const CTAParallaxBackground = () => {
-  const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 1000], [0, -150]);
-
   return (
-    <motion.div
+    <div
       className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20"
-      style={{ y }}
     />
   );
 };
@@ -690,16 +682,19 @@ const Index = () => {
             >
               <SearchForm onSearch={handleSearch} />
             </motion.div>
-            {loading && (
-              <motion.p
-                className="mt-6 text-sm text-white/80 animate-pulse"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                Buscando pilotos profesionales...
-              </motion.p>
-            )}
+            <AnimatePresence>
+              {loading && (
+                <motion.p
+                  className="mt-6 text-sm text-white/80 animate-pulse"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  Buscando pilotos profesionales...
+                </motion.p>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </section>
@@ -761,56 +756,46 @@ const Index = () => {
               )}
 
               {/* CTA Section: solo si no hay resultados */}
-              {results.length === 0 && (
-                <motion.section
-                  className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true, margin: "-100px" }}
-                  transition={{ duration: 0.8 }}
-                >
-                  <CTAParallaxBackground />
-                  <motion.div
-                    className="text-center relative z-10"
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
+              <AnimatePresence>
+                {results.length === 0 && (
+                  <motion.section
+                    className="py-16 lg:py-20 bg-gradient-to-r from-accent via-accent to-accent/90 relative overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.8 }}
                   >
-                    <div className="max-w-3xl mx-auto">
-                      <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                        ¿Eres piloto o empresa?
-                      </h3>
-                      <p className="text-xl text-white/90 mb-8 leading-relaxed">
-                        Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
-                      </p>
+                    <CTAParallaxBackground />
+                    <div className="text-center relative z-10">
+                      <div className="max-w-3xl mx-auto">
+                        <h3 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                          ¿Eres piloto o empresa?
+                        </h3>
+                        <p className="text-xl text-white/90 mb-8 leading-relaxed">
+                          Únete a nuestra plataforma y conecta con clientes que necesitan tus servicios profesionales
+                        </p>
 
-                      {/* Drone Image 2 */}
-                      <motion.div
-                        className="mt-10 mb-8 flex justify-center"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                      >
-                        <img
-                          src="/drone-hero-2.png"
-                          alt="Drone FPV profesional"
-                          className="rounded-2xl shadow-2xl max-w-md w-full h-auto"
-                        />
-                      </motion.div>
+                        {/* Drone Image 2 */}
+                        <div className="mt-10 mb-8 flex justify-center">
+                          <img
+                            src="/drone-hero-2.png"
+                            alt="Drone FPV profesional"
+                            className="rounded-2xl shadow-2xl max-w-md w-full h-auto"
+                          />
+                        </div>
 
-                      <Button
-                        variant="secondary"
-                        size="lg"
-                        className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
-                      >
-                        Publicar Perfil Profesional
-                      </Button>
+                        <Button
+                          variant="secondary"
+                          size="lg"
+                          className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
+                        >
+                          Publicar Perfil Profesional
+                        </Button>
+                      </div>
                     </div>
-                  </motion.div>
-                </motion.section>
-              )}
+                  </motion.section>
+                )}
+              </AnimatePresence>
 
               {/* Features */}
               <motion.section

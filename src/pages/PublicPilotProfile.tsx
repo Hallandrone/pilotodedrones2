@@ -647,7 +647,7 @@ const PublicPilotProfile = () => {
               <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">
                 {isCompany ? 'Perfil de Empresa' : 'Perfil Profesional'}
               </h1>
-              <p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
+              <p className="text-xs sm:text-lg text-gray-600 font-medium uppercase tracking-wider">
                 {isCompany && companyData?.company_name ? companyData.company_name : profile.full_name}
               </p>
             </div>

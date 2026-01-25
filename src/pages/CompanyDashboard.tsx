@@ -47,6 +47,7 @@ import { CompanyCertificates } from "@/components/company/CompanyCertificates";
 import { CompanyQR } from "@/components/company/CompanyQR";
 import { CompanyMembership } from "@/components/company/CompanyMembership";
 import { CompanyPortfolio } from "@/components/company/CompanyPortfolio";
+import { CompanyContacts } from "@/components/company/CompanyContacts";
 
 interface CompanyData {
   id: string;
@@ -537,6 +538,7 @@ const CompanyDashboard = () => {
                 <Route path="/qr" element={<CompanyQR />} />
                 <Route path="/membership" element={<CompanyMembership />} />
                 <Route path="/portfolio" element={<CompanyPortfolio />} />
+                <Route path="/contacts" element={<CompanyContacts userId={user?.id} />} />
               </Routes>
             </div>
           </main>

@@ -79,7 +79,7 @@ export const CompanyQR = () => {
 			<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden">
 				<CardHeader className="text-center">
 					<CardTitle className="text-2xl text-white flex items-center justify-center gap-3">
-						<QrIcon className="h-8 w-8 text-[#00b3f3]" />
+						<QrIcon className="h-8 w-8 text-white" />
 						Tu Código QR Profesional
 					</CardTitle>
 					<CardDescription className="text-white/60">Comparte tu perfil de empresa de forma rápida y profesional.</CardDescription>
@@ -91,7 +91,7 @@ export const CompanyQR = () => {
 								<QRCodeSVG value={qrCode} size={240} level="H" />
 							</div>
 							<div className="flex flex-wrap gap-4 justify-center w-full">
-								<Button onClick={handleDownload} className="bg-[#00b3f3] text-white rounded-xl px-6">
+								<Button onClick={handleDownload} className="bg-white/10 hover:bg-white/20 text-white rounded-xl px-6">
 									<Download className="mr-2 h-4 w-4" /> Descargar PNG
 								</Button>
 								<Button variant="outline" onClick={handleCopy} className="border-white/10 text-white hover:bg-white/10 rounded-xl px-6">

@@ -116,9 +116,9 @@ const ProfileContacts = () => {
 	return (
 		<div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
 			{/* Header */}
-			<div className="bg-[#020617]/95 backdrop-blur-xl border-b border-[#00b3f3]/30 shadow-2xl sticky top-0 z-50">
-				<div className="px-4 py-4 sm:py-6">
-					<div className="flex items-center gap-4 max-w-7xl mx-auto">
+			<div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-lg sticky top-0 z-50">
+				<div className="px-3 sm:px-4 py-3 sm:py-4">
+					<div className="flex items-center gap-2 sm:gap-4 max-w-7xl mx-auto">
 						<Button
 							variant="ghost"
 							size="sm"
@@ -126,18 +126,18 @@ const ProfileContacts = () => {
 								const destination = userType === 'company' ? '/company' : '/pilot';
 								navigate(destination);
 							}}
-							className="h-12 w-12 rounded-full hover:bg-[#00b3f3]/20 hover:scale-110 transition-all duration-300 text-white"
+							className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-gray-100 transition-all duration-300 text-gray-900 shrink-0"
 						>
-							<ArrowLeft className="h-7 w-7" />
+							<ArrowLeft className="h-5 w-5 sm:h-7 sm:w-7" />
 						</Button>
 						<Logo
-							size="xl"
-							className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+							size="lg"
+							className="flex-shrink-0 [&>div]:h-10 [&>div]:w-10 sm:[&>div]:h-14 sm:[&>div]:w-14 transition-all duration-300"
 							showText={false}
 						/>
-						<div className="flex flex-col">
-							<h1 className="text-xl sm:text-3xl font-bold text-white tracking-tight">Contactos</h1>
-							<p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
+						<div className="flex flex-col min-w-0">
+							<h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight truncate">Contactos</h1>
+							<p className="text-[10px] sm:text-sm text-gray-600 font-medium uppercase tracking-wider truncate">
 								{unreadCount > 0 ? `${unreadCount} sin leer` : 'Mensajes Recibidos'}
 							</p>
 						</div>

@@ -118,23 +118,23 @@ export const CompanyPortfolio = () => {
 
 	return (
 		<div className="space-y-8 animate-fade-in">
-			<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden">
-				<CardHeader>
-					<div className="flex justify-between items-center">
-						<div>
-							<CardTitle className="text-2xl text-white">Portafolio Profesional</CardTitle>
-							<CardDescription className="text-white/60">Muestra tus mejores trabajos visuales.</CardDescription>
-						</div>
-						<div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-							<Button variant={newItemType === 'image' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('image')} className={newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}>
-								<ImageIcon className="h-4 w-4 mr-2" /> Imagen
-							</Button>
-							<Button variant={newItemType === 'video' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('video')} className={newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}>
-								<Video className="h-4 w-4 mr-2" /> Video
-							</Button>
-						</div>
+		<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden">
+			<CardHeader className="p-4 md:p-6">
+				<div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+					<div className="min-w-0">
+						<CardTitle className="text-lg sm:text-2xl text-white">Portafolio Profesional</CardTitle>
+						<CardDescription className="text-white/60 text-sm">Muestra tus mejores trabajos visuales.</CardDescription>
 					</div>
-				</CardHeader>
+					<div className="flex bg-white/5 p-1 rounded-xl border border-white/10 self-start sm:self-auto shrink-0">
+						<Button variant={newItemType === 'image' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('image')} className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}>
+							<ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> Imagen
+						</Button>
+						<Button variant={newItemType === 'video' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('video')} className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}>
+							<Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> Video
+						</Button>
+					</div>
+				</div>
+			</CardHeader>
 				<CardContent className="space-y-6">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="space-y-4">

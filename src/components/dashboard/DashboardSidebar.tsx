@@ -16,7 +16,8 @@ import {
   QrCode,
   CreditCard,
   MonitorPlay,
-  Image
+  Image,
+  MessageCircle
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,9 +32,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions, type AdminPermission } from "@/hooks/useUserPermissions";
+import { useUnreadContacts } from "@/hooks/useUnreadContacts";
 
 interface DashboardSidebarProps {
   userRole: string | null;
@@ -124,6 +127,12 @@ const menuItems: MenuItem[] = [
     roles: ["company"]
   },
   {
+    title: "Contactos",
+    url: "/company/contacts",
+    icon: MessageCircle,
+    roles: ["company"]
+  },
+  {
     title: "Diplomas",
     url: "/dashboard/diplomas",
     icon: Award,
@@ -158,6 +167,18 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasPermission, isSuperAdmin, loading: permissionsLoading } = useUserPermissions();
+  const [userId, setUserId] = useState<string | undefined>();
+  
+  // Obtener userId para el hook de contactos
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id);
+    };
+    getUser();
+  }, []);
+  
+  const { unreadCount } = useUnreadContacts(userId);
 
   const handleSignOut = async () => {
     try {
@@ -210,11 +231,27 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title + item.url}>
                   <SidebarMenuButton asChild className="text-white hover:text-white">
                     <NavLink to={item.url} end className={getNavClassName}>
-                      <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <div className="relative">
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        {item.title === "Contactos" && unreadCount > 0 && (
+                          <span className="absolute -top-2 -right-2 h-4 w-4 bg-[#FF69B4] rounded-full flex items-center justify-center text-[9px] font-bold text-white animate-pulse">
+                            {unreadCount > 9 ? '9+' : unreadCount}
+                          </span>
+                        )}
+                      </div>
+                      {!collapsed && (
+                        <span className="flex items-center gap-2">
+                          {item.title}
+                          {item.title === "Contactos" && unreadCount > 0 && (
+                            <Badge className="bg-[#FF69B4] text-white text-[10px] h-5 px-1.5 animate-pulse">
+                              {unreadCount}
+                            </Badge>
+                          )}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

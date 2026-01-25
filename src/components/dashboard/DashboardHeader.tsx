@@ -296,7 +296,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="text-gray-700 hover:text-gray-900 [&>svg]:text-gray-700 [&>svg]:hover:text-gray-900" />
-        <Logo size="md" className="hidden md:flex" />
+        <Logo size="sm" className="hidden md:flex" showText={false} />
         
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />

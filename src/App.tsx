@@ -69,6 +69,8 @@ const App = () => (
             <Route path="/pilot/flight-hours" element={<div className="dark"><PilotFlightHours /></div>} />
             <Route path="/pilot/qr" element={<div className="dark"><PilotQR /></div>} />
             <Route path="/pilot/membership" element={<div className="dark"><PilotMembership /></div>} />
+            <Route path="/pilot/portfolio" element={<div className="dark"><PilotPortfolio /></div>} />
+            <Route path="/pilot/contacts" element={<div className="dark"><ProfileContacts /></div>} />
             <Route path="/company/*" element={<div className="dark"><CompanyDashboard /></div>} />
 
             {/* Rutas de debug/fix */}

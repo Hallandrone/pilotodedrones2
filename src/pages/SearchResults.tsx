@@ -439,7 +439,7 @@ const SearchResults = () => {
               <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">
                 Buscar Pilotos
               </h1>
-              <p className="text-xs sm:text-lg text-[#00b3f3] font-medium uppercase tracking-wider">
+              <p className="text-xs sm:text-lg text-gray-600 font-medium uppercase tracking-wider">
                 Explora profesionales certificados
               </p>
             </div>
