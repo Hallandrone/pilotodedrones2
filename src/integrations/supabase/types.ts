@@ -791,6 +791,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_permissions: {
+        Row: {
+          created_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          permission: Database["public"]["Enums"]["admin_permission"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission: Database["public"]["Enums"]["admin_permission"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission?: Database["public"]["Enums"]["admin_permission"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -910,7 +937,15 @@ export type Database = {
       }
       delete_user: { Args: { target_user_id: string }; Returns: undefined }
       get_invitation_by_token: { Args: { token_param: string }; Returns: Json }
+      get_user_permissions: { Args: { _user_id: string }; Returns: string[] }
       get_user_plan: { Args: { user_id_param: string }; Returns: string }
+      has_permission: {
+        Args: {
+          _permission: Database["public"]["Enums"]["admin_permission"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
@@ -933,6 +968,13 @@ export type Database = {
       }
     }
     Enums: {
+      admin_permission:
+        | "create_diplomas"
+        | "manage_certificates"
+        | "view_users"
+        | "view_companies"
+        | "view_notifications"
+        | "manage_banners"
       user_role: "pilot" | "company" | "admin" | "super_admin"
     }
     CompositeTypes: {
@@ -1061,6 +1103,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admin_permission: [
+        "create_diplomas",
+        "manage_certificates",
+        "view_users",
+        "view_companies",
+        "view_notifications",
+        "manage_banners",
+      ],
       user_role: ["pilot", "company", "admin", "super_admin"],
     },
   },

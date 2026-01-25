@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   User2,
@@ -15,7 +15,8 @@ import {
   Award,
   QrCode,
   CreditCard,
-  MonitorPlay
+  MonitorPlay,
+  Image
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,12 +33,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useUserPermissions, type AdminPermission } from "@/hooks/useUserPermissions";
 
 interface DashboardSidebarProps {
   userRole: string | null;
 }
 
-const menuItems = [
+interface MenuItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles: string[];
+  permission?: AdminPermission;
+}
+
+const menuItems: MenuItem[] = [
   {
     title: "Inicio",
     url: "/dashboard",
@@ -66,7 +76,8 @@ const menuItems = [
     title: "Pilotos",
     url: "/dashboard/pilots",
     icon: Plane,
-    roles: ["super_admin", "admin"]
+    roles: ["super_admin", "admin"],
+    permission: "view_users"
   },
   {
     title: "Mis Pilotos",
@@ -78,13 +89,15 @@ const menuItems = [
     title: "Empresas",
     url: "/dashboard/companies",
     icon: Building,
-    roles: ["super_admin", "admin"]
+    roles: ["super_admin", "admin"],
+    permission: "view_companies"
   },
   {
     title: "Certificados",
     url: "/dashboard/certificates",
     icon: FileCheck,
-    roles: ["super_admin", "admin"]
+    roles: ["super_admin", "admin"],
+    permission: "manage_certificates"
   },
   {
     title: "Certificados",
@@ -114,13 +127,22 @@ const menuItems = [
     title: "Diplomas",
     url: "/dashboard/diplomas",
     icon: Award,
-    roles: ["super_admin", "admin"]
+    roles: ["super_admin", "admin"],
+    permission: "create_diplomas"
   },
   {
     title: "Notificaciones",
     url: "/dashboard/notifications",
     icon: Bell,
-    roles: ["super_admin", "admin"]
+    roles: ["super_admin", "admin"],
+    permission: "view_notifications"
+  },
+  {
+    title: "Banners",
+    url: "/dashboard/banners",
+    icon: Image,
+    roles: ["super_admin", "admin"],
+    permission: "manage_banners"
   },
   {
     title: "Configuración",
@@ -135,6 +157,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasPermission, isSuperAdmin, loading: permissionsLoading } = useUserPermissions();
 
   const handleSignOut = async () => {
     try {
@@ -153,9 +176,25 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
     }
   };
 
-  const filteredItems = menuItems.filter(item =>
-    userRole && item.roles.includes(userRole)
-  );
+  // Filter items based on role and permissions
+  const filteredItems = menuItems.filter(item => {
+    // First check role
+    if (!userRole || !item.roles.includes(userRole)) {
+      return false;
+    }
+    
+    // For super_admin, show everything
+    if (userRole === 'super_admin' || isSuperAdmin) {
+      return true;
+    }
+    
+    // For admin role, check specific permissions
+    if (userRole === 'admin' && item.permission) {
+      return hasPermission(item.permission);
+    }
+    
+    return true;
+  });
 
   const getNavClassName = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive

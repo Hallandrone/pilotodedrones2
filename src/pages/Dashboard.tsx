@@ -9,12 +9,14 @@ import Logo from "@/components/ui/logo";
 import { Pilots } from "@/components/dashboard/Pilots";
 import { Companies } from "@/components/dashboard/Companies";
 import { Configuration } from "@/components/dashboard/Configuration";
+import { BannerConfiguration } from "@/components/dashboard/BannerConfiguration";
 import AdminCertificates from "./AdminCertificates";
 import DiplomaGenerator from "./DiplomaGenerator";
 import UserProfile from "./UserProfile";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import { getUserRole, isAdmin } from "@/lib/auth-utils";
+import { useUserPermissions } from "@/hooks/useUserPermissions";
 import type { User } from '@supabase/supabase-js';
 
 const Dashboard = () => {
@@ -57,9 +59,18 @@ const Dashboard = () => {
         return;
       }
 
-      // Check if user is admin
+      // Check if user is admin or has any admin permissions
       const isUserAdmin = await isAdmin(session.user.id);
-      if (!isUserAdmin) {
+      
+      // Also check if user has any admin permissions (for sub-admins)
+      const { data: permissionsData } = await supabase
+        .from('user_permissions')
+        .select('permission')
+        .eq('user_id', session.user.id);
+      
+      const hasAnyPermissions = permissionsData && permissionsData.length > 0;
+
+      if (!isUserAdmin && !hasAnyPermissions) {
         toast({
           title: "Acceso denegado",
           description: "No tienes permisos para acceder al dashboard",
@@ -124,6 +135,7 @@ const Dashboard = () => {
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/certificates" element={<AdminCertificates />} />
                 <Route path="/diplomas" element={<DiplomaGenerator />} />
+                <Route path="/banners" element={<BannerConfiguration />} />
                 <Route path="/configuracion" element={<Configuration />} />
               </Routes>
             </div>
