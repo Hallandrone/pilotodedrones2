@@ -75,12 +75,12 @@ interface PilotProfile {
   user_id: string;
   phone: string | null;
   certifications: string[] | null;
-  certification_status: boolean;
-  certification_validated_at: string | null;
-  certification_expires_at: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
+  certification_status: boolean | null;
+  certification_validated_at?: string | null;
+  certification_expires_at?: string | null;
+  status: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   profiles: {
     full_name: string | null;
     email: string | null;

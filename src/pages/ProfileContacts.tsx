@@ -15,9 +15,9 @@ interface Contact {
 	contact_name: string;
 	contact_email: string;
 	contact_phone: string | null;
-	contact_message: string | null;
-	contacted_at: string;
-	is_read: boolean;
+	message: string | null;
+	contacted_at: string | null;
+	status: string | null;
 }
 
 const ProfileContacts = () => {
@@ -82,13 +82,13 @@ const ProfileContacts = () => {
 		try {
 			const { error } = await supabase
 				.from('profile_contacts')
-				.update({ is_read: true })
+				.update({ status: 'read' })
 				.eq('id', contactId);
 
 			if (error) throw error;
 
 			setContacts(contacts.map(c =>
-				c.id === contactId ? { ...c, is_read: true } : c
+				c.id === contactId ? { ...c, status: 'read' } : c
 			));
 		} catch (error) {
 			console.error('Error marking as read:', error);
@@ -100,7 +100,7 @@ const ProfileContacts = () => {
 		contact.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
-	const unreadCount = contacts.filter(c => !c.is_read).length;
+	const unreadCount = contacts.filter(c => c.status !== 'read').length;
 
 	if (loading) {
 		return (
@@ -182,15 +182,15 @@ const ProfileContacts = () => {
 								transition={{ duration: 0.3, delay: index * 0.05 }}
 							>
 								<Card
-									className={`bg-[#212121] border ${contact.is_read ? 'border-[#333333]' : 'border-[#FF69B4]/50'} hover:border-[#FF69B4] transition-all duration-200`}
-									onClick={() => !contact.is_read && markAsRead(contact.id)}
+									className={`bg-[#212121] border ${contact.status === 'read' ? 'border-[#333333]' : 'border-[#FF69B4]/50'} hover:border-[#FF69B4] transition-all duration-200`}
+									onClick={() => contact.status !== 'read' && markAsRead(contact.id)}
 								>
 									<CardHeader className="pb-3">
 										<div className="flex items-start justify-between">
 											<div className="flex-1">
 												<CardTitle className="text-lg text-[#E0E0E0] flex items-center gap-2">
 													{contact.contact_name}
-													{!contact.is_read && (
+													{contact.status !== 'read' && (
 														<Badge className="bg-[#FF69B4] text-white text-xs">Nuevo</Badge>
 													)}
 												</CardTitle>
@@ -230,11 +230,11 @@ const ProfileContacts = () => {
 												</a>
 											</div>
 										)}
-										{contact.contact_message && (
+										{contact.message && (
 											<div className="mt-3 p-3 bg-[#2C2C2C] rounded-lg border border-[#333333]">
 												<p className="text-sm text-[#B0B0B0] leading-relaxed">
 													<MessageCircle className="h-4 w-4 inline mr-2 text-[#FF69B4]" />
-													{contact.contact_message}
+													{contact.message}
 												</p>
 											</div>
 										)}

@@ -41,6 +41,8 @@ interface Membership {
   price: number;
   features: string[];
   reveniu_subscription_id?: string | null;
+  flow_subscription_id?: string | null;
+  flow_plan_id?: string | null;
 }
 
 interface AvailablePlan {
@@ -283,13 +285,13 @@ const PilotMembership = () => {
         console.log('✅ ES PILOTO DE EMPRESA. Company ID:', pilotCompanyData.company_id);
 
         // ES PILOTO DE EMPRESA - Cargar nombre de empresa
-        const { data: companyProfile } = await supabase
-          .from('profiles')
-          .select('company_name, full_name')
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('company_name')
           .eq('id', pilotCompanyData.company_id)
           .single();
 
-        const companyName = companyProfile?.company_name || companyProfile?.full_name || 'la empresa';
+        const companyName = (companyData as any)?.company_name || 'la empresa';
         console.log('🏢 Nombre de empresa:', companyName);
         setSponsoringCompany(companyName);
 

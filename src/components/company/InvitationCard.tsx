@@ -36,7 +36,8 @@ export function InvitationCard({ invitation, onAccept, onReject }: InvitationCar
 			if (error) throw error;
 
 			if (data && typeof data === 'object' && 'success' in data) {
-				if (data.success) {
+				const responseData = data as { success: boolean; error?: string };
+				if (responseData.success) {
 					toast({
 						title: '¡Bienvenido al equipo!',
 						description: 'Ahora tienes acceso a todas las características Pro',
@@ -45,7 +46,7 @@ export function InvitationCard({ invitation, onAccept, onReject }: InvitationCar
 				} else {
 					toast({
 						title: 'No se pudo aceptar la invitación',
-						description: data.error || 'Error desconocido',
+						description: responseData.error || 'Error desconocido',
 						variant: 'destructive',
 					});
 				}
@@ -72,7 +73,8 @@ export function InvitationCard({ invitation, onAccept, onReject }: InvitationCar
 			if (error) throw error;
 
 			if (data && typeof data === 'object' && 'success' in data) {
-				if (data.success) {
+				const responseData = data as { success: boolean; error?: string };
+				if (responseData.success) {
 					toast({
 						title: 'Invitación rechazada',
 						description: 'Has rechazado la invitación',
@@ -81,7 +83,7 @@ export function InvitationCard({ invitation, onAccept, onReject }: InvitationCar
 				} else {
 					toast({
 						title: 'Error',
-						description: data.error || 'No se pudo rechazar la invitación',
+						description: responseData.error || 'No se pudo rechazar la invitación',
 						variant: 'destructive',
 					});
 				}

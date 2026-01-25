@@ -202,12 +202,12 @@ const AdminCertificates = () => {
         return profile ? { full_name: profile.full_name || 'Usuario', email: profile.email || '' } : null;
       };
 
-      const certificationRecords: DocumentRecord[] = (certsData || []).map((cert) => ({
+      const certificationRecords = (certsData || []).map((cert) => ({
         id: cert.id,
         user_id: cert.user_id,
         file_name: cert.file_name,
         file_url: cert.file_url,
-        status: cert.status,
+        status: cert.status as 'pending' | 'validated' | 'rejected',
         uploaded_at: cert.uploaded_at,
         validated_at: cert.validated_at,
         rejection_observations: cert.rejection_observations,
@@ -216,14 +216,14 @@ const AdminCertificates = () => {
         storage_bucket: 'certifications',
         source: 'user_certifications',
         profiles: getProfile(cert.user_id)
-      }));
+      })) as DocumentRecord[];
 
-      const flightLogRecords: DocumentRecord[] = (logsData || []).map((log) => ({
+      const flightLogRecords = (logsData || []).map((log) => ({
         id: log.id,
         user_id: log.user_id,
         file_name: log.file_name,
         file_url: log.file_url,
-        status: log.status,
+        status: log.status as 'pending' | 'validated' | 'rejected',
         uploaded_at: log.uploaded_at,
         validated_at: log.validated_at,
         rejection_observations: log.rejection_observations,
@@ -237,7 +237,7 @@ const AdminCertificates = () => {
         notes: log.notes,
         flight_hours: log.flight_hours,
         profiles: getProfile(log.user_id)
-      }));
+      })) as DocumentRecord[];
 
       const combined = [...certificationRecords, ...flightLogRecords].sort(
         (a, b) => new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime()

@@ -38,13 +38,13 @@ const SearchForm = ({ onSearch }: SearchFormProps) => {
         // Obtener specialties de profiles (solo usuarios activos con suscripción)
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("specialties, user_id")
+          .select("specialties")
           .not("specialties", "is", null);
 
         if (profilesData) {
           profilesData.forEach((profile) => {
             if (profile.specialties && Array.isArray(profile.specialties)) {
-              profile.specialties.forEach((specialty: string) => {
+              (profile.specialties as string[]).forEach((specialty: string) => {
                 if (specialty && specialty.trim()) {
                   workTypeSet.add(specialty.trim());
                 }

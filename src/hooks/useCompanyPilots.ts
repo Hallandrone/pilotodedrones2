@@ -115,27 +115,57 @@ export function useCompanyPilots(companyId?: string) {
 		if (!companyId) return;
 
 		try {
-			const { data, error } = await supabase
+			// Primero obtener los company_pilots
+			const { data: companyPilotsData, error: cpError } = await supabase
 				.from('company_pilots')
-				.select(`
-          id,
-          company_id,
-          pilot_id,
-          created_at,
-          pilot:pilots (
-            id,
-            profile:profiles (
-              id,
-              full_name,
-              email,
-              avatar_url
-            )
-          )
-        `)
+				.select('id, company_id, pilot_id, created_at')
 				.eq('company_id', companyId);
 
-			if (error) throw error;
-			setPilots(data || []);
+			if (cpError) throw cpError;
+
+			if (!companyPilotsData || companyPilotsData.length === 0) {
+				setPilots([]);
+				setLoading(false);
+				return;
+			}
+
+			// Obtener los IDs de pilotos
+			const pilotIds = companyPilotsData.map(cp => cp.pilot_id);
+
+			// Obtener datos de pilots
+			const { data: pilotsData, error: pilotsError } = await supabase
+				.from('pilots')
+				.select('id, user_id')
+				.in('id', pilotIds);
+
+			if (pilotsError) throw pilotsError;
+
+			// Obtener user_ids para buscar profiles
+			const userIds = pilotsData?.map(p => p.user_id) || [];
+
+			// Obtener profiles
+			const { data: profilesData, error: profilesError } = await supabase
+				.from('profiles')
+				.select('id, full_name, email, avatar_url')
+				.in('id', userIds);
+
+			if (profilesError) throw profilesError;
+
+			// Combinar datos
+			const combinedPilots = companyPilotsData.map(cp => {
+				const pilotRecord = pilotsData?.find(p => p.id === cp.pilot_id);
+				const profileRecord = profilesData?.find(pr => pr.id === pilotRecord?.user_id);
+				
+				return {
+					...cp,
+					pilot: pilotRecord ? {
+						id: pilotRecord.id,
+						profile: profileRecord || null
+					} : null
+				};
+			});
+
+			setPilots(combinedPilots as unknown as CompanyPilot[]);
 		} catch (error) {
 			console.error('Error loading pilots:', error);
 		} finally {
@@ -147,31 +177,48 @@ export function useCompanyPilots(companyId?: string) {
 		if (!companyId) return;
 
 		try {
-			// @ts-ignore - Tabla company_pilot_invitations creada por migración
-			const { data, error } = await supabase
+			// Obtener invitaciones
+			const { data: invitationsData, error: invError } = await supabase
 				.from('company_pilot_invitations')
-				.select(`
-          id,
-          company_id,
-          pilot_email,
-          pilot_id,
-          status,
-          invited_by,
-          invited_at,
-          responded_at,
-          message,
-          pilot:profiles!company_pilot_invitations_pilot_id_fkey (
-            id,
-            full_name,
-            email,
-            avatar_url
-          )
-        `)
+				.select('id, company_id, pilot_email, pilot_id, status, invited_by, invited_at, responded_at, message')
 				.eq('company_id', companyId)
 				.order('invited_at', { ascending: false });
 
-			if (error) throw error;
-			setInvitations(data || []);
+			if (invError) throw invError;
+
+			if (!invitationsData || invitationsData.length === 0) {
+				setInvitations([]);
+				return;
+			}
+
+			// Obtener profiles para invitaciones con pilot_id
+			const pilotIds = invitationsData
+				.filter(inv => inv.pilot_id)
+				.map(inv => inv.pilot_id) as string[];
+
+			let profilesMap: Record<string, any> = {};
+
+			if (pilotIds.length > 0) {
+				const { data: profilesData } = await supabase
+					.from('profiles')
+					.select('id, full_name, email, avatar_url')
+					.in('id', pilotIds);
+
+				if (profilesData) {
+					profilesMap = profilesData.reduce((acc, p) => {
+						acc[p.id] = p;
+						return acc;
+					}, {} as Record<string, any>);
+				}
+			}
+
+			// Combinar datos
+			const combinedInvitations = invitationsData.map(inv => ({
+				...inv,
+				pilot: inv.pilot_id ? profilesMap[inv.pilot_id] || null : null
+			}));
+
+			setInvitations(combinedInvitations as unknown as PilotInvitation[]);
 		} catch (error) {
 			console.error('Error loading invitations:', error);
 		}
@@ -242,12 +289,13 @@ export function useCompanyPilots(companyId?: string) {
 					loadInvitations();
 					return { success: true };
 				} else {
+					const responseData = data as { success: boolean; error?: string };
 					toast({
 						title: 'No se pudo enviar la invitación',
-						description: data.error || 'Error desconocido',
+						description: String(responseData.error || 'Error desconocido'),
 						variant: 'destructive',
 					});
-					return { success: false, error: data.error };
+					return { success: false, error: String(responseData.error || 'Error desconocido') };
 				}
 			}
 

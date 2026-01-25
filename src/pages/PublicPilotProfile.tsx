@@ -88,12 +88,12 @@ interface Diploma {
 
 interface PortfolioItem {
   id: string;
-  type: 'image' | 'video';
+  type: string;
   url: string;
-  thumbnail_url?: string;
-  title: string;
-  description: string;
-  display_order: number;
+  thumbnail_url?: string | null;
+  title: string | null;
+  description: string | null;
+  display_order: number | null;
 }
 
 const getYouTubeId = (url: string) => {
@@ -229,8 +229,10 @@ const PublicPilotProfile = () => {
   const loadPilotProfile = async () => {
     try {
       // Validar que tenemos un parámetro válido
-      if (!pilotId || pilotId === 'undefined' || pilotId.trim() === '') {
-        throw new Error('Parámetro de perfil no válido');
+      if (!pilotId || pilotId === 'undefined' || pilotId.trim() === '' || pilotId === 'profile' || pilotId === 'dashboard' || pilotId === 'company') {
+        // Redirigir a la página principal si es una ruta reservada
+        navigate('/', { replace: true });
+        return;
       }
 
       setLoading(true);

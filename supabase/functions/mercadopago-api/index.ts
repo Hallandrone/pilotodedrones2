@@ -130,8 +130,9 @@ Deno.serve(async (req) => {
 		throw new Error("Acción no válida");
 
 	} catch (error) {
-		console.error("Edge Function Error:", error.message);
-		return new Response(JSON.stringify({ error: error.message }), {
+		const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+		console.error("Edge Function Error:", errorMessage);
+		return new Response(JSON.stringify({ error: errorMessage }), {
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 			status: 400,
 		});

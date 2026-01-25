@@ -83,8 +83,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           },
           (payload) => {
             console.log('Certification change detected:', payload);
-            const newStatus = payload.new?.status;
-            const oldStatus = payload.old?.status;
+            const newRecord = payload.new as Record<string, unknown> | null;
+            const oldRecord = payload.old as Record<string, unknown> | null;
+            const newStatus = newRecord?.status;
+            const oldStatus = oldRecord?.status;
             
             if (payload.eventType === 'INSERT' && newStatus === 'pending') {
               loadPendingCertifications();
@@ -109,8 +111,10 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           },
           (payload) => {
             console.log('Flight log change detected:', payload);
-            const newStatus = payload.new?.status;
-            const oldStatus = payload.old?.status;
+            const newRecord = payload.new as Record<string, unknown> | null;
+            const oldRecord = payload.old as Record<string, unknown> | null;
+            const newStatus = newRecord?.status;
+            const oldStatus = oldRecord?.status;
             
             if (payload.eventType === 'INSERT' && newStatus === 'pending') {
               loadPendingFlightLogs();
@@ -289,16 +293,16 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   const notificationCount = pendingCertifications.length + pendingFlightLogs.length;
 
   return (
-    <header className="h-16 bg-card/50 backdrop-blur-sm border-b flex items-center justify-between px-6">
+    <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="text-white hover:text-white/80 [&>svg]:text-white [&>svg]:hover:text-white/80" />
+        <SidebarTrigger className="text-gray-700 hover:text-gray-900 [&>svg]:text-gray-700 [&>svg]:hover:text-gray-900" />
         <Logo size="md" className="hidden md:flex" />
         
         <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/80" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
             placeholder="Buscar en el dashboard..."
-            className="pl-10 bg-background/50"
+            className="pl-10 bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-500"
           />
         </div>
       </div>
@@ -307,8 +311,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
         {/* Notifications Button - Visible siempre, pero solo funciona para super_admin */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative hover:bg-accent">
-              <Bell className="h-5 w-5 text-white hover:text-white/80 transition-colors" />
+            <Button variant="ghost" size="icon" className="relative hover:bg-gray-100">
+              <Bell className="h-5 w-5 text-gray-700 hover:text-gray-900 transition-colors" />
               {isSuperAdmin && notificationCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-5 w-5 bg-[#00b3f3] rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-md">
                   {notificationCount > 9 ? '9+' : notificationCount}
@@ -429,11 +433,11 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                   {getInitials(getDisplayName())}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-foreground">
+            <div className="hidden md:block text-left">
+                <p className="text-sm font-medium text-gray-900">
                   {getDisplayName()}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-gray-500">
                   {userRole?.role ? getRoleDisplayName(userRole.role) : 'Cargando...'}
                 </p>
               </div>

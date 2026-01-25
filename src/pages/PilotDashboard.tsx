@@ -55,11 +55,13 @@ interface PilotData {
   user_id: string;
   phone: string | null;
   certifications: string[] | null;
-  certification_status: boolean;
-  certification_validated_at: string | null;
-  certification_expires_at: string | null;
-  status: string;
-  created_at: string;
+  certification_status: boolean | null;
+  certification_validated_at?: string | null;
+  certification_expires_at?: string | null;
+  certification_academy?: string | null;
+  status: string | null;
+  created_at: string | null;
+  updated_at?: string | null;
   profiles: {
     full_name: string | null;
     email: string | null;
@@ -70,7 +72,7 @@ interface PilotData {
     service_type: string;
     description: string | null;
     price_per_hour: number | null;
-    is_published: boolean;
+    is_published: boolean | null;
   }>;
 }
 
@@ -85,8 +87,8 @@ interface Contact {
   contact_name: string;
   contact_email: string;
   contact_phone: string | null;
-  contact_message: string | null;
-  contacted_at: string;
+  message: string | null;
+  contacted_at: string | null;
 }
 
 interface Diploma {
@@ -213,13 +215,11 @@ const PilotDashboard = () => {
             certifications: null,
             certification_status: false,
             certification_academy: null,
-            certification_validated_at: null,
-            certification_expires_at: null,
             status: 'active',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             pilot_services: []
-          };
+          } as any;
         } else {
           pilotInfo = {
             ...newPilotData,
@@ -667,7 +667,7 @@ const PilotDashboard = () => {
                     <Award className="h-8 w-8 text-white/20" />
                   </div>
                   <p className="text-white/60 mb-2">No tienes diplomas asociados aún.</p>
-                  <p className="text-[#00b3f3] text-sm font-medium">Escanea el QR de tu diploma para que aparezca aquí.</p>
+                  <p className="text-[#00b3f3] text-sm font-medium">Escanea el QR de tu diploma de Academia de Drones de Chile para que aparezca aquí.</p>
                 </div>
               ) : (
                 <div className="space-y-4">

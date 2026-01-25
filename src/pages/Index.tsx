@@ -89,25 +89,10 @@ const Index = () => {
 
   const loadFeaturedPilots = async () => {
     try {
-      // Fetch certified pilots with active subscriptions
+      // Fetch certified pilots
       const { data: pilotsData, error: pilotsError } = await supabase
         .from('pilots')
-        .select(`
-          id,
-          user_id,
-          certification_status,
-          certification_academy,
-          profiles:user_id (
-            id,
-            full_name,
-            location,
-            region,
-            specialties,
-            drone_types,
-            avatar_url,
-            experience_years
-          )
-        `)
+        .select('id, user_id, certification_status, certification_academy')
         .eq('certification_status', true)
         .eq('status', 'approved');
 
@@ -115,6 +100,20 @@ const Index = () => {
 
       // Get pilot ids
       const pilotUserIds = pilotsData?.map(p => p.user_id) || [];
+
+      // Fetch profiles separately
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, location, region, specialties, drone_types, avatar_url, experience_years')
+        .in('id', pilotUserIds);
+
+      if (profilesError) throw profilesError;
+
+      // Merge pilot data with profiles
+      const pilotsWithProfiles = pilotsData?.map(pilot => ({
+        ...pilot,
+        profiles: profilesData?.find(p => p.id === pilot.user_id)
+      })) || [];
 
       // Fetch subscriptions for these pilots (including featured_until)
       const { data: subscriptions, error: subsError } = await supabase
@@ -132,7 +131,7 @@ const Index = () => {
       const activeUserIds = new Set((subscriptions || [])?.map(s => s.user_id) || []);
 
       // YA NO filtramos solo por suscripción activa, los incluimos todos
-      const pilotsWithSubscription = pilotsData || [];
+      const pilotsWithSubscription = pilotsWithProfiles || [];
 
       // Separar pilotos destacados (featured_until > NOW) de los demás
       const now = new Date();
@@ -234,7 +233,7 @@ const Index = () => {
       });
 
       // Transform and randomize
-      const transformedPilots = allQualifiedPilots.map(pilot => ({
+      const transformedPilots = allQualifiedPilots.map((pilot: any) => ({
         id: pilot.id,
         name: pilot.profiles?.full_name || 'Piloto Profesional',
         location: pilot.profiles?.location || pilot.profiles?.region || 'Chile',
@@ -260,24 +259,7 @@ const Index = () => {
       // Obtener empresas con Plan Empresa activo y destacadas
       const { data: companiesData, error: companiesError } = await supabase
         .from('companies')
-        .select(`
-          id,
-          user_id,
-          company_name,
-          logo_url,
-          description,
-          is_featured,
-          featured_until,
-          profiles:user_id (
-            id,
-            full_name,
-            email,
-            avatar_url,
-            location,
-            region,
-            public_profile_slug
-          )
-        `)
+        .select('id, user_id, company_name, logo_url, description, is_featured, featured_until, certification_status')
         .eq('is_featured', true)
         .or('featured_until.is.null,featured_until.gt.' + new Date().toISOString())
         .limit(6);
@@ -293,8 +275,24 @@ const Index = () => {
         return;
       }
 
-      // Verificar que tengan suscripción activa de Plan Empresa
+      // Fetch profiles separately
       const companyUserIds = companiesData.map(c => c.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, location, region, public_profile_slug')
+        .in('id', companyUserIds);
+
+      if (profilesError) {
+        console.error('Error loading profiles:', profilesError);
+      }
+
+      // Merge company data with profiles
+      const companiesWithProfiles = companiesData.map(company => ({
+        ...company,
+        profiles: profilesData?.find(p => p.id === company.user_id)
+      }));
+
+      // Verificar que tengan suscripción activa de Plan Empresa
       const { data: subscriptions } = await supabase
         .from('user_subscriptions')
         .select('user_id, status, plan_name')
@@ -307,12 +305,12 @@ const Index = () => {
       );
 
       // Filtrar solo empresas con suscripción activa
-      const activeCompanies = companiesData.filter(c =>
+      const activeCompanies = companiesWithProfiles.filter(c =>
         activeCompanyUserIds.has(c.user_id) && c.profiles
       );
 
       // Transformar para usar el mismo formato que PilotCard (simplificado)
-      const transformedCompanies = activeCompanies.map(company => ({
+      const transformedCompanies = activeCompanies.map((company: any) => ({
         id: company.id,
         user_id: company.user_id,
         full_name: company.company_name || company.profiles?.full_name,

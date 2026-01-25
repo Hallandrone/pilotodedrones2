@@ -61,9 +61,9 @@ Deno.serve(async (req) => {
     const eventType = payload.data?.event || payload.event || 'unknown';
     const subscriptionId = eventData.subscription_id || eventData.id || eventData.sub_id;
     const externalId = eventData.subscription_external_id || eventData.external_id;
-    const customerEmail = eventData.customer_email || eventData.email || eventData.customer?.email;
+    const eventCustomerEmail = eventData.customer_email || eventData.email || eventData.customer?.email;
 
-    console.log(`Event type: ${eventType}, Subscription ID: ${subscriptionId}, External ID: ${externalId || 'null'}, Customer Email: ${customerEmail || 'null'}`);
+    console.log(`Event type: ${eventType}, Subscription ID: ${subscriptionId}, External ID: ${externalId || 'null'}, Customer Email: ${eventCustomerEmail || 'null'}`);
     console.log('Full event data:', JSON.stringify(eventData, null, 2));
     console.log('Event data for plan detection:', JSON.stringify({
       plan_id: eventData.plan_id,
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       amount: eventData.amount,
       price: eventData.price,
       plan_amount: eventData.plan_amount,
-      customer_email: customerEmail
+      customer_email: eventCustomerEmail
     }, null, 2));
 
     if (!subscriptionId) {
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
 
     // Buscar usuario
     let profile = null;
-    let customerEmail = null;
+    let foundCustomerEmail: string | null = null;
 
     // Estrategia 1: Si hay external_id, usarlo directamente (debería ser el user_id)
     if (externalId) {
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
 
       if (profileData) {
         profile = profileData;
-        customerEmail = profileData.email;
+        foundCustomerEmail = profileData.email;
         console.log(`✅ Found user by external_id: ${profile.id}`);
       } else {
         console.log(`❌ User not found with external_id: ${externalId}`);
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
 
         if (profileData) {
           profile = profileData;
-          customerEmail = profileData.email;
+          foundCustomerEmail = profileData.email;
           console.log(`✅ Found user by existing subscription: ${profile.id}`);
         } else {
           console.log(`❌ Profile not found for user_id: ${existingSubscription.user_id}`);
@@ -213,12 +213,12 @@ Deno.serve(async (req) => {
 
                 // Procesar con autenticación alternativa exitosa
                 const subscription = subscriptionData.subscription || subscriptionData.data || subscriptionData;
-                customerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
+                foundCustomerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
 
-                console.log(`Extracted customer email: ${customerEmail || 'NOT FOUND'}`);
+                console.log(`Extracted customer email: ${foundCustomerEmail || 'NOT FOUND'}`);
 
-                if (customerEmail && typeof customerEmail === 'string') {
-                  const normalizedEmail = customerEmail.toLowerCase().trim();
+                if (foundCustomerEmail && typeof foundCustomerEmail === 'string') {
+                  const normalizedEmail = foundCustomerEmail.toLowerCase().trim();
                   console.log(`Searching for profile with email: ${normalizedEmail}`);
                   const { data: profileData, error: profileError } = await supabase
                     .from('profiles')
@@ -265,12 +265,12 @@ Deno.serve(async (req) => {
 
             // Intentar diferentes formatos de respuesta
             const subscription = subscriptionData.subscription || subscriptionData.data || subscriptionData;
-            customerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
+            foundCustomerEmail = subscription.customer_email || subscription.email || subscription.customer?.email;
 
-            console.log(`Extracted customer email: ${customerEmail || 'NOT FOUND'}`);
+            console.log(`Extracted customer email: ${foundCustomerEmail || 'NOT FOUND'}`);
 
-            if (customerEmail && typeof customerEmail === 'string') {
-              const normalizedEmail = customerEmail.toLowerCase().trim();
+            if (foundCustomerEmail && typeof foundCustomerEmail === 'string') {
+              const normalizedEmail = foundCustomerEmail.toLowerCase().trim();
               console.log(`Searching for profile with email: ${normalizedEmail}`);
               const { data: profileData, error: profileError } = await supabase
                 .from('profiles')
