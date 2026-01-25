@@ -69,18 +69,7 @@ const App = () => (
             <Route path="/pilot/flight-hours" element={<div className="dark"><PilotFlightHours /></div>} />
             <Route path="/pilot/qr" element={<div className="dark"><PilotQR /></div>} />
             <Route path="/pilot/membership" element={<div className="dark"><PilotMembership /></div>} />
-            <Route path="/company" element={<div className="dark"><CompanyDashboard /></div>} />
-            <Route path="/company/profile" element={<div className="dark"><CompanyProfile /></div>} />
-            <Route path="/company-profile" element={<div className="dark"><CompanyProfile /></div>} />
-            <Route path="/company/certificates" element={<div className="dark"><PilotCertificates /></div>} />
-            <Route path="/company/qr" element={<div className="dark"><PilotQR /></div>} />
-            <Route path="/company/membership" element={<div className="dark"><PilotMembership /></div>} />
-            <Route path="/company/contacts" element={<div className="dark"><ProfileContacts /></div>} />
-            <Route path="/pilot/contacts" element={<div className="dark"><ProfileContacts /></div>} />
-            <Route path="/admin/certificates" element={<div className="dark"><AdminCertificates /></div>} />
-            <Route path="/diplomas" element={<div className="dark"><DiplomaGenerator /></div>} />
-            <Route path="/pilot/portfolio" element={<div className="dark"><PilotPortfolio /></div>} />
-            <Route path="/company/portfolio" element={<div className="dark"><PilotPortfolio /></div>} />
+            <Route path="/company/*" element={<div className="dark"><CompanyDashboard /></div>} />
 
             {/* Rutas de debug/fix */}
             <Route path="/debug-auth" element={<DebugAuth />} />

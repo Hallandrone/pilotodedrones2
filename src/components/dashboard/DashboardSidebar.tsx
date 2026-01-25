@@ -12,7 +12,10 @@ import {
   LogOut,
   Home,
   FileCheck,
-  Award
+  Award,
+  QrCode,
+  CreditCard,
+  MonitorPlay
 } from "lucide-react";
 import {
   Sidebar,
@@ -42,16 +45,34 @@ const menuItems = [
     roles: ["super_admin", "admin"]
   },
   {
+    title: "Inicio",
+    url: "/company",
+    icon: Home,
+    roles: ["company"]
+  },
+  {
     title: "Mi Perfil",
     url: "/dashboard/profile",
     icon: User2,
-    roles: ["admin", "pilot", "user"] // Super admin no tiene perfil personal
+    roles: ["admin", "pilot", "user"]
+  },
+  {
+    title: "Mi Perfil",
+    url: "/company/profile",
+    icon: Building,
+    roles: ["company"]
   },
   {
     title: "Pilotos",
     url: "/dashboard/pilots",
     icon: Plane,
     roles: ["super_admin", "admin"]
+  },
+  {
+    title: "Mis Pilotos",
+    url: "/company/pilots",
+    icon: Plane,
+    roles: ["company"]
   },
   {
     title: "Empresas",
@@ -64,6 +85,30 @@ const menuItems = [
     url: "/dashboard/certificates",
     icon: FileCheck,
     roles: ["super_admin", "admin"]
+  },
+  {
+    title: "Certificados",
+    url: "/company/certificates",
+    icon: FileCheck,
+    roles: ["company"]
+  },
+  {
+    title: "Mi QR",
+    url: "/company/qr",
+    icon: QrCode,
+    roles: ["company"]
+  },
+  {
+    title: "Membresía",
+    url: "/company/membership",
+    icon: CreditCard,
+    roles: ["company"]
+  },
+  {
+    title: "Portafolio",
+    url: "/company/portfolio",
+    icon: MonitorPlay,
+    roles: ["company"]
   },
   {
     title: "Diplomas",

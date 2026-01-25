@@ -97,7 +97,7 @@ const Index = () => {
           user_id,
           certification_status,
           certification_academy,
-          profiles:profiles (
+          profiles:user_id (
             id,
             full_name,
             location,

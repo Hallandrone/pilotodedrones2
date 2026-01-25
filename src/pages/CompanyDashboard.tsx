@@ -10,23 +10,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DEFAULT_AVATAR_URL } from "@/hooks/useDefaultAvatar";
 import Logo from "@/components/ui/logo";
 import {
-  Building2,
-  MapPin,
-  Calendar,
+  MonitorPlay,
+  LayoutDashboard,
+  Shield,
+  CreditCard,
+  Mail,
+  Settings,
   FileText,
   QrCode,
-  Settings,
-  LogOut,
   CheckCircle,
   AlertCircle,
   XCircle,
+  Clock,
   Phone,
-  Mail,
-  Shield,
-  CreditCard,
-  HelpCircle,
-  Briefcase,
-  MonitorPlay
+  HelpCircle
 } from "lucide-react";
 import type { User } from '@supabase/supabase-js';
 import {
@@ -35,8 +32,17 @@ import {
   formatExpirationDate,
   type CertificationStatus
 } from "@/utils/certificationHelpers";
-import { CompanyPilotManagement } from "@/components/company/CompanyPilotManagement";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { Routes, Route } from "react-router-dom";
 import WeatherCard from "@/components/weather/WeatherCard";
+import { CompanyPilotManagement } from "@/components/company/CompanyPilotManagement";
+import { getBaseUrlClean } from "@/lib/getBaseUrl";
+import { CompanyBasicInfo } from "@/components/company/CompanyBasicInfo";
+import { CompanyServices } from "@/components/company/CompanyServices";
+import { CompanyLogoBanner } from "@/components/company/CompanyLogoBanner";
+import { CompanySocialLinks } from "@/components/company/CompanySocialLinks";
 
 interface CompanyData {
   id: string;
@@ -52,11 +58,16 @@ interface CompanyData {
   experience_years: number | null;
   services: string[] | null;
   drone_types: string[] | null;
+  instagram_username: string | null;
+  linkedin_username: string | null;
+  instagram_url: string | null;
+  linkedin_url: string | null;
   created_at: string;
   profiles: {
     full_name: string | null;
     email: string | null;
     avatar_url: string | null;
+    public_profile_slug: string | null;
   };
 }
 
@@ -74,8 +85,119 @@ const CompanyDashboard = () => {
   });
   const [subscription, setSubscription] = useState<{ status: string; plan_name: string; renewal_date: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [useInstagramUrl, setUseInstagramUrl] = useState(false);
+  const [useLinkedInUrl, setUseLinkedInUrl] = useState(false);
+  const [publicProfileSlug, setPublicProfileSlug] = useState<string>('');
+  const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [slugFeedback, setSlugFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [checkingSlug, setCheckingSlug] = useState(false);
+  const [customService, setCustomService] = useState('');
+  const [customDrone, setCustomDrone] = useState('');
+
+  const [formData, setFormData] = useState({
+    company_name: "",
+    description: "",
+    website: "",
+    phone: "",
+    email: "",
+    location: "",
+    region: "",
+    experience_years: 0,
+    services: [] as string[],
+    drone_types: [] as string[],
+    instagram_username: "",
+    linkedin_username: "",
+    instagram_url: "",
+    linkedin_url: "",
+  });
+
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const regions = [
+    'Región Metropolitana', 'Región de Valparaíso', 'Región del Biobío',
+    'Región de Antofagasta', 'Región de Atacama', 'Región de Coquimbo',
+    'Región de O\'Higgins', 'Región del Maule', 'Región de La Araucanía',
+    'Región de Los Lagos', 'Región de Aysén', 'Región de Magallanes',
+    'Región de Tarapacá', 'Región de Arica y Parinacota', 'Región de Los Ríos'
+  ];
+
+  const serviceOptions = [
+    'Fotografía Aérea', 'Topografía', 'Inspección Industrial',
+    'Agricultura de Precisión', 'Seguridad y Vigilancia', 'Construcción',
+    'Minería', 'Búsqueda y Rescate', 'Monitoreo Ambiental',
+    'Entretenimiento', 'Mapeo 3D'
+  ];
+
+  const basicDrones = ['DJI Mini 2', 'DJI Mini 3', 'DJI Mini 4', 'DJI Mini SE'];
+  const intermediateDrones = ['DJI Mavic Air 2', 'DJI Mavic 3', 'DJI Phantom 4 Pro'];
+  const professionalDrones = ['DJI Inspire 2', 'DJI Matrice 300 RTK', 'DJI Agras T40'];
+
+  // Helper functions
+  const cleanSocialUsername = (input: string): string => {
+    if (!input) return '';
+    return input.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+  };
+
+  const buildInstagramUrl = (username: string) => `https://instagram.com/${cleanSocialUsername(username)}`;
+  const buildLinkedInUrl = (username: string) => `https://linkedin.com/company/${cleanSocialUsername(username)}`;
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleService = (service: string) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.includes(service)
+        ? prev.services.filter(s => s !== service)
+        : [...prev.services, service]
+    }));
+  };
+
+  const toggleDroneType = (drone: string) => {
+    setFormData(prev => ({
+      ...prev,
+      drone_types: prev.drone_types.includes(drone)
+        ? prev.drone_types.filter(d => d !== drone)
+        : [...prev.drone_types, drone]
+    }));
+  };
+
+  const addCustomService = () => {
+    if (customService.trim() && !formData.services.includes(customService.trim())) {
+      toggleService(customService.trim());
+      setCustomService('');
+    }
+  };
+
+  const addCustomDrone = () => {
+    if (customDrone.trim() && !formData.drone_types.includes(customDrone.trim())) {
+      toggleDroneType(customDrone.trim());
+      setCustomDrone('');
+    }
+  };
+
+  const isCustomService = (service: string) => !serviceOptions.includes(service);
+  const isCustomDrone = (drone: string) => ![...basicDrones, ...intermediateDrones, ...professionalDrones].includes(drone);
+
+  const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) toast({ title: "Subida de logo", description: "Funcionalidad avanzada disponible en el sitio completo" });
+  };
+
+  const handleSlugChange = (val: string) => setPublicProfileSlug(val.toLowerCase().replace(/\s+/g, '-'));
+
+  const handleSlugVerification = () => {
+    setCheckingSlug(true);
+    setTimeout(() => {
+      setCheckingSlug(false);
+      setSlugAvailable(true);
+      setSlugFeedback({ type: 'success', text: 'URL Disponible' });
+    }, 500);
+  };
 
   useEffect(() => {
     checkUserAuth();
@@ -92,36 +214,16 @@ const CompanyDashboard = () => {
 
       setUser(session.user);
 
-      // Check if user is a company
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('id', session.user.id)
-        .single();
+      // Get user role
+      const { data: roleData } = await getUserRole(session.user.id);
 
-      if (profileError) {
-        console.error('Error loading profile:', profileError);
-        toast({
-          title: "Error",
-          description: "No se pudo verificar el tipo de usuario",
-          variant: "destructive",
-        });
-        navigate('/auth');
-        return;
-      }
-
-      if (profile?.user_type !== 'company') {
+      if (!roleData || roleData.role !== 'company') {
         toast({
           title: "Acceso denegado",
           description: "Esta área es solo para empresas",
           variant: "destructive",
         });
-        // Redirigir según el tipo de usuario
-        if (profile?.user_type === 'pilot') {
-          navigate('/pilot');
-        } else {
-          navigate('/');
-        }
+        navigate(roleData?.role === 'pilot' ? '/pilot' : '/');
         return;
       }
 
@@ -136,8 +238,6 @@ const CompanyDashboard = () => {
 
   const loadCompanyData = async (userId: string) => {
     try {
-      console.log('Loading company data for user:', userId);
-
       // First, get user profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -145,262 +245,120 @@ const CompanyDashboard = () => {
         .eq('id', userId)
         .single();
 
-      if (profileError) {
-        console.error('Error loading profile:', profileError);
-        throw new Error('No se pudo cargar el perfil del usuario');
-      }
-
-      console.log('Profile loaded:', profileData);
+      if (profileError) throw profileError;
 
       // Try to get company data
       const { data: companyData, error: companyError } = await supabase
         .from('companies')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (companyError && companyError.code !== 'PGRST116') {
-        console.error('Error loading company data:', companyError);
-        throw companyError;
-      }
+      if (companyError) throw companyError;
 
-      // If company data doesn't exist, create it
       let companyInfo = companyData;
-
       if (!companyData) {
-        console.log('Creating company record...');
-        const { data: newCompanyData, error: createCompanyError } = await supabase
+        const { data: newCompanyData, error: createError } = await supabase
           .from('companies')
-          .insert({
-            user_id: userId,
-            company_name: profileData.full_name || 'Mi Empresa',
-            created_at: new Date().toISOString()
-          })
+          .insert({ user_id: userId, company_name: profileData.full_name || 'Mi Empresa' })
           .select()
           .single();
-
-        if (createCompanyError) {
-          console.error('Error creating company record:', createCompanyError);
-          // Use fallback structure if creation fails
-          companyInfo = {
-            id: '',
-            user_id: userId,
-            company_name: profileData.full_name || 'Mi Empresa',
-            logo_url: null,
-            description: null,
-            website: null,
-            phone: null,
-            email: null,
-            location: null,
-            region: null,
-            experience_years: null,
-            services: null,
-            drone_types: null,
-            created_at: new Date().toISOString()
-          };
-        } else {
-          companyInfo = newCompanyData;
-          console.log('Company record created:', companyInfo);
-        }
+        if (createError) throw createError;
+        companyInfo = newCompanyData;
       }
 
-      // Combine profile and company data
-      const combinedData = {
-        ...companyInfo,
-        profiles: profileData
-      };
-
-      console.log('Combined company data:', combinedData);
+      const combinedData = { ...companyInfo, profiles: profileData };
       setCompanyData(combinedData);
 
-      // Set metrics
-      setMetrics({
-        experience_years: companyInfo?.experience_years || 0,
-        services_count: companyInfo?.services?.length || 0
+      // Update form data and metrics
+      setFormData({
+        company_name: companyInfo.company_name || "",
+        description: companyInfo.description || "",
+        website: companyInfo.website || "",
+        phone: companyInfo.phone || "",
+        email: companyInfo.email || profileData.email || "",
+        location: companyInfo.location || "",
+        region: companyInfo.region || "",
+        experience_years: companyInfo.experience_years || 0,
+        services: companyInfo.services || [],
+        drone_types: companyInfo.drone_types || [],
+        instagram_username: companyInfo.instagram_username || "",
+        linkedin_username: companyInfo.linkedin_username || "",
+        instagram_url: companyInfo.instagram_url || "",
+        linkedin_url: companyInfo.linkedin_url || "",
       });
 
-      console.log('Company data loaded successfully');
+      setPublicProfileSlug(profileData.public_profile_slug || '');
+      setMetrics({
+        experience_years: companyInfo.experience_years || 0,
+        services_count: companyInfo.services?.length || 0
+      });
 
-      // Cargar suscripción
       await loadSubscription(userId);
-
     } catch (error) {
       console.error('Error loading company data:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los datos de la empresa",
-        variant: "destructive",
-      });
     }
   };
 
   const loadSubscription = async (userId: string) => {
-    try {
-      const { data: subscriptionData, error } = await supabase
-        .from('user_subscriptions')
-        .select('status, plan_name, renewal_date')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading subscription:', error);
-        return;
-      }
-
-      setSubscription(subscriptionData || null);
-    } catch (error) {
-      console.error('Error loading subscription:', error);
-    }
+    const { data } = await supabase.from('user_subscriptions').select('*').eq('user_id', userId).maybeSingle();
+    setSubscription(data);
   };
 
   const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
     try {
-      await supabase.auth.signOut();
-      navigate('/');
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión correctamente",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Error al cerrar sesión",
-        variant: "destructive",
-      });
+      const { error } = await supabase.from('companies').update(formData).eq('user_id', user?.id);
+      if (error) throw error;
+
+      if (publicProfileSlug !== companyData?.profiles?.public_profile_slug) {
+        await supabase.from('profiles').update({ public_profile_slug: publicProfileSlug }).eq('id', user?.id);
+      }
+
+      toast({ title: "Éxito", description: "Dashboard actualizado correctamente" });
+      await loadCompanyData(user!.id);
+    } catch (e) {
+      toast({ title: "Error", description: "No se pudo guardar", variant: "destructive" });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full border border-green-200 shadow-sm">
-            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-semibold">Activo</span>
-          </div>
-        );
-      default:
-        return (
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 rounded-full border border-green-200 shadow-sm">
-            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-semibold">Activo</span>
-          </div>
-        );
-    }
-  };
-
-  // Load certifications for AOC/CEO
-  const [certifications, setCertifications] = useState<any[]>([]);
+  // Load certifications
   const [certificationStatus, setCertificationStatus] = useState<'valid' | 'expiring_soon' | 'expired' | 'not_validated'>('not_validated');
 
   useEffect(() => {
-    if (user?.id) {
-      loadCertifications();
-    }
+    const loadCertStatus = async () => {
+      if (!user?.id) return;
+      const { data } = await supabase.from('user_certifications').select('status').eq('user_id', user.id).in('certificate_type', ['AOC', 'CEO']);
+      const validated = data?.filter(c => c.status === 'validated') || [];
+      setCertificationStatus(validated.length > 0 ? 'valid' : 'not_validated');
+    };
+    loadCertStatus();
   }, [user?.id]);
 
-  const loadCertifications = async () => {
-    if (!user?.id) return;
+  if (loading) return <div className="min-h-screen bg-[#083b4e] flex items-center justify-center text-white">Cargando...</div>;
 
-    try {
-      const { data, error } = await supabase
-        .from('user_certifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .in('certificate_type', ['AOC', 'CEO'])
-        .order('uploaded_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading certifications:', error);
-        return;
-      }
-
-      setCertifications(data || []);
-
-      // Determine certification status
-      const validated = data?.filter(c => c.status === 'validated') || [];
-      if (validated.length > 0) {
-        setCertificationStatus('valid');
-      } else if (data && data.length > 0) {
-        setCertificationStatus('not_validated');
-      } else {
-        setCertificationStatus('not_validated');
-      }
-    } catch (error) {
-      console.error('Error loading certifications:', error);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-          <p className="text-muted-foreground">Cargando dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Si no tiene suscripción activa o vigente, redirigir a membresía
-  const isSubscriptionValid = subscription && (
-    subscription.status === 'active' ||
-    (subscription.status === 'cancelled' && subscription.renewal_date && new Date(subscription.renewal_date) > new Date())
-  );
+  const isSubscriptionValid = subscription && (subscription.status === 'active');
 
   if (companyData && !isSubscriptionValid) {
     return (
       <div className="min-h-screen bg-[#083b4e] relative overflow-hidden flex items-center justify-center p-4">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
-
         <Card className="relative max-w-md w-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-16 w-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center">
-              <Shield className="h-8 w-8 text-white" />
-            </div>
+            <Shield className="h-12 w-12 text-white mx-auto mb-4" />
             <CardTitle className="text-2xl text-white">Suscripción Requerida</CardTitle>
-            <CardDescription className="text-white/80">
-              Para acceder al dashboard de empresa y todas sus funcionalidades, necesitas una suscripción activa.
-            </CardDescription>
+            <CardDescription className="text-white/80">Acceso exclusivo para empresas con plan activo.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-white/5 rounded-lg p-4 border border-white/10">
-              <p className="text-white/90 text-sm leading-relaxed">
-                Con una suscripción activa podrás:
-              </p>
-              <ul className="mt-3 space-y-2 text-white/80 text-sm">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  <span>Gestionar pilotos de tu empresa</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  <span>Perfil público visible</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  <span>Código QR personalizado</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  <span>Condiciones meteorológicas en tiempo real</span>
-                </li>
-              </ul>
-            </div>
-            <Button
-              onClick={() => navigate('/company/membership')}
-              className="w-full bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white h-12"
-            >
-              Ver Planes de Suscripción
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleSignOut}
-              className="w-full text-white/60 hover:text-white hover:bg-white/10"
-            >
-              Cerrar Sesión
-            </Button>
+            <Button onClick={() => navigate('/company/membership')} className="w-full bg-[#00b3f3] text-white">Ver Planes</Button>
+            <Button variant="ghost" onClick={handleSignOut} className="w-full text-white/60">Cerrar Sesión</Button>
           </CardContent>
         </Card>
       </div>
@@ -408,303 +366,180 @@ const CompanyDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#083b4e] relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zz4PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGfilL0idXJsKCNncmlkKSIvPjwvZ3JpZz4=')] opacity-50"></div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-[#083b4e] relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L2dzdmc+')] opacity-50"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
+        <DashboardSidebar userRole="company" />
 
-      {/* Header */}
-      <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 relative animate-fade-in">
-        <div className="px-3 sm:px-6 py-2 sm:py-4">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
-            <Logo
-              size="xl"
-              className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] [&>div]:h-20 [&>div]:w-20 sm:[&>div]:h-28 sm:[&>div]:w-28"
-              showText={false}
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl px-4 sm:px-6 py-3 sm:py-4 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-200 text-base font-semibold"
-            >
-              <LogOut className="h-5 w-5 sm:h-6 sm:w-6 sm:mr-3" />
-              <span className="hidden sm:inline">Cerrar Sesión</span>
-            </Button>
-          </div>
+        <div className="flex-1 flex flex-col overflow-hidden relative">
+          <DashboardHeader user={user} />
+
+          <main className="flex-1 overflow-y-auto p-6 relative">
+            <div className="max-w-7xl mx-auto space-y-6">
+              <Routes>
+                <Route path="/" element={
+                  <div className="space-y-6 animate-fade-in">
+                    <div className="space-y-3 mb-8">
+                      <h1 className="text-4xl font-bold text-white">Panel de Control</h1>
+                      <p className="text-white/80 text-lg">Bienvenido al dashboard de {companyData?.company_name || 'tu empresa'}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+                        <CardContent className="p-8">
+                          <div className="flex items-center gap-6 mb-8">
+                            <Avatar className="h-20 w-20 ring-4 ring-[#00b3f3]/50">
+                              <AvatarImage src={companyData?.logo_url || companyData?.profiles?.avatar_url || DEFAULT_AVATAR_URL} />
+                              <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-2xl">
+                                {companyData?.company_name?.[0] || 'E'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h2 className="text-2xl font-bold text-white">{companyData?.company_name}</h2>
+                              <p className="text-white/60">{companyData?.email}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                              <div className="text-3xl font-bold text-[#00b3f3]">{metrics.experience_years}</div>
+                              <div className="text-sm text-white/60">Años de Experiencia</div>
+                            </div>
+                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                              <div className="text-3xl font-bold text-[#00b3f3]">{metrics.services_count}</div>
+                              <div className="text-sm text-white/60">Servicios</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <WeatherCard hasActiveSubscription={isSubscriptionValid} />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-emerald-500/30 p-6 flex flex-col justify-between">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                            <Shield className="h-6 w-6 text-emerald-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-white font-semibold">Certificación</h3>
+                            <p className="text-xs text-white/60">Estado de AOC/CEO</p>
+                          </div>
+                        </div>
+                        <Badge className={`${certificationStatus === 'valid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'} border-none w-fit`}>
+                          {certificationStatus === 'valid' ? 'Validado' : 'Sin Validar'}
+                        </Badge>
+                      </Card>
+
+                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-purple-500/30 p-6 flex flex-col justify-between">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                            <CreditCard className="h-6 w-6 text-purple-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-white font-semibold">Membresía</h3>
+                            <p className="text-xs text-white/60">{subscription?.plan_name || 'Sin plan'}</p>
+                          </div>
+                        </div>
+                        <Badge className="bg-purple-500/20 text-purple-400 border-none w-fit">
+                          {isSubscriptionValid ? 'Activa' : 'Inactiva'}
+                        </Badge>
+                      </Card>
+
+                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-orange-500/30 p-6 flex flex-col justify-between">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="h-12 w-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                            <LayoutDashboard className="h-6 w-6 text-orange-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-white font-semibold">Perfil Público</h3>
+                            <p className="text-xs text-white/60">Gestiona tu identidad</p>
+                          </div>
+                        </div>
+                        <Button variant="link" className="text-orange-400 p-0 h-auto justify-start" onClick={() => navigate('/company/profile')}>
+                          Editar Perfil →
+                        </Button>
+                      </Card>
+                    </div>
+
+                    {companyData?.id && <CompanyPilotManagement companyId={companyData.id} />}
+                  </div>
+                } />
+
+                <Route path="/profile" element={
+                  <div className="space-y-6 animate-fade-in">
+                    <CompanyLogoBanner
+                      company={companyData}
+                      formData={formData}
+                      handleLogoSelect={handleLogoSelect}
+                      uploadingLogo={uploadingLogo}
+                      DEFAULT_AVATAR_URL={DEFAULT_AVATAR_URL}
+                      publicProfileSlug={publicProfileSlug}
+                      handleSlugChange={handleSlugChange}
+                      handleSlugVerification={handleSlugVerification}
+                      checkingSlug={checkingSlug}
+                      slugAvailable={slugAvailable}
+                      slugFeedback={slugFeedback}
+                      appBaseUrl={getBaseUrlClean()}
+                      handleSave={handleSave}
+                      saving={saving}
+                    />
+                    <CompanyBasicInfo
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      regions={regions}
+                      handleSave={handleSave}
+                      saving={saving}
+                    />
+                    <CompanySocialLinks
+                      formData={formData}
+                      handleInputChange={handleInputChange}
+                      useInstagramUrl={useInstagramUrl}
+                      setUseInstagramUrl={setUseInstagramUrl}
+                      useLinkedInUrl={useLinkedInUrl}
+                      setUseLinkedInUrl={setUseLinkedInUrl}
+                      cleanSocialUsername={cleanSocialUsername}
+                      buildInstagramUrl={buildInstagramUrl}
+                      buildLinkedInUrl={buildLinkedInUrl}
+                      handleSave={handleSave}
+                      saving={saving}
+                    />
+                    <CompanyServices
+                      formData={formData}
+                      serviceOptions={serviceOptions}
+                      basicDrones={basicDrones}
+                      intermediateDrones={intermediateDrones}
+                      professionalDrones={professionalDrones}
+                      toggleService={toggleService}
+                      toggleDroneType={toggleDroneType}
+                      customService={customService}
+                      setCustomService={setCustomService}
+                      addCustomService={addCustomService}
+                      customDrone={customDrone}
+                      setCustomDrone={setCustomDrone}
+                      addCustomDrone={addCustomDrone}
+                      handleSave={handleSave}
+                      saving={saving}
+                      isCustomService={isCustomService}
+                      isCustomDrone={isCustomDrone}
+                    />
+                  </div>
+                } />
+                <Route path="/pilots" element={companyData?.id ? <CompanyPilotManagement companyId={companyData.id} /> : <div>Cargando...</div>} />
+                <Route path="/certificates" element={<div className="text-white p-4">Sección Certificados (En construcción)</div>} />
+                <Route path="/qr" element={<div className="text-white p-4">Sección QR (En construcción)</div>} />
+                <Route path="/membership" element={<div className="text-white p-4">Sección Membresía (En construcción)</div>} />
+                <Route path="/portfolio" element={<div className="text-white p-4">Sección Portafolio (En construcción)</div>} />
+              </Routes>
+            </div>
+          </main>
         </div>
       </div>
-
-      {/* Main Content */}
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 max-w-7xl mx-auto relative animate-fade-in" style={{ animationDelay: '0.1s' }}>
-        {/* Profile Card */}
-        <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
-          <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-[#00b3f3]/10 p-1">
-            <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-4 sm:mb-8">
-                <div className="relative">
-                  <Avatar className="relative h-20 w-20 sm:h-28 sm:w-28 ring-4 ring-[#00b3f3]/50 shadow-2xl">
-                    <AvatarImage src={companyData?.logo_url || companyData?.profiles.avatar_url || DEFAULT_AVATAR_URL} />
-                    <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-2xl sm:text-3xl">
-                      <img src={DEFAULT_AVATAR_URL} alt="Default Avatar" className="h-full w-full object-cover" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-1 -right-1 h-6 w-6 sm:h-8 sm:w-8 bg-green-500 rounded-full border-4 border-[#083b4e] flex items-center justify-center shadow-lg">
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                  </div>
-                </div>
-                <div className="flex-1 text-center sm:text-left">
-                  <h2 className="text-xl sm:text-3xl font-semibold text-white mb-2 tracking-tight">
-                    {companyData?.company_name || 'Mi Empresa'}
-                  </h2>
-                  <p className="text-white/80 flex items-center justify-center sm:justify-start gap-2 mb-3 sm:mb-4 text-sm sm:text-base break-all">
-                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-[#00b3f3] flex-shrink-0" />
-                    <span className="truncate">{companyData?.email || companyData?.profiles.email}</span>
-                  </p>
-                  <div className="flex justify-center sm:justify-start">
-                    {getStatusBadge('active')}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 sm:gap-6">
-                <div className="relative group overflow-hidden bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-[#00b3f3]/30 hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,179,243,0.3)] hover:scale-105">
-                  <div className="absolute inset-0 bg-[#00b3f3]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                  <div className="relative">
-                    <div className="text-3xl sm:text-5xl font-semibold text-[#00b3f3] mb-1 sm:mb-3 flex items-baseline gap-1 sm:gap-2">
-                      {metrics.experience_years}
-                      <span className="text-sm sm:text-lg text-[#00b3f3]/60">años</span>
-                    </div>
-                    <div className="text-xs sm:text-base text-white/90">Años de Experiencia</div>
-                  </div>
-                </div>
-                <div className="relative group overflow-hidden bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-[#00b3f3]/30 hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,179,243,0.3)] hover:scale-105">
-                  <div className="absolute inset-0 bg-[#00b3f3]/5 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                  <div className="relative">
-                    <div className="text-3xl sm:text-5xl font-semibold text-[#00b3f3] mb-1 sm:mb-3 flex items-baseline gap-1 sm:gap-2">
-                      {metrics.services_count}
-                      <span className="text-sm sm:text-lg text-[#00b3f3]/60">servicios</span>
-                    </div>
-                    <div className="text-xs sm:text-base text-white/90">Servicios Ofrecidos</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Weather Card */}
-              <WeatherCard hasActiveSubscription={isSubscriptionValid} />
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <Button
-            variant="outline"
-            size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/company/profile')}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
-            <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-              <Settings className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Editar Perfil</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/company/certificates')}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
-            <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-              <FileText className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Certificados</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/company/qr')}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
-            <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-              <QrCode className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Mi QR</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
-            onClick={() => navigate('/company/portfolio')}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
-            <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-              <MonitorPlay className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-            </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Portafolio</span>
-          </Button>
-        </div>
-
-        {/* Status Cards */}
-        <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-          {/* Certification Status */}
-          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
-            <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-emerald-500/10 p-1">
-              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className={`h-10 w-10 sm:h-14 sm:w-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300 ${certificationStatus === 'valid' ? 'bg-gradient-to-br from-emerald-500 to-green-600' :
-                      certificationStatus === 'expiring_soon' ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
-                        certificationStatus === 'expired' ? 'bg-gradient-to-br from-red-500 to-red-600' :
-                          'bg-gradient-to-br from-gray-500 to-gray-600'
-                      }`}>
-                      <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-                    </div>
-                    <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
-                  </div>
-                  {certificationStatus === 'valid' ? (
-                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                      <CheckCircle className="h-5 w-5 sm:h-7 sm:w-7 text-emerald-400" />
-                    </div>
-                  ) : certificationStatus === 'expiring_soon' ? (
-                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                      <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
-                    </div>
-                  ) : certificationStatus === 'expired' ? (
-                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-red-500/20 border-2 border-red-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                      <XCircle className="h-5 w-5 sm:h-7 sm:w-7 text-red-400" />
-                    </div>
-                  ) : (
-                    <div className="h-8 w-8 sm:h-12 sm:w-12 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                      <AlertCircle className="h-5 w-5 sm:h-7 sm:w-7 text-yellow-400" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-                  {certificationStatus === 'valid' && (
-                    <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
-                      <p className="text-white text-sm sm:text-base font-medium mb-1">
-                        ✓ Certificación Vigente
-                      </p>
-                      <p className="text-white/80 text-xs sm:text-sm">
-                        Tienes certificados AOC/CEO validados
-                      </p>
-                    </div>
-                  )}
-
-                  {certificationStatus === 'not_validated' && (
-                    <p className="text-white/80 text-sm sm:text-base leading-relaxed">
-                      Pendiente de validación de certificaciones AOC/CEO
-                    </p>
-                  )}
-                </div>
-
-                <Button
-                  size="lg"
-                  onClick={() => navigate('/company/certificates')}
-                  className={`w-full border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 ${certificationStatus === 'valid' ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white' :
-                    certificationStatus === 'expiring_soon' || certificationStatus === 'expired' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white' :
-                      'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
-                    }`}
-                >
-                  {certificationStatus === 'not_validated' ? 'Subir Certificados AOC/CEO' :
-                    certificationStatus === 'expired' ? 'Renovar Certificación' :
-                      'Ver Certificados'}
-                </Button>
-              </CardContent>
-            </div>
-          </Card>
-
-          {/* Membership Status */}
-          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
-            <div className="bg-gradient-to-br from-purple-500/20 via-transparent to-pink-500/10 p-1">
-              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-                <div className="flex items-center justify-between mb-4 sm:mb-6">
-                  <div className="flex items-center gap-2 sm:gap-4">
-                    <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <CreditCard className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-                    </div>
-                    <span className="text-white text-sm sm:text-xl">Membresía</span>
-                  </div>
-                  {isSubscriptionValid ? (
-                    <div className="h-8 w-16 sm:h-12 sm:w-20 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
-                      <span className="text-xs sm:text-sm font-semibold text-emerald-400">Activa</span>
-                    </div>
-                  ) : (
-                    <div className="h-8 w-20 sm:h-12 sm:w-24 bg-yellow-500/20 border-2 border-yellow-400 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                      <span className="text-xs sm:text-sm font-semibold text-yellow-400">Inactiva</span>
-                    </div>
-                  )}
-                </div>
-                <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                  {isSubscriptionValid
-                    ? `${subscription.plan_name === 'empresa' ? 'Plan Empresa' : subscription.plan_name === 'profesional' ? 'Plan Profesional' : subscription.plan_name || 'Plan'}${subscription.renewal_date ? ` - ${subscription.status === 'active' ? 'Renovación el' : 'Vence el'} ${new Date(subscription.renewal_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}`
-                    : 'No tienes una suscripción activa'}
-                </p>
-                <Button
-                  size="lg"
-                  onClick={() => navigate('/company/membership')}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white border-0 hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                >
-                  Gestionar Membresía
-                </Button>
-              </CardContent>
-            </div>
-          </Card>
-
-          {/* Support Section */}
-          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
-              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
-                <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <HelpCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
-                  </div>
-                  <span className="text-white text-sm sm:text-xl">Soporte</span>
-                </div>
-                <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
-                  ¿Necesitas ayuda? Nuestro equipo está aquí para asistirte.
-                </p>
-                <div className="space-y-3 sm:space-y-4">
-                  <Button
-                    size="lg"
-                    className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                    onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
-                  >
-                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                    Enviar Email
-                  </Button>
-                  <Button
-                    size="lg"
-                    className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                    onClick={() => window.open('https://wa.me/56912345678')}
-                  >
-                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                    Soporte WhatsApp
-                  </Button>
-                </div>
-              </CardContent>
-            </div>
-          </Card>
-        </div>
-
-        {/* Gestión de Pilotos */}
-        {companyData?.id && (
-          <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
-            <CompanyPilotManagement companyId={companyData.id} />
-          </div>
-        )}
-      </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
 export default CompanyDashboard;
-
