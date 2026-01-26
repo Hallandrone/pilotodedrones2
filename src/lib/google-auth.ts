@@ -4,7 +4,7 @@
  */
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const AUTH_ENDPOINT = 'https://pilotodedrones.cl/api/auth/google';
+const AUTH_ENDPOINT = 'https://sncjozwmtjaltoituumx.supabase.co/functions/v1/auth-google';
 
 // Tipos para Google Identity Services
 declare global {
