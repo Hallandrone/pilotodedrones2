@@ -22,6 +22,8 @@ const Auth = () => {
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [initialEmail, setInitialEmail] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -138,8 +140,15 @@ const Auth = () => {
         setSession(session);
         setUser(session?.user ?? null);
 
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsRecovery(true);
+          setActiveTab("login");
+          setShowForgotPassword(false);
+          return;
+        }
+
         // Solo redirigir si hay sesión y no estamos en proceso de login/signup
-        if (session?.user && event !== 'SIGNED_OUT') {
+        if (session?.user && event !== 'SIGNED_OUT' && !isRecovery) {
           try {
             // PRIORIDAD 0: Asociar QR token PRIMERO si existe
             const storedQrToken = localStorage.getItem('pendingQrToken');
@@ -740,69 +749,221 @@ const Auth = () => {
     };
 
     return (
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div className="relative">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            disabled={loading}
-          >
-            <GoogleIcon />
-            Continuar con Google
+      <div className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4">
+          <div className="relative">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={loading}
+            >
+              <GoogleIcon />
+              Continuar con Google
+            </Button>
+            <div
+              id="google-login-btn-overlay"
+              className="absolute inset-0 opacity-0 overflow-hidden cursor-pointer"
+              style={{ zIndex: 10, minHeight: '44px', width: '100%' }}
+            />
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                O continúa con email
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="login-email">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="login-email"
+                type="email"
+                placeholder="tu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-10"
+                required
+                autoComplete="email"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="login-password">Contraseña</Label>
+              <Button
+                variant="link"
+                className="px-0 font-normal text-xs text-muted-foreground hover:text-accent"
+                onClick={() => setShowForgotPassword(true)}
+                type="button"
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="login-password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-10"
+                required
+                autoComplete="current-password"
+              />
+            </div>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </Button>
-          <div
-            id="google-login-btn-overlay"
-            className="absolute inset-0 opacity-0 overflow-hidden cursor-pointer"
-            style={{ zIndex: 10, minHeight: '44px', width: '100%' }}
-          />
-        </div>
+        </form>
+      </div>
+    );
+  };
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              O continúa con email
-            </span>
-          </div>
-        </div>
+  const ForgotPasswordForm = () => {
+    const [email, setEmail] = useState("");
+    const [sending, setSending] = useState(false);
 
+    const handleReset = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setSending(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${getBaseUrl()}/auth?tab=login`,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Email enviado",
+          description: "Revisa tu bandeja de entrada para restablecer tu contraseña",
+        });
+        setShowForgotPassword(false);
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message || "No se pudo enviar el email de recuperación",
+        });
+      } finally {
+        setSending(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleReset} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="login-email">Email</Label>
+          <Label htmlFor="reset-email">Email</Label>
           <div className="relative">
             <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              id="login-email"
+              id="reset-email"
               type="email"
               placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10"
               required
-              autoComplete="email"
             />
           </div>
         </div>
+        <Button type="submit" className="w-full" disabled={sending}>
+          {sending ? "Enviando..." : "Enviar instrucciones"}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full"
+          onClick={() => setShowForgotPassword(false)}
+        >
+          Volver al inicio de sesión
+        </Button>
+      </form>
+    );
+  };
+
+  const UpdatePasswordForm = () => {
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [updating, setUpdating] = useState(false);
+
+    const handleUpdate = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (password !== confirmPassword) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Las contraseñas no coinciden",
+        });
+        return;
+      }
+
+      setUpdating(true);
+      try {
+        const { error } = await supabase.auth.updateUser({ password });
+
+        if (error) throw error;
+
+        toast({
+          title: "Contraseña actualizada",
+          description: "Tu contraseña ha sido actualizada exitosamente",
+        });
+        setIsRecovery(false);
+        navigate('/dashboard');
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message || "No se pudo actualizar la contraseña",
+        });
+      } finally {
+        setUpdating(false);
+      }
+    };
+
+    return (
+      <form onSubmit={handleUpdate} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="login-password">Contraseña</Label>
+          <Label htmlFor="update-password">Nueva Contraseña</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              id="login-password"
+              id="update-password"
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="pl-10"
               required
-              autoComplete="current-password"
             />
           </div>
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+        <div className="space-y-2">
+          <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="confirm-password"
+              type="password"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="pl-10"
+              required
+            />
+          </div>
+        </div>
+        <Button type="submit" className="w-full" disabled={updating}>
+          {updating ? "Actualizando..." : "Actualizar Contraseña"}
         </Button>
       </form>
     );
@@ -955,20 +1116,46 @@ const Auth = () => {
 
         <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-sm">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-              <TabsTrigger value="signup">Crear Cuenta</TabsTrigger>
-            </TabsList>
+            {!isRecovery && !showForgotPassword && (
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+                <TabsTrigger value="signup">Crear Cuenta</TabsTrigger>
+              </TabsList>
+            )}
 
             <CardContent className="p-6 pt-0">
               <TabsContent value="login" className="mt-0">
-                <div className="space-y-2 mb-6">
-                  <CardTitle>Bienvenido de vuelta</CardTitle>
-                  <CardDescription>
-                    Ingresa tus credenciales para acceder
-                  </CardDescription>
-                </div>
-                <LoginForm />
+                {isRecovery ? (
+                  <>
+                    <div className="space-y-2 mb-6">
+                      <CardTitle>Nueva contraseña</CardTitle>
+                      <CardDescription>
+                        Ingresa tu nueva contraseña para acceder a tu cuenta
+                      </CardDescription>
+                    </div>
+                    <UpdatePasswordForm />
+                  </>
+                ) : showForgotPassword ? (
+                  <>
+                    <div className="space-y-2 mb-6">
+                      <CardTitle>Recuperar contraseña</CardTitle>
+                      <CardDescription>
+                        Ingresa tu email para recibir instrucciones
+                      </CardDescription>
+                    </div>
+                    <ForgotPasswordForm />
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2 mb-6">
+                      <CardTitle>Bienvenido de vuelta</CardTitle>
+                      <CardDescription>
+                        Ingresa tus credenciales para acceder
+                      </CardDescription>
+                    </div>
+                    <LoginForm />
+                  </>
+                )}
               </TabsContent>
 
               <TabsContent value="signup" className="mt-0">
@@ -984,15 +1171,17 @@ const Auth = () => {
           </Tabs>
         </Card>
 
-        <div className="text-center mt-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/')}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            ← Volver al inicio
-          </Button>
-        </div>
+        {!isRecovery && !showForgotPassword && (
+          <div className="text-center mt-6">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              ← Volver al inicio
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
