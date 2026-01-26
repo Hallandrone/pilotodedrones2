@@ -523,15 +523,6 @@ const Index = () => {
               ) : (
                 <>
                   <Button
-                    variant="outline"
-                    size="sm"
-                    className="sm:h-11 sm:px-8 hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2 whitespace-nowrap"
-                    onClick={() => navigate('/demo')}
-                  >
-                    <span className="hidden sm:inline">Usuario Demo</span>
-                    <span className="sm:hidden">Demo</span>
-                  </Button>
-                  <Button
                     size="sm"
                     className="sm:h-11 sm:px-8 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
                     onClick={() => navigate('/auth?tab=signup')}
@@ -613,17 +604,6 @@ const Index = () => {
                       </>
                     ) : (
                       <>
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className="w-full justify-start hover:bg-accent hover:text-accent-foreground transition-all duration-200 border-2"
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            navigate('/demo');
-                          }}
-                        >
-                          Usuario Demo
-                        </Button>
                         <Button
                           size="lg"
                           className="w-full justify-start bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl"
