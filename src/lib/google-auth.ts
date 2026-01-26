@@ -252,59 +252,37 @@ export async function signInWithGoogle(userType: 'pilot' | 'company' = 'pilot'):
         return;
       }
 
-      window.google.accounts.id.initialize({
+      // Usar OAuth2 con popup grande (ventana nueva)
+      const client = (window.google.accounts as any).oauth2.initCodeClient({
         client_id: GOOGLE_CLIENT_ID,
-        callback: async (response: GoogleCredentialResponse) => {
-          try {
-            const result = await authenticateWithGoogle(response.credential, userType);
-            if (result.success && result.token && result.user) {
-              saveSession(result.token, result.user);
+        scope: 'email profile openid',
+        ux_mode: 'popup', // Esto abre la ventana grande
+        callback: async (response: { code?: string; error?: string }) => {
+          if (response.error) {
+            safeResolve({ success: false, error: response.error });
+            return;
+          }
+
+          if (response.code) {
+            try {
+              // Intercambiar el código por el id_token en el backend
+              const result = await exchangeCodeForToken(response.code, userType);
+              if (result.success && result.token && result.user) {
+                saveSession(result.token, result.user);
+              }
+              safeResolve(result);
+            } catch (error) {
+              safeResolve({ 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Error desconocido' 
+              });
             }
-            safeResolve(result);
-          } catch (error) {
-            safeResolve({ 
-              success: false, 
-              error: error instanceof Error ? error.message : 'Error desconocido' 
-            });
           }
         },
-        auto_select: false,
-        cancel_on_tap_outside: true,
       });
 
-      // Usar el popup nativo de Google directamente (One Tap)
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed()) {
-          // Si One Tap no se muestra, forzar apertura con botón invisible
-          const hiddenBtn = document.createElement('div');
-          hiddenBtn.style.position = 'fixed';
-          hiddenBtn.style.opacity = '0.01';
-          hiddenBtn.style.pointerEvents = 'none';
-          hiddenBtn.style.top = '0';
-          hiddenBtn.style.left = '0';
-          document.body.appendChild(hiddenBtn);
-          
-          window.google!.accounts.id.renderButton(hiddenBtn, {
-            type: 'standard',
-            theme: 'outline',
-            size: 'large',
-          });
-          
-          // Simular click en el botón para abrir popup nativo
-          setTimeout(() => {
-            const btn = hiddenBtn.querySelector('div[role="button"]') as HTMLElement;
-            if (btn) {
-              btn.click();
-            }
-            // Limpiar después
-            setTimeout(() => hiddenBtn.remove(), 500);
-          }, 100);
-        }
-        
-        if (notification.isDismissedMoment()) {
-          safeResolve({ success: false, error: 'Autenticación cancelada' });
-        }
-      });
+      // Iniciar el flujo OAuth con popup grande
+      client.requestCode();
 
     } catch (error) {
       safeResolve({ 
@@ -313,6 +291,35 @@ export async function signInWithGoogle(userType: 'pilot' | 'company' = 'pilot'):
       });
     }
   });
+}
+
+/**
+ * Intercambia el código de autorización por un token
+ */
+async function exchangeCodeForToken(code: string, userType: string): Promise<AuthResult> {
+  const response = await fetch(AUTH_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      auth_code: code,
+      user_type: userType
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    return { success: false, error: data.error || 'Error de autenticación' };
+  }
+
+  return {
+    success: true,
+    token: data.token,
+    user: data.user,
+    isNewUser: data.isNewUser,
+  };
 }
 
 /**

@@ -146,30 +146,80 @@ Deno.serve(async (req) => {
       )
     }
 
-    const { id_token, user_type = 'pilot' } = await req.json()
+    const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
+    const { id_token, auth_code, user_type = 'pilot' } = await req.json()
 
-    if (!id_token) {
+    let googleData: GoogleTokenInfo
+
+    // Flujo 1: auth_code (OAuth popup grande)
+    if (auth_code) {
+      if (!GOOGLE_CLIENT_SECRET) {
+        return new Response(
+          JSON.stringify({ error: 'GOOGLE_CLIENT_SECRET no configurado' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Intercambiar código por tokens
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          code: auth_code,
+          client_id: GOOGLE_CLIENT_ID,
+          client_secret: GOOGLE_CLIENT_SECRET,
+          redirect_uri: 'postmessage', // Requerido para popup
+          grant_type: 'authorization_code',
+        }),
+      })
+
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text()
+        console.error('Error intercambiando código:', errorText)
+        return new Response(
+          JSON.stringify({ error: 'Error al intercambiar código de autorización' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const tokens = await tokenResponse.json()
+      
+      // Validar el id_token recibido
+      const validateResponse = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${tokens.id_token}`
+      )
+
+      if (!validateResponse.ok) {
+        return new Response(
+          JSON.stringify({ error: 'Token de Google inválido' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      googleData = await validateResponse.json()
+    }
+    // Flujo 2: id_token directo (One Tap - legacy)
+    else if (id_token) {
+      const googleResponse = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`
+      )
+
+      if (!googleResponse.ok) {
+        const errorText = await googleResponse.text()
+        console.error('Error validando token con Google:', errorText)
+        return new Response(
+          JSON.stringify({ error: 'Token de Google inválido' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      googleData = await googleResponse.json()
+    } else {
       return new Response(
-        JSON.stringify({ error: 'id_token es requerido' }),
+        JSON.stringify({ error: 'Se requiere id_token o auth_code' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
-
-    // Validar id_token con Google
-    const googleResponse = await fetch(
-      `https://oauth2.googleapis.com/tokeninfo?id_token=${id_token}`
-    )
-
-    if (!googleResponse.ok) {
-      const errorText = await googleResponse.text()
-      console.error('Error validando token con Google:', errorText)
-      return new Response(
-        JSON.stringify({ error: 'Token de Google inválido' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const googleData: GoogleTokenInfo = await googleResponse.json()
 
     // Verificar que el token sea para nuestra aplicación
     if (googleData.aud !== GOOGLE_CLIENT_ID) {
