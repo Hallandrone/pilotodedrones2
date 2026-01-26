@@ -585,6 +585,8 @@ const Auth = () => {
     try {
       const result = await signInWithGoogle(userType);
       
+      console.log('Google Auth Result:', result);
+      
       if (result.success && result.user) {
         toast({
           title: result.isNewUser ? "¡Bienvenido!" : "¡Hola de nuevo!",
@@ -593,10 +595,16 @@ const Auth = () => {
             : "Has iniciado sesión correctamente",
         });
 
+        // Pequeña pausa para que el toast se muestre
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         // Redirigir según el rol
-        if (result.user.role === 'company') {
+        const userRole = result.user.role;
+        console.log('Redirigiendo usuario con rol:', userRole);
+        
+        if (userRole === 'company') {
           navigate('/company');
-        } else if (result.user.role === 'admin' || result.user.role === 'super_admin') {
+        } else if (userRole === 'admin' || userRole === 'super_admin') {
           navigate('/dashboard');
         } else {
           // Verificar si hay invitación pendiente
@@ -604,6 +612,7 @@ const Auth = () => {
           if (storedToken) {
             navigate(`/invitation/${storedToken}`);
           } else {
+            // Pilotos van a /pilot
             navigate('/pilot');
           }
         }
