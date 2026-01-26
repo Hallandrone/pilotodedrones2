@@ -230,11 +230,25 @@ export function showGoogleOneTap(): void {
  */
 export async function signInWithGoogle(userType: 'pilot' | 'company' = 'pilot'): Promise<AuthResult> {
   return new Promise(async (resolve) => {
+    let resolved = false;
+    
+    const safeResolve = (result: AuthResult) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(result);
+      }
+    };
+
     try {
       await loadGoogleScript();
 
       if (!window.google?.accounts) {
-        resolve({ success: false, error: 'Google Identity Services no disponible' });
+        safeResolve({ success: false, error: 'Google Identity Services no disponible' });
+        return;
+      }
+
+      if (!GOOGLE_CLIENT_ID) {
+        safeResolve({ success: false, error: 'GOOGLE_CLIENT_ID no configurado' });
         return;
       }
 
@@ -246,48 +260,93 @@ export async function signInWithGoogle(userType: 'pilot' | 'company' = 'pilot'):
             if (result.success && result.token && result.user) {
               saveSession(result.token, result.user);
             }
-            resolve(result);
+            safeResolve(result);
           } catch (error) {
-            resolve({ 
+            safeResolve({ 
               success: false, 
               error: error instanceof Error ? error.message : 'Error desconocido' 
             });
           }
         },
         auto_select: false,
-        cancel_on_tap_outside: true,
+        cancel_on_tap_outside: false, // No cancelar al hacer click afuera
       });
 
-      // Mostrar el prompt de One Tap
-      window.google.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed()) {
-          console.log('One Tap not displayed:', notification.getNotDisplayedReason());
-          // Fallback: crear un botón temporal invisible y hacer click
-          const tempDiv = document.createElement('div');
-          tempDiv.style.position = 'fixed';
-          tempDiv.style.top = '-9999px';
-          document.body.appendChild(tempDiv);
-          
-          window.google!.accounts.id.renderButton(tempDiv, {
-            type: 'standard',
-            theme: 'outline',
-            size: 'large',
-          });
-          
-          // Click automático en el botón
-          setTimeout(() => {
-            const button = tempDiv.querySelector('div[role="button"]') as HTMLElement;
-            if (button) button.click();
-          }, 100);
-        }
-        
-        if (notification.isDismissedMoment()) {
-          resolve({ success: false, error: 'Autenticación cancelada' });
-        }
+      // Crear un contenedor para el botón de Google
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'fixed';
+      tempDiv.style.top = '50%';
+      tempDiv.style.left = '50%';
+      tempDiv.style.transform = 'translate(-50%, -50%)';
+      tempDiv.style.zIndex = '99999';
+      tempDiv.style.background = 'white';
+      tempDiv.style.padding = '20px';
+      tempDiv.style.borderRadius = '12px';
+      tempDiv.style.boxShadow = '0 10px 40px rgba(0,0,0,0.3)';
+      document.body.appendChild(tempDiv);
+
+      // Crear overlay
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.background = 'rgba(0,0,0,0.5)';
+      overlay.style.zIndex = '99998';
+      overlay.onclick = () => {
+        cleanup();
+        safeResolve({ success: false, error: 'Autenticación cancelada' });
+      };
+      document.body.appendChild(overlay);
+
+      const cleanup = () => {
+        if (tempDiv.parentNode) tempDiv.remove();
+        if (overlay.parentNode) overlay.remove();
+      };
+
+      // Renderizar el botón oficial de Google
+      window.google.accounts.id.renderButton(tempDiv, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'continue_with',
+        width: 250,
       });
+
+      // Agregar texto instructivo
+      const instruction = document.createElement('p');
+      instruction.textContent = 'Selecciona tu cuenta de Google';
+      instruction.style.textAlign = 'center';
+      instruction.style.marginBottom = '15px';
+      instruction.style.fontWeight = '500';
+      instruction.style.color = '#333';
+      tempDiv.insertBefore(instruction, tempDiv.firstChild);
+
+      // Agregar botón de cerrar
+      const closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕';
+      closeBtn.style.position = 'absolute';
+      closeBtn.style.top = '5px';
+      closeBtn.style.right = '10px';
+      closeBtn.style.border = 'none';
+      closeBtn.style.background = 'none';
+      closeBtn.style.fontSize = '18px';
+      closeBtn.style.cursor = 'pointer';
+      closeBtn.style.color = '#666';
+      closeBtn.onclick = () => {
+        cleanup();
+        safeResolve({ success: false, error: 'Autenticación cancelada' });
+      };
+      tempDiv.appendChild(closeBtn);
+
+      // Limpiar después de un tiempo si no hay respuesta
+      setTimeout(() => {
+        cleanup();
+      }, 60000); // 1 minuto
 
     } catch (error) {
-      resolve({ 
+      safeResolve({ 
         success: false, 
         error: error instanceof Error ? error.message : 'Error desconocido' 
       });
