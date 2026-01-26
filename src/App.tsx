@@ -26,7 +26,6 @@ import QuickFix from "./pages/QuickFix";
 import MobileFix from "./pages/MobileFix";
 import PilotDataFix from "./pages/PilotDataFix";
 import ProfileSaveFix from "./pages/ProfileSaveFix";
-import AccessFix from "./pages/AccessFix";
 import UserProfile from "./pages/UserProfile";
 import PublicPilotProfile from "./pages/PublicPilotProfile";
 import DiplomaVerification from "./pages/DiplomaVerification";
@@ -80,7 +79,6 @@ const App = () => (
             <Route path="/mobile-fix" element={<MobileFix />} />
             <Route path="/pilot-data-fix" element={<PilotDataFix />} />
             <Route path="/profile-save-fix" element={<ProfileSaveFix />} />
-            <Route path="/access-fix" element={<AccessFix />} />
 
             {/* Ruta temporal para ver UserProfile sin auth */}
             <Route path="/user-profile" element={<div className="dark"><UserProfile /></div>} />

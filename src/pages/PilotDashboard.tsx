@@ -127,6 +127,8 @@ const PilotDashboard = () => {
 
   const checkUserAuth = async () => {
     try {
+      // Dar un pequeño momento para que la sesión se sincronice si viene de un redirect o popup
+      await new Promise(resolve => setTimeout(resolve, 500));
       const { data: { session } } = await supabase.auth.getSession();
 
       if (!session?.user) {
@@ -145,7 +147,7 @@ const PilotDashboard = () => {
           description: "Esta área es solo para pilotos",
           variant: "destructive",
         });
-        navigate('/access-fix');
+        navigate('/auth');
         return;
       }
 
@@ -624,7 +626,7 @@ const PilotDashboard = () => {
                       <p className="text-white/60 text-xs sm:text-sm">
                         {contacts.length === 0
                           ? 'Aún no has recibido contactos'
-                          : unreadContacts > 0 
+                          : unreadContacts > 0
                             ? `${unreadContacts} sin leer de ${contacts.length} total`
                             : `${contacts.length} contacto${contacts.length !== 1 ? 's' : ''} reciente${contacts.length !== 1 ? 's' : ''}`
                         }

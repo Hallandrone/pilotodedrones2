@@ -534,7 +534,7 @@ const Index = () => {
                   <Button
                     size="sm"
                     className="sm:h-11 sm:px-8 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl whitespace-nowrap"
-                    onClick={() => navigate('/auth')}
+                    onClick={() => navigate('/auth?tab=signup')}
                   >
                     <LogIn className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
                     <span className="hidden sm:inline">Ingresar/Registrarse</span>
@@ -629,7 +629,7 @@ const Index = () => {
                           className="w-full justify-start bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 shadow-lg hover:shadow-xl"
                           onClick={() => {
                             setMobileMenuOpen(false);
-                            navigate('/auth');
+                            navigate('/auth?tab=signup');
                           }}
                         >
                           <LogIn className="h-5 w-5 mr-3" />
@@ -788,6 +788,7 @@ const Index = () => {
                           variant="secondary"
                           size="lg"
                           className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
+                          onClick={() => navigate('/auth?tab=signup')}
                         >
                           Publicar Perfil Profesional
                         </Button>
@@ -900,7 +901,7 @@ const Index = () => {
                       <Button
                         size="lg"
                         className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 h-auto shadow-xl"
-                        onClick={() => navigate('/auth')}
+                        onClick={() => navigate('/auth?tab=signup')}
                       >
                         Comenzar a Publicar Gratis
                       </Button>
@@ -1257,6 +1258,7 @@ const Index = () => {
                         variant="secondary"
                         size="lg"
                         className="bg-white text-accent hover:bg-white/90 shadow-xl hover:shadow-2xl transition-all duration-200 text-lg px-8 py-6 h-auto"
+                        onClick={() => navigate('/auth?tab=signup')}
                       >
                         Publicar Perfil Profesional
                       </Button>
@@ -1357,7 +1359,7 @@ const Index = () => {
                       <Button
                         size="lg"
                         className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 h-auto shadow-xl"
-                        onClick={() => navigate('/auth')}
+                        onClick={() => navigate('/auth?tab=signup')}
                       >
                         Comenzar a Publicar Gratis
                       </Button>
@@ -1714,7 +1716,7 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
+    </div >
   );
 };
 

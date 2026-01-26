@@ -49,7 +49,7 @@ const Dashboard = () => {
 
         // Redirect to access fix page
         console.log('Redirecting to access fix page');
-        navigate('/access-fix');
+        navigate('/auth');
         return;
       }
 
@@ -61,13 +61,13 @@ const Dashboard = () => {
 
       // Check if user is admin or has any admin permissions
       const isUserAdmin = await isAdmin(session.user.id);
-      
+
       // Also check if user has any admin permissions (for sub-admins)
       const { data: permissionsData } = await supabase
         .from('user_permissions')
         .select('permission')
         .eq('user_id', session.user.id);
-      
+
       const hasAnyPermissions = permissionsData && permissionsData.length > 0;
 
       if (!isUserAdmin && !hasAnyPermissions) {

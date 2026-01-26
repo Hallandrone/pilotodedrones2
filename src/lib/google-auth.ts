@@ -1,10 +1,9 @@
 /**
- * Google Authentication with custom JWT
- * Uses Google Identity Services (OAuth 2.0) without Supabase Auth
+ * Google Authentication with Supabase Native Integration (Headless)
  */
+import { supabase } from "@/integrations/supabase/client";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const AUTH_ENDPOINT = 'https://sncjozwmtjaltoituumx.supabase.co/functions/v1/auth-google';
 
 // Tipos para Google Identity Services
 declare global {
@@ -12,48 +11,14 @@ declare global {
     google?: {
       accounts: {
         id: {
-          initialize: (config: GoogleInitConfig) => void;
-          prompt: (callback?: (notification: PromptNotification) => void) => void;
-          renderButton: (element: HTMLElement, config: GoogleButtonConfig) => void;
+          initialize: (config: any) => void;
+          prompt: (callback?: (notification: any) => void) => void;
+          renderButton: (element: HTMLElement, config: any) => void;
           cancel: () => void;
         };
       };
     };
   }
-}
-
-interface GoogleInitConfig {
-  client_id: string;
-  callback: (response: GoogleCredentialResponse) => void;
-  auto_select?: boolean;
-  cancel_on_tap_outside?: boolean;
-}
-
-interface GoogleCredentialResponse {
-  credential: string;
-  select_by: string;
-}
-
-interface PromptNotification {
-  isDisplayed: () => boolean;
-  isNotDisplayed: () => boolean;
-  getNotDisplayedReason: () => string;
-  isSkippedMoment: () => boolean;
-  getSkippedReason: () => string;
-  isDismissedMoment: () => boolean;
-  getDismissedReason: () => string;
-  getMomentType: () => string;
-}
-
-interface GoogleButtonConfig {
-  type?: 'standard' | 'icon';
-  theme?: 'outline' | 'filled_blue' | 'filled_black';
-  size?: 'large' | 'medium' | 'small';
-  text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
-  shape?: 'rectangular' | 'pill' | 'circle' | 'square';
-  logo_alignment?: 'left' | 'center';
-  width?: number;
-  locale?: string;
 }
 
 export interface GoogleUser {
@@ -66,92 +31,13 @@ export interface GoogleUser {
 
 export interface AuthResult {
   success: boolean;
-  token?: string;
   user?: GoogleUser;
   isNewUser?: boolean;
   error?: string;
 }
 
-// Almacenamiento de sesión
-const TOKEN_KEY = 'app_auth_token';
-const USER_KEY = 'app_auth_user';
-
 /**
- * Guarda la sesión en localStorage
- */
-export function saveSession(token: string, user: GoogleUser): void {
-  localStorage.setItem(TOKEN_KEY, token);
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
-}
-
-/**
- * Obtiene el token de sesión
- */
-export function getAuthToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-/**
- * Obtiene el usuario de la sesión
- */
-export function getAuthUser(): GoogleUser | null {
-  const userJson = localStorage.getItem(USER_KEY);
-  if (!userJson) return null;
-  try {
-    return JSON.parse(userJson) as GoogleUser;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Verifica si hay una sesión activa
- */
-export function isAuthenticated(): boolean {
-  return !!getAuthToken();
-}
-
-/**
- * Cierra la sesión
- */
-export function logout(): void {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-}
-
-/**
- * Verifica el token con el backend
- */
-export async function verifySession(): Promise<GoogleUser | null> {
-  const token = getAuthToken();
-  if (!token) return null;
-
-  try {
-    const response = await fetch(`${AUTH_ENDPOINT}/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
-
-    const data = await response.json();
-    
-    if (data.valid && data.user) {
-      return data.user as GoogleUser;
-    }
-    
-    // Token inválido, limpiar sesión
-    logout();
-    return null;
-  } catch (error) {
-    console.error('Error verificando sesión:', error);
-    return null;
-  }
-}
-
-/**
- * Carga el script de Google Identity Services
+ * Carga el script de Google
  */
 export function loadGoogleScript(): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -159,194 +45,108 @@ export function loadGoogleScript(): Promise<void> {
       resolve();
       return;
     }
-
-    const existingScript = document.getElementById('google-identity-script');
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve());
-      return;
-    }
-
     const script = document.createElement('script');
-    script.id = 'google-identity-script';
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error('Error cargando Google Identity Services'));
+    script.onerror = () => reject(new Error('Error cargando Google Script'));
     document.head.appendChild(script);
   });
 }
 
 /**
- * Inicializa Google Identity Services y muestra el One Tap
+ * Inicializa el cliente de Google con el callback de Supabase
  */
-export async function initGoogleAuth(
+export function initGoogleAuth(
   onSuccess: (result: AuthResult) => void,
-  onError: (error: string) => void,
   userType: 'pilot' | 'company' = 'pilot'
-): Promise<void> {
-  try {
-    await loadGoogleScript();
+) {
+  if (!window.google?.accounts) return;
 
-    if (!window.google?.accounts) {
-      throw new Error('Google Identity Services no disponible');
-    }
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: async (response: any) => {
+      try {
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: response.credential,
+        });
 
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: async (response: GoogleCredentialResponse) => {
-        try {
-          const result = await authenticateWithGoogle(response.credential, userType);
-          if (result.success && result.token && result.user) {
-            saveSession(result.token, result.user);
-            onSuccess(result);
-          } else {
-            onError(result.error || 'Error de autenticación');
-          }
-        } catch (error) {
-          onError(error instanceof Error ? error.message : 'Error desconocido');
+        if (error) throw error;
+
+        if (data.user) {
+          // Siempre actualizar el proveedor a 'google'
+          await supabase
+            .from('profiles')
+            .update({ auth_provider: 'google' })
+            .eq('id', data.user.id);
+
+          // Actualizar user_type solo si es nulo
+          await supabase
+            .from('profiles')
+            .update({ user_type: userType })
+            .eq('id', data.user.id)
+            .is('user_type', null);
+
+          onSuccess({
+            success: true,
+            user: {
+              id: data.user.id,
+              email: data.user.email || '',
+              name: data.user.user_metadata.full_name || '',
+              picture: data.user.user_metadata.avatar_url || '',
+              role: userType
+            },
+            isNewUser: data.session?.user.created_at === data.session?.user.last_sign_in_at
+          });
         }
-      },
-      auto_select: false,
-      cancel_on_tap_outside: true,
+      } catch (err: any) {
+        onSuccess({ success: false, error: err.message });
+      }
+    },
+  });
+}
+
+/**
+ * Renderiza el botón oficial para conseguir la ventana grande (Imagen 2)
+ */
+export function renderGoogleButton(containerId: string) {
+  const element = document.getElementById(containerId);
+  console.log(`[GoogleAuth] Intentando renderizar botón en #${containerId}`, { elementExists: !!element });
+
+  if (!element || !window.google?.accounts) {
+    if (!window.google?.accounts) console.warn('[GoogleAuth] window.google.accounts no disponible todavía');
+    return;
+  }
+
+  // Limpiar contenido previo para evitar duplicados
+  element.innerHTML = '';
+
+  try {
+    window.google.accounts.id.renderButton(element, {
+      type: 'standard',
+      theme: 'outline',
+      size: 'large',
+      text: 'continue_with',
+      shape: 'rectangular',
+      width: 400 // Forzamos un ancho grande para que cubra todo el botón personalizado
     });
-
+    console.log(`[GoogleAuth] Botón renderizado exitosamente en #${containerId}`);
   } catch (error) {
-    onError(error instanceof Error ? error.message : 'Error inicializando Google');
+    console.error(`[GoogleAuth] Error al renderizar botón en #${containerId}:`, error);
   }
 }
 
-/**
- * Muestra el prompt de Google One Tap
- */
-export function showGoogleOneTap(): void {
-  if (window.google?.accounts) {
-    window.google.accounts.id.prompt();
-  }
-}
-
-/**
- * Inicia el flujo de autenticación con Google
- */
+// Mantener por compatibilidad pero ahora usaremos init + render
 export async function signInWithGoogle(userType: 'pilot' | 'company' = 'pilot'): Promise<AuthResult> {
-  return new Promise(async (resolve) => {
-    let resolved = false;
-    
-    const safeResolve = (result: AuthResult) => {
-      if (!resolved) {
-        resolved = true;
-        resolve(result);
-      }
-    };
-
-    try {
-      await loadGoogleScript();
-
-      if (!window.google?.accounts) {
-        safeResolve({ success: false, error: 'Google Identity Services no disponible' });
-        return;
-      }
-
-      if (!GOOGLE_CLIENT_ID) {
-        safeResolve({ success: false, error: 'GOOGLE_CLIENT_ID no configurado' });
-        return;
-      }
-
-      // Usar OAuth2 con popup grande (ventana nueva)
-      const client = (window.google.accounts as any).oauth2.initCodeClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: 'email profile openid',
-        ux_mode: 'popup', // Esto abre la ventana grande
-        callback: async (response: { code?: string; error?: string }) => {
-          if (response.error) {
-            safeResolve({ success: false, error: response.error });
-            return;
-          }
-
-          if (response.code) {
-            try {
-              // Intercambiar el código por el id_token en el backend
-              const result = await exchangeCodeForToken(response.code, userType);
-              if (result.success && result.token && result.user) {
-                saveSession(result.token, result.user);
-              }
-              safeResolve(result);
-            } catch (error) {
-              safeResolve({ 
-                success: false, 
-                error: error instanceof Error ? error.message : 'Error desconocido' 
-              });
-            }
-          }
-        },
-      });
-
-      // Iniciar el flujo OAuth con popup grande
-      client.requestCode();
-
-    } catch (error) {
-      safeResolve({ 
-        success: false,
-        error: error instanceof Error ? error.message : 'Error desconocido' 
-      });
-    }
+  return new Promise((resolve) => {
+    initGoogleAuth((res) => resolve(res), userType);
+    window.google?.accounts.id.prompt();
   });
 }
 
-/**
- * Intercambia el código de autorización por un token
- */
-async function exchangeCodeForToken(code: string, userType: string): Promise<AuthResult> {
-  const response = await fetch(AUTH_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ 
-      auth_code: code,
-      user_type: userType
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    return { success: false, error: data.error || 'Error de autenticación' };
-  }
-
-  return {
-    success: true,
-    token: data.token,
-    user: data.user,
-    isNewUser: data.isNewUser,
-  };
-}
-
-/**
- * Envía el id_token al backend para autenticar
- */
-async function authenticateWithGoogle(idToken: string, userType: string): Promise<AuthResult> {
-  const response = await fetch(AUTH_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ 
-      id_token: idToken,
-      user_type: userType
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    return { success: false, error: data.error || 'Error de autenticación' };
-  }
-
-  return {
-    success: true,
-    token: data.token,
-    user: data.user,
-    isNewUser: data.isNewUser,
-  };
-}
+export function saveSession(token: string, user: GoogleUser): void { }
+export function getAuthUser(): GoogleUser | null { return null; }
+export function isAuthenticated(): boolean { return false; }
+export async function logout(): Promise<void> { await supabase.auth.signOut(); }

@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getUserRole } from "@/lib/auth-utils";
 import { getBaseUrl } from "@/lib/getBaseUrl";
-import { signInWithGoogle, getAuthUser, isAuthenticated, saveSession } from "@/lib/google-auth";
+import { signInWithGoogle, getAuthUser, isAuthenticated, saveSession, loadGoogleScript, initGoogleAuth, renderGoogleButton } from "@/lib/google-auth";
 import type { User, Session } from '@supabase/supabase-js';
 
 const Auth = () => {
@@ -66,6 +66,63 @@ const Auth = () => {
       }
     }
   }, [location]);
+
+  useEffect(() => {
+    // Cargar Google GSI y configurar el botón invisible
+    loadGoogleScript().then(() => {
+      initGoogleAuth((result) => {
+        if (result.success) {
+          handleGoogleAuthCompleted(result);
+        } else {
+          toast({
+            title: "Error",
+            description: result.error || "Error al iniciar sesión con Google",
+            variant: "destructive",
+          });
+        }
+      });
+
+      // Renderizar botones (con un pequeño delay para asegurar que el DOM de la pestaña esté listo)
+      setTimeout(() => {
+        renderGoogleButton("google-login-btn-overlay");
+        renderGoogleButton("google-signup-btn-overlay");
+      }, 500);
+    });
+  }, [activeTab]); // Ejecutar cuando cambie la pestaña
+
+  const handleGoogleAuthCompleted = async (result: any) => {
+    setLoading(true);
+
+    // Obtener perfil real de la base de datos para decidir a dónde ir
+    // (Ignoramos el userType visual porque el usuario ya puede tener cuenta)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', result.user.id)
+      .single();
+
+    const roleData = await getUserRole(result.user.id);
+    const finalRole = profile?.user_type || roleData?.role || result.user.role;
+
+    toast({
+      title: result.isNewUser ? "¡Bienvenido!" : "¡Hola de nuevo!",
+      description: result.isNewUser
+        ? "Tu cuenta ha sido creada exitosamente"
+        : "Has iniciado sesión correctamente",
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    if (finalRole === 'company') {
+      window.location.href = '/company';
+    } else if (finalRole === 'admin' || finalRole === 'super_admin') {
+      window.location.href = '/dashboard';
+    } else {
+      const storedToken = localStorage.getItem('pendingInvitationToken');
+      window.location.href = storedToken ? `/invitation/${storedToken}` : '/pilot';
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -171,8 +228,16 @@ const Auth = () => {
 
             if (profile?.user_type === 'company') {
               navigate('/company');
+            } else if (profile?.user_type === 'pilot') {
+              navigate('/pilot');
             } else {
-              navigate('/dashboard');
+              // Si no tiene tipo pero existe, ver si es admin
+              const roleData = await getUserRole(session.user.id);
+              if (roleData?.role === 'admin' || roleData?.role === 'super_admin') {
+                navigate('/dashboard');
+              } else {
+                navigate('/pilot');
+              }
             }
           } catch (error) {
             console.error('Error checking profile:', error);
@@ -519,12 +584,12 @@ const Auth = () => {
         .single();
 
       if (profileError || !profile) {
-        // Si no hay perfil, redirigir a access-fix para crearlo
+        // Si no hay perfil, redirigir a login
         toast({
           title: "Configurando cuenta",
           description: "Completando tu registro...",
         });
-        navigate('/access-fix');
+        navigate('/auth');
         setLoading(false);
         return;
       }
@@ -533,12 +598,12 @@ const Auth = () => {
       const roleData = await getUserRole(data.user.id);
 
       if (!roleData) {
-        // Si no se pudo obtener/crear el rol, ir a access-fix
+        // Si no se pudo obtener/crear el rol, ir a login
         toast({
           title: "Configurando cuenta",
           description: "Completando tu registro...",
         });
-        navigate('/access-fix');
+        navigate('/auth');
         setLoading(false);
         return;
       }
@@ -564,8 +629,8 @@ const Auth = () => {
       } else if (roleData.role === 'company') {
         navigate('/company');
       } else {
-        // Por defecto, redirigir a access-fix
-        navigate('/access-fix');
+        // Por defecto, redirigir a pilot
+        navigate('/pilot');
       }
     } catch (err: any) {
       console.error('Error en login:', err);
@@ -581,17 +646,17 @@ const Auth = () => {
 
   const handleGoogleAuth = async (userType: 'pilot' | 'company' = 'pilot') => {
     setLoading(true);
-    
+
     try {
       const result = await signInWithGoogle(userType);
-      
+
       console.log('Google Auth Result:', result);
-      
+
       if (result.success && result.user) {
         toast({
           title: result.isNewUser ? "¡Bienvenido!" : "¡Hola de nuevo!",
-          description: result.isNewUser 
-            ? "Tu cuenta ha sido creada exitosamente" 
+          description: result.isNewUser
+            ? "Tu cuenta ha sido creada exitosamente"
             : "Has iniciado sesión correctamente",
         });
 
@@ -601,7 +666,7 @@ const Auth = () => {
         // Redirigir según el rol
         const userRole = result.user.role;
         console.log('Redirigiendo usuario con rol:', userRole);
-        
+
         if (userRole === 'company') {
           window.location.href = '/company';
         } else if (userRole === 'admin' || userRole === 'super_admin') {
@@ -673,16 +738,22 @@ const Auth = () => {
 
     return (
       <form onSubmit={onSubmit} className="space-y-4">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => handleGoogleAuth('pilot')}
-          disabled={loading}
-        >
-          <GoogleIcon />
-          Continuar con Google
-        </Button>
+        <div className="relative">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={loading}
+          >
+            <GoogleIcon />
+            Continuar con Google
+          </Button>
+          <div
+            id="google-login-btn-overlay"
+            className="absolute inset-0 opacity-0 overflow-hidden cursor-pointer"
+            style={{ zIndex: 10, minHeight: '44px', width: '100%' }}
+          />
+        </div>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -707,6 +778,7 @@ const Auth = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10"
               required
+              autoComplete="email"
             />
           </div>
         </div>
@@ -722,6 +794,7 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="pl-10"
               required
+              autoComplete="current-password"
             />
           </div>
         </div>
@@ -754,16 +827,22 @@ const Auth = () => {
 
     return (
       <form onSubmit={onSubmit} className="space-y-4">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={() => handleGoogleAuth(userType as 'pilot' | 'company')}
-          disabled={loading}
-        >
-          <GoogleIcon />
-          Registrarse con Google
-        </Button>
+        <div className="relative">
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={loading}
+          >
+            <GoogleIcon />
+            Registrarse con Google
+          </Button>
+          <div
+            id="google-signup-btn-overlay"
+            className="absolute inset-0 opacity-0 overflow-hidden cursor-pointer"
+            style={{ zIndex: 10, minHeight: '44px', width: '100%' }}
+          />
+        </div>
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
@@ -794,6 +873,7 @@ const Auth = () => {
               onChange={(e) => setName(e.target.value)}
               className="pl-10"
               required
+              autoComplete="name"
             />
           </div>
         </div>
@@ -809,6 +889,7 @@ const Auth = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10"
               required
+              autoComplete="email"
             />
           </div>
         </div>
@@ -825,6 +906,7 @@ const Auth = () => {
               className="pl-10"
               required
               minLength={6}
+              autoComplete="new-password"
             />
           </div>
         </div>
