@@ -269,85 +269,46 @@ export async function signInWithGoogle(userType: 'pilot' | 'company' = 'pilot'):
           }
         },
         auto_select: false,
-        cancel_on_tap_outside: false, // No cancelar al hacer click afuera
+        cancel_on_tap_outside: true,
       });
 
-      // Crear un contenedor para el botón de Google
-      const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'fixed';
-      tempDiv.style.top = '50%';
-      tempDiv.style.left = '50%';
-      tempDiv.style.transform = 'translate(-50%, -50%)';
-      tempDiv.style.zIndex = '99999';
-      tempDiv.style.background = 'white';
-      tempDiv.style.padding = '20px';
-      tempDiv.style.borderRadius = '12px';
-      tempDiv.style.boxShadow = '0 10px 40px rgba(0,0,0,0.3)';
-      document.body.appendChild(tempDiv);
-
-      // Crear overlay
-      const overlay = document.createElement('div');
-      overlay.style.position = 'fixed';
-      overlay.style.top = '0';
-      overlay.style.left = '0';
-      overlay.style.width = '100%';
-      overlay.style.height = '100%';
-      overlay.style.background = 'rgba(0,0,0,0.5)';
-      overlay.style.zIndex = '99998';
-      overlay.onclick = () => {
-        cleanup();
-        safeResolve({ success: false, error: 'Autenticación cancelada' });
-      };
-      document.body.appendChild(overlay);
-
-      const cleanup = () => {
-        if (tempDiv.parentNode) tempDiv.remove();
-        if (overlay.parentNode) overlay.remove();
-      };
-
-      // Renderizar el botón oficial de Google
-      window.google.accounts.id.renderButton(tempDiv, {
-        type: 'standard',
-        theme: 'outline',
-        size: 'large',
-        text: 'continue_with',
-        width: 250,
+      // Usar el popup nativo de Google directamente (One Tap)
+      window.google.accounts.id.prompt((notification) => {
+        if (notification.isNotDisplayed()) {
+          // Si One Tap no se muestra, forzar apertura con botón invisible
+          const hiddenBtn = document.createElement('div');
+          hiddenBtn.style.position = 'fixed';
+          hiddenBtn.style.opacity = '0.01';
+          hiddenBtn.style.pointerEvents = 'none';
+          hiddenBtn.style.top = '0';
+          hiddenBtn.style.left = '0';
+          document.body.appendChild(hiddenBtn);
+          
+          window.google!.accounts.id.renderButton(hiddenBtn, {
+            type: 'standard',
+            theme: 'outline',
+            size: 'large',
+          });
+          
+          // Simular click en el botón para abrir popup nativo
+          setTimeout(() => {
+            const btn = hiddenBtn.querySelector('div[role="button"]') as HTMLElement;
+            if (btn) {
+              btn.click();
+            }
+            // Limpiar después
+            setTimeout(() => hiddenBtn.remove(), 500);
+          }, 100);
+        }
+        
+        if (notification.isDismissedMoment()) {
+          safeResolve({ success: false, error: 'Autenticación cancelada' });
+        }
       });
-
-      // Agregar texto instructivo
-      const instruction = document.createElement('p');
-      instruction.textContent = 'Selecciona tu cuenta de Google';
-      instruction.style.textAlign = 'center';
-      instruction.style.marginBottom = '15px';
-      instruction.style.fontWeight = '500';
-      instruction.style.color = '#333';
-      tempDiv.insertBefore(instruction, tempDiv.firstChild);
-
-      // Agregar botón de cerrar
-      const closeBtn = document.createElement('button');
-      closeBtn.textContent = '✕';
-      closeBtn.style.position = 'absolute';
-      closeBtn.style.top = '5px';
-      closeBtn.style.right = '10px';
-      closeBtn.style.border = 'none';
-      closeBtn.style.background = 'none';
-      closeBtn.style.fontSize = '18px';
-      closeBtn.style.cursor = 'pointer';
-      closeBtn.style.color = '#666';
-      closeBtn.onclick = () => {
-        cleanup();
-        safeResolve({ success: false, error: 'Autenticación cancelada' });
-      };
-      tempDiv.appendChild(closeBtn);
-
-      // Limpiar después de un tiempo si no hay respuesta
-      setTimeout(() => {
-        cleanup();
-      }, 60000); // 1 minuto
 
     } catch (error) {
       safeResolve({ 
-        success: false, 
+        success: false,
         error: error instanceof Error ? error.message : 'Error desconocido' 
       });
     }
