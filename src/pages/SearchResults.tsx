@@ -11,6 +11,7 @@ import { ArrowLeft, MapPin, DollarSign, Shield, Briefcase, Search, Filter, Phone
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import Logo from "@/components/ui/logo";
 import PilotCard from "@/components/ui/pilot-card";
+import Footer from "@/components/layout/Footer";
 
 interface PilotWithServices {
   id: string;
@@ -791,6 +792,7 @@ const SearchResults = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

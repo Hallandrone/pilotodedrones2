@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { motion, AnimatePresence } from "framer-motion";
+import Footer from "@/components/layout/Footer";
 
 // Componente para el background del Hero (sin parallax para evitar errores de React)
 const HeroParallaxBackground = () => {
@@ -1705,70 +1706,8 @@ const Index = () => {
         </div>
       </motion.section>
 
-      {/* Footer */}
-      <footer className="py-12 border-t border-border/50 bg-background">
-        <div className="container mx-auto px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              {/* Logo y nombre */}
-              <div className="flex items-center gap-2">
-                <Logo size="xl" showText={false} />
-              </div>
-
-              {/* Copyright */}
-              <p className="text-sm text-muted-foreground">
-                © {new Date().getFullYear()} Piloto de Drones. Todos los derechos reservados.
-              </p>
-
-              {/* Enlaces mínimos */}
-              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap justify-center">
-                <button
-                  onClick={() => navigate('/auth')}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Iniciar Sesión
-                </button>
-                <span className="text-border">•</span>
-                <button
-                  onClick={() => navigate('/search')}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Buscar Pilotos
-                </button>
-                <span className="text-border">•</span>
-                <button
-                  onClick={() => navigate('/verificar-diploma')}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Verificar Diploma
-                </button>
-                <span className="text-border">•</span>
-                <button
-                  onClick={() => navigate('/contacto')}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Contacto
-                </button>
-                <span className="text-border">•</span>
-                <button
-                  onClick={() => navigate('/terms')}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Términos y Condiciones
-                </button>
-                <span className="text-border">•</span>
-                <button
-                  onClick={() => navigate('/privacy')}
-                  className="hover:text-foreground transition-colors"
-                >
-                  Política de Privacidad
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-    </div >
+      <Footer />
+    </div>
   );
 };
 

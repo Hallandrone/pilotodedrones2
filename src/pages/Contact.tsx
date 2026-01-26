@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import Footer from "@/components/layout/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Mail, MessageCircle, ArrowRight, Home, ChevronRight } from "lucide-react";
 import Logo from "@/components/ui/logo";
@@ -184,48 +185,7 @@ const Contacto = () => {
 				</section>
 			</main>
 
-			{/* Footer */}
-			<footer className="mt-auto py-12 border-t-2 border-border bg-card/50 backdrop-blur-sm w-full">
-				<div className="container mx-auto px-6 lg:px-8">
-					<div className="max-w-7xl mx-auto">
-						<div className="flex flex-col md:flex-row items-center justify-between gap-6">
-							{/* Logo */}
-							<div className="flex items-center gap-2">
-								<Logo size="xl" showText={false} />
-							</div>
-
-							{/* Copyright */}
-							<p className="text-sm text-foreground/70 text-center">
-								© {new Date().getFullYear()} Piloto de Drones. El marketplace líder en servicios aéreos.
-							</p>
-
-							{/* Enlaces mínimos */}
-							<div className="flex items-center gap-4 text-sm text-foreground/80 flex-wrap justify-center">
-								<button
-									onClick={() => navigate('/auth')}
-									className="hover:text-foreground transition-colors font-medium"
-								>
-									Mi Perfil
-								</button>
-								<span className="text-foreground/30">•</span>
-								<button
-									onClick={() => navigate('/search')}
-									className="hover:text-foreground transition-colors font-medium"
-								>
-									Explorar Pilotos
-								</button>
-								<span className="text-foreground/30">•</span>
-								<button
-									onClick={() => navigate('/terms')}
-									className="hover:text-foreground transition-colors font-medium"
-								>
-									Legal
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</footer>
+			<Footer />
 		</div>
 	);
 };
