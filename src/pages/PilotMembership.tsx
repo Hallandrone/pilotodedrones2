@@ -497,7 +497,7 @@ const PilotMembership = () => {
         setBricksController(controller);
       };
 
-      const mp = new window.MercadoPago('TEST-eb10a1a3-71ba-4db1-a82d-67a48db30430', {
+      const mp = new window.MercadoPago('APP_USR-08ad2fd4-0eb3-4231-89e0-76c03c3bff5c', {
         locale: 'es-CL'
       });
       const bricksBuilder = mp.bricks();
