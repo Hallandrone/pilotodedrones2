@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getUserRole } from "@/lib/auth-utils";
 import { getBaseUrl } from "@/lib/getBaseUrl";
+import { signInWithGoogle, getAuthUser, isAuthenticated, saveSession } from "@/lib/google-auth";
 import type { User, Session } from '@supabase/supabase-js';
 
 const Auth = () => {
@@ -578,23 +579,51 @@ const Auth = () => {
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = async (userType: 'pilot' | 'company' = 'pilot') => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${getBaseUrl()}/`
-      }
-    });
+    
+    try {
+      const result = await signInWithGoogle(userType);
+      
+      if (result.success && result.user) {
+        toast({
+          title: result.isNewUser ? "¡Bienvenido!" : "¡Hola de nuevo!",
+          description: result.isNewUser 
+            ? "Tu cuenta ha sido creada exitosamente" 
+            : "Has iniciado sesión correctamente",
+        });
 
-    if (error) {
+        // Redirigir según el rol
+        if (result.user.role === 'company') {
+          navigate('/company');
+        } else if (result.user.role === 'admin' || result.user.role === 'super_admin') {
+          navigate('/dashboard');
+        } else {
+          // Verificar si hay invitación pendiente
+          const storedToken = localStorage.getItem('pendingInvitationToken');
+          if (storedToken) {
+            navigate(`/invitation/${storedToken}`);
+          } else {
+            navigate('/pilot');
+          }
+        }
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "No se pudo iniciar sesión con Google",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error en Google Auth:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: "Ocurrió un error al iniciar sesión con Google",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const GoogleIcon = () => (
@@ -639,7 +668,7 @@ const Auth = () => {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={handleGoogleAuth}
+          onClick={() => handleGoogleAuth('pilot')}
           disabled={loading}
         >
           <GoogleIcon />
@@ -720,7 +749,7 @@ const Auth = () => {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={handleGoogleAuth}
+          onClick={() => handleGoogleAuth(userType as 'pilot' | 'company')}
           disabled={loading}
         >
           <GoogleIcon />

@@ -1,1 +1,4 @@
 project_id = "sncjozwmtjaltoituumx"
+
+[functions.auth-google]
+verify_jwt = false
