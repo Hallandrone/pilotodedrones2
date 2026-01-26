@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Planes from "./pages/Planes";
+import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Auth from "./pages/Auth";
@@ -53,6 +54,7 @@ const App = () => (
             {/* Rutas con tema CLARO (Landing) */}
             <Route path="/" element={<Index />} />
             <Route path="/planes" element={<Planes />} />
+            <Route path="/contacto" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/auth" element={<Auth />} />

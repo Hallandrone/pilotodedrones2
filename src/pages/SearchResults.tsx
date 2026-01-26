@@ -189,6 +189,9 @@ const SearchResults = () => {
       setSpecialtyTypes(types);
       setLoadingSpecialties(false);
     });
+
+    // Asegurar que la página comience arriba
+    window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
@@ -432,8 +435,8 @@ const SearchResults = () => {
             </Button>
             <Logo
               size="xl"
-              className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
               showText={false}
+              className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] scale-110"
             />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">

@@ -65,6 +65,9 @@ const Auth = () => {
         console.log('📦 QR token encontrado en localStorage (de visita anterior):', storedQrToken);
       }
     }
+
+    // Asegurar que la página comience arriba al cargar
+    window.scrollTo(0, 0);
   }, [location]);
 
   useEffect(() => {
@@ -944,8 +947,8 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <Logo size="xl" className="hover:scale-105 transition-transform duration-200" />
+          <div className="flex justify-center mb-6">
+            <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 scale-150 mb-4" />
           </div>
           <p className="text-muted-foreground">Accede a tu cuenta profesional</p>
         </div>

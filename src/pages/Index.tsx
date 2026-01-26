@@ -57,6 +57,7 @@ const Index = () => {
     loadFeaturedPilots();
     loadFeaturedCompanies();
     checkAuth();
+    window.scrollTo(0, 0);
 
     // Escuchar cambios en el estado de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -475,7 +476,7 @@ const Index = () => {
       <header className="border-b border-border bg-card shadow-sm sticky top-0 z-50 w-full">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
           <div className="flex items-center justify-between gap-4 w-full">
-            <Logo size="xl" className="hover:scale-105 transition-transform duration-200 flex-shrink-0" />
+            <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 flex-shrink-0 ml-4 sm:ml-12" />
 
             {/* Desktop Menu - Visible solo en md y superior */}
             <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
@@ -494,6 +495,14 @@ const Index = () => {
                 className="sm:h-11 sm:px-6 hover:bg-accent/10 transition-all duration-200 whitespace-nowrap"
               >
                 Precios
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/contacto')}
+                className="sm:h-11 sm:px-6 hover:bg-accent/10 transition-all duration-200 whitespace-nowrap"
+              >
+                Contacto
               </Button>
               {user ? (
                 <>
@@ -575,6 +584,17 @@ const Index = () => {
                       }}
                     >
                       Precios
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      className="w-full justify-start hover:bg-accent/10 transition-all duration-200"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        navigate('/contacto');
+                      }}
+                    >
+                      Contacto
                     </Button>
                     {user ? (
                       <>
@@ -1109,23 +1129,46 @@ const Index = () => {
 
               {/* Resultados / Destacados */}
               <motion.section
-                className="py-20 lg:py-28 bg-secondary"
+                className="py-24 lg:py-32 bg-gradient-to-b from-secondary/50 to-background relative overflow-hidden"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.8 }}
               >
-                <div className="max-w-7xl mx-auto">
-                  <motion.h3
-                    className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    {results.length ? "Resultados de Búsqueda" : "Pilotos Destacados"}
-                  </motion.h3>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Background Decoration */}
+                <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] [mask-image:linear-gradient(to_bottom,transparent,black)] pointer-events-none" />
+
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                  <div className="text-center mb-12">
+                    <motion.span
+                      className="inline-block py-1 px-3 rounded-full bg-accent/10 text-accent text-sm font-semibold mb-4"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                    >
+                      Profesionales Verificados
+                    </motion.span>
+                    <motion.h3
+                      className="text-4xl md:text-5xl font-extrabold text-primary mb-6 tracking-tight"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      {results.length ? "Resultados de Búsqueda" : "Expertos Listos para Despegar"}
+                    </motion.h3>
+                    <motion.p
+                      className="text-xl text-muted-foreground max-w-2xl mx-auto"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                    >
+                      {results.length
+                        ? "Encuentra al profesional que se adapta a tus necesidades."
+                        : "Explora nuestra selección de pilotos o busca en nuestro directorio completo para encontrar la solución aérea perfecta para tu proyecto."}
+                    </motion.p>
+                  </div>                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {listToRender.map((pilot, index) => (
                       <motion.div
                         key={pilot.id}
@@ -1138,24 +1181,25 @@ const Index = () => {
                       </motion.div>
                     ))}
                   </div>
-                  {!results.length && (
-                    <motion.div
-                      className="text-center mt-12"
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
+                  <motion.div
+                    className="flex flex-col items-center justify-center space-y-4 mt-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                  >
+                    <Button
+                      size="lg"
+                      onClick={() => navigate('/search')}
+                      className="bg-primary hover:bg-primary/90 text-white text-lg px-10 py-6 h-auto shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group"
                     >
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        onClick={() => navigate('/search')}
-                        className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
-                      >
-                        Ver Todos los Pilotos
-                      </Button>
-                    </motion.div>
-                  )}
+                      <Search className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                      Explorar Directorio Completo
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      Busca por región, especialidad y tipo de drone
+                    </p>
+                  </motion.div>
                 </div>
               </motion.section>
             </div>
@@ -1537,23 +1581,46 @@ const Index = () => {
 
               {/* Resultados / Destacados */}
               <motion.section
-                className="py-20 lg:py-28 bg-secondary"
+                className="py-24 lg:py-32 bg-gradient-to-b from-secondary/50 to-background relative overflow-hidden"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.8 }}
               >
-                <div className="max-w-7xl mx-auto">
-                  <motion.h3
-                    className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    {results.length ? "Resultados de Búsqueda" : "Pilotos Destacados"}
-                  </motion.h3>
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Background Decoration */}
+                <div className="absolute inset-0 bg-grid-slate-900/[0.04] bg-[bottom_1px_center] [mask-image:linear-gradient(to_bottom,transparent,black)] pointer-events-none" />
+
+                <div className="max-w-7xl mx-auto px-6 relative z-10">
+                  <div className="text-center mb-12">
+                    <motion.span
+                      className="inline-block py-1 px-3 rounded-full bg-accent/10 text-accent text-sm font-semibold mb-4"
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                    >
+                      Profesionales Verificados
+                    </motion.span>
+                    <motion.h3
+                      className="text-4xl md:text-5xl font-extrabold text-primary mb-6 tracking-tight"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      {results.length ? "Resultados de Búsqueda" : "Expertos Listos para Despegar"}
+                    </motion.h3>
+                    <motion.p
+                      className="text-xl text-muted-foreground max-w-2xl mx-auto"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                    >
+                      {results.length
+                        ? "Encuentra al profesional que se adapta a tus necesidades."
+                        : "Explora nuestra selección de pilotos o busca en nuestro directorio completo para encontrar la solución aérea perfecta para tu proyecto."}
+                    </motion.p>
+                  </div>                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {listToRender.map((pilot, index) => (
                       <motion.div
                         key={pilot.id}
@@ -1566,24 +1633,25 @@ const Index = () => {
                       </motion.div>
                     ))}
                   </div>
-                  {!results.length && (
-                    <motion.div
-                      className="text-center mt-12"
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.3, type: "tween", ease: "easeOut" }}
+                  <motion.div
+                    className="flex flex-col items-center justify-center space-y-4 mt-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                  >
+                    <Button
+                      size="lg"
+                      onClick={() => navigate('/search')}
+                      className="bg-primary hover:bg-primary/90 text-white text-lg px-10 py-6 h-auto shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 rounded-2xl group"
                     >
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        onClick={() => navigate('/search')}
-                        className="border-2 hover:bg-accent hover:text-white hover:border-accent transition-all duration-200 text-lg px-8 py-6 h-auto"
-                      >
-                        Ver Todos los Pilotos
-                      </Button>
-                    </motion.div>
-                  )}
+                      <Search className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                      Explorar Directorio Completo
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      Busca por región, especialidad y tipo de drone
+                    </p>
+                  </motion.div>
                 </div>
               </motion.section>
             </div>
@@ -1644,10 +1712,7 @@ const Index = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
               {/* Logo y nombre */}
               <div className="flex items-center gap-2">
-                <Logo size="sm" showText={false} />
-                <span className="text-lg font-semibold text-muted-foreground">
-                  Piloto de Drones
-                </span>
+                <Logo size="xl" showText={false} />
               </div>
 
               {/* Copyright */}
@@ -1676,6 +1741,13 @@ const Index = () => {
                   className="hover:text-foreground transition-colors"
                 >
                   Verificar Diploma
+                </button>
+                <span className="text-border">•</span>
+                <button
+                  onClick={() => navigate('/contacto')}
+                  className="hover:text-foreground transition-colors"
+                >
+                  Contacto
                 </button>
                 <span className="text-border">•</span>
                 <button

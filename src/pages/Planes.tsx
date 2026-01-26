@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,10 @@ import Logo from "@/components/ui/logo";
 
 const Planes = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const plans = [
     {
@@ -131,7 +136,7 @@ const Planes = () => {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm shadow-sm sticky top-0 z-50 w-full">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
           <div className="flex items-center justify-between gap-2 sm:gap-4 w-full max-w-7xl mx-auto">
-            <Logo size="md" className="sm:scale-125 hover:scale-110 sm:hover:scale-[1.3] transition-transform duration-200 flex-shrink-0" />
+            <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 flex-shrink-0 ml-4 sm:ml-12" />
 
             <div className="flex items-center gap-2 sm:gap-3">
               <Button
@@ -142,6 +147,14 @@ const Planes = () => {
               >
                 <Home className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Home</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/contacto')}
+                className="h-9 px-2 sm:px-4 hover:bg-accent/10 transition-all duration-200"
+              >
+                <span className="">Contacto</span>
               </Button>
               <Button
                 size="sm"
@@ -365,10 +378,7 @@ const Planes = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
               {/* Logo y nombre */}
               <div className="flex items-center gap-2 justify-center md:justify-start">
-                <Logo size="sm" showText={false} />
-                <span className="text-lg font-semibold text-foreground">
-                  Piloto de Drones
-                </span>
+                <Logo size="xl" showText={false} />
               </div>
 
               {/* Copyright */}
@@ -390,6 +400,13 @@ const Planes = () => {
                   className="hover:text-foreground transition-colors font-medium"
                 >
                   Buscar Pilotos
+                </button>
+                <span className="text-foreground/30">•</span>
+                <button
+                  onClick={() => navigate('/contacto')}
+                  className="hover:text-foreground transition-colors font-medium"
+                >
+                  Contacto
                 </button>
                 <span className="text-foreground/30">•</span>
                 <button
