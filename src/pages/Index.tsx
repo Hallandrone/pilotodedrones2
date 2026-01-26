@@ -816,20 +816,96 @@ const Index = () => {
                     ¿Por qué elegir Piloto de Drones?
                   </motion.h3>
 
-                  {/* Drone Image 1 */}
-                  <motion.div
-                    className="mb-12 flex justify-center"
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                  >
-                    <img
-                      src="/drone-hero-1.png"
-                      alt="Drone profesional sobre paisaje chileno"
-                      className="rounded-2xl shadow-2xl max-w-2xl w-full h-auto"
-                    />
-                  </motion.div>
+
+                  {/* Potencia tu Presencia Section */}
+                  <section className="py-12 md:py-20">
+                    <div className="text-center mb-16">
+                      <h3 className="text-4xl md:text-5xl font-bold text-primary mb-6">
+                        Potencia tu Presencia en la Industria
+                      </h3>
+                      <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                        No solo somos un buscador, somos la plataforma donde centralizas tu carrera profesional. Publica tus servicios, gestiona tus certificaciones y llega a más clientes.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                      {/* Agro */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/AGRO 2_resultado.webp"
+                            alt="Agricultura de Precisión"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Tus trabajos en Agro</h4>
+                          <p className="text-sm text-muted-foreground">Demuestra tu experiencia en fumigación, mapeo y análisis de cultivos con perfiles técnicos detallados.</p>
+                        </div>
+                      </div>
+
+                      {/* Audiovisual */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/AUDIOVISUAL_resultado.webp"
+                            alt="Producción Audiovisual"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Tu portafolio Audiovisual</h4>
+                          <p className="text-sm text-muted-foreground">Crea una vitrina profesional para tus tomas aéreas cinematográficas y producciones de alta calidad.</p>
+                        </div>
+                      </div>
+
+                      {/* Inspección */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/inspeccion_infraestructura.png"
+                            alt="Inspección de Infraestructura"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Especialidad en Inspección</h4>
+                          <p className="text-sm text-muted-foreground">Destaca tu capacidad técnica en revisión de puentes, torres y estructuras críticas con drones industriales.</p>
+                        </div>
+                      </div>
+
+                      {/* Térmica */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/inspeccion_termica.png"
+                            alt="Detección Térmica"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Detección Térmica</h4>
+                          <p className="text-sm text-muted-foreground">Posiciónate como experto en termografía aérea para incendios, paneles solares y eficiencia energética.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-16 bg-primary/5 rounded-3xl p-8 md:p-12 border border-primary/10 flex flex-col md:flex-row items-center justify-between gap-8">
+                      <div className="max-w-2xl">
+                        <h4 className="text-2xl md:text-3xl font-bold text-primary mb-4">La centralización es tu mayor ventaja</h4>
+                        <p className="text-lg text-muted-foreground">
+                          Tener tus certificaciones, especialidades en un solo lugar genera la confianza que las empresas buscan. Deja de enviar archivos sueltos y comparte tu perfil verificado profesional.
+                        </p>
+                      </div>
+                      <Button
+                        size="lg"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 h-auto shadow-xl"
+                        onClick={() => navigate('/auth')}
+                      >
+                        Comenzar a Publicar Gratis
+                      </Button>
+                    </div>
+                  </section>
 
                   <div className="grid md:grid-cols-3 gap-12">
                     <motion.div
@@ -1198,6 +1274,96 @@ const Index = () => {
                 transition={{ duration: 0.8 }}
               >
                 <div className="max-w-6xl mx-auto">
+                  {/* Potencia tu Presencia Section */}
+                  <section className="py-12 md:py-20">
+                    <div className="text-center mb-16">
+                      <h3 className="text-4xl md:text-5xl font-bold text-primary mb-6">
+                        Potencia tu Presencia en la Industria
+                      </h3>
+                      <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                        No solo somos un buscador, somos la plataforma donde centralizas tu carrera profesional. Publica tus servicios, gestiona tus certificaciones y llega a más clientes.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                      {/* Agro */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/AGRO 2_resultado.webp"
+                            alt="Agricultura de Precisión"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Tus trabajos en Agro</h4>
+                          <p className="text-sm text-muted-foreground">Demuestra tu experiencia en fumigación, mapeo y análisis de cultivos con perfiles técnicos detallados.</p>
+                        </div>
+                      </div>
+
+                      {/* Audiovisual */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/AUDIOVISUAL_resultado.webp"
+                            alt="Producción Audiovisual"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Tu portafolio Audiovisual</h4>
+                          <p className="text-sm text-muted-foreground">Crea una vitrina profesional para tus tomas aéreas cinematográficas y producciones de alta calidad.</p>
+                        </div>
+                      </div>
+
+                      {/* Inspección */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/inspeccion_infraestructura.png"
+                            alt="Inspección de Infraestructura"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Especialidad en Inspección</h4>
+                          <p className="text-sm text-muted-foreground">Destaca tu capacidad técnica en revisión de puentes, torres y estructuras críticas con drones industriales.</p>
+                        </div>
+                      </div>
+
+                      {/* Térmica */}
+                      <div className="group rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-border/50">
+                        <div className="aspect-video relative overflow-hidden">
+                          <img
+                            src="/inspeccion_termica.png"
+                            alt="Detección Térmica"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-6">
+                          <h4 className="text-xl font-bold mb-2 text-primary">Detección Térmica</h4>
+                          <p className="text-sm text-muted-foreground">Posiciónate como experto en termografía aérea para incendios, paneles solares y eficiencia energética.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-16 bg-primary/5 rounded-3xl p-8 md:p-12 border border-primary/10 flex flex-col md:flex-row items-center justify-between gap-8">
+                      <div className="max-w-2xl">
+                        <h4 className="text-2xl md:text-3xl font-bold text-primary mb-4">La centralización es tu mayor ventaja</h4>
+                        <p className="text-lg text-muted-foreground">
+                          Tener tus certificaciones, especialidades en un solo lugar genera la confianza que las empresas buscan. Deja de enviar archivos sueltos y comparte tu perfil verificado profesional.
+                        </p>
+                      </div>
+                      <Button
+                        size="lg"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 h-auto shadow-xl"
+                        onClick={() => navigate('/auth')}
+                      >
+                        Comenzar a Publicar Gratis
+                      </Button>
+                    </div>
+                  </section>
+
                   <motion.h3
                     className="text-4xl md:text-5xl font-bold text-center text-primary mb-16"
                     initial={{ opacity: 0, y: 30 }}

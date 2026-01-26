@@ -603,17 +603,17 @@ const Auth = () => {
         console.log('Redirigiendo usuario con rol:', userRole);
         
         if (userRole === 'company') {
-          navigate('/company');
+          window.location.href = '/company';
         } else if (userRole === 'admin' || userRole === 'super_admin') {
-          navigate('/dashboard');
+          window.location.href = '/dashboard';
         } else {
           // Verificar si hay invitación pendiente
           const storedToken = localStorage.getItem('pendingInvitationToken');
           if (storedToken) {
-            navigate(`/invitation/${storedToken}`);
+            window.location.href = `/invitation/${storedToken}`;
           } else {
             // Pilotos van a /pilot
-            navigate('/pilot');
+            window.location.href = '/pilot';
           }
         }
       } else {
