@@ -347,8 +347,8 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 					<>
 						<Text style={styles.validationCode}>{data.qrToken}</Text>
 						<Text style={styles.legalText}>
-							Este código QR valida la autenticidad de este diploma.{'\n'}
-							Sin este código QR, los diplomas emitidos por Academia de Drones de Chile no son válidos.
+							Código QR de validación del certificado HDRONES®.{'\n'}
+							La ausencia de este QR invalida el documento.
 						</Text>
 					</>
 				)}
