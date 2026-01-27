@@ -3,6 +3,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 import { supabase } from '@/integrations/supabase/client';
+import { getBaseUrlClean } from '@/lib/getBaseUrl';
 import DiplomaPDF from '@/components/DiplomaPDF';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -68,7 +69,7 @@ const DiplomaGenerator = () => {
 				token += characters.charAt(Math.floor(Math.random() * characters.length));
 			}
 
-			const qrUrl = 'https://pilotodedrones.cl/verificar-diploma?codigo=' + token;
+			const qrUrl = `${getBaseUrlClean()}/qr/${token}`;
 
 			const dataUrl = await QRCode.toDataURL(qrUrl, {
 				width: 200,

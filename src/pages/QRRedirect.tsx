@@ -12,8 +12,13 @@ const QRRedirect = () => {
 	const [errorMessage, setErrorMessage] = useState<string>('');
 	const [showModal, setShowModal] = useState(false);
 
+	const [user, setUser] = useState<any>(null);
+
 	useEffect(() => {
 		const handleRedirect = async () => {
+			const { data: { session } } = await supabase.auth.getSession();
+			setUser(session?.user ?? null);
+
 			if (!token) {
 				navigate('/auth');
 				return;
@@ -122,37 +127,57 @@ const QRRedirect = () => {
 
 					<CardContent className="space-y-4 pb-10 pt-4 px-8">
 						<div className="grid gap-4">
-							<Button
-								onClick={() => handleGoToAuth('login')}
-								className="w-full h-16 flex items-center justify-between px-6 bg-white border-2 border-[#00b3f3]/20 hover:border-[#00b3f3] text-gray-900 hover:bg-[#00b3f3]/5 transition-all duration-300 rounded-xl group"
-							>
-								<div className="flex items-center gap-4 text-left">
-									<div className="h-10 w-10 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center group-hover:bg-[#00b3f3] transition-colors">
-										<UserCheck className="h-5 w-5 text-[#00b3f3] group-hover:text-white" />
+							{user ? (
+								<Button
+									onClick={() => navigate(`/auth?qr_token=${token}`)}
+									className="w-full h-16 flex items-center justify-between px-6 bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white shadow-lg hover:shadow-[#00b3f3]/30 transition-all duration-300 rounded-xl group"
+								>
+									<div className="flex items-center gap-4 text-left">
+										<div className="h-10 w-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+											<UserCheck className="h-5 w-5 text-white" />
+										</div>
+										<div>
+											<span className="font-bold block text-white">Asociar a mi Perfil</span>
+											<span className="text-xs text-white/80">Sesión iniciada como {user.email}</span>
+										</div>
 									</div>
-									<div>
-										<span className="font-bold block">Ya tengo cuenta</span>
-										<span className="text-xs text-gray-500">Inicia sesión y asocia</span>
-									</div>
-								</div>
-								<div className="h-2 w-2 rounded-full bg-[#00b3f3]/30"></div>
-							</Button>
+									<div className="h-2 w-2 rounded-full bg-white/40 animate-pulse"></div>
+								</Button>
+							) : (
+								<>
+									<Button
+										onClick={() => handleGoToAuth('login')}
+										className="w-full h-16 flex items-center justify-between px-6 bg-white border-2 border-[#00b3f3]/20 hover:border-[#00b3f3] text-gray-900 hover:bg-[#00b3f3]/5 transition-all duration-300 rounded-xl group"
+									>
+										<div className="flex items-center gap-4 text-left">
+											<div className="h-10 w-10 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center group-hover:bg-[#00b3f3] transition-colors">
+												<UserCheck className="h-5 w-5 text-[#00b3f3] group-hover:text-white" />
+											</div>
+											<div>
+												<span className="font-bold block">Ya tengo cuenta</span>
+												<span className="text-xs text-gray-500">Inicia sesión y asocia</span>
+											</div>
+										</div>
+										<div className="h-2 w-2 rounded-full bg-[#00b3f3]/30"></div>
+									</Button>
 
-							<Button
-								onClick={() => handleGoToAuth('signup')}
-								className="w-full h-16 flex items-center justify-between px-6 bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white shadow-lg hover:shadow-[#00b3f3]/30 transition-all duration-300 rounded-xl group"
-							>
-								<div className="flex items-center gap-4 text-left">
-									<div className="h-10 w-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-										<UserPlus className="h-5 w-5 text-white" />
-									</div>
-									<div>
-										<span className="font-bold block text-white">Soy nuevo</span>
-										<span className="text-xs text-white/80">Crea tu perfil profesional</span>
-									</div>
-								</div>
-								<div className="h-2 w-2 rounded-full bg-white/40 animate-pulse"></div>
-							</Button>
+									<Button
+										onClick={() => handleGoToAuth('signup')}
+										className="w-full h-16 flex items-center justify-between px-6 bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white shadow-lg hover:shadow-[#00b3f3]/30 transition-all duration-300 rounded-xl group"
+									>
+										<div className="flex items-center gap-4 text-left">
+											<div className="h-10 w-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+												<UserPlus className="h-5 w-5 text-white" />
+											</div>
+											<div>
+												<span className="font-bold block text-white">Soy nuevo</span>
+												<span className="text-xs text-white/80">Crea tu perfil profesional</span>
+											</div>
+										</div>
+										<div className="h-2 w-2 rounded-full bg-white/40 animate-pulse"></div>
+									</Button>
+								</>
+							)}
 						</div>
 					</CardContent>
 				</Card>

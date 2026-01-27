@@ -170,7 +170,7 @@ export function PermissionsManagement() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, avatar_url')
+        .select('id, full_name, email, avatar_url, auth_provider')
         .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
         .limit(5);
 

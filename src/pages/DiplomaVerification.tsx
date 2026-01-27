@@ -62,7 +62,14 @@ const DiplomaVerification = () => {
 				return;
 			}
 
-			// 2. Si tiene usuario, buscar su perfil público
+			// 2. Si NO tiene usuario asociado, redirigir al flujo de reclamo (QR)
+			if (!tokenData.user_id) {
+				console.log('⚠️ Token no asociado, redirigiendo al flujo de reclamo');
+				navigate(`/qr/${verificationCode.trim()}`);
+				return;
+			}
+
+			// 3. Si tiene usuario, buscar su perfil público
 			if (tokenData.user_id) {
 				const { data: profileData } = await supabase
 					.from("profiles")
@@ -123,7 +130,7 @@ const DiplomaVerification = () => {
 					<Logo size="xl" showText={false} className="scale-125" />
 					<div className="space-y-2 mt-4">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
-							Verificador de Certificados
+							Verificador de diplomas
 						</h1>
 						<p className="text-slate-500 text-lg max-w-md mx-auto">
 							Ingrese el código alfanumérico de 8 caracteres que aparece en el diploma
@@ -215,7 +222,7 @@ const DiplomaVerification = () => {
 
 							<div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 text-center">
 								<p className="text-blue-700 text-sm">
-									Instructor: <span className="font-semibold text-slate-900">{diploma.instructor_name}</span> • Ciudad: <span className="font-semibold text-slate-900">{diploma.city}</span>
+									Ciudad: <span className="font-semibold text-slate-900">{diploma.city}</span>
 								</p>
 							</div>
 						</CardContent>
