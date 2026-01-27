@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/layout/Footer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -57,11 +56,8 @@ const Contacto = () => {
 				<section className="relative py-20 lg:py-32 overflow-hidden">
 					<div className="container mx-auto px-6 relative z-10">
 						<div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-							<motion.div
+							<div
 								className="flex-1 text-center lg:text-left"
-								initial={{ opacity: 0, x: -50 }}
-								animate={{ opacity: 1, x: 0 }}
-								transition={{ duration: 0.8 }}
 							>
 								<h1 className="text-4xl md:text-6xl font-extrabold text-primary leading-tight mb-6">
 									Eleva tu Visión a <span className="text-accent underline decoration-accent/30">Nuevas Alturas</span>
@@ -74,13 +70,10 @@ const Contacto = () => {
 										"El futuro no se espera, se vuela. Conéctate con los mejores hoy mismo."
 									</p>
 								</div>
-							</motion.div>
+							</div>
 
-							<motion.div
+							<div
 								className="flex-1 relative"
-								initial={{ opacity: 0, scale: 0.8 }}
-								animate={{ opacity: 1, scale: 1 }}
-								transition={{ duration: 1, delay: 0.2 }}
 							>
 								<div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white transform hover:rotate-1 transition-transform duration-500">
 									<img
@@ -96,7 +89,7 @@ const Contacto = () => {
 								{/* Decoración */}
 								<div className="absolute -top-4 -right-4 w-24 h-24 bg-accent/20 rounded-full blur-2xl animate-pulse"></div>
 								<div className="absolute -bottom-4 -left-4 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
-							</motion.div>
+							</div>
 						</div>
 					</div>
 				</section>
@@ -113,10 +106,7 @@ const Contacto = () => {
 
 						<div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
 							{/* WhatsApp Card */}
-							<motion.div
-								whileHover={{ y: -10 }}
-								transition={{ type: "spring", stiffness: 300 }}
-							>
+							<div>
 								<Card className="h-full border-2 border-transparent hover:border-green-500/50 shadow-xl hover:shadow-green-500/10 transition-all duration-300 group overflow-hidden bg-card/50 backdrop-blur-md">
 									<CardContent className="p-10 flex flex-col items-center text-center">
 										<div className="w-20 h-20 rounded-2xl bg-green-500/10 flex items-center justify-center mb-8 group-hover:bg-green-500 group-hover:scale-110 transition-all duration-500">
@@ -135,13 +125,10 @@ const Contacto = () => {
 										</Button>
 									</CardContent>
 								</Card>
-							</motion.div>
+							</div>
 
 							{/* Email Card */}
-							<motion.div
-								whileHover={{ y: -10 }}
-								transition={{ type: "spring", stiffness: 300 }}
-							>
+							<div>
 								<Card className="h-full border-2 border-transparent hover:border-accent/50 shadow-xl hover:shadow-accent/10 transition-all duration-300 group overflow-hidden bg-card/50 backdrop-blur-md">
 									<CardContent className="p-10 flex flex-col items-center text-center">
 										<div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mb-8 group-hover:bg-accent group-hover:scale-110 transition-all duration-500">
@@ -160,7 +147,7 @@ const Contacto = () => {
 										</Button>
 									</CardContent>
 								</Card>
-							</motion.div>
+							</div>
 						</div>
 					</div>
 				</section>

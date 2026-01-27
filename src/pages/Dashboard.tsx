@@ -41,15 +41,29 @@ const Dashboard = () => {
 
       setUser(session.user);
 
+      // Small delay to allow session propagation
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       // Get user role (with automatic creation if needed)
-      const roleData = await getUserRole(session.user.id);
+      let roleData = await getUserRole(session.user.id);
+
+      // Retry once if role retrieval fails
+      if (!roleData) {
+        console.warn('First attempt to get role failed, retrying...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        roleData = await getUserRole(session.user.id);
+      }
 
       if (!roleData) {
-        console.error('No se pudo obtener el rol del usuario');
-
-        // Redirect to access fix page
-        console.log('Redirecting to access fix page');
-        navigate('/auth');
+        console.error('No se pudo obtener el rol del usuario después de reintentar');
+        toast({
+          title: "Error de sesión",
+          description: "No pudimos verificar sus permisos. Intente recargar la página.",
+          variant: "destructive",
+        });
+        // We stay on dashboard but set loading to false to show an error state if needed
+        // For now, let's keep the redirect but only as a last resort
+        setTimeout(() => navigate('/auth'), 3000);
         return;
       }
 

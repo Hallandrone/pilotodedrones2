@@ -15,7 +15,7 @@ const Logo: React.FC<LogoProps> = ({
   textClassName = ''
 }) => {
   const [imageError, setImageError] = useState(false);
-  
+
   const sizeClasses = {
     sm: 'h-8 w-8',
     md: 'h-10 w-10',
@@ -32,14 +32,14 @@ const Logo: React.FC<LogoProps> = ({
   const logoPath = '/piloto de drones-logo.png';
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-3 ${sizeClasses[size]} ${className}`}>
       {!imageError ? (
-        <div className={`${sizeClasses[size]} flex-shrink-0 flex items-center justify-center overflow-hidden`}>
-          <img 
-            src={logoPath} 
-            alt="Piloto de Drones" 
+        <div className="flex-shrink-0 flex items-center justify-center overflow-hidden w-full h-full">
+          <img
+            src={logoPath}
+            alt="Piloto de Drones"
             className="w-full h-full object-contain"
-            style={{ 
+            style={{
               imageRendering: 'auto',
               maxWidth: '100%',
               maxHeight: '100%'

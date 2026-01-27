@@ -108,7 +108,7 @@ const Auth = () => {
       .single();
 
     const roleData = await getUserRole(result.user.id);
-    const finalRole = profile?.user_type || roleData?.role || result.user.role;
+    const finalRole = roleData?.role || profile?.user_type || result.user.role;
 
     toast({
       title: result.isNewUser ? "¡Bienvenido!" : "¡Hola de nuevo!",
@@ -132,8 +132,93 @@ const Auth = () => {
 
   useEffect(() => {
     let mounted = true;
+    const isRedirecting = { current: false };
 
-    // Set up auth state listener
+    const handleRedirect = async (user: User) => {
+      if (isRedirecting.current) return;
+      isRedirecting.current = true;
+      try {
+        // PRIORIDAD 0: Asociar QR token PRIMERO si existe
+        const storedQrToken = localStorage.getItem('pendingQrToken');
+        if (storedQrToken) {
+          console.log('🔍 Intentando asociar QR token:', storedQrToken);
+          try {
+            const { data: existingToken } = await supabase
+              .from('diploma_qr_tokens')
+              .select('*')
+              .eq('token', storedQrToken)
+              .maybeSingle();
+
+            if (existingToken && (!existingToken.user_id || existingToken.user_id === user.id)) {
+              await supabase
+                .from('diploma_qr_tokens')
+                .update({
+                  user_id: user.id,
+                  associated_at: new Date().toISOString()
+                })
+                .eq('token', storedQrToken);
+
+              localStorage.removeItem('pendingQrToken');
+              toast({
+                title: "¡Diploma asociado!",
+                description: "Tu diploma ha sido asociado a tu perfil exitosamente",
+              });
+
+              // Redirigir al perfil público
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('public_profile_slug, id')
+                .eq('id', user.id)
+                .single();
+
+              if (profile) {
+                navigate(profile.public_profile_slug ? `/${profile.public_profile_slug}` : `/pilot/${profile.id}`);
+                return;
+              }
+            }
+          } catch (error) {
+            console.error('Error in QR association:', error);
+          }
+        }
+
+        // Obtener rol y perfil
+        console.log('Checking role for redirect:', user.id);
+        const roleData = await getUserRole(user.id);
+
+        if (!roleData) {
+          console.log('No role data found, staying on auth page to allow profile creation');
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        // PRIORIDAD 1: Invitaciones pendientes
+        const storedToken = localStorage.getItem('pendingInvitationToken');
+        if (storedToken) {
+          navigate(`/invitation/${storedToken}`);
+          return;
+        }
+
+        // Redirección basada en ROL
+        console.log('Redirecting based on role:', roleData.role);
+        if (roleData.role === 'admin' || roleData.role === 'super_admin') {
+          navigate('/dashboard');
+        } else if (roleData.role === 'company' || profile?.user_type === 'company') {
+          navigate('/company');
+        } else {
+          navigate('/pilot');
+        }
+      } catch (error) {
+        console.error('Error during redirection logic:', error);
+        isRedirecting.current = false;
+      }
+    };
+
+    // Listener de cambios de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -148,216 +233,22 @@ const Auth = () => {
           return;
         }
 
-        // Solo redirigir si hay sesión y no estamos en proceso de login/signup
-        if (session?.user && event !== 'SIGNED_OUT' && !isRecovery) {
-          try {
-            // PRIORIDAD 0: Asociar QR token PRIMERO si existe
-            const storedQrToken = localStorage.getItem('pendingQrToken');
-            let shouldRedirectToProfile = false;
-
-            if (storedQrToken && session.user.id) {
-              console.log('🔍 Intentando asociar QR token:', storedQrToken, 'al usuario:', session.user.id);
-              try {
-                // Primero verificar si el token existe y no está ya asociado a otro usuario
-                const { data: existingToken, error: checkError } = await supabase
-                  .from('diploma_qr_tokens')
-                  .select('*')
-                  .eq('token', storedQrToken)
-                  .maybeSingle();
-
-                if (checkError) {
-                  console.error('❌ Error verificando token:', checkError);
-                } else if (!existingToken) {
-                  console.error('⚠️ Token no encontrado en la base de datos');
-                } else if (existingToken.user_id && existingToken.user_id !== session.user.id) {
-                  console.error('⚠️ Token ya asociado a otro usuario');
-                } else {
-                  // Token existe y no está asociado o está asociado a este usuario
-                  console.log('📝 Token encontrado, procediendo a asociar:', existingToken);
-
-                  const { data: updatedData, error: updateError } = await supabase
-                    .from('diploma_qr_tokens')
-                    .update({
-                      user_id: session.user.id,
-                      associated_at: new Date().toISOString()
-                    })
-                    .eq('token', storedQrToken)
-                    .select();
-
-                  if (updateError) {
-                    console.error('❌ Error asociando QR token:', updateError);
-                  } else if (!updatedData || updatedData.length === 0) {
-                    console.error('⚠️ No se actualizó ningún token');
-                  } else {
-                    console.log('✅ QR token asociado exitosamente:', updatedData);
-                    localStorage.removeItem('pendingQrToken');
-                    shouldRedirectToProfile = true;
-
-                    toast({
-                      title: "¡Diploma asociado!",
-                      description: "Tu diploma ha sido asociado a tu perfil exitosamente",
-                    });
-                  }
-                }
-              } catch (error) {
-                console.error('💥 Error en asociación de QR token:', error);
-              }
-            }
-
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('user_type, public_profile_slug, id')
-              .eq('id', session.user.id)
-              .single();
-
-            // Si hay error o no hay perfil, no redirigir (dejar que el usuario se registre)
-            if (error || !profile) {
-              console.log('No profile found, staying on auth page');
-              return;
-            }
-
-            // Si acabamos de asociar un QR token, redirigir al perfil público
-            if (shouldRedirectToProfile) {
-              if (profile.public_profile_slug) {
-                navigate(`/${profile.public_profile_slug}`);
-              } else {
-                navigate(`/pilot/${profile.id}`);
-              }
-              return;
-            }
-
-            // PRIORIDAD 1: Si hay token de invitación (en storage o URL), redirigir a invitación
-            const storedToken = localStorage.getItem('pendingInvitationToken');
-            const currentParams = new URLSearchParams(window.location.search);
-            const effectiveToken = storedToken || currentParams.get('invitation');
-
-            if (effectiveToken) {
-              console.log('Redirigiendo a invitación pendiente:', effectiveToken);
-              // NO limpiamos el storage todavía para asegurar que llegue a la página
-              // La página de Invitación lo limpiará si es exitosa, o lo mantendrá si falla auth
-              navigate(`/invitation/${effectiveToken}`);
-              return;
-            }
-
-            if (profile?.user_type === 'company') {
-              navigate('/company');
-            } else if (profile?.user_type === 'pilot') {
-              navigate('/pilot');
-            } else {
-              // Si no tiene tipo pero existe, ver si es admin
-              const roleData = await getUserRole(session.user.id);
-              if (roleData?.role === 'admin' || roleData?.role === 'super_admin') {
-                navigate('/dashboard');
-              } else {
-                navigate('/pilot');
-              }
-            }
-          } catch (error) {
-            console.error('Error checking profile:', error);
-            // No redirigir si hay error, dejar que el usuario vea la página de auth
-          }
+        if (session?.user && event === 'SIGNED_IN' && !isRecovery) {
+          handleRedirect(session.user);
         }
       }
     );
 
-    // Check for existing session (solo si no hay errores)
-    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
-      if (!mounted) return;
-
-      if (error) {
-        console.error('Error getting session:', error);
-        return;
-      }
+    // Verificación inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted || !session?.user) return;
 
       setSession(session);
-      setUser(session?.user ?? null);
+      setUser(session.user);
 
-      if (session?.user) {
-        try {
-          // IMPORTANTE: Asociar QR token si existe y hay sesión activa
-          const storedQrToken = localStorage.getItem('pendingQrToken');
-          let shouldRedirectToProfile = false;
-
-          if (storedQrToken && session.user.id) {
-            console.log('🔍 [Sesión Existente] Intentando asociar QR token:', storedQrToken);
-            try {
-              // Primero verificar si el token existe y no está ya asociado a otro usuario
-              const { data: existingToken, error: checkError } = await supabase
-                .from('diploma_qr_tokens')
-                .select('*')
-                .eq('token', storedQrToken)
-                .maybeSingle();
-
-              if (checkError) {
-                console.error('❌ Error verificando token:', checkError);
-              } else if (!existingToken) {
-                console.error('⚠️ Token no encontrado en la base de datos');
-              } else if (existingToken.user_id && existingToken.user_id !== session.user.id) {
-                console.error('⚠️ Token ya asociado a otro usuario');
-              } else {
-                // Token existe y no está asociado o está asociado a este usuario
-                console.log('📝 Token encontrado, procediendo a asociar:', existingToken);
-
-                const { data: updatedData, error: updateError } = await supabase
-                  .from('diploma_qr_tokens')
-                  .update({
-                    user_id: session.user.id,
-                    associated_at: new Date().toISOString()
-                  })
-                  .eq('token', storedQrToken)
-                  .select();
-
-                if (updateError) {
-                  console.error('❌ Error asociando QR token:', updateError);
-                } else if (!updatedData || updatedData.length === 0) {
-                  console.error('⚠️ No se actualizó ningún token');
-                } else {
-                  console.log('✅ QR token asociado exitosamente:', updatedData);
-                  localStorage.removeItem('pendingQrToken');
-                  shouldRedirectToProfile = true;
-
-                  toast({
-                    title: "¡Diploma asociado!",
-                    description: "Tu diploma ha sido asociado a tu perfil exitosamente",
-                  });
-                }
-              }
-            } catch (error) {
-              console.error('💥 Error en asociación de QR token:', error);
-            }
-          }
-
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('user_type, public_profile_slug, id')
-            .eq('id', session.user.id)
-            .single();
-
-          // Si hay error o no hay perfil, no redirigir
-          if (profileError || !profile) {
-            console.log('No profile found, staying on auth page');
-            return;
-          }
-
-          // Si acabamos de asociar un QR token, redirigir al perfil público
-          if (shouldRedirectToProfile) {
-            if (profile.public_profile_slug) {
-              navigate(`/${profile.public_profile_slug}`);
-            } else {
-              navigate(`/pilot/${profile.id}`);
-            }
-            return;
-          }
-
-          if (profile?.user_type === 'company') {
-            navigate('/company');
-          } else {
-            navigate('/dashboard');
-          }
-        } catch (error) {
-          console.error('Error checking profile:', error);
-          // No redirigir si hay error
-        }
+      // Solo redirigir automáticamente si ya hay una sesión y NO estamos en recovery
+      if (!isRecovery) {
+        handleRedirect(session.user);
       }
     });
 
@@ -365,7 +256,7 @@ const Auth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, isRecovery]);
 
   const handleSignUp = async (email: string, password: string, userData: any) => {
     setLoading(true);
@@ -676,9 +567,11 @@ const Auth = () => {
         // Pequeña pausa para que el toast se muestre
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Redirigir según el rol
-        const userRole = result.user.role;
-        console.log('Redirigiendo usuario con rol:', userRole);
+        // Obtener el rol real de la base de datos
+        const dbRoleData = await getUserRole(result.user.id);
+        const userRole = dbRoleData?.role || result.user.role;
+
+        console.log('Redirigiendo usuario con rol real:', userRole);
 
         if (userRole === 'company') {
           window.location.href = '/company';

@@ -139,15 +139,22 @@ const PilotDashboard = () => {
       setUser(session.user);
 
       // Check if user is a pilot (with automatic role creation if needed)
-      const isUserPilot = await isPilot(session.user.id);
+      let isUserPilot = await isPilot(session.user.id);
+
+      // Retry once if check fails
+      if (!isUserPilot) {
+        console.warn('First pilot check failed, retrying...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        isUserPilot = await isPilot(session.user.id);
+      }
 
       if (!isUserPilot) {
         toast({
           title: "Acceso denegado",
-          description: "Esta área es solo para pilotos",
+          description: "Esta área es solo para pilotos. Si crees que esto es un error, intenta recargar.",
           variant: "destructive",
         });
-        navigate('/auth');
+        setTimeout(() => navigate('/auth'), 3000);
         return;
       }
 

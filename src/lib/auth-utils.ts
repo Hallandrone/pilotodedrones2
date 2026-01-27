@@ -12,94 +12,77 @@ export interface UserRole {
 export async function getUserRole(userId: string): Promise<UserRole | null> {
   try {
     console.log('Getting role for user:', userId);
-    
-    // First, try to get existing role
+
+    // First, try to get existing role with a retry mechanism for flaky connections
     let { data: roleData, error } = await supabase
       .from('user_roles')
       .select('role')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    console.log('Existing role data:', roleData, 'Error:', error);
-
-    // If role exists, return it
-    if (roleData && !error) {
-      console.log('Role found:', roleData.role);
-      return roleData;
+    if (error) {
+      console.warn('First attempt to fetch role failed, retrying in 500ms...', error);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const retryResult = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+      roleData = retryResult.data;
+      error = retryResult.error;
     }
 
-    console.log('Role not found, attempting to create...');
-    
+    if (error) {
+      console.error('Error fetching role after retry:', error);
+      return null;
+    }
+
+    // If role exists, return it
+    if (roleData) {
+      console.log('Role found:', roleData.role);
+      return roleData as UserRole;
+    }
+
+    console.log('Role not found, attempting to identify user type from profile...');
+
     // Get user profile to determine role
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('user_type')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    console.log('Profile data:', profileData, 'Profile error:', profileError);
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      return null;
+    }
 
-    // If profile doesn't exist, create it first
-    if (profileError || !profileData) {
-      console.log('Profile not found, creating profile...');
-      
-      // Get user data from auth
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        console.error('No user found in auth');
-        return null;
-      }
-
-      // Create profile
-      const { error: createProfileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: userId,
-          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Usuario',
-          email: user.email,
-          user_type: 'pilot'
-        });
-
-      if (createProfileError) {
-        console.error('Error creating profile:', createProfileError);
-        return null;
-      }
+    // Role doesn't exist. Before creating, check if we have a valid session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.error('No authenticated user found');
+      return null;
     }
 
     const userType = profileData?.user_type || 'pilot';
-    console.log('Creating role with user type:', userType);
-    
+    console.log('Creating role with identified user type:', userType);
+
     // Create the role
     const { error: createRoleError } = await supabase
       .from('user_roles')
-      .insert({
+      .upsert({
         id: userId,
-        role: userType as 'pilot' | 'company' | 'admin' | 'super_admin'
+        role: userType as any
       });
 
     if (createRoleError) {
-      console.error('Error creating role:', createRoleError);
+      console.error('Error creating/upserting role:', createRoleError);
       return null;
     }
 
-    console.log('Role created successfully');
-
-    // Try to get the role again
-    const { data: newRoleData, error: newRoleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    if (newRoleError || !newRoleData) {
-      console.error('Error fetching created role:', newRoleError);
-      return null;
-    }
-
-    console.log('Final role data:', newRoleData);
-    return newRoleData;
+    return { role: userType as any };
   } catch (error) {
-    console.error('Error in getUserRole:', error);
+    console.error('Unhandled error in getUserRole:', error);
     return null;
   }
 }
