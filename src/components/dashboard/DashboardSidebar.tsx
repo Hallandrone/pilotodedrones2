@@ -231,7 +231,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
 
   return (
     <Sidebar className={`${collapsed ? "w-16" : "w-64"} [--sidebar-foreground:0_0%_100%] [--sidebar-accent-foreground:0_0%_100%] [--sidebar-accent:0_0%_100%_/_0.2]`} collapsible="icon">
-      <SidebarContent className="bg-[hsl(var(--accent))] backdrop-blur-sm border-r-2 border-[#1a365d]">
+      <SidebarContent className="bg-[hsl(var(--accent))] backdrop-blur-sm border-r-2 border-[#1a365d] transform-gpu">
         <SidebarGroup>
           <SidebarGroupLabel className="text-white/80">Navegación Principal</SidebarGroupLabel>
           <SidebarGroupContent>

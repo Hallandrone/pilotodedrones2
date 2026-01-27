@@ -110,6 +110,7 @@ const PilotMembership = () => {
       features: [
         'Todo lo del Plan Pro',
         'Panel multiusuario (hasta 4 pilotos)',
+        'Agrega hasta 4 pilotos con Plan PRO incluido',
         'Sello digital "Empresa Certificada" tras validación',
         'Perfil destacado en "Empresas Recomendadas"',
         'Estadísticas de vistas y contacto de clientes',

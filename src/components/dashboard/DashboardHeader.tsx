@@ -70,7 +70,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     if (userRole?.role === 'super_admin') {
       loadPendingCertifications();
       loadPendingFlightLogs();
-      
+
       // Configurar Realtime subscription para escuchar cambios en certificaciones
       const certsChannel = supabase
         .channel('certifications-changes')
@@ -87,7 +87,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             const oldRecord = payload.old as Record<string, unknown> | null;
             const newStatus = newRecord?.status;
             const oldStatus = oldRecord?.status;
-            
+
             if (payload.eventType === 'INSERT' && newStatus === 'pending') {
               loadPendingCertifications();
             } else if (payload.eventType === 'UPDATE' && (newStatus === 'pending' || oldStatus === 'pending')) {
@@ -115,7 +115,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
             const oldRecord = payload.old as Record<string, unknown> | null;
             const newStatus = newRecord?.status;
             const oldStatus = oldRecord?.status;
-            
+
             if (payload.eventType === 'INSERT' && newStatus === 'pending') {
               loadPendingFlightLogs();
             } else if (payload.eventType === 'UPDATE' && (newStatus === 'pending' || oldStatus === 'pending')) {
@@ -164,7 +164,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
 
     try {
       setLoadingNotifications(true);
-      
+
       // Obtener certificaciones pendientes
       const { data: certsData, error: certsError } = await supabase
         .from('user_certifications')
@@ -270,7 +270,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 1) {
       return 'Hace menos de una hora';
     } else if (diffInHours < 24) {
@@ -293,11 +293,11 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   const notificationCount = pendingCertifications.length + pendingFlightLogs.length;
 
   return (
-    <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm flex items-center justify-between px-6">
+    <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-gray-200 flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="text-gray-700 hover:text-gray-900 [&>svg]:text-gray-700 [&>svg]:hover:text-gray-900" />
         <Logo size="sm" className="hidden md:flex" showText={false} />
-        
+
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
           <Input
@@ -433,7 +433,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                   {getInitials(getDisplayName())}
                 </AvatarFallback>
               </Avatar>
-            <div className="hidden md:block text-left">
+              <div className="hidden md:block text-left">
                 <p className="text-sm font-medium text-gray-900">
                   {getDisplayName()}
                 </p>

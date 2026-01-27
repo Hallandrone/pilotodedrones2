@@ -76,6 +76,7 @@ const Planes = () => {
       features: [
         'Todo lo del Plan Pro',
         'Panel multiusuario (hasta 4 pilotos)',
+        'Agrega hasta 4 pilotos con Plan PRO incluido',
         'Sello digital "Empresa Certificada"',
         'Perfil destacado en recomendaciones',
         'Gestión de múltiples certificaciones',

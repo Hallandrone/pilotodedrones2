@@ -464,7 +464,12 @@ const Auth = () => {
       if (effectiveToken) {
         navigate(`/invitation/${effectiveToken}`);
       } else if (profile?.user_type === 'company') {
-        // Las empresas DEBEN ir a membresía para activar su cuenta
+        // Redirección forzada inmediata para empresas
+        console.log('[Auth] Redirigiendo empresa a activación obligatoria...');
+        toast({
+          title: "¡Bienvenido!",
+          description: "Tu cuenta empresa ha sido creada. Activa tu plan para empezar a agregar pilotos.",
+        });
         navigate('/company/membership');
       } else {
         navigate('/dashboard');
