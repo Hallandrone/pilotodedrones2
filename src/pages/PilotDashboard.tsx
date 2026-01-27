@@ -508,9 +508,9 @@ const PilotDashboard = () => {
       {/* Main Content */}
       <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 max-w-7xl mx-auto relative animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {/* Profile Card */}
-        <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
+        <Card className="bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
           <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-[#00b3f3]/10 p-1">
-            <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+            <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 isolate rounded-2xl sm:rounded-3xl">
               <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mb-4 sm:mb-8">
                 <div className="relative">
                   <Avatar className="relative h-20 w-20 sm:h-28 sm:w-28 ring-4 ring-[#00b3f3]/50 shadow-2xl">
@@ -594,7 +594,7 @@ const PilotDashboard = () => {
           <Button
             variant="outline"
             size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
+            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
             onClick={() => navigate('/pilot/profile')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
@@ -606,7 +606,7 @@ const PilotDashboard = () => {
           <Button
             variant="outline"
             size="lg"
-            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
+            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
             onClick={() => plan?.isPaid ? navigate('/pilot/certificates') : navigate('/pilot/membership')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
@@ -623,7 +623,7 @@ const PilotDashboard = () => {
           <Button
             variant="outline"
             size="lg"
-            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
+            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
             onClick={() => plan?.isPaid ? navigate('/pilot/flight-hours') : navigate('/pilot/membership')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
@@ -640,7 +640,7 @@ const PilotDashboard = () => {
           <Button
             variant="outline"
             size="lg"
-            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
+            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
             onClick={() => navigate('/pilot/qr')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
@@ -652,7 +652,7 @@ const PilotDashboard = () => {
           <Button
             variant="outline"
             size="lg"
-            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
+            className={`group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden ${!plan?.isPaid ? 'grayscale-[0.5] opacity-90' : ''}`}
             onClick={() => plan?.isPaid ? navigate('/pilot/portfolio') : navigate('/pilot/membership')}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
@@ -673,7 +673,7 @@ const PilotDashboard = () => {
           const unreadContacts = contacts.filter(c => c.status !== 'read').length;
           return (
             <Card
-              className={`bg-white/10 backdrop-blur-xl border-2 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer group animate-fade-in ${unreadContacts > 0 ? 'border-[#FF69B4]/50 hover:border-[#FF69B4] shadow-[0_0_20px_rgba(255,105,180,0.2)]' : 'border-[#00b3f3]/30 hover:border-[#00b3f3]/50'}`}
+              className={`bg-[#083b4e] isolate border-2 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer group animate-fade-in ${unreadContacts > 0 ? 'border-[#FF69B4]/50 hover:border-[#FF69B4] shadow-[0_0_20px_rgba(255,105,180,0.2)]' : 'border-[#00b3f3]/30 hover:border-[#00b3f3]/50'}`}
               style={{ animationDelay: '0.25s' }}
               onClick={() => navigate('/pilot/contacts')}
             >
@@ -723,7 +723,7 @@ const PilotDashboard = () => {
 
         {/* Mis Diplomas */}
         <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.27s' }}>
-          <Card className={`bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 ${plan?.isPaid ? 'hover:border-[#00b3f3]/50' : 'opacity-80'}`}>
+          <Card className={`bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden transition-all duration-300 ${plan?.isPaid ? 'hover:border-[#00b3f3]/50' : 'opacity-80'}`}>
             <CardHeader className="p-6 border-b border-[#00b3f3]/20">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-white text-xl sm:text-2xl font-bold flex items-center gap-3">
@@ -795,9 +795,9 @@ const PilotDashboard = () => {
         {/* Status Cards */}
         <div className="space-y-4 sm:space-y-6 animate-fade-in" style={{ animationDelay: '0.3s' }}>
           {/* Certification Status */}
-          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
+          <Card className="group bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
             <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-emerald-500/10 p-1">
-              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 isolate rounded-2xl sm:rounded-3xl">
                 {(() => {
                   const certStatus = getCertificationStatus(
                     pilotData?.certification_status || false,
@@ -913,9 +913,9 @@ const PilotDashboard = () => {
           </Card>
 
           {/* Membership Status */}
-          <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
+          <Card className="group bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
             <div className="bg-gradient-to-br from-purple-500/20 via-transparent to-pink-500/10 p-1">
-              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+              <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 isolate rounded-2xl sm:rounded-3xl">
                 <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <div className="flex items-center gap-2 sm:gap-4">
                     <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
@@ -950,9 +950,9 @@ const PilotDashboard = () => {
         </div>
 
         {/* Support Section */}
-        <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] animate-fade-in" style={{ animationDelay: '0.4s' }}>
+        <Card className="group bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
-            <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-2xl sm:rounded-3xl">
+            <CardContent className="p-4 sm:p-8 bg-[#083b4e]/60 isolate rounded-2xl sm:rounded-3xl">
               <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
                 <div className="h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <HelpCircle className="h-5 w-5 sm:h-7 sm:w-7 text-white" />

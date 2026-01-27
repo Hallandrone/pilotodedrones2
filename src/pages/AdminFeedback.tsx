@@ -105,7 +105,7 @@ const AdminFeedback = () => {
 				</Button>
 			</div>
 
-			<Card className="bg-white/10 backdrop-blur-xl border-white/10 shadow-2xl overflow-hidden">
+			<Card className="bg-white/10 isolate border-white/10 shadow-2xl overflow-hidden">
 				<CardHeader className="border-b border-white/10 bg-white/5">
 					<CardTitle className="text-white flex items-center gap-2">
 						<MessageSquare className="h-5 w-5 text-[#00b3f3]" />

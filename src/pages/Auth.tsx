@@ -113,7 +113,7 @@ const Auth = () => {
         if (signupBtn) renderGoogleButton("google-signup-btn-overlay");
       }, 500);
     });
-  }, [activeTab]); // Solo re-inicializar si cambia la pestaña, el tipo se maneja vía Ref
+  }, [activeTab, registerUserType]); // Re-initialize if user type changes to ensure button is re-rendered
 
   const handleGoogleAuthCompleted = async (result: any) => {
     setLoading(true);

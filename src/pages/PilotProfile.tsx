@@ -1021,7 +1021,7 @@ const PilotProfile = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 animate-fade-in">
+      <div className="bg-white/95 isolate border-b border-gray-200 shadow-sm sticky top-0 z-50 animate-fade-in">
         <div className="px-4 py-4 sm:py-6">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
@@ -1073,7 +1073,7 @@ const PilotProfile = () => {
       {/* Content */}
       <div className="p-4 sm:p-6 space-y-8 pb-32 max-w-5xl mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {/* Basic Information */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
             <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
@@ -1202,7 +1202,7 @@ const PilotProfile = () => {
         </Card>
 
         {/* Location Information */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
             <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
@@ -1263,7 +1263,7 @@ const PilotProfile = () => {
         </Card>
 
         {/* Specialties */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
             <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
@@ -1356,7 +1356,7 @@ const PilotProfile = () => {
         </Card>
 
         {/* Drone Types */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
             <CardHeader className="p-8 bg-transparent rounded-xl">
               <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">

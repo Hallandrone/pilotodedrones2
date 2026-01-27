@@ -1325,7 +1325,7 @@ const UserProfile = () => {
 
         <div className="grid gap-6">
           {/* Personal Information */}
-          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <Card className="bg-[#0f172a]/95 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <CardHeader className="p-8 bg-transparent">
               <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
@@ -1723,7 +1723,7 @@ const UserProfile = () => {
           </Card>
 
           {/* Certifications */}
-          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <Card className="bg-[#0f172a]/95 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <CardHeader className="p-8 bg-transparent">
               <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
                 <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
@@ -2020,7 +2020,7 @@ const UserProfile = () => {
           </Card>
           {/* Subscription */}
           {subscription && (
-            <Card className="shadow-md border-0 bg-card/50 backdrop-blur-sm">
+            <Card className="shadow-md border-0 bg-[#0f172a]/95 isolate">
               <CardHeader className="border-b border-border/50">
                 <CardTitle className="flex items-center gap-2 text-foreground">
                   <div className="h-5 w-5 rounded bg-accent/20 flex items-center justify-center">

@@ -159,7 +159,7 @@ export function DashboardStats() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((stat, index) => (
-          <Card key={index} className="bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow">
+          <Card key={index} className="bg-card isolate hover:shadow-lg transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
@@ -183,7 +183,7 @@ export function DashboardStats() {
 
       {/* Additional Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-card/50 backdrop-blur-sm">
+        <Card className="bg-card isolate">
           <CardHeader>
             <CardTitle className="text-foreground">Resumen de Actividad</CardTitle>
           </CardHeader>
@@ -220,7 +220,7 @@ export function DashboardStats() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card/50 backdrop-blur-sm">
+        <Card className="bg-card isolate">
           <CardHeader>
             <CardTitle className="text-foreground">Estado del Sistema</CardTitle>
           </CardHeader>

@@ -1115,7 +1115,7 @@ export default function CompanyProfile() {
       <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] via-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
 
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 animate-fade-in">
+      <div className="bg-white/95 isolate border-b border-gray-200 shadow-sm sticky top-0 z-50 animate-fade-in">
         <div className="px-4 py-4 sm:py-6">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
@@ -1147,7 +1147,7 @@ export default function CompanyProfile() {
 
       {/* Status and Preview Section */}
       <div className="p-3 sm:p-6 max-w-7xl mx-auto relative">
-        <div className="mb-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl hover:border-[#00b3f3]/30 transition-all duration-300">
+        <div className="mb-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 bg-white/5 isolate border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl hover:border-[#00b3f3]/30 transition-all duration-300">
           <div className="flex items-center gap-6">
             <div className="h-16 w-16 rounded-2xl bg-[#00b3f3]/20 flex items-center justify-center border border-[#00b3f3]/30">
               <CheckCircle className="h-8 w-8 text-[#00b3f3]" />
@@ -1194,7 +1194,7 @@ export default function CompanyProfile() {
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Información Básica y Ubicación */}
           <Card
-            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
+            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('basic')}
           >
             <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
@@ -1208,7 +1208,7 @@ export default function CompanyProfile() {
 
           {/* Servicios y Tipos de Drones */}
           <Card
-            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
+            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
             onClick={() => setOpenModal('services')}
           >
             <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
@@ -1222,7 +1222,7 @@ export default function CompanyProfile() {
 
           {/* Redes Sociales */}
           <Card
-            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
+            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
             onClick={() => setOpenModal('social')}
           >
             <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
@@ -1236,7 +1236,7 @@ export default function CompanyProfile() {
 
           {/* URL Personalizada */}
           <Card
-            className={`bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group relative ${!subscription ? 'opacity-90' : ''}`}
+            className={`bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group relative ${!subscription ? 'opacity-90' : ''}`}
             onClick={() => setOpenModal('url')}
           >
             {!subscription && (
@@ -1256,7 +1256,7 @@ export default function CompanyProfile() {
 
           {/* Certificados */}
           <Card
-            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
+            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
             onClick={() => setOpenModal('certificates')}
           >
             <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
@@ -1270,7 +1270,7 @@ export default function CompanyProfile() {
 
           {/* Seguridad */}
           <Card
-            className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
+            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
             onClick={() => setOpenModal('security')}
           >
             <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
