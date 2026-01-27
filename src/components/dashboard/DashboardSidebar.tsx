@@ -69,7 +69,7 @@ const menuItems: MenuItem[] = [
     title: "Mi Perfil de Piloto",
     url: "/pilot",
     icon: User2,
-    roles: ["admin"]
+    roles: ["super_admin", "admin"]
   },
   {
     title: "Mi Perfil",
@@ -220,14 +220,13 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
 
   // Filter items based on role and permissions
   const filteredItems = menuItems.filter(item => {
-    // First check role
+    // First check role exactly
     if (!userRole || !item.roles.includes(userRole)) {
+      // For super_admin, we might want them to see admin items too
+      if (userRole === 'super_admin' && item.roles.includes('admin')) {
+        return true;
+      }
       return false;
-    }
-
-    // For super_admin, show everything
-    if (userRole === 'super_admin' || isSuperAdmin) {
-      return true;
     }
 
     // Check payment status for companies

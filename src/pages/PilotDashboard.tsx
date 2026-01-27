@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { getUserRole, isPilot } from "@/lib/auth-utils";
+import { getUserRole, isPilot, isAdmin } from "@/lib/auth-utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -156,7 +156,9 @@ const PilotDashboard = () => {
         isUserPilot = await isPilot(session.user.id);
       }
 
-      if (!isUserPilot) {
+      const isUserAdmin = await isAdmin(session.user.id);
+
+      if (!isUserPilot && !isUserAdmin) {
         toast({
           title: "Acceso denegado",
           description: "Esta área es solo para pilotos. Si crees que esto es un error, intenta recargar.",
