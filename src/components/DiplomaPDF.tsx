@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
 	},
 	qrCode: {
 		position: 'absolute',
-		left: 695,
+		left: 702,
 		top: 72,
 		width: 61,
 		height: 61,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
 	validationCode: {
 		position: 'absolute',
 		top: 135,
-		left: 666,
+		left: 673,
 		width: 120,
 		fontSize: 5.5,
 		fontFamily: 'Helvetica',
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
 	legalText: {
 		position: 'absolute',
 		top: 155,
-		left: 666,
+		left: 673,
 		width: 120,
 		fontSize: 4.5,
 		fontFamily: 'Helvetica',
