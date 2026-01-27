@@ -428,6 +428,12 @@ const PilotMembership = () => {
                 })
                   .then(async (result) => {
                     console.log("Payment result:", result);
+
+                    // CRITICAL: Validar que el pago fue aprobado
+                    if (!result.success || result.status !== 'approved') {
+                      throw new Error(result.status_detail || "El pago no fue aprobado");
+                    }
+
                     setShowBricks(false);
                     setLoading(true); // Mostrar estado de carga global mientras verificamos
 
@@ -475,6 +481,7 @@ const PilotMembership = () => {
                   })
                   .catch((error) => {
                     console.error("Payment error:", error);
+                    setShowBricks(false);
                     toast({
                       title: "Error en el pago",
                       description: error.message || "No se pudo procesar el pago. Intenta nuevamente.",

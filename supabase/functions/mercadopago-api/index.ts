@@ -116,12 +116,38 @@ Deno.serve(async (req) => {
 
 			const data = await response.json();
 
+			// Validar que la respuesta sea exitosa
 			if (!response.ok) {
 				console.error("Mercado Pago Payment Error:", data);
 				throw new Error(data.message || "Error al procesar el pago");
 			}
 
-			return new Response(JSON.stringify(data), {
+			// CRITICAL: Validar el estado del pago
+			// Solo devolver éxito si el pago está APROBADO
+			if (data.status !== "approved") {
+				console.log(`Payment not approved. Status: ${data.status}, Status Detail: ${data.status_detail}`);
+
+				// Mapear mensajes de error según el estado
+				let errorMessage = "El pago no fue aprobado.";
+
+				if (data.status === "rejected") {
+					errorMessage = "El pago fue rechazado. Por favor verifica tus datos e intenta nuevamente.";
+				} else if (data.status === "pending") {
+					errorMessage = "El pago está pendiente de aprobación.";
+				} else if (data.status === "in_process") {
+					errorMessage = "El pago está en proceso de validación.";
+				}
+
+				throw new Error(errorMessage);
+			}
+
+			// Solo si llegamos aquí, el pago fue aprobado exitosamente
+			return new Response(JSON.stringify({
+				...data,
+				success: true,
+				status: data.status,
+				status_detail: data.status_detail
+			}), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 				status: 200,
 			});

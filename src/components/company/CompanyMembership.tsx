@@ -8,7 +8,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { CreditCard, CheckCircle, Sparkles, Zap, Building, Loader2, AlertCircle } from "lucide-react";
 import { processPayment } from "@/integrations/mercadopago/client";
 
-// Declaración para el SDK de Mercado Pago
 declare global {
 	interface Window {
 		MercadoPago: any;
@@ -37,7 +36,6 @@ export const CompanyMembership = () => {
 	useEffect(() => {
 		loadMembership();
 
-		// Inyectar SDK de Mercado Pago si no existe
 		if (!window.MercadoPago) {
 			const script = document.createElement('script');
 			script.src = 'https://sdk.mercadopago.com/js/v2';
@@ -115,6 +113,12 @@ export const CompanyMembership = () => {
 								})
 									.then(async (result) => {
 										console.log("Payment result:", result);
+
+										// CRITICAL: Validar que el pago fue aprobado
+										if (!result.success || result.status !== 'approved') {
+											throw new Error(result.status_detail || "El pago no fue aprobado");
+										}
+
 										setShowBricks(false);
 										setLoading(true);
 
@@ -151,6 +155,7 @@ export const CompanyMembership = () => {
 									})
 									.catch((error) => {
 										console.error("Payment error:", error);
+										setShowBricks(false);
 										toast({
 											title: "Error en el pago",
 											description: error.message || "No se pudo procesar el pago.",
