@@ -289,52 +289,49 @@ export function PermissionsManagement() {
     }
   };
 
-  const handleCreateAdmin = async (e: React.FormEvent) => {
+  const handleInviteAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+
+    if (selectedPermissions.length === 0) {
+      toast({
+        title: "Error",
+        description: "Debes seleccionar al menos un permiso para invitar a un administrador",
+        variant: "destructive",
+      });
+      setSaving(false);
+      return;
+    }
+
     try {
-      // 1. Inscribir al usuario en Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newAdmin.email,
-        password: newAdmin.password,
-        options: {
-          data: {
-            full_name: newAdmin.full_name,
-            user_type: 'admin'
-          }
+      const { data: { user } } = await supabase.auth.getUser();
+
+      const { data, error } = await supabase.functions.invoke('invite-admin', {
+        body: {
+          email: newAdmin.email,
+          full_name: newAdmin.full_name,
+          permissions: selectedPermissions,
+          invited_by: user?.id
         }
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("No se pudo crear el usuario");
-
-      // 2. Crear el rol en user_roles (la tabla profiles suele crearse por trigger, 
-      // pero el rol a veces necesita ser explícito si el trigger no lo maneja por metadata)
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          id: authData.user.id,
-          role: 'admin'
-        });
-
-      if (roleError) {
-        console.error('Error creando rol:', roleError);
-        // Podría fallar si ya existe un perfil/rol creado por trigger, lo ignoramos si es así
-      }
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
       toast({
-        title: "Administrador creado",
-        description: `Se ha enviado un correo de confirmación a ${newAdmin.email}`,
+        title: "Invitación enviada",
+        description: data.message || `Se ha enviado un correo a ${newAdmin.email}`,
       });
 
       setCreateDialogOpen(false);
       setNewAdmin({ email: "", password: "", full_name: "" });
+      setSelectedPermissions([]);
       fetchUsersWithPermissions();
     } catch (error: any) {
-      console.error('Error creando admin:', error);
+      console.error('Error invitando admin:', error);
       toast({
         title: "Error",
-        description: error.message || "No se pudo crear el administrador",
+        description: error.message || "No se pudo enviar la invitación",
         variant: "destructive",
       });
     } finally {
@@ -415,7 +412,10 @@ export function PermissionsManagement() {
             Gestión de Roles y Permisos
           </div>
           <Button
-            onClick={() => setCreateDialogOpen(true)}
+            onClick={() => {
+              setCreateDialogOpen(true);
+              setSelectedPermissions([]);
+            }}
             className="bg-accent hover:bg-accent/80 text-white font-semibold shadow-lg shadow-accent/20"
           >
             <UserCog className="h-4 w-4 mr-2" />
@@ -661,41 +661,26 @@ export function PermissionsManagement() {
         </Dialog>
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogContent className="sm:max-w-md bg-[#0f2e3a] border border-white/10 text-white shadow-2xl">
+          <DialogContent className="sm:max-w-lg bg-[#0f2e3a] border border-white/10 text-white shadow-2xl">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-2xl font-bold text-white">
                 <UserCog className="h-5 w-5 text-accent" />
-                Crear Nuevo Administrador
+                Invitar Administrador
               </DialogTitle>
               <DialogDescription className="text-white/60">
-                Registra un nuevo usuario con acceso administrativo al sistema
+                Envía una invitación para dar acceso administrativo a un usuario (nuevo o existente)
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleCreateAdmin} className="space-y-4 py-4">
+            <form onSubmit={handleInviteAdmin} className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="admin-name" className="text-white/80">Nombre Completo</Label>
-                <div className="relative">
-                  <UserCog className="absolute left-3 top-3 h-4 w-4 text-white/40" />
-                  <Input
-                    id="admin-name"
-                    placeholder="Ej: Juan Pérez"
-                    className="bg-white/5 border-white/10 text-white pl-10 focus:ring-accent"
-                    value={newAdmin.full_name}
-                    onChange={(e) => setNewAdmin({ ...newAdmin, full_name: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="admin-email" className="text-white/80">Email</Label>
+                <Label htmlFor="admin-email" className="text-white/80">Email del Usuario</Label>
                 <div className="relative">
                   <Bell className="absolute left-3 top-3 h-4 w-4 text-white/40" />
                   <Input
                     id="admin-email"
                     type="email"
-                    placeholder="admin@ejemplo.com"
+                    placeholder="usuario@ejemplo.com"
                     className="bg-white/5 border-white/10 text-white pl-10 focus:ring-accent"
                     value={newAdmin.email}
                     onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
@@ -705,19 +690,48 @@ export function PermissionsManagement() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="admin-password" className="text-white/80">Contraseña Temporal</Label>
+                <Label htmlFor="admin-name" className="text-white/80">Nombre (Opcional)</Label>
                 <div className="relative">
-                  <Shield className="absolute left-3 top-3 h-4 w-4 text-white/40" />
+                  <UserCog className="absolute left-3 top-3 h-4 w-4 text-white/40" />
                   <Input
-                    id="admin-password"
-                    type="password"
-                    placeholder="••••••••"
+                    id="admin-name"
+                    placeholder="Ej: Juan Pérez"
                     className="bg-white/5 border-white/10 text-white pl-10 focus:ring-accent"
-                    value={newAdmin.password}
-                    onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
-                    required
+                    value={newAdmin.full_name}
+                    onChange={(e) => setNewAdmin({ ...newAdmin, full_name: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2 pt-2">
+                <Label className="text-white/80 block mb-2">Permisos a Asignar</Label>
+                <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar border border-white/10 rounded-xl bg-white/5 p-2">
+                  {ALL_PERMISSIONS.map((permission) => (
+                    <div
+                      key={permission}
+                      className={`flex items-start space-x-3 p-3 rounded-lg border mb-2 last:mb-0 transition-all duration-200 ${selectedPermissions.includes(permission)
+                        ? 'bg-accent/10 border-accent/30'
+                        : 'border-transparent hover:bg-white/5'
+                        }`}
+                    >
+                      <Checkbox
+                        id={`create-${permission}`}
+                        checked={selectedPermissions.includes(permission)}
+                        onCheckedChange={() => togglePermission(permission)}
+                        className="border-white/20 data-[state=checked]:bg-accent mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <Label
+                          htmlFor={`create-${permission}`}
+                          className="flex items-center gap-2 font-medium cursor-pointer text-white text-sm"
+                        >
+                          {PERMISSION_LABELS[permission as AdminPermission]}
+                        </Label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-white/40">Selecciona qué accesos tendrá este administrador al ingresar.</p>
               </div>
 
               <DialogFooter className="pt-4">
@@ -734,8 +748,12 @@ export function PermissionsManagement() {
                   disabled={saving}
                   className="bg-accent hover:bg-accent/80 text-white font-semibold shadow-lg shadow-accent/20 flex-1 sm:flex-none"
                 >
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Crear Administrador
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Users className="h-4 w-4 mr-2" />
+                  )}
+                  Enviar Invitación
                 </Button>
               </DialogFooter>
             </form>

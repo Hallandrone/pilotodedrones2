@@ -399,7 +399,7 @@ const CompanyDashboard = () => {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate">
+                        <Card className="bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate h-full">
                           <CardContent className="p-8">
                             <div className="flex items-center gap-6 mb-8">
                               <Avatar className="h-20 w-20 ring-4 ring-[#00b3f3]/50">

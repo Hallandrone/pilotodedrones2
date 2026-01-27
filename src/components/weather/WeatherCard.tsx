@@ -157,7 +157,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Si no tiene suscripción activa
 	if (!hasActiveSubscription) {
 		return (
-			<div className="mt-4 sm:mt-6 group relative overflow-hidden bg-gradient-to-br from-[#00b3f3]/10 to-transparent rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-white/10 hover:border-[#00b3f3]/30 transition-all duration-300">
+			<div className="h-full group relative overflow-hidden bg-gradient-to-br from-[#00b3f3]/10 to-transparent rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-white/10 hover:border-[#00b3f3]/30 transition-all duration-300">
 				<div className="flex items-center justify-between gap-4">
 					<div className="flex items-center gap-3">
 						<div className="h-10 w-10 sm:h-12 sm:w-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
@@ -184,7 +184,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Si no está activado manualmente
 	if (!isActivated) {
 		return (
-			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+			<Card className="h-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
 				<CardHeader className="pb-3">
 					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
 						<Cloud className="h-5 w-5 text-[#00b3f3]" />
@@ -216,7 +216,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Estado de carga
 	if (loading) {
 		return (
-			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
+			<Card className="h-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
 				<CardHeader className="pb-3">
 					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
 						<Cloud className="h-5 w-5 text-[#00b3f3]" />
@@ -236,7 +236,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 	// Estado de error
 	if (error || !conditions) {
 		return (
-			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
+			<Card className="h-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden">
 				<CardHeader className="pb-3">
 					<CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
 						<Cloud className="h-5 w-5 text-[#00b3f3]" />
@@ -266,7 +266,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 
 	return (
 		<>
-			<Card className="mt-4 sm:mt-6 bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
+			<Card className="h-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-xl rounded-xl sm:rounded-2xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
 				<CardHeader className="pb-3">
 					<div className="flex items-start justify-between">
 						<div className="flex-1">
