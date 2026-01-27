@@ -67,7 +67,7 @@ export async function getUserRole(userId: string): Promise<UserRole | null> {
     const userType = profileData?.user_type || 'pilot';
     console.log('Creating role with identified user type:', userType);
 
-    // Create the role
+    // Create/Upsert the role
     const { error: createRoleError } = await supabase
       .from('user_roles')
       .upsert({
@@ -76,8 +76,10 @@ export async function getUserRole(userId: string): Promise<UserRole | null> {
       });
 
     if (createRoleError) {
-      console.error('Error creating/upserting role:', createRoleError);
-      return null;
+      console.error('Error creating/upserting role in user_roles table:', createRoleError);
+      // Even if database record fails, we return the role detected from profile
+      // so the UI can at least function (fallback)
+      return { role: userType as any };
     }
 
     return { role: userType as any };
