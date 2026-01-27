@@ -302,10 +302,61 @@ const Index = () => {
 
       <section className="py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 text-white text-center relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">Conecta con Pilotos de Drones <span className="text-accent block">Certificados</span></h1>
-          <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90">La plataforma líder para encontrar pilotos profesionales y empresas especializadas.</p>
-          <div className="max-w-4xl mx-auto"><SearchForm onSearch={handleSearch} /></div>
-          {loading && <p className="mt-6 animate-pulse text-white/80">Buscando pilotos profesionales...</p>}
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 italic tracking-tight uppercase">Conecta con Pilotos de Drones <span className="text-[#00b3f3] block">Certificados</span></h1>
+          <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90 font-light tracking-wide text-blue-100">La plataforma líder en Chile para encontrar profesionales de élite y empresas especializadas en tecnología aérea.</p>
+          <div className="max-w-4xl mx-auto drop-shadow-2xl"><SearchForm onSearch={handleSearch} /></div>
+          {loading && <p className="mt-6 animate-pulse text-[#00b3f3] font-bold">Buscando pilotos de élite...</p>}
+        </div>
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-[#00b3f3]/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-[#00b3f3]/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2"></div>
+      </section>
+
+      {/* NEW: Persuasive Trust Section */}
+      <section className="py-24 bg-white relative z-20 -mt-10 mx-4 lg:mx-12 rounded-[2.5rem] shadow-2xl border-t-4 border-[#00b3f3]">
+        <div className="container mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-primary mb-6">¿Por qué elegir <span className="text-[#00b3f3]">Piloto de Drones</span>?</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Hemos construido el ecosistema más seguro y eficiente para la industria RPA en Chile,
+              validando cada profesional para garantizar la excelencia en cada misión.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            {[
+              {
+                icon: <Shield className="h-10 w-10 text-[#00b3f3]" />,
+                title: "Perfiles Verificados",
+                desc: "Validamos digitalmente la documentación de cada piloto para asegurar el cumplimiento normativo."
+              },
+              {
+                icon: <QrCode className="h-10 w-10 text-[#00b3f3]" />,
+                title: "Diplomas con QR",
+                desc: "Tecnología de validación instantánea que garantiza la autenticidad de las certificaciones."
+              },
+              {
+                icon: <Globe className="h-10 w-10 text-[#00b3f3]" />,
+                title: "Portafolio Digital",
+                desc: "Exhibición profesional de trabajos anteriores y visualización interactiva de horas de vuelo."
+              },
+              {
+                icon: <Zap className="h-10 w-10 text-[#00b3f3]" />,
+                title: "Conexión Directa",
+                desc: "Sin comisiones ocultas ni intermediarios. Contacta directamente al piloto ideal para tu proyecto."
+              }
+            ].map((feature, idx) => (
+              <div key={idx} className="flex flex-col items-center text-center group hover:scale-105 transition-all duration-300">
+                <div className="h-20 w-20 bg-[#00b3f3]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#00b3f3] group-hover:shadow-[0_0_30px_rgba(0,179,243,0.4)] transition-all duration-300">
+                  <div className="group-hover:text-white transition-colors duration-300">
+                    {feature.icon}
+                  </div>
+                </div>
+                <h4 className="text-xl font-bold text-primary mb-3">{feature.title}</h4>
+                <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -357,6 +408,56 @@ const Index = () => {
               </div>
             </section>
 
+            {/* NEW: How it Works Section */}
+            <section className="py-16 bg-gradient-to-br from-gray-50 to-white rounded-3xl border border-gray-100 overflow-hidden relative">
+              <div className="absolute top-0 left-0 w-2 h-full bg-[#00b3f3]"></div>
+              <div className="px-8 md:px-12">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+                  <div className="lg:w-1/2">
+                    <h3 className="text-3xl font-bold text-primary mb-6">Tu camino al éxito RPA en <span className="text-[#00b3f3]">3 simples pasos</span></h3>
+                    <div className="space-y-8">
+                      {[
+                        { step: "01", title: "Busca y Filtra", desc: "Encuentra pilotos por ubicación, especialidad o tipo de aeronave." },
+                        { step: "02", title: "Compara Perfiles", desc: "Revisa portafolios, certificaciones verificadas y experiencia real." },
+                        { step: "03", title: "Conecta Directo", desc: "Inicia la conversación y concreta tu proyecto de forma segura." }
+                      ].map((s, i) => (
+                        <div key={i} className="flex gap-6">
+                          <div className="flex-shrink-0 h-12 w-12 bg-primary text-[#00b3f3] rounded-full flex items-center justify-center font-bold text-xl border-2 border-[#00b3f3]">
+                            {s.step}
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-lg text-primary">{s.title}</h5>
+                            <p className="text-muted-foreground text-sm">{s.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="lg:w-1/2 bg-[#083b4e] p-8 rounded-2xl shadow-2xl relative">
+                    <div className="absolute -top-4 -right-4 bg-[#00b3f3] text-white px-4 py-2 rounded-lg font-bold text-sm transform rotate-12 shadow-lg">
+                      ¡Únete Hoy!
+                    </div>
+                    <h4 className="text-2xl font-bold text-white mb-4">¿Eres piloto profesional?</h4>
+                    <p className="text-blue-100/70 mb-6 text-sm">Aumenta tu visibilidad y recibe solicitudes directas de empresas líderes.</p>
+                    <ul className="space-y-3 mb-8">
+                      {["Perfil Profesional Gratuito", "Validación de Documentos", "Gestor de Horas de Vuelo"].map((item, i) => (
+                        <li key={i} className="flex items-center gap-2 text-white text-sm">
+                          <CheckCircle className="h-4 w-4 text-[#00b3f3]" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      className="w-full bg-[#00b3f3] hover:bg-white hover:text-primary text-white font-bold h-12 rounded-xl transition-all"
+                      onClick={() => navigate('/auth?tab=signup')}
+                    >
+                      Empezar Ahora
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {!results.length && featuredCompanies.length > 0 && (
               <section>
                 <div className="mb-12 text-center"><h3 className="text-3xl font-bold text-primary mb-2">Empresas Destacadas</h3><p className="text-muted-foreground">Empresas certificadas con Plan Empresa.</p></div>
@@ -364,10 +465,30 @@ const Index = () => {
               </section>
             )}
 
-            <section className="py-12 border-t">
-              <div className="text-center mb-12"><h3 className="text-3xl font-bold text-primary mb-4">{results.length ? "Resultados de Búsqueda" : "Expertos Recomendados"}</h3><p className="text-muted-foreground text-lg">Encuentra al profesional ideal para tu proyecto.</p></div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">{listToRender.map(p => <div key={p.id}><PilotCard pilot={p} /></div>)}</div>
-              <div className="mt-12 text-center"><Button size="lg" onClick={() => navigate('/search')} className="bg-primary px-10">Explorar Directorio Completo</Button></div>
+            <section className="py-12 border-t border-gray-100">
+              <div className="text-center mb-16 relative">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-[#00b3f3] to-transparent"></div>
+                <h3 className="text-3xl md:text-5xl font-bold text-primary mb-4 tracking-tight">
+                  {results.length ? "Resultados de Búsqueda" : "Expertos Recomendados"}
+                </h3>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  Accede a los perfiles más calificados de la industria, validados por nuestro equipo técnico.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {listToRender.map(p => <div key={p.id} className="hover:translate-y-[-8px] transition-transform duration-500">
+                  <PilotCard pilot={p} />
+                </div>)}
+              </div>
+              <div className="mt-16 text-center">
+                <Button
+                  size="lg"
+                  onClick={() => navigate('/search')}
+                  className="bg-primary hover:bg-[#083b4e]/90 text-white px-12 h-14 rounded-2xl font-bold shadow-xl hover:shadow-[#00b3f3]/20 transition-all"
+                >
+                  Explorar Directorio Completo
+                </Button>
+              </div>
             </section>
           </div>
 
