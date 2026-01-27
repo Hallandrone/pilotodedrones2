@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Logo from "@/components/ui/logo";
+import { FeedbackForm } from "@/components/dashboard/FeedbackForm";
 
 const Footer = () => {
 	const navigate = useNavigate();
@@ -41,6 +42,13 @@ const Footer = () => {
 								<h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/30 mb-1">Recursos</h4>
 								<button onClick={() => navigate('/verificar-diploma')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Verificar Diploma</button>
 								<button onClick={() => navigate('/contacto')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Contacto</button>
+								<FeedbackForm
+									trigger={
+										<button className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">
+											Bugs y Sugerencias
+										</button>
+									}
+								/>
 							</div>
 						</div>
 					</div>

@@ -5,32 +5,32 @@ const WELCOME_EMAIL_SECRET = Deno.env.get('WELCOME_EMAIL_SECRET') || 'default_se
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://pilotodedrones.cl'
 
 const corsHeaders = {
-	'Access-Control-Allow-Origin': '*',
-	'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-welcome-secret',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-welcome-secret',
 }
 
 serve(async (req) => {
-	if (req.method === 'OPTIONS') {
-		return new Response('ok', { headers: corsHeaders })
-	}
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
 
-	try {
-		const welcomeSecret = req.headers.get('x-welcome-secret')
+  try {
+    const welcomeSecret = req.headers.get('x-welcome-secret')
 
-		if (welcomeSecret !== WELCOME_EMAIL_SECRET) {
-			console.warn('Unauthorized access attempt to welcome email function')
-			return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-		}
+    if (welcomeSecret !== WELCOME_EMAIL_SECRET) {
+      console.warn('Unauthorized access attempt to welcome email function')
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
-		const { email, full_name } = await req.json()
+    const { email, full_name } = await req.json()
 
-		if (!email) {
-			return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-		}
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
 
-		const name = full_name || 'Piloto'
+    const name = full_name || 'Piloto'
 
-		const emailHtml = `
+    const emailHtml = `
     <!DOCTYPE html>
     <html lang="es">
     <head>
@@ -89,7 +89,7 @@ serve(async (req) => {
               <tr>
                 <td style="background-color: #f8fafc; padding: 35px 30px; text-align: center; border-top: 1px solid #edf2f7;">
                   <p style="margin: 0 0 10px; color: #718096; font-size: 14px;">
-                    ¿Tienes dudas? Responde a este correo o visita nuestro centro de ayuda.
+                    ¿Tienes dudas? visita nuestro centro de ayuda.
                   </p>
                   <p style="margin: 0; color: #a0aec0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
                     © ${new Date().getFullYear()} Piloto de Drones Chile.
@@ -105,29 +105,29 @@ serve(async (req) => {
     </html>
     `
 
-		if (RESEND_API_KEY) {
-			const res = await fetch('https://api.resend.com/emails', {
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${RESEND_API_KEY}`,
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					from: 'Piloto de Drones <hola@pilotodedrones.cl>',
-					to: email,
-					subject: `¡Bienvenido a Piloto de Drones, ${name}!`,
-					html: emailHtml
-				})
-			})
+    if (RESEND_API_KEY) {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'Piloto de Drones <hola@pilotodedrones.cl>',
+          to: email,
+          subject: `¡Bienvenido a Piloto de Drones, ${name}!`,
+          html: emailHtml
+        })
+      })
 
-			const data = await res.json()
-			console.log('Email sent:', data)
-		}
+      const data = await res.json()
+      console.log('Email sent:', data)
+    }
 
-		return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
-	} catch (error: any) {
-		console.error('Error sending welcome email:', error)
-		return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
-	}
+  } catch (error: any) {
+    console.error('Error sending welcome email:', error)
+    return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
 })
