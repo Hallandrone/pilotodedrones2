@@ -11,6 +11,12 @@ import { DEFAULT_AVATAR_URL } from "@/hooks/useDefaultAvatar";
 import Logo from "@/components/ui/logo";
 import WeatherCard from "@/components/weather/WeatherCard";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Cloud,
   Plane,
   MapPin,
@@ -399,6 +405,65 @@ const PilotDashboard = () => {
     }
   };
 
+  const renderDiplomaCard = (diploma: Diploma) => (
+    <div key={diploma.id} className="group relative bg-[#020617]/40 border-2 border-white/10 rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#00b3f3]/50 hover:bg-[#020617]/60">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 sm:h-16 sm:w-16 bg-[#00b3f3]/20 border border-[#00b3f3]/40 rounded-xl flex items-center justify-center text-[#00b3f3]">
+            <FileText className="h-6 w-6 sm:h-8 sm:w-8" />
+          </div>
+          <div>
+            <h4 className="text-white font-bold text-lg sm:text-xl leading-tight mb-1">{diploma.course_title}</h4>
+            <div className="flex flex-wrap gap-y-1 gap-x-4">
+              <p className="text-white/60 text-xs sm:text-sm flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5" />
+                {new Date(diploma.course_date).toLocaleDateString('es-CL')}
+              </p>
+              <p className="text-[#00b3f3]/80 text-xs sm:text-sm font-semibold flex items-center gap-1.5">
+                <Hash className="h-3.5 w-3.5" />
+                N° {diploma.certificate_number}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <PDFDownloadLink
+          document={
+            <DiplomaPDF
+              data={{
+                studentName: diploma.student_name,
+                courseDate: diploma.course_date,
+                instructorName: diploma.instructor_name,
+                certificateNumber: diploma.certificate_number,
+                courseHours: diploma.course_hours,
+                city: diploma.city,
+                courseTitle: diploma.course_title,
+                qrCodeDataUrl: diploma.qrCodeDataUrl
+              }}
+            />
+          }
+          fileName={`Diploma_${diploma.course_title}_${diploma.student_name}.pdf`}
+          className="w-full sm:w-auto"
+        >
+          {({ loading }) => (
+            <Button
+              variant="outline"
+              disabled={loading}
+              className="w-full sm:w-auto border-[#00b3f3] text-[#00b3f3] hover:bg-[#00b3f3] hover:text-white rounded-xl h-11 px-6 font-bold shadow-lg shadow-[#00b3f3]/10 transition-all duration-300 hover:scale-105"
+            >
+              {loading ? (
+                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              Descargar PDF
+            </Button>
+          )}
+        </PDFDownloadLink>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center p-4">
@@ -704,64 +769,23 @@ const PilotDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {diplomas.map((diploma) => (
-                    <div key={diploma.id} className="group relative bg-[#020617]/40 border-2 border-white/10 rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#00b3f3]/50 hover:bg-[#020617]/60">
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 sm:h-16 sm:w-16 bg-[#00b3f3]/20 border border-[#00b3f3]/40 rounded-xl flex items-center justify-center text-[#00b3f3]">
-                            <FileText className="h-6 w-6 sm:h-8 sm:w-8" />
+                  {diplomas.length > 2 ? (
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="diplomas" className="border-none">
+                        <AccordionTrigger className="hover:no-underline py-4 px-6 bg-white/5 rounded-2xl group transition-all text-white hover:bg-white/10 mb-4">
+                          <div className="flex items-center gap-3">
+                            <Award className="h-6 w-6 text-[#00b3f3]" />
+                            <span className="font-bold text-lg sm:text-xl">Ver {diplomas.length} Diplomas Oficiales</span>
                           </div>
-                          <div>
-                            <h4 className="text-white font-bold text-lg sm:text-xl leading-tight mb-1">{diploma.course_title}</h4>
-                            <div className="flex flex-wrap gap-y-1 gap-x-4">
-                              <p className="text-white/60 text-xs sm:text-sm flex items-center gap-1.5">
-                                <Calendar className="h-3.5 w-3.5" />
-                                {new Date(diploma.course_date).toLocaleDateString('es-CL')}
-                              </p>
-                              <p className="text-[#00b3f3]/80 text-xs sm:text-sm font-semibold flex items-center gap-1.5">
-                                <Hash className="h-3.5 w-3.5" />
-                                N° {diploma.certificate_number}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <PDFDownloadLink
-                          document={
-                            <DiplomaPDF
-                              data={{
-                                studentName: diploma.student_name,
-                                courseDate: diploma.course_date,
-                                instructorName: diploma.instructor_name,
-                                certificateNumber: diploma.certificate_number,
-                                courseHours: diploma.course_hours,
-                                city: diploma.city,
-                                courseTitle: diploma.course_title,
-                                qrCodeDataUrl: diploma.qrCodeDataUrl
-                              }}
-                            />
-                          }
-                          fileName={`Diploma_${diploma.course_title}_${diploma.student_name}.pdf`}
-                          className="w-full sm:w-auto"
-                        >
-                          {({ loading }) => (
-                            <Button
-                              variant="outline"
-                              disabled={loading}
-                              className="w-full sm:w-auto border-[#00b3f3] text-[#00b3f3] hover:bg-[#00b3f3] hover:text-white rounded-xl h-11 px-6 font-bold shadow-lg shadow-[#00b3f3]/10 transition-all duration-300 hover:scale-105"
-                            >
-                              {loading ? (
-                                <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                              ) : (
-                                <Download className="h-4 w-4 mr-2" />
-                              )}
-                              Descargar PDF
-                            </Button>
-                          )}
-                        </PDFDownloadLink>
-                      </div>
-                    </div>
-                  ))}
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-2 space-y-4">
+                          {diplomas.map((diploma) => renderDiplomaCard(diploma))}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  ) : (
+                    diplomas.map((diploma) => renderDiplomaCard(diploma))
+                  )}
                 </div>
               )}
             </CardContent>
