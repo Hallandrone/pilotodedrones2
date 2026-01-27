@@ -3,8 +3,8 @@ import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Shield } from "lucide-react";
-import Logo from "@/components/ui/logo";
 import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
 
 const Privacy = () => {
   const navigate = useNavigate();
@@ -29,24 +29,8 @@ const Privacy = () => {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm shadow-sm sticky top-0 z-50 w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
-          <div className="flex items-center justify-between gap-4 w-full max-w-7xl mx-auto">
-            <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 flex-shrink-0 ml-4 sm:ml-12" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="hover:bg-accent/10 transition-all duration-200"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="flex flex-col min-h-screen bg-background">
+      <Header />
 
       <div className="flex-1">
         {/* Content */}

@@ -1,14 +1,13 @@
 import { Button } from "@/components/ui/button";
 import SearchForm from "@/components/ui/search-form";
 import PilotCard from "@/components/ui/pilot-card";
-import Logo from "@/components/ui/logo";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Plane, Shield, Users, Star, LogIn, User, Menu, X, CheckCircle, Award, Zap, Search, FileCheck, QrCode, Globe, Home } from "lucide-react";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import { Plane, Shield, Users, Star, CheckCircle, Award, Zap, Search, FileCheck, QrCode, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
-import Footer from "@/components/layout/Footer";
 
 interface AdBanner {
   id: string;
@@ -32,7 +31,6 @@ const Index = () => {
   const [featuredPilots, setFeaturedPilots] = useState<any[]>([]);
   const [featuredCompanies, setFeaturedCompanies] = useState<any[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     loadActiveBanners();
@@ -54,12 +52,6 @@ const Index = () => {
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     setUser(session?.user ?? null);
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    navigate('/');
   };
 
   const loadFeaturedPilots = async () => {
@@ -254,13 +246,13 @@ const Index = () => {
     setLoading(true);
     try {
       let query = supabase.from("pilots").select(`
-          id,
-          user_id,
-          certification_status,
-          status,
-          profiles:profiles (full_name, email, user_type, avatar_url),
-          pilot_services!inner (service_type, description, price_per_hour, is_published)
-        `).eq('status', 'active').eq("pilot_services.is_published", true);
+            id,
+            user_id,
+            certification_status,
+            status,
+            profiles:profiles (full_name, email, user_type, avatar_url),
+            pilot_services!inner (service_type, description, price_per_hour, is_published)
+          `).eq('status', 'active').eq("pilot_services.is_published", true);
 
       if (filters.pilotType && filters.pilotType !== "todos") {
         const role = { certificado: "pilot", independiente: "pilot", empresa: "company" }[filters.pilotType];
@@ -306,48 +298,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card shadow-sm sticky top-0 z-50 w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
-          <div className="flex items-center justify-between gap-4 w-full">
-            <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 flex-shrink-0 ml-4 sm:ml-12" />
-            <div className="hidden md:flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="sm:h-11 sm:px-6">Home</Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/planes')} className="sm:h-11 sm:px-6">Precios</Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/contacto')} className="sm:h-11 sm:px-6">Contacto</Button>
-              {user ? (
-                <>
-                  <Button variant="outline" size="sm" className="sm:h-11 sm:px-8 border-2" onClick={() => navigate('/dashboard')}>
-                    <User className="h-4 w-4 mr-2" /><span className="hidden md:inline">Mi Cuenta</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="sm:h-11 sm:px-8" onClick={handleLogout}>Cerrar Sesión</Button>
-                </>
-              ) : (
-                <Button size="sm" className="sm:h-11 sm:px-8 bg-accent text-accent-foreground" onClick={() => navigate('/auth?tab=signup')}>
-                  <LogIn className="h-4 w-4 mr-2" /><span>Ingresar/Registrarse</span>
-                </Button>
-              )}
-            </div>
-            <div className="md:hidden">
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                <SheetTrigger asChild><Button variant="ghost" size="sm"><Menu className="h-6 w-6" /></Button></SheetTrigger>
-                <SheetContent side="right">
-                  <SheetHeader><SheetTitle>Menú</SheetTitle></SheetHeader>
-                  <div className="mt-6 space-y-3">
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); navigate('/'); }}><Home className="h-5 w-5 mr-3" />Home</Button>
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); navigate('/planes'); }}>Precios</Button>
-                    <Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); navigate('/contacto'); }}>Contacto</Button>
-                    {user ? (
-                      <Button variant="outline" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }}><User className="h-5 w-5 mr-3" />Mi Cuenta</Button>
-                    ) : (
-                      <Button className="w-full justify-start bg-accent" onClick={() => { setMobileMenuOpen(false); navigate('/auth?tab=signup'); }}><LogIn className="h-5 w-5 mr-3" />Ingresar/Registrarse</Button>
-                    )}
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <section className="py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 text-white text-center relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
