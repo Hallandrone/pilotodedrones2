@@ -23,6 +23,7 @@ const Auth = () => {
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
   const [qrToken, setQrToken] = useState<string | null>(null);
   const [initialEmail, setInitialEmail] = useState("");
+  const [registerUserType, setRegisterUserType] = useState<'pilot' | 'company'>('pilot');
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
   const navigate = useNavigate();
@@ -76,6 +77,11 @@ const Auth = () => {
   useEffect(() => {
     // Cargar Google GSI y configurar el botón invisible
     loadGoogleScript().then(() => {
+      // Determinar el tipo de usuario para la inicialización
+      // Si estamos en signup, usamos el tipo seleccionado en el toggle
+      const userTypeToUse = activeTab === 'signup' ? registerUserType : 'pilot';
+      console.log(`[Auth] Inicializando Google Auth con tipo: ${userTypeToUse}`);
+
       initGoogleAuth((result) => {
         if (result.success) {
           handleGoogleAuthCompleted(result);
@@ -86,7 +92,7 @@ const Auth = () => {
             variant: "destructive",
           });
         }
-      });
+      }, userTypeToUse);
 
       // Renderizar botones (con un pequeño delay para asegurar que el DOM de la pestaña esté listo)
       setTimeout(() => {
@@ -94,7 +100,7 @@ const Auth = () => {
         renderGoogleButton("google-signup-btn-overlay");
       }, 500);
     });
-  }, [activeTab]); // Ejecutar cuando cambie la pestaña
+  }, [activeTab, registerUserType]); // Ejecutar cuando cambie la pestaña o el tipo seleccionado
 
   const handleGoogleAuthCompleted = async (result: any) => {
     setLoading(true);
@@ -865,7 +871,8 @@ const Auth = () => {
       }
     }, [initialEmail]);
     const [name, setName] = useState("");
-    const [userType, setUserType] = useState("pilot");
+    const userType = registerUserType;
+    const setUserType = (type: 'pilot' | 'company') => setRegisterUserType(type);
 
     const onSubmit = (e: React.FormEvent) => {
       e.preventDefault();
