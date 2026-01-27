@@ -128,7 +128,7 @@ const Planes = () => {
   };
 
   const handleRegister = (planId: string) => {
-    navigate('/auth', { state: { plan: planId } });
+    navigate('/auth?tab=signup', { state: { plan: planId } });
   };
 
   return (
@@ -159,8 +159,8 @@ const Planes = () => {
               </Button>
               <Button
                 size="sm"
-                className="h-9 px-3 sm:px-4 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-200 text-sm sm:text-base"
-                onClick={() => navigate('/auth')}
+                className="h-9 px-3 sm:px-4 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 text-sm sm:text-base font-bold shadow-sm"
+                onClick={() => navigate('/auth?tab=signup')}
               >
                 Registrarse
               </Button>
@@ -352,8 +352,8 @@ const Planes = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   size="lg"
-                  className="bg-accent hover:bg-accent/90 text-accent-foreground text-base px-8"
-                  onClick={() => navigate('/auth')}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground text-base px-8 font-bold"
+                  onClick={() => navigate('/auth?tab=signup')}
                 >
                   Crear Cuenta Gratis
                   <ArrowRight className="h-4 w-4 ml-2" />

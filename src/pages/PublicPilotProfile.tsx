@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -135,6 +136,36 @@ const PublicPilotProfile = () => {
   const [userCertifications, setUserCertifications] = useState<UserCertification[]>([]);
   const [isFlightHoursValidated, setIsFlightHoursValidated] = useState(false);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
+
+  // Render diploma card
+  const renderDiplomaCard = (diploma: Diploma) => (
+    <div
+      key={diploma.id}
+      className="group relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 bg-white select-none transition-all duration-500 hover:scale-[1.02] hover:shadow-[#00b3f3]/20 cursor-pointer"
+      onClick={() => navigate(`/verificar-diploma?codigo=${diploma.token}`)}
+    >
+      <img
+        src="/DIPLOMA_2026.jpg"
+        className="absolute inset-0 w-full h-full object-cover opacity-80"
+        alt="Diploma Background"
+        onContextMenu={(e) => e.preventDefault()}
+      />
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
+        <p className="text-[4.5vw] sm:text-[2.2vw] font-serif font-bold text-black leading-tight mb-2 tracking-tight">{diploma.student_name}</p>
+        <p className="text-[3.5vw] sm:text-[1.6vw] font-bold text-[#00A8E1]">{diploma.course_title}</p>
+        <p className="text-[2vw] sm:text-[1vw] italic text-gray-500 mt-2 font-medium">
+          {new Date(diploma.course_date).toLocaleDateString('es-CL')}
+        </p>
+      </div>
+      <div className="absolute inset-0 bg-transparent z-10 cursor-pointer group-hover:bg-[#00b3f3]/5 transition-colors"></div>
+      <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="bg-[#00b3f3] text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-bold shadow-lg">
+          <CheckCircle className="h-4 w-4" />
+          Verificar en línea
+        </div>
+      </div>
+    </div>
+  );
 
   // Generate profile URL - use slug if available, otherwise use ID
   const profileUrl = profileSlug
@@ -1046,37 +1077,27 @@ const PublicPilotProfile = () => {
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Capacitaciones y Diplomas</h2>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Official Diplomas */}
-                {diplomas.map((diploma) => (
-                  <div
-                    key={diploma.id}
-                    className="group relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 bg-white select-none transition-all duration-500 hover:scale-[1.02] hover:shadow-[#00b3f3]/20"
-                    onClick={() => navigate(`/verificar-diploma?codigo=${diploma.token}`)}
-                  >
-                    <img
-                      src="/DIPLOMA_2026.jpg"
-                      className="absolute inset-0 w-full h-full object-cover opacity-80"
-                      alt="Diploma Background"
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                      <p className="text-[4.5vw] sm:text-[2.2vw] font-serif font-bold text-black leading-tight mb-2 tracking-tight">{diploma.student_name}</p>
-                      <p className="text-[3.5vw] sm:text-[1.6vw] font-bold text-[#00A8E1]">{diploma.course_title}</p>
-                      <p className="text-[2vw] sm:text-[1vw] italic text-gray-500 mt-2 font-medium">
-                        {new Date(diploma.course_date).toLocaleDateString('es-CL')}
-                      </p>
-                    </div>
-                    <div className="absolute inset-0 bg-transparent z-10 cursor-pointer group-hover:bg-[#00b3f3]/5 transition-colors"></div>
-                    <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="bg-[#00b3f3] text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-bold shadow-lg">
-                        <CheckCircle className="h-4 w-4" />
-                        Verificar en línea
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                {diplomas.length > 2 ? (
+                  <Accordion type="single" collapsible className="w-full col-span-1 md:col-span-2">
+                    <AccordionItem value="diplomas" className="border-none">
+                      <AccordionTrigger className="hover:no-underline py-4 px-6 bg-blue-50/50 rounded-2xl group transition-all">
+                        <div className="flex items-center gap-3">
+                          <Award className="h-6 w-6 text-[#00b3f3]" />
+                          <span className="font-bold text-xl text-gray-900">Ver {diplomas.length} Diplomas Oficiales</span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          {diplomas.map((diploma) => renderDiplomaCard(diploma))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                ) : (
+                  diplomas.map((diploma) => renderDiplomaCard(diploma))
+                )}
 
                 {/* Uploaded Certificates */}
                 {userCertifications

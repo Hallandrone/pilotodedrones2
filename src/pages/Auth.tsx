@@ -991,85 +991,87 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 scale-150 mb-4" />
+    <div className="min-h-screen bg-background flex flex-col">
+      <div className="flex-grow flex flex-col items-center justify-center p-4 py-20 bg-gradient-to-br from-background to-secondary">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-6">
+              <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 scale-150 mb-4" />
+            </div>
+            <p className="text-muted-foreground">Accede a tu cuenta profesional</p>
           </div>
-          <p className="text-muted-foreground">Accede a tu cuenta profesional</p>
+
+          <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-sm">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              {!isRecovery && !showForgotPassword && (
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+                  <TabsTrigger value="signup">Crear Cuenta</TabsTrigger>
+                </TabsList>
+              )}
+
+              <CardContent className="p-6 pt-0">
+                <TabsContent value="login" className="mt-0">
+                  {isRecovery ? (
+                    <>
+                      <div className="space-y-2 mb-6">
+                        <CardTitle>Nueva contraseña</CardTitle>
+                        <CardDescription>
+                          Ingresa tu nueva contraseña para acceder a tu cuenta
+                        </CardDescription>
+                      </div>
+                      <UpdatePasswordForm />
+                    </>
+                  ) : showForgotPassword ? (
+                    <>
+                      <div className="space-y-2 mb-6">
+                        <CardTitle>Recuperar contraseña</CardTitle>
+                        <CardDescription>
+                          Ingresa tu email para recibir instrucciones
+                        </CardDescription>
+                      </div>
+                      <ForgotPasswordForm />
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-2 mb-6">
+                        <CardTitle>Bienvenido de vuelta</CardTitle>
+                        <CardDescription>
+                          Ingresa tus credenciales para acceder
+                        </CardDescription>
+                      </div>
+                      <LoginForm />
+                    </>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="signup" className="mt-0">
+                  <div className="space-y-2 mb-6">
+                    <CardTitle>Crear cuenta</CardTitle>
+                    <CardDescription>
+                      Únete a la plataforma profesional de drones
+                    </CardDescription>
+                  </div>
+                  <SignUpForm />
+                </TabsContent>
+              </CardContent>
+            </Tabs>
+          </Card>
+
+          {!isRecovery && !showForgotPassword && (
+            <div className="text-center mt-6">
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ← Volver al inicio
+              </Button>
+            </div>
+          )}
         </div>
-
-        <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-sm">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            {!isRecovery && !showForgotPassword && (
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-                <TabsTrigger value="signup">Crear Cuenta</TabsTrigger>
-              </TabsList>
-            )}
-
-            <CardContent className="p-6 pt-0">
-              <TabsContent value="login" className="mt-0">
-                {isRecovery ? (
-                  <>
-                    <div className="space-y-2 mb-6">
-                      <CardTitle>Nueva contraseña</CardTitle>
-                      <CardDescription>
-                        Ingresa tu nueva contraseña para acceder a tu cuenta
-                      </CardDescription>
-                    </div>
-                    <UpdatePasswordForm />
-                  </>
-                ) : showForgotPassword ? (
-                  <>
-                    <div className="space-y-2 mb-6">
-                      <CardTitle>Recuperar contraseña</CardTitle>
-                      <CardDescription>
-                        Ingresa tu email para recibir instrucciones
-                      </CardDescription>
-                    </div>
-                    <ForgotPasswordForm />
-                  </>
-                ) : (
-                  <>
-                    <div className="space-y-2 mb-6">
-                      <CardTitle>Bienvenido de vuelta</CardTitle>
-                      <CardDescription>
-                        Ingresa tus credenciales para acceder
-                      </CardDescription>
-                    </div>
-                    <LoginForm />
-                  </>
-                )}
-              </TabsContent>
-
-              <TabsContent value="signup" className="mt-0">
-                <div className="space-y-2 mb-6">
-                  <CardTitle>Crear cuenta</CardTitle>
-                  <CardDescription>
-                    Únete a la plataforma profesional de drones
-                  </CardDescription>
-                </div>
-                <SignUpForm />
-              </TabsContent>
-            </CardContent>
-          </Tabs>
-        </Card>
-
-        {!isRecovery && !showForgotPassword && (
-          <div className="text-center mt-6">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/')}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              ← Volver al inicio
-            </Button>
-          </div>
-        )}
-        <Footer />
       </div>
+      <Footer />
     </div>
   );
 };

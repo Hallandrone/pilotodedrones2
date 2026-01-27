@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import SearchForm from "@/components/ui/search-form";
 import PilotCard from "@/components/ui/pilot-card";
 import Header from "@/components/layout/Header";
@@ -450,6 +451,59 @@ const Index = () => {
                       onClick={() => navigate('/auth?tab=signup')}
                     >
                       Empezar Ahora
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* NEW: Weather Conditions Feature (API) */}
+            <section className="py-20 bg-[#f8fafc] rounded-[3rem] border border-blue-100/50 shadow-inner group overflow-hidden relative">
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-400/5 blur-[100px] rounded-full"></div>
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-[#00b3f3]/5 blur-[100px] rounded-full"></div>
+
+              <div className="px-8 md:px-16">
+                <div className="flex flex-col lg:flex-row items-center gap-16">
+                  <div className="lg:w-1/2 relative">
+                    <div className="absolute -top-10 -left-10 w-32 h-32 bg-[#00b3f3]/10 blur-3xl rounded-full animate-pulse"></div>
+                    <img
+                      src="/mokup-cel-clima-piloto.png"
+                      alt="Clima y Condiciones de Vuelo"
+                      className="relative z-10 w-full max-w-[450px] mx-auto rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(8,59,78,0.3)] transform group-hover:scale-[1.02] transition-transform duration-700"
+                    />
+                  </div>
+                  <div className="lg:w-1/2 text-left space-y-8">
+                    <Badge className="bg-[#00b3f3]/10 text-[#00b3f3] hover:bg-[#00b3f3]/20 border-none px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider mb-2">
+                      Exclusivo Plan PRO
+                    </Badge>
+                    <h3 className="text-4xl md:text-5xl font-black text-primary leading-tight">
+                      Condiciones de Vuelo en <span className="text-[#00b3f3]">Tiempo Real</span>
+                    </h3>
+                    <p className="text-xl text-muted-foreground leading-relaxed font-light">
+                      Potenciamos tu perfil profesional con tecnología de vanguardia. Accede a meteorología aeronáutica diseñada exclusivamente para pilotos de drones.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      {[
+                        { title: "Velocidad del Viento", desc: "Alertas críticas en tiempo real." },
+                        { title: "Visibilidad y KP", desc: "Índice de actividad solar y GPS." },
+                        { title: "Prob. de Lluvia", desc: "Pronósticos precisos por hora." },
+                        { title: "Altitud de Presión", desc: "Datos clave para el rendimiento." }
+                      ].map((feature, i) => (
+                        <div key={i} className="flex items-start gap-3 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-[#00b3f3]/30 transition-colors">
+                          <CheckCircle className="h-5 w-5 text-[#00b3f3] mt-1 flex-shrink-0" />
+                          <div>
+                            <p className="font-bold text-primary text-sm">{feature.title}</p>
+                            <p className="text-xs text-muted-foreground">{feature.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      className="h-14 px-8 rounded-2xl bg-[#083b4e] hover:bg-[#00b3f3] text-white font-bold transition-all shadow-xl shadow-[#083b4e]/10 group/btn"
+                      onClick={() => navigate('/planes')}
+                    >
+                      Mejorar a Plan PRO
+                      <Zap className="ml-2 h-4 w-4 fill-current group-hover/btn:animate-bounce" />
                     </Button>
                   </div>
                 </div>
