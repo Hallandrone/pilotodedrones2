@@ -70,9 +70,17 @@ const Auth = () => {
       }
     }
 
+    const roleParam = params.get('role') || params.get('type');
+
+    if (roleParam === 'company') {
+      setRegisterUserType('company');
+    } else if (roleParam === 'pilot') {
+      setRegisterUserType('pilot');
+    }
+
     // Asegurar que la página comience arriba al cargar
     window.scrollTo(0, 0);
-  }, [location]);
+  }, [location, setRegisterUserType]);
 
   useEffect(() => {
     // Cargar Google GSI y configurar el botón invisible
@@ -96,8 +104,11 @@ const Auth = () => {
 
       // Renderizar botones (con un pequeño delay para asegurar que el DOM de la pestaña esté listo)
       setTimeout(() => {
-        renderGoogleButton("google-login-btn-overlay");
-        renderGoogleButton("google-signup-btn-overlay");
+        const loginBtn = document.getElementById("google-login-btn-overlay");
+        const signupBtn = document.getElementById("google-signup-btn-overlay");
+
+        if (loginBtn) renderGoogleButton("google-login-btn-overlay");
+        if (signupBtn) renderGoogleButton("google-signup-btn-overlay");
       }, 500);
     });
   }, [activeTab, registerUserType]); // Ejecutar cuando cambie la pestaña o el tipo seleccionado
@@ -105,16 +116,39 @@ const Auth = () => {
   const handleGoogleAuthCompleted = async (result: any) => {
     setLoading(true);
 
-    // Obtener perfil real de la base de datos para decidir a dónde ir
-    // (Ignoramos el userType visual porque el usuario ya puede tener cuenta)
+    console.log('[Auth] Google Auth completado. Tipo solicitado:', registerUserType, 'Nuevo usuario:', result.isNewUser);
+
+    // Obtener perfil actual
     const { data: profile } = await supabase
       .from('profiles')
       .select('user_type')
       .eq('id', result.user.id)
       .single();
 
+    // Si es un nuevo usuario, forzar que el user_type sea el seleccionado en el UI
+    if (result.isNewUser || !profile?.user_type) {
+      const userTypeToSet = activeTab === 'signup' ? registerUserType : 'pilot';
+      console.log('[Auth] Forzando user_type para nuevo usuario Google:', userTypeToSet);
+
+      await supabase
+        .from('profiles')
+        .update({ user_type: userTypeToSet })
+        .eq('id', result.user.id);
+
+      // También asegurar que tenga el rol correspondiente
+      await getUserRole(result.user.id);
+    }
+
+    const { data: updatedProfile } = await supabase
+      .from('profiles')
+      .select('user_type')
+      .eq('id', result.user.id)
+      .single();
+
     const roleData = await getUserRole(result.user.id);
-    const finalRole = roleData?.role || profile?.user_type || result.user.role;
+    const finalRole = roleData?.role || updatedProfile?.user_type || result.user.role;
+
+    console.log('[Auth] Rol final determinado:', finalRole);
 
     toast({
       title: result.isNewUser ? "¡Bienvenido!" : "¡Hola de nuevo!",
@@ -967,29 +1001,7 @@ const Auth = () => {
             />
           </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="user-type">Tipo de cuenta</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant={userType === "pilot" ? "default" : "outline"}
-              onClick={() => setUserType("pilot")}
-              className="flex items-center gap-2"
-            >
-              <UserIcon className="h-4 w-4" />
-              Piloto
-            </Button>
-            <Button
-              type="button"
-              variant={userType === "company" ? "default" : "outline"}
-              onClick={() => setUserType("company")}
-              className="flex items-center gap-2"
-            >
-              <Building className="h-4 w-4" />
-              Empresa
-            </Button>
-          </div>
-        </div>
+
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Creando cuenta..." : "Crear Cuenta"}
         </Button>
@@ -1059,6 +1071,31 @@ const Auth = () => {
                       Únete a la plataforma profesional de drones
                     </CardDescription>
                   </div>
+
+                  <div className="space-y-2 mb-6 bg-secondary/30 p-4 rounded-lg">
+                    <Label htmlFor="user-type-selector" className="text-sm font-medium">¿Cómo quieres unirte?</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Button
+                        type="button"
+                        variant={registerUserType === "pilot" ? "default" : "outline"}
+                        onClick={() => setRegisterUserType("pilot")}
+                        className="flex items-center gap-2"
+                      >
+                        <UserIcon className="h-4 w-4" />
+                        Soy Piloto
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={registerUserType === "company" ? "default" : "outline"}
+                        onClick={() => setRegisterUserType("company")}
+                        className="flex items-center gap-2"
+                      >
+                        <Building className="h-4 w-4" />
+                        Soy Empresa
+                      </Button>
+                    </div>
+                  </div>
+
                   <SignUpForm />
                 </TabsContent>
               </CardContent>
