@@ -498,7 +498,7 @@ const CompanyDashboard = () => {
                                   </p>
                                 </div>
 
-                                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                                   <Button
                                     size="lg"
                                     className="w-full justify-start bg-white/5 border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white transition-all duration-300 rounded-2xl shadow-xl h-14"

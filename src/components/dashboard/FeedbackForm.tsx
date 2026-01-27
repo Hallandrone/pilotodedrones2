@@ -67,7 +67,7 @@ export function FeedbackForm() {
 			<DialogTrigger asChild>
 				<Button
 					size="lg"
-					className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-purple-500/30 hover:bg-purple-500 hover:border-purple-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+					className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-purple-500/30 hover:bg-purple-500 hover:border-purple-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm xl:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
 				>
 					<MessageSquarePlus className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
 					Problemas o Sugerencias
