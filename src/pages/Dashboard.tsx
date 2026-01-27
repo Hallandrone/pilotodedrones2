@@ -16,7 +16,7 @@ import DiplomaGenerator from "./DiplomaGenerator";
 import UserProfile from "./UserProfile";
 import AdminFeedback from "./AdminFeedback";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserCog } from "lucide-react";
 import { getUserRole, isAdmin } from "@/lib/auth-utils";
 import { useUserPermissions } from "@/hooks/useUserPermissions";
 import type { User } from '@supabase/supabase-js';
@@ -140,10 +140,22 @@ const Dashboard = () => {
                         Dashboard de Administrador
                       </h1>
                       <p className="text-white/80 text-lg">
-                        Gestiona y monitorea toda la plataforma de drones
+                        {userRole === 'super_admin'
+                          ? "Gestiona y monitorea toda la plataforma de drones"
+                          : "Gestiona los recursos de la plataforma según tus permisos asignados"}
                       </p>
                     </div>
-                    <DashboardStats />
+                    {userRole === 'super_admin' ? (
+                      <DashboardStats />
+                    ) : (
+                      <div className="bg-white/5 border border-white/10 rounded-3xl p-12 text-center backdrop-blur-sm">
+                        <UserCog className="h-16 w-16 text-accent/40 mx-auto mb-6" />
+                        <h3 className="text-2xl font-bold text-white mb-2">¡Bienvenido al Panel Administrativo!</h3>
+                        <p className="text-white/60 max-w-md mx-auto">
+                          Utiliza el menú lateral para acceder a las secciones de gestión habilitadas para tu perfil.
+                        </p>
+                      </div>
+                    )}
                   </>
                 } />
                 <Route path="/profile" element={<UserProfile />} />

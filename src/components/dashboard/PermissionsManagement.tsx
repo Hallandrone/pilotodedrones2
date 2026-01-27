@@ -344,50 +344,36 @@ export function PermissionsManagement() {
 
     setSaving(true);
     try {
-      // 1. Delete user permissions
+      // 1. Delete user permissions (remove admin privileges)
       await supabase
         .from('user_permissions')
         .delete()
         .eq('user_id', userToDelete.id);
 
-      // 2. Delete user role
-      await supabase
-        .from('user_roles')
-        .delete()
-        .eq('id', userToDelete.id);
-
-      // 3. Delete user profile records (pilots or companies)
-      await supabase
-        .from('pilots')
-        .delete()
-        .eq('user_id', userToDelete.id);
-
-      await supabase
-        .from('companies')
-        .delete()
-        .eq('user_id', userToDelete.id);
-
-      // 4. Delete profile
+      // 2. Update user role to 'pilot' (demote from admin)
+      // This removes them from the Admin list but keeps their account active
       const { error } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('id', userToDelete.id);
+        .from('user_roles')
+        .upsert({
+          id: userToDelete.id,
+          role: 'pilot'
+        });
 
       if (error) throw error;
 
       toast({
-        title: "Usuario eliminado",
-        description: `El usuario ${userToDelete.full_name || userToDelete.email} ha sido eliminado correctamente`,
+        title: "Rol removido",
+        description: `${userToDelete.full_name || userToDelete.email} ya no tiene acceso administrativo, pero mantiene su cuenta de usuario.`,
       });
 
       setDeleteDialogOpen(false);
       setUserToDelete(null);
       fetchUsersWithPermissions();
     } catch (error: any) {
-      console.error('Error deleting user:', error);
+      console.error('Error removing admin role:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar al usuario. Es posible que tenga registros asociados que impidan el borrado directo.",
+        description: "No se pudo actualizar el rol del usuario.",
         variant: "destructive",
       });
     } finally {
@@ -768,10 +754,10 @@ export function PermissionsManagement() {
                 ¿Confirmar Eliminación?
               </DialogTitle>
               <DialogDescription className="text-white/60 pt-2">
-                Estás a punto de eliminar a <span className="text-white font-bold">{userToDelete?.full_name || userToDelete?.email}</span>.
-                Esta acción eliminará su perfil y accesos del sistema.
+                Estás a punto de quitar los permisos administrativos de <span className="text-white font-bold">{userToDelete?.full_name || userToDelete?.email}</span>.
+                El usuario ya no podrá acceder a este panel, pero <span className="text-accent underline">mantendrá su cuenta de piloto</span> y todos sus datos personales intactos.
                 <br /><br />
-                <span className="text-red-400/80 text-sm italic">Esta acción no se puede deshacer.</span>
+                <span className="text-white/40 text-sm">Podrás volver a asignarle permisos en cualquier momento si lo deseas.</span>
               </DialogDescription>
             </DialogHeader>
 
