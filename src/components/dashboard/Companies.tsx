@@ -10,6 +10,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -69,7 +79,9 @@ export function Companies() {
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -133,6 +145,45 @@ export function Companies() {
 
   const getInitials = (name: string) => {
     return (name || 'E').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const openDeleteDialog = (company: Company) => {
+    setCompanyToDelete(company);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCompany = async () => {
+    if (!companyToDelete) return;
+
+    try {
+      setLoading(true);
+      // Delete user from auth.users (this will cascade delete related data including company entry)
+      const { error } = await supabase.rpc('delete_user', {
+        target_user_id: companyToDelete.user_id
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Empresa eliminada",
+        description: `La empresa ${companyToDelete.company_name} y su usuario asociado han sido eliminados.`,
+      });
+
+      fetchCompanies();
+      setDeleteDialogOpen(false);
+      setCompanyToDelete(null);
+    } catch (error: any) {
+      console.error('Error deleting company:', error);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la empresa",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -248,7 +299,10 @@ export function Companies() {
                               Ver Detalles
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-[#dc2626]">
+                            <DropdownMenuItem
+                              className="text-[#dc2626]"
+                              onClick={() => openDeleteDialog(company)}
+                            >
                               <Trash2 className="mr-2 h-4 w-4" />
                               {'Eliminar'}
                             </DropdownMenuItem>
@@ -276,6 +330,45 @@ export function Companies() {
         onOpenChange={setDetailsModalOpen}
         onUpdate={fetchCompanies}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">
+              ⚠️ Eliminar Empresa Permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p className="font-semibold">
+                Estás a punto de eliminar la empresa:{" "}
+                <span className="text-foreground">
+                  {companyToDelete?.company_name || 'Sin nombre'}
+                </span>
+              </p>
+              <p className="text-destructive font-bold">
+                ⚠️ ADVERTENCIA: Esta acción es IRREVERSIBLE
+              </p>
+              <div className="bg-destructive/10 p-3 rounded-md border border-destructive/30">
+                <p className="text-sm">Se eliminará permanentemente:</p>
+                <ul className="list-disc list-inside text-sm mt-2 space-y-1">
+                  <li>La cuenta de usuario de la empresa</li>
+                  <li>Toda la información del perfil corporativo</li>
+                  <li>Servicios y publicaciones asociados</li>
+                  <li>Historial de pilotos vinculados</li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCompany}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Sí, Eliminar Permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
