@@ -86,6 +86,7 @@ interface PilotProfile {
     email: string | null;
     avatar_url: string | null;
     auth_provider?: string | null;
+    public_profile_slug?: string | null;
   };
   pilot_services: PilotService[];
   subscription_status: string | null;
@@ -123,7 +124,7 @@ export function Pilots() {
           // Get profile data
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('full_name, email, avatar_url, auth_provider')
+            .select('full_name, email, avatar_url, auth_provider, public_profile_slug')
             .eq('id', pilot.user_id)
             .single();
 
@@ -142,7 +143,7 @@ export function Pilots() {
 
           return {
             ...pilot,
-            profiles: profileData || { full_name: null, email: null, avatar_url: null, auth_provider: null },
+            profiles: profileData || { full_name: null, email: null, avatar_url: null, auth_provider: null, public_profile_slug: null },
             pilot_services: servicesData || [],
             subscription_status: subscriptionData?.status || null,
             subscription_plan: subscriptionData?.plan_name || null
@@ -380,8 +381,18 @@ export function Pilots() {
                               <img src={DEFAULT_AVATAR_URL} alt="Default Avatar" className="h-full w-full object-cover" />
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-medium flex items-center gap-2">
+                          <span className="font-medium">
                             {pilot.profiles.full_name || 'Sin nombre'}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-sm">
+                              {pilot.profiles.email || 'Sin email'}
+                            </span>
                             {pilot.profiles.auth_provider === 'google' && (
                               <div className="flex items-center" title="Registrado con Google">
                                 <svg viewBox="0 0 24 24" className="h-4 w-4" xmlns="http://www.w3.org/2000/svg">
@@ -392,15 +403,7 @@ export function Pilots() {
                                 </svg>
                               </div>
                             )}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Mail className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-sm">
-                            {pilot.profiles.email || 'Sin email'}
-                          </span>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -513,9 +516,14 @@ export function Pilots() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => openPilotDetails(pilot)}>
+                            <DropdownMenuItem onClick={() => {
+                              const profileUrl = pilot.profiles.public_profile_slug
+                                ? `/${pilot.profiles.public_profile_slug}`
+                                : `/pilot/${pilot.user_id}`;
+                              window.open(profileUrl, '_blank');
+                            }}>
                               <Eye className="mr-2 h-4 w-4" />
-                              Ver detalles completos
+                              Ver Perfil
                             </DropdownMenuItem>
                             {pilot.certification_status && (
                               <>

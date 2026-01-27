@@ -28,11 +28,11 @@ import {
 } from "@/components/ui/accordion";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { 
-  FileText, 
-  Eye, 
-  CheckCircle, 
-  Clock, 
+import {
+  FileText,
+  Eye,
+  CheckCircle,
+  Clock,
   XCircle,
   User,
   Calendar,
@@ -67,6 +67,7 @@ interface DocumentRecord {
   profiles: {
     full_name: string;
     email: string;
+    auth_provider?: string | null;
   } | null;
 }
 
@@ -75,6 +76,7 @@ interface GroupedUserDocuments {
   user: {
     full_name: string;
     email: string;
+    auth_provider?: string | null;
   };
   documents: DocumentRecord[];
   summary: {
@@ -96,7 +98,7 @@ const AdminCertificates = () => {
 
   useEffect(() => {
     loadDocuments();
-    
+
     // Configurar Realtime subscription para escuchar cambios en tiempo real
     const channel = supabase
       .channel('certifications-realtime')
@@ -111,7 +113,7 @@ const AdminCertificates = () => {
           console.log('Certification change detected:', payload);
           // Recargar documentos cuando haya cambios
           loadDocuments();
-          
+
           // Mostrar notificación si es un nuevo certificado
           if (payload.eventType === 'INSERT' && payload.new?.status === 'pending') {
             toast({
@@ -181,11 +183,11 @@ const AdminCertificates = () => {
       (certsData || []).forEach(cert => userIds.add(cert.user_id));
       (logsData || []).forEach(log => userIds.add(log.user_id));
 
-      let profilesData: { id: string; full_name: string | null; email: string | null }[] | null = [];
+      let profilesData: { id: string; full_name: string | null; email: string | null, auth_provider: string | null }[] | null = [];
       if (userIds.size > 0) {
         const { data, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, full_name, email')
+          .select('id, full_name, email, auth_provider')
           .in('id', Array.from(userIds));
 
         if (profilesError) {
@@ -199,7 +201,11 @@ const AdminCertificates = () => {
       const getProfile = (userId: string) => {
         if (!profilesData) return null;
         const profile = profilesData.find((p) => p.id === userId);
-        return profile ? { full_name: profile.full_name || 'Usuario', email: profile.email || '' } : null;
+        return profile ? {
+          full_name: profile.full_name || 'Usuario',
+          email: profile.email || '',
+          auth_provider: profile.auth_provider
+        } : null;
       };
 
       const certificationRecords = (certsData || []).map((cert) => ({
@@ -273,7 +279,7 @@ const AdminCertificates = () => {
       if (doc.source === 'user_certifications') {
         const { data: updatedCert, error: certError } = await supabase
           .from('user_certifications')
-          .update({ 
+          .update({
             status: 'validated',
             validated_at: new Date().toISOString()
           })
@@ -300,7 +306,7 @@ const AdminCertificates = () => {
 
         const { error: pilotError } = await supabase
           .from('pilots')
-          .update({ 
+          .update({
             certification_status: true,
             status: 'active',
             certification_validated_at: validationDate.toISOString(),
@@ -319,7 +325,7 @@ const AdminCertificates = () => {
       } else {
         const { error: logError } = await supabase
           .from('flight_logs')
-          .update({ 
+          .update({
             status: 'validated',
             validated_at: new Date().toISOString()
           })
@@ -374,7 +380,7 @@ const AdminCertificates = () => {
       if (targetDocument.source === 'user_certifications') {
         const { error } = await supabase
           .from('user_certifications')
-          .update({ 
+          .update({
             status: 'rejected',
             validated_at: new Date().toISOString(),
             rejection_observations: rejectionObservations.trim()
@@ -388,7 +394,7 @@ const AdminCertificates = () => {
       } else {
         const { error } = await supabase
           .from('flight_logs')
-          .update({ 
+          .update({
             status: 'rejected',
             validated_at: new Date().toISOString(),
             rejection_observations: rejectionObservations.trim()
@@ -427,17 +433,17 @@ const AdminCertificates = () => {
       // Already a full URL, return as is
       return filePath;
     }
-    
+
     // It's a path, create signed URL
     const { data, error } = await supabase.storage
       .from(bucket)
       .createSignedUrl(filePath, 3600); // 1 hour expiration
-    
+
     if (error) {
       console.error('Error creating signed URL:', error);
       throw error;
     }
-    
+
     return data.signedUrl;
   };
 
@@ -491,7 +497,7 @@ const AdminCertificates = () => {
   };
 
   const getFilterCount = (status: string) => {
-    return allDocuments.filter(doc => 
+    return allDocuments.filter(doc =>
       status === 'all' ? true : doc.status === status
     ).length;
   };
@@ -505,7 +511,8 @@ const AdminCertificates = () => {
           user_id: doc.user_id,
           user: {
             full_name: doc.profiles?.full_name || 'Usuario Desconocido',
-            email: doc.profiles?.email || 'N/A'
+            email: doc.profiles?.email || 'N/A',
+            auth_provider: doc.profiles?.auth_provider
           },
           documents: [],
           summary: {
@@ -520,14 +527,14 @@ const AdminCertificates = () => {
       const group = grouped.get(doc.user_id)!;
       group.documents.push(doc);
       group.summary.total++;
-      
+
       if (doc.status === 'pending') group.summary.pending++;
       else if (doc.status === 'validated') group.summary.validated++;
       else if (doc.status === 'rejected') group.summary.rejected++;
     });
 
-    return Array.from(grouped.values()).sort((a, b) => 
-      new Date(b.documents[0]?.uploaded_at || 0).getTime() - 
+    return Array.from(grouped.values()).sort((a, b) =>
+      new Date(b.documents[0]?.uploaded_at || 0).getTime() -
       new Date(a.documents[0]?.uploaded_at || 0).getTime()
     );
   };
@@ -620,8 +627,18 @@ const AdminCertificates = () => {
                           <p className="font-semibold text-lg text-foreground">
                             {group.user.full_name}
                           </p>
-                          <p className="text-sm text-muted-foreground truncate">
+                          <p className="text-sm text-muted-foreground truncate flex items-center gap-2">
                             {group.user.email}
+                            {group.user.auth_provider === 'google' && (
+                              <div className="flex items-center" title="Registrado con Google">
+                                <svg viewBox="0 0 24 24" className="h-4 w-4" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                                </svg>
+                              </div>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -705,13 +722,12 @@ const AdminCertificates = () => {
                           )}
 
                           {doc.rejection_observations && (
-                            <div className={`mb-3 p-3 rounded-lg border ${
-                              doc.status === 'rejected'
+                            <div className={`mb-3 p-3 rounded-lg border ${doc.status === 'rejected'
                                 ? 'bg-red-500/10 border-red-500/30'
                                 : doc.status === 'validated'
-                                ? 'bg-green-500/10 border-green-500/30'
-                                : 'bg-blue-500/10 border-blue-500/30'
-                            }`}>
+                                  ? 'bg-green-500/10 border-green-500/30'
+                                  : 'bg-blue-500/10 border-blue-500/30'
+                              }`}>
                               <div className="flex items-start gap-2">
                                 {doc.status === 'rejected' ? (
                                   <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
@@ -721,22 +737,20 @@ const AdminCertificates = () => {
                                   <AlertCircle className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
                                 )}
                                 <div className="flex-1">
-                                  <p className={`text-sm font-semibold mb-1 ${
-                                    doc.status === 'rejected'
+                                  <p className={`text-sm font-semibold mb-1 ${doc.status === 'rejected'
                                       ? 'text-red-400'
                                       : doc.status === 'validated'
-                                      ? 'text-green-400'
-                                      : 'text-blue-400'
-                                  }`}>
+                                        ? 'text-green-400'
+                                        : 'text-blue-400'
+                                    }`}>
                                     Observaciones:
                                   </p>
-                                  <p className={`text-sm whitespace-pre-wrap ${
-                                    doc.status === 'rejected'
+                                  <p className={`text-sm whitespace-pre-wrap ${doc.status === 'rejected'
                                       ? 'text-red-300'
                                       : doc.status === 'validated'
-                                      ? 'text-green-300'
-                                      : 'text-blue-300'
-                                  }`}>
+                                        ? 'text-green-300'
+                                        : 'text-blue-300'
+                                    }`}>
                                     {doc.rejection_observations}
                                   </p>
                                 </div>
@@ -786,22 +800,22 @@ const AdminCertificates = () => {
           </CardContent>
         </Card>
       ) : (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className="h-20 w-20 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <FileText className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-xl font-bold mb-3">
-                No hay documentos {filter === 'all' ? '' : filter === 'pending' ? 'pendientes' : filter === 'validated' ? 'aprobados' : 'rechazados'}
-              </h3>
-              <p className="text-muted-foreground">
-                {filter === 'pending' 
-                  ? 'No hay documentos esperando revisión'
-                  : 'No hay documentos en esta categoría'}
-              </p>
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardContent className="p-8 text-center">
+            <div className="h-20 w-20 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <FileText className="h-10 w-10 text-white" />
+            </div>
+            <h3 className="text-xl font-bold mb-3">
+              No hay documentos {filter === 'all' ? '' : filter === 'pending' ? 'pendientes' : filter === 'validated' ? 'aprobados' : 'rechazados'}
+            </h3>
+            <p className="text-muted-foreground">
+              {filter === 'pending'
+                ? 'No hay documentos esperando revisión'
+                : 'No hay documentos en esta categoría'}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Dialog para ingresar observaciones al rechazar */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
