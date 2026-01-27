@@ -243,7 +243,7 @@ const SearchResults = () => {
 
       if (profilesError) throw profilesError;
 
-      // Obtener SOLO suscripciones activas
+      // Obtener SOLO suscripciones activas (incluyendo las de empresa/premium)
       const { data: subscriptionsData, error: subscriptionsError } = await supabase
         .from("user_subscriptions")
         .select("user_id, status, plan_name")
@@ -304,6 +304,16 @@ const SearchResults = () => {
           })),
           subscription
         };
+      }).filter(pilot => {
+        const profile = profilesData.find(p => p.id === pilot.id);
+        const isCompanyAccount = profile?.user_type === 'company';
+        const hasActiveSubscription = !!pilot.subscription;
+
+        // Las cuentas de empresa solo aparecen si tienen el plan pagado
+        if (isCompanyAccount && !hasActiveSubscription) return false;
+
+        // Para pilotos independientes o asociados, se muestran según su propia suscripción o reglas generales
+        return true;
       });
 
       setPilots(pilotsWithServices);

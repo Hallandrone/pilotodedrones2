@@ -69,7 +69,7 @@ const Index = () => {
 
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, location, region, specialties, drone_types, avatar_url, experience_years')
+        .select('id, full_name, location, region, specialties, drone_types, avatar_url, experience_years, user_type')
         .in('id', pilotUserIds);
 
       if (profilesError) throw profilesError;
@@ -92,7 +92,14 @@ const Index = () => {
       const regularPilotsList: any[] = [];
 
       pilotsWithProfiles.forEach(pilot => {
+        const profile = pilot.profiles;
         const subscription = subscriptions?.find(s => s.user_id === pilot.user_id);
+        const isCompany = profile?.user_type === 'company';
+        const hasActiveSub = !!subscription;
+
+        // Las empresas sin plan pagado no deben ser visibles
+        if (isCompany && !hasActiveSub) return;
+
         if (subscription?.featured_until && new Date(subscription.featured_until) > now) {
           featuredPilotsList.push(pilot);
         } else {

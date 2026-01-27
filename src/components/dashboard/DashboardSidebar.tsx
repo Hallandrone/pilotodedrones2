@@ -230,13 +230,19 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
       return true;
     }
 
+    // Check payment status for companies
+    if (userRole === 'company' && !plan?.isPaid) {
+      // If company has not paid, ONLY show Membership
+      return item.title === "Membresía";
+    }
+
     // For admin role, check specific permissions
     if (userRole === 'admin' && item.permission) {
       return hasPermission(item.permission);
     }
 
-    // Check payment status for companies
-    if (userRole === 'company' && item.requiresPaid && !plan?.isPaid) {
+    // Check payment status for specific items (if any other role needs it)
+    if (item.requiresPaid && !plan?.isPaid) {
       return false;
     }
 
