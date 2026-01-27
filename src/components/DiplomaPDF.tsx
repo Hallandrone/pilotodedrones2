@@ -242,8 +242,8 @@ const styles = StyleSheet.create({
 	validationCode: {
 		position: 'absolute',
 		top: 135,
-		left: 653,
-		width: 145,
+		left: 666,
+		width: 120,
 		fontSize: 5.5,
 		fontFamily: 'Helvetica',
 		color: '#333',
@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
 	legalText: {
 		position: 'absolute',
 		top: 155,
-		left: 653,
-		width: 145,
+		left: 666,
+		width: 120,
 		fontSize: 4.5,
 		fontFamily: 'Helvetica',
 		color: '#666',
