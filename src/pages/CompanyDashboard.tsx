@@ -353,28 +353,26 @@ const CompanyDashboard = () => {
 
   const isSubscriptionValid = subscription && (subscription.status === 'active');
 
-  if (companyData && !isSubscriptionValid) {
-    return (
-      <div className="min-h-screen bg-[#083b4e] relative overflow-hidden flex items-center justify-center p-4">
-        {/* Background Layers - Optimized */}
-        <div className="absolute inset-0 bg-[#083b4e]"></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#083b4e] to-[#0a4a61] pointer-events-none"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20 pointer-events-none"></div>
-
-        <Card className="relative max-w-md w-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl transform-gpu">
-          <CardHeader className="text-center">
-            <Shield className="h-12 w-12 text-white mx-auto mb-4" />
-            <CardTitle className="text-2xl text-white">Suscripción Requerida</CardTitle>
-            <CardDescription className="text-white/80">Acceso exclusivo para empresas con plan activo.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button onClick={() => navigate('/company/membership')} className="w-full bg-[#00b3f3] text-white">Ver Planes</Button>
-            <Button variant="ghost" onClick={handleSignOut} className="w-full text-white/60">Cerrar Sesión</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const PaidRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!isSubscriptionValid) {
+      return (
+        <div className="flex items-center justify-center p-4 min-h-[60vh]">
+          <Card className="relative max-w-md w-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl transform-gpu">
+            <CardHeader className="text-center">
+              <Shield className="h-12 w-12 text-white mx-auto mb-4" />
+              <CardTitle className="text-2xl text-white">Suscripción Requerida</CardTitle>
+              <CardDescription className="text-white/80">Acceso exclusivo para empresas con plan activo.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button onClick={() => navigate('/company/membership')} className="w-full bg-[#00b3f3] text-white">Ver Planes</Button>
+              <Button variant="ghost" onClick={handleSignOut} className="w-full text-white/60">Cerrar Sesión</Button>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+    return <>{children}</>;
+  };
 
   return (
     <SidebarProvider>
@@ -393,137 +391,139 @@ const CompanyDashboard = () => {
             <div className="max-w-7xl mx-auto space-y-6">
               <Routes>
                 <Route path="/" element={
-                  <div className="space-y-6 animate-fade-in">
-                    <div className="space-y-3 mb-8">
-                      <h1 className="text-4xl font-bold text-white">Panel de Control</h1>
-                      <p className="text-white/80 text-lg">Bienvenido al dashboard de {companyData?.company_name || 'tu empresa'}</p>
-                    </div>
+                  <PaidRoute>
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="space-y-3 mb-8">
+                        <h1 className="text-4xl font-bold text-white">Panel de Control</h1>
+                        <p className="text-white/80 text-lg">Bienvenido al dashboard de {companyData?.company_name || 'tu empresa'}</p>
+                      </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card className="bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate">
-                        <CardContent className="p-8">
-                          <div className="flex items-center gap-6 mb-8">
-                            <Avatar className="h-20 w-20 ring-4 ring-[#00b3f3]/50">
-                              <AvatarImage src={companyData?.logo_url || companyData?.profiles?.avatar_url || DEFAULT_AVATAR_URL} />
-                              <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-2xl">
-                                {companyData?.company_name?.[0] || 'E'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h2 className="text-2xl font-bold text-white">{companyData?.company_name}</h2>
-                              <p className="text-white/60">{companyData?.email}</p>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-[#083b4e]/50 rounded-2xl p-4 border border-white/10">
-                              <div className="text-3xl font-bold text-[#00b3f3]">{metrics.experience_years}</div>
-                              <div className="text-sm text-white/60">Años de Experiencia</div>
-                            </div>
-                            <div className="bg-[#083b4e]/50 rounded-2xl p-4 border border-white/10">
-                              <div className="text-3xl font-bold text-[#00b3f3]">{metrics.services_count}</div>
-                              <div className="text-sm text-white/60">Servicios</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <WeatherCard hasActiveSubscription={isSubscriptionValid} />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card className="bg-[#0b485d] border-2 border-emerald-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                            <Shield className="h-6 w-6 text-emerald-400" />
-                          </div>
-                          <div>
-                            <h3 className="text-white font-semibold">Certificación</h3>
-                            <p className="text-xs text-white/60">Estado de AOC/CEO</p>
-                          </div>
-                        </div>
-                        <Badge className={`${certificationStatus === 'valid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'} border-none w-fit`}>
-                          {certificationStatus === 'valid' ? 'Validado' : 'Sin Validar'}
-                        </Badge>
-                      </Card>
-
-                      <Card className="bg-[#0b485d] border-2 border-purple-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                            <CreditCard className="h-6 w-6 text-purple-400" />
-                          </div>
-                          <div>
-                            <h3 className="text-white font-semibold">Membresía</h3>
-                            <p className="text-xs text-white/60">{subscription?.plan_name || 'Sin plan'}</p>
-                          </div>
-                        </div>
-                        <Badge className="bg-purple-500/20 text-purple-400 border-none w-fit">
-                          {isSubscriptionValid ? 'Activa' : 'Inactiva'}
-                        </Badge>
-                      </Card>
-
-                      <Card className="bg-[#0b485d] border-2 border-orange-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="h-12 w-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
-                            <LayoutDashboard className="h-6 w-6 text-orange-400" />
-                          </div>
-                          <div>
-                            <h3 className="text-white font-semibold">Perfil Público</h3>
-                            <p className="text-xs text-white/60">Gestiona tu identidad</p>
-                          </div>
-                        </div>
-                        <Button variant="link" className="text-orange-400 p-0 h-auto justify-start" onClick={() => navigate('/company/profile')}>
-                          Editar Perfil →
-                        </Button>
-                      </Card>
-                    </div>
-
-                    {companyData?.id && <CompanyPilotManagement companyId={companyData.id} />}
-
-                    {/* Support Section */}
-                    <div className="grid grid-cols-1 gap-6 pb-12">
-                      <Card className="group bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate">
-                        <div className="p-1">
-                          <CardContent className="p-8 bg-[#083b4e]/60 rounded-3xl">
-                            <div className="flex items-center gap-4 mb-6">
-                              <div className="h-14 w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg">
-                                <HelpCircle className="h-7 w-7 text-white" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Card className="bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate">
+                          <CardContent className="p-8">
+                            <div className="flex items-center gap-6 mb-8">
+                              <Avatar className="h-20 w-20 ring-4 ring-[#00b3f3]/50">
+                                <AvatarImage src={companyData?.logo_url || companyData?.profiles?.avatar_url || DEFAULT_AVATAR_URL} />
+                                <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-2xl">
+                                  {companyData?.company_name?.[0] || 'E'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <h2 className="text-2xl font-bold text-white">{companyData?.company_name}</h2>
+                                <p className="text-white/60">{companyData?.email}</p>
                               </div>
-                              <span className="text-white text-xl font-bold">Soporte y Ayuda</span>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                              <div className="space-y-2">
-                                <p className="text-white/80 text-base leading-relaxed mb-4">
-                                  ¿Necesitas ayuda académica o técnica? Nuestro equipo está aquí para asistirte.
-                                </p>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="bg-[#083b4e]/50 rounded-2xl p-4 border border-white/10">
+                                <div className="text-3xl font-bold text-[#00b3f3]">{metrics.experience_years}</div>
+                                <div className="text-sm text-white/60">Años de Experiencia</div>
                               </div>
-
-                              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <Button
-                                  size="lg"
-                                  className="w-full justify-start bg-white/5 border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white transition-all duration-300 rounded-2xl shadow-xl h-14"
-                                  onClick={() => window.open('https://wa.me/56969013735')}
-                                >
-                                  <Phone className="h-5 w-5 mr-3" />
-                                  Soporte Académico
-                                </Button>
-                                <Button
-                                  size="lg"
-                                  className="w-full justify-start bg-white/5 border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white transition-all duration-300 rounded-2xl shadow-xl h-14"
-                                  onClick={() => window.open('https://wa.me/56954751380')}
-                                >
-                                  <Phone className="h-5 w-5 mr-3" />
-                                  Soporte Técnico
-                                </Button>
-                                <FeedbackForm />
+                              <div className="bg-[#083b4e]/50 rounded-2xl p-4 border border-white/10">
+                                <div className="text-3xl font-bold text-[#00b3f3]">{metrics.services_count}</div>
+                                <div className="text-sm text-white/60">Servicios</div>
                               </div>
                             </div>
                           </CardContent>
-                        </div>
-                      </Card>
+                        </Card>
+
+                        <WeatherCard hasActiveSubscription={isSubscriptionValid} />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Card className="bg-[#0b485d] border-2 border-emerald-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                              <Shield className="h-6 w-6 text-emerald-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-white font-semibold">Certificación</h3>
+                              <p className="text-xs text-white/60">Estado de AOC/CEO</p>
+                            </div>
+                          </div>
+                          <Badge className={`${certificationStatus === 'valid' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-yellow-500/20 text-yellow-400'} border-none w-fit`}>
+                            {certificationStatus === 'valid' ? 'Validado' : 'Sin Validar'}
+                          </Badge>
+                        </Card>
+
+                        <Card className="bg-[#0b485d] border-2 border-purple-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                              <CreditCard className="h-6 w-6 text-purple-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-white font-semibold">Membresía</h3>
+                              <p className="text-xs text-white/60">{subscription?.plan_name || 'Sin plan'}</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-purple-500/20 text-purple-400 border-none w-fit">
+                            {isSubscriptionValid ? 'Activa' : 'Inactiva'}
+                          </Badge>
+                        </Card>
+
+                        <Card className="bg-[#0b485d] border-2 border-orange-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="h-12 w-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                              <LayoutDashboard className="h-6 w-6 text-orange-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-white font-semibold">Perfil Público</h3>
+                              <p className="text-xs text-white/60">Gestiona tu identidad</p>
+                            </div>
+                          </div>
+                          <Button variant="link" className="text-orange-400 p-0 h-auto justify-start" onClick={() => navigate('/company/profile')}>
+                            Editar Perfil →
+                          </Button>
+                        </Card>
+                      </div>
+
+                      {companyData?.id && <CompanyPilotManagement companyId={companyData.id} />}
+
+                      {/* Support Section */}
+                      <div className="grid grid-cols-1 gap-6 pb-12">
+                        <Card className="group bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate">
+                          <div className="p-1">
+                            <CardContent className="p-8 bg-[#083b4e]/60 rounded-3xl">
+                              <div className="flex items-center gap-4 mb-6">
+                                <div className="h-14 w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg">
+                                  <HelpCircle className="h-7 w-7 text-white" />
+                                </div>
+                                <span className="text-white text-xl font-bold">Soporte y Ayuda</span>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                  <p className="text-white/80 text-base leading-relaxed mb-4">
+                                    ¿Necesitas ayuda académica o técnica? Nuestro equipo está aquí para asistirte.
+                                  </p>
+                                </div>
+
+                                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  <Button
+                                    size="lg"
+                                    className="w-full justify-start bg-white/5 border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white transition-all duration-300 rounded-2xl shadow-xl h-14"
+                                    onClick={() => window.open('https://wa.me/56969013735')}
+                                  >
+                                    <Phone className="h-5 w-5 mr-3" />
+                                    Soporte Académico
+                                  </Button>
+                                  <Button
+                                    size="lg"
+                                    className="w-full justify-start bg-white/5 border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white transition-all duration-300 rounded-2xl shadow-xl h-14"
+                                    onClick={() => window.open('https://wa.me/56954751380')}
+                                  >
+                                    <Phone className="h-5 w-5 mr-3" />
+                                    Soporte Técnico
+                                  </Button>
+                                  <FeedbackForm />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </div>
+                        </Card>
+                      </div>
                     </div>
-                  </div>
+                  </PaidRoute>
                 } />
 
                 <Route path="/profile" element={
@@ -585,12 +585,12 @@ const CompanyDashboard = () => {
                     />
                   </div>
                 } />
-                <Route path="/pilots" element={companyData?.id ? <CompanyPilotManagement companyId={companyData.id} /> : <div>Cargando...</div>} />
-                <Route path="/certificates" element={<CompanyCertificates />} />
-                <Route path="/qr" element={<CompanyQR />} />
+                <Route path="/pilots" element={<PaidRoute>{companyData?.id ? <CompanyPilotManagement companyId={companyData.id} /> : <div>Cargando...</div>}</PaidRoute>} />
+                <Route path="/certificates" element={<PaidRoute><CompanyCertificates /></PaidRoute>} />
+                <Route path="/qr" element={<PaidRoute><CompanyQR /></PaidRoute>} />
                 <Route path="/membership" element={<CompanyMembership />} />
-                <Route path="/portfolio" element={<CompanyPortfolio />} />
-                <Route path="/contacts" element={<CompanyContacts userId={user?.id} />} />
+                <Route path="/portfolio" element={<PaidRoute><CompanyPortfolio /></PaidRoute>} />
+                <Route path="/contacts" element={<PaidRoute><CompanyContacts userId={user?.id} /></PaidRoute>} />
               </Routes>
             </div>
           </main>

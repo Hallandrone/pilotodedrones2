@@ -37,6 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserPermissions, type AdminPermission } from "@/hooks/useUserPermissions";
 import { useUnreadContacts } from "@/hooks/useUnreadContacts";
+import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
 
 interface DashboardSidebarProps {
   userRole: string | null;
@@ -48,6 +49,7 @@ interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
   roles: string[];
   permission?: AdminPermission;
+  requiresPaid?: boolean;
 }
 
 const menuItems: MenuItem[] = [
@@ -93,7 +95,8 @@ const menuItems: MenuItem[] = [
     title: "Mis Pilotos",
     url: "/company/pilots",
     icon: Plane,
-    roles: ["company"]
+    roles: ["company"],
+    requiresPaid: true
   },
   {
     title: "Empresas",
@@ -113,13 +116,15 @@ const menuItems: MenuItem[] = [
     title: "Certificados",
     url: "/company/certificates",
     icon: FileCheck,
-    roles: ["company"]
+    roles: ["company"],
+    requiresPaid: true
   },
   {
     title: "Mi QR",
     url: "/company/qr",
     icon: QrCode,
-    roles: ["company"]
+    roles: ["company"],
+    requiresPaid: true
   },
   {
     title: "Membresía",
@@ -131,13 +136,15 @@ const menuItems: MenuItem[] = [
     title: "Portafolio",
     url: "/company/portfolio",
     icon: MonitorPlay,
-    roles: ["company"]
+    roles: ["company"],
+    requiresPaid: true
   },
   {
     title: "Contactos",
     url: "/company/contacts",
     icon: MessageCircle,
-    roles: ["company"]
+    roles: ["company"],
+    requiresPaid: true
   },
   {
     title: "Diplomas",
@@ -180,6 +187,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { hasPermission, isSuperAdmin, loading: permissionsLoading } = useUserPermissions();
+  const { plan } = useSubscriptionPlan();
   const [userId, setUserId] = useState<string | undefined>();
 
   // Obtener userId para el hook de contactos
@@ -225,6 +233,11 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
     // For admin role, check specific permissions
     if (userRole === 'admin' && item.permission) {
       return hasPermission(item.permission);
+    }
+
+    // Check payment status for companies
+    if (userRole === 'company' && item.requiresPaid && !plan?.isPaid) {
+      return false;
     }
 
     return true;
