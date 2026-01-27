@@ -78,24 +78,46 @@ const Contacto = () => {
 							</p>
 						</div>
 
-						<div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-							{/* WhatsApp Card */}
+						<div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+							{/* WhatsApp Contacto Card */}
 							<div>
 								<Card className="h-full border-2 border-transparent hover:border-green-500/50 shadow-xl hover:shadow-green-500/10 transition-all duration-300 group overflow-hidden bg-card/50 backdrop-blur-md">
-									<CardContent className="p-10 flex flex-col items-center text-center">
-										<div className="w-20 h-20 rounded-2xl bg-green-500/10 flex items-center justify-center mb-8 group-hover:bg-green-500 group-hover:scale-110 transition-all duration-500">
-											<MessageCircle className="h-10 w-10 text-green-600 group-hover:text-white transition-colors" />
+									<CardContent className="p-8 flex flex-col items-center text-center">
+										<div className="w-16 h-16 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6 group-hover:bg-green-500 group-hover:scale-110 transition-all duration-500">
+											<MessageCircle className="h-8 w-8 text-green-600 group-hover:text-white transition-colors" />
 										</div>
-										<h3 className="text-2xl font-bold mb-4">WhatsApp Directo</h3>
-										<p className="text-muted-foreground mb-8 text-lg">
-											Respuesta inmediata. Ideal para consultas rápidas sobre membresías o búsqueda de pilotos.
+										<h3 className="text-xl font-bold mb-3">Ventas y Alianzas</h3>
+										<p className="text-muted-foreground mb-6 text-sm">
+											Contacto directo para convenios, publicidad y membresías corporativas.
 										</p>
 										<Button
-											onClick={handleWhatsApp}
-											className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-14 text-lg rounded-xl shadow-lg hover:shadow-green-700/30 gap-2 transition-all"
+											onClick={() => window.open("https://wa.me/56994677613", "_blank")}
+											className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12 text-base rounded-xl shadow-lg hover:shadow-green-700/30 gap-2 transition-all mt-auto"
 										>
-											Iniciar Chat
-											<ArrowRight className="h-5 w-5" />
+											Soporte Académico
+											<ArrowRight className="h-4 w-4" />
+										</Button>
+									</CardContent>
+								</Card>
+							</div>
+
+							{/* WhatsApp Soporte Card */}
+							<div>
+								<Card className="h-full border-2 border-transparent hover:border-emerald-500/50 shadow-xl hover:shadow-emerald-500/10 transition-all duration-300 group overflow-hidden bg-card/50 backdrop-blur-md">
+									<CardContent className="p-8 flex flex-col items-center text-center">
+										<div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6 group-hover:bg-emerald-500 group-hover:scale-110 transition-all duration-500">
+											<MessageCircle className="h-8 w-8 text-emerald-600 group-hover:text-white transition-colors" />
+										</div>
+										<h3 className="text-xl font-bold mb-3">Soporte Técnico</h3>
+										<p className="text-muted-foreground mb-6 text-sm">
+											¿Problemas con la plataforma? Escríbenos para una solución rápida.
+										</p>
+										<Button
+											onClick={() => window.open("https://wa.me/56954751380", "_blank")}
+											className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 text-base rounded-xl shadow-lg hover:shadow-emerald-700/30 gap-2 transition-all mt-auto"
+										>
+											Centro de Ayuda
+											<ArrowRight className="h-4 w-4" />
 										</Button>
 									</CardContent>
 								</Card>
@@ -104,20 +126,20 @@ const Contacto = () => {
 							{/* Email Card */}
 							<div>
 								<Card className="h-full border-2 border-transparent hover:border-accent/50 shadow-xl hover:shadow-accent/10 transition-all duration-300 group overflow-hidden bg-card/50 backdrop-blur-md">
-									<CardContent className="p-10 flex flex-col items-center text-center">
-										<div className="w-20 h-20 rounded-2xl bg-accent/10 flex items-center justify-center mb-8 group-hover:bg-accent group-hover:scale-110 transition-all duration-500">
-											<Mail className="h-10 w-10 text-accent group-hover:text-white transition-colors" />
+									<CardContent className="p-8 flex flex-col items-center text-center">
+										<div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center mb-6 group-hover:bg-accent group-hover:scale-110 transition-all duration-500">
+											<Mail className="h-8 w-8 text-accent group-hover:text-white transition-colors" />
 										</div>
-										<h3 className="text-2xl font-bold mb-4">Correo Corporativo</h3>
-										<p className="text-muted-foreground mb-8 text-lg">
-											Envíanos tus propuestas formales o dudas técnicas detalladas. Respondemos en menos de 24h.
+										<h3 className="text-xl font-bold mb-3">Correo Oficial</h3>
+										<p className="text-muted-foreground mb-6 text-sm">
+											Propuestas formales y consultas administrativas extensas.
 										</p>
 										<Button
 											onClick={handleEmail}
-											className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold h-14 text-lg rounded-xl shadow-lg hover:shadow-accent/30 gap-2 transition-all"
+											className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold h-12 text-base rounded-xl shadow-lg hover:shadow-accent/30 gap-2 transition-all mt-auto"
 										>
-											Enviar Email
-											<ChevronRight className="h-5 w-5" />
+											contacto@pilotodedrones.cl
+											<ChevronRight className="h-4 w-4" />
 										</Button>
 									</CardContent>
 								</Card>

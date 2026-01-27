@@ -1066,12 +1066,12 @@ const PilotMembership = () => {
               <Button
                 variant="outline"
                 className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-green-500/10 hover:border-green-500 hover:text-green-500 transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
-                onClick={() => window.open('https://wa.me/569XXXXXXXX', '_blank')}
+                onClick={() => window.open('https://wa.me/56954751380', '_blank')}
               >
                 <MessageCircle className="h-5 w-5 mr-4" />
                 <div className="text-left">
-                  <div className="font-semibold text-[#E0E0E0]">WhatsApp (Plan Empresa)</div>
-                  <div className="text-sm text-[#B0B0B0]">Soporte técnico prioritario</div>
+                  <div className="font-semibold text-[#E0E0E0]">Soporte Técnico WhatsApp</div>
+                  <div className="text-sm text-[#B0B0B0]">Asistencia técnica inmediata</div>
                 </div>
                 <ExternalLink className="h-4 w-4 ml-auto" />
               </Button>
