@@ -476,7 +476,7 @@ const Index = () => {
                     <img
                       src="/mokup-cel-clima-piloto.png"
                       alt="Clima y Condiciones de Vuelo"
-                      className="relative z-10 w-full max-w-[450px] mx-auto transform group-hover:scale-[1.02] transition-transform duration-700 mix-blend-multiply [filter:drop-shadow(0_20px_30px_rgba(8,59,78,0.2))]"
+                      className="relative z-10 w-full max-w-[550px] md:max-w-full mx-auto transform group-hover:scale-[1.02] transition-transform duration-700 mix-blend-multiply [filter:drop-shadow(0_20px_30px_rgba(8,59,78,0.2))] scale-[1.5] sm:scale-100 mb-16 sm:mb-0 mt-8 sm:mt-0"
                     />
                   </div>
                   <div className="lg:w-1/2 text-left space-y-8">

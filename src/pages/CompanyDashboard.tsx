@@ -502,7 +502,7 @@ const CompanyDashboard = () => {
                                   <Button
                                     size="lg"
                                     className="w-full justify-start bg-white/5 border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white transition-all duration-300 rounded-2xl shadow-xl h-14"
-                                    onClick={() => window.open('https://wa.me/56969013735')}
+                                    onClick={() => window.open('https://wa.me/56994677613')}
                                   >
                                     <Phone className="h-5 w-5 mr-3" />
                                     Soporte Académico
