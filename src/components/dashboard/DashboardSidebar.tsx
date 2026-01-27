@@ -57,7 +57,7 @@ const menuItems: MenuItem[] = [
     title: "Inicio",
     url: "/dashboard",
     icon: Home,
-    roles: ["super_admin", "admin"]
+    roles: ["super_admin"]
   },
   {
     title: "Inicio",
@@ -66,10 +66,10 @@ const menuItems: MenuItem[] = [
     roles: ["company"]
   },
   {
-    title: "Mi Perfil",
-    url: "/dashboard/profile",
+    title: "Mi Perfil de Piloto",
+    url: "/pilot",
     icon: User2,
-    roles: ["admin", "pilot", "user"]
+    roles: ["admin"]
   },
   {
     title: "Mi Perfil",
