@@ -4,8 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { CreditCard, CheckCircle, Sparkles, Zap, Building, Loader2, AlertCircle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { CreditCard, CheckCircle, Zap, Building, AlertCircle } from "lucide-react";
 import { processPayment } from "@/integrations/mercadopago/client";
 
 declare global {
@@ -25,6 +25,8 @@ export const CompanyMembership = () => {
 	const [membership, setMembership] = useState<Membership | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [showBricks, setShowBricks] = useState(false);
+	const [showCancelDialog, setShowCancelDialog] = useState(false);
+	const [cancelling, setCancelling] = useState(false);
 	const { toast } = useToast();
 
 	const planEmpresa = {
@@ -70,6 +72,14 @@ export const CompanyMembership = () => {
 	};
 
 	const handleSubscribe = () => {
+		if (membership?.status === 'active') {
+			toast({
+				title: "Suscripción Activa",
+				description: "Ya tienes una suscripción activa.",
+			});
+			return;
+		}
+
 		if (!window.MercadoPago) {
 			toast({
 				title: "Cargando sistema de pago",
@@ -78,6 +88,41 @@ export const CompanyMembership = () => {
 			return;
 		}
 		setShowBricks(true);
+	};
+
+	const handleCancelSubscription = async () => {
+		try {
+			setCancelling(true);
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) return;
+
+			const { error } = await supabase
+				.from('user_subscriptions')
+				.update({
+					status: 'cancelled',
+					updated_at: new Date().toISOString()
+				})
+				.eq('user_id', user.id);
+
+			if (error) throw error;
+
+			toast({
+				title: "Suscripción cancelada",
+				description: "Tu plan se ha cancelado pero seguirá activo hasta el final del periodo.",
+			});
+
+			setShowCancelDialog(false);
+			loadMembership();
+		} catch (error: any) {
+			console.error('Error cancelling subscription:', error);
+			toast({
+				title: "Error",
+				description: "No se pudo cancelar la suscripción.",
+				variant: "destructive",
+			});
+		} finally {
+			setCancelling(false);
+		}
 	};
 
 	useEffect(() => {
@@ -214,7 +259,26 @@ export const CompanyMembership = () => {
 							<h3 className="text-4xl font-black text-white mb-2">{membership?.plan_name}</h3>
 							<p className="text-[#00b3f3] text-2xl font-bold">{formatPrice(membership.price)} / mes</p>
 							{membership?.renewal_date && (
-								<p className="text-white/40 mt-4">Próxima renovación: {new Date(membership.renewal_date).toLocaleDateString()}</p>
+								<div className="mt-4 space-y-1">
+									<p className="text-white/60">
+										{membership.status === 'active' ? 'Próximo pago:' : 'Acceso hasta:'}
+									</p>
+									<p className="text-white font-medium text-lg">
+										{new Date(membership.renewal_date).toLocaleDateString()}
+									</p>
+								</div>
+							)}
+
+							{membership.status === 'active' && (
+								<div className="mt-8 pt-6 border-t border-white/10">
+									<Button
+										variant="ghost"
+										className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+										onClick={() => setShowCancelDialog(true)}
+									>
+										Cancelar Suscripción
+									</Button>
+								</div>
 							)}
 						</div>
 					</CardContent>
@@ -264,12 +328,18 @@ export const CompanyMembership = () => {
 						</ul>
 					</CardContent>
 					<div className="p-6 pt-0 mt-auto">
-						<Button
-							onClick={handleSubscribe}
-							className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-black h-14 rounded-2xl shadow-lg shadow-[#00b3f3]/20 hover:scale-[1.02] transition-all"
-						>
-							SUSCRIBIRME AHORA
-						</Button>
+						{membership && membership.status === 'active' ? (
+							<Button disabled className="w-full bg-emerald-500/20 text-emerald-500 font-bold h-14 rounded-2xl border border-emerald-500/50 cursor-not-allowed">
+								PLAN ACTIVO
+							</Button>
+						) : (
+							<Button
+								onClick={handleSubscribe}
+								className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-black h-14 rounded-2xl shadow-lg shadow-[#00b3f3]/20 hover:scale-[1.02] transition-all"
+							>
+								{membership?.status === 'cancelled' ? 'RENOVAR SUSCRIPCIÓN' : 'SUSCRIBIRME AHORA'}
+							</Button>
+						)}
 					</div>
 				</Card>
 
@@ -330,6 +400,38 @@ export const CompanyMembership = () => {
 					<div className="p-4 bg-gray-50/50">
 						<div id="cardPaymentBrick_container_company"></div>
 					</div>
+				</DialogContent>
+			</Dialog>
+
+			{/* Dialog de Cancelación */}
+			<Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+				<DialogContent className="bg-[#212121] border-[#333333] text-white max-w-sm">
+					<DialogHeader>
+						<DialogTitle className="flex items-center gap-2 text-xl">
+							<AlertCircle className="h-6 w-6 text-red-500" />
+							¿Cancelar suscripción?
+						</DialogTitle>
+						<DialogDescription className="text-white/60 pt-2">
+							Al cancelar, seguirás teniendo acceso a todos los beneficios hasta el final de tu ciclo de facturación actual.
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className="gap-2 sm:gap-0 mt-4">
+						<Button
+							variant="ghost"
+							onClick={() => setShowCancelDialog(false)}
+							className="hover:bg-white/10 text-white"
+						>
+							Volver
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleCancelSubscription}
+							disabled={cancelling}
+							className="bg-red-600 hover:bg-red-700"
+						>
+							{cancelling ? 'Cancelando...' : 'Sí, cancelar'}
+						</Button>
+					</DialogFooter>
 				</DialogContent>
 			</Dialog>
 		</div>
