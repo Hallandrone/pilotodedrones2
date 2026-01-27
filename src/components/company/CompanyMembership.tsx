@@ -4,9 +4,16 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, CheckCircle, Sparkles, Zap, Building, Loader2 } from "lucide-react";
-import { createPreference } from "@/integrations/mercadopago/client";
-import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { CreditCard, CheckCircle, Sparkles, Zap, Building, Loader2, AlertCircle } from "lucide-react";
+import { processPayment } from "@/integrations/mercadopago/client";
+
+// Declaración para el SDK de Mercado Pago
+declare global {
+	interface Window {
+		MercadoPago: any;
+	}
+}
 
 interface Membership {
 	plan_name: string;
@@ -18,12 +25,28 @@ interface Membership {
 export const CompanyMembership = () => {
 	const [membership, setMembership] = useState<Membership | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [showBricks, setShowBricks] = useState(false);
 	const { toast } = useToast();
-	const navigate = useNavigate();
+
+	const planEmpresa = {
+		id: 'empresa',
+		name: 'Plan Empresa',
+		price: 39990,
+	};
 
 	useEffect(() => {
 		loadMembership();
+
+		// Inyectar SDK de Mercado Pago si no existe
+		if (!window.MercadoPago) {
+			const script = document.createElement('script');
+			script.src = 'https://sdk.mercadopago.com/js/v2';
+			script.async = true;
+			document.body.appendChild(script);
+			return () => {
+				document.body.removeChild(script);
+			};
+		}
 	}, []);
 
 	const loadMembership = async () => {
@@ -48,39 +71,115 @@ export const CompanyMembership = () => {
 		}
 	};
 
-	const handleSubscribe = async () => {
-		try {
-			setIsSubmitting(true);
-			const { data: { user } } = await supabase.auth.getUser();
-
-			if (!user) {
-				navigate("/auth");
-				return;
-			}
-
+	const handleSubscribe = () => {
+		if (!window.MercadoPago) {
 			toast({
-				title: "Iniciando proceso de pago",
-				description: "Te redirigiremos a Mercado Pago...",
+				title: "Cargando sistema de pago",
+				description: "Por favor espera un momento e intenta de nuevo.",
 			});
-
-			const response = await createPreference("empresa", "Plan Empresa", 39990);
-
-			if (response.init_point) {
-				window.location.href = response.init_point;
-			} else {
-				throw new Error("No se pudo obtener el punto de inicio de pago");
-			}
-		} catch (error: any) {
-			console.error("Error al suscribirse:", error);
-			toast({
-				title: "Error",
-				description: error.message || "Hubo un problema al iniciar el proceso de pago. Por favor intenta más tarde.",
-				variant: "destructive",
-			});
-		} finally {
-			setIsSubmitting(false);
+			return;
 		}
+		setShowBricks(true);
 	};
+
+	useEffect(() => {
+		if (showBricks && window.MercadoPago) {
+			const renderCardPaymentBrick = async (bricksBuilder: any) => {
+				const settings = {
+					initialization: {
+						amount: planEmpresa.price,
+						payer: {
+							email: (await supabase.auth.getUser()).data.user?.email,
+						},
+					},
+					customization: {
+						visual: {
+							style: {
+								theme: "default",
+							},
+						},
+						paymentMethods: {
+							maxInstallments: 1,
+						}
+					},
+					callbacks: {
+						onReady: () => {
+							console.log("Brick ready");
+						},
+						onSubmit: (formData: any) => {
+							return new Promise((resolve, reject) => {
+								processPayment({
+									...formData,
+									planId: planEmpresa.id,
+									description: `Suscripción Piloto de Drones - ${planEmpresa.name}`,
+								})
+									.then(async (result) => {
+										console.log("Payment result:", result);
+										setShowBricks(false);
+										setLoading(true);
+
+										toast({
+											title: "¡Pago exitoso!",
+											description: "Estamos activando tu plan. Un momento por favor...",
+										});
+
+										// Polling for activation
+										let attempts = 0;
+										const checkActivation = async () => {
+											await loadMembership();
+											attempts++;
+
+											const { data: sub } = await supabase
+												.from('user_subscriptions')
+												.select('status')
+												.eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+												.maybeSingle();
+
+											if (sub && sub.status === 'active') {
+												setLoading(false);
+												toast({ title: "¡Plan Activado!", description: "Tu suscripción ya está disponible." });
+												resolve(result);
+											} else if (attempts < 5) {
+												setTimeout(checkActivation, 2000);
+											} else {
+												setLoading(false);
+												toast({ title: "Activación en proceso", description: "Tu pago fue recibido. Si no ves el cambio, refresca la página." });
+												resolve(result);
+											}
+										};
+										setTimeout(checkActivation, 1000);
+									})
+									.catch((error) => {
+										console.error("Payment error:", error);
+										toast({
+											title: "Error en el pago",
+											description: error.message || "No se pudo procesar el pago.",
+											variant: "destructive",
+										});
+										reject(error);
+									});
+							});
+						},
+						onError: (error: any) => {
+							console.error("Brick error:", error);
+						},
+					},
+				};
+
+				await bricksBuilder.create(
+					"cardPayment",
+					"cardPaymentBrick_container_company",
+					settings
+				);
+			};
+
+			const mp = new window.MercadoPago('APP_USR-08ad2fd4-0eb3-4231-89e0-76c03c3bff5c', {
+				locale: 'es-CL'
+			});
+			const bricksBuilder = mp.bricks();
+			renderCardPaymentBrick(bricksBuilder);
+		}
+	}, [showBricks]);
 
 	const formatPrice = (price: number) => {
 		return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(price);
@@ -90,7 +189,7 @@ export const CompanyMembership = () => {
 
 	return (
 		<div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20">
-			{/* Current Plan Card (Only if they have one) */}
+			{/* Current Plan Card */}
 			{membership && (
 				<Card className="bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden relative isolate">
 					<div className="absolute top-0 right-0 p-6">
@@ -127,7 +226,7 @@ export const CompanyMembership = () => {
 			)}
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
-				{/* Plan Empresa Card (The one they buy) */}
+				{/* Plan Empresa Card */}
 				<Card className="bg-[#0b485d] border-2 border-[#00b3f3]/50 shadow-2xl rounded-3xl overflow-hidden flex flex-col hover:border-[#00b3f3] transition-all duration-500 group isolate">
 					<div className="bg-[#00b3f3] py-2 px-6 text-center">
 						<span className="text-white text-xs font-bold tracking-widest uppercase">EXCLUSIVO PARA EMPRESAS</span>
@@ -162,22 +261,14 @@ export const CompanyMembership = () => {
 					<div className="p-6 pt-0 mt-auto">
 						<Button
 							onClick={handleSubscribe}
-							disabled={isSubmitting}
 							className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-black h-14 rounded-2xl shadow-lg shadow-[#00b3f3]/20 hover:scale-[1.02] transition-all"
 						>
-							{isSubmitting ? (
-								<>
-									<Loader2 className="h-5 w-5 mr-2 animate-spin" />
-									PROCESANDO...
-								</>
-							) : (
-								"SUSCRIBIRME AHORA"
-							)}
+							SUSCRIBIRME AHORA
 						</Button>
 					</div>
 				</Card>
 
-				{/* Plan Pro Info Card (For their pilots) */}
+				{/* Info Card */}
 				<Card className="bg-[#0f172a]/40 border border-white/10 rounded-3xl overflow-hidden flex flex-col opacity-90 border-dashed isolate">
 					<div className="bg-white/5 py-2 px-6 text-center">
 						<span className="text-white/60 text-[10px] font-bold tracking-widest uppercase">CONOCE EL PLAN DE TUS PILOTOS</span>
@@ -216,6 +307,26 @@ export const CompanyMembership = () => {
 					</div>
 				</Card>
 			</div>
+
+			{/* Modal de Pago (Bricks) para Empresa */}
+			<Dialog open={showBricks} onOpenChange={setShowBricks}>
+				<DialogContent className="bg-white text-black max-w-md p-0 overflow-hidden rounded-2xl">
+					<div className="p-6 border-b border-gray-100 flex justify-between items-center">
+						<div>
+							<h3 className="text-lg font-bold">Pago de Suscripción Empresa</h3>
+							<p className="text-sm text-gray-500">Membresía Empresarial</p>
+						</div>
+						<div className="text-right">
+							<span className="text-xl font-bold text-blue-600">
+								{formatPrice(planEmpresa.price)}
+							</span>
+						</div>
+					</div>
+					<div className="p-4 bg-gray-50/50">
+						<div id="cardPaymentBrick_container_company"></div>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 };
