@@ -628,26 +628,26 @@ const PublicPilotProfile = () => {
 
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-2 sm:py-4">
+        <div className="px-4 py-2">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="h-12 w-12 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-700"
+              className="h-10 w-10 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-700"
             >
-              <ArrowLeft className="h-7 w-7" />
+              <ArrowLeft className="h-6 w-6" />
             </Button>
             <Logo
-              size="xl"
-              className="flex-shrink-0 [&>div]:h-20 [&>div]:w-20 sm:[&>div]:h-28 sm:[&>div]:w-28 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)]"
+              size="lg"
               showText={false}
+              className="flex-shrink-0 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.3)]"
             />
-            <div className="flex flex-col">
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-tight truncate">
                 {isCompany ? 'Perfil de Empresa' : 'Perfil Profesional'}
               </h1>
-              <p className="text-xs sm:text-lg text-gray-600 font-medium uppercase tracking-wider">
+              <p className="text-[10px] sm:text-sm text-gray-500 font-semibold uppercase tracking-widest leading-none truncate">
                 {isCompany && companyData?.company_name ? companyData.company_name : profile.full_name}
               </p>
             </div>
@@ -1079,28 +1079,23 @@ const PublicPilotProfile = () => {
                 ))}
 
                 {/* Uploaded Certificates */}
-                {userCertifications.map((cert) => (
-                  <div key={cert.id} className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 group bg-white select-none">
-                    {cert.signedUrl && /\.(jpg|jpeg|png|webp)$/i.test(cert.file_name) ? (
+                {userCertifications
+                  .filter(cert => /\.(jpg|jpeg|png|webp)$/i.test(cert.file_name))
+                  .map((cert) => (
+                    <div key={cert.id} className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 group bg-white select-none">
                       <img
                         src={cert.signedUrl}
                         className="w-full h-full object-cover"
                         alt={cert.file_name}
                         onContextMenu={(e) => e.preventDefault()}
                       />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-300 p-8 text-center">
-                        <Award className="h-20 w-20 opacity-10 mb-2" />
-                        <span className="text-[10px] uppercase tracking-widest opacity-30 font-bold break-all">{cert.file_name}</span>
-                      </div>
-                    )}
-                    {/* Protection overlay */}
-                    <div
-                      className="absolute inset-0 bg-transparent z-10 cursor-default"
-                      onContextMenu={(e) => e.preventDefault()}
-                    ></div>
-                  </div>
-                ))}
+                      {/* Protection overlay */}
+                      <div
+                        className="absolute inset-0 bg-transparent z-10 cursor-default"
+                        onContextMenu={(e) => e.preventDefault()}
+                      ></div>
+                    </div>
+                  ))}
               </div>
             </div>
           )}

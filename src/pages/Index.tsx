@@ -326,31 +326,29 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
             {[
               {
-                icon: <Shield className="h-10 w-10 text-[#00b3f3]" />,
+                icon: <Shield className="h-10 w-10" />,
                 title: "Perfiles Verificados",
                 desc: "Validamos digitalmente la documentación de cada piloto para asegurar el cumplimiento normativo."
               },
               {
-                icon: <QrCode className="h-10 w-10 text-[#00b3f3]" />,
+                icon: <QrCode className="h-10 w-10" />,
                 title: "Diplomas con QR",
                 desc: "Tecnología de validación instantánea que garantiza la autenticidad de las certificaciones."
               },
               {
-                icon: <Globe className="h-10 w-10 text-[#00b3f3]" />,
+                icon: <Globe className="h-10 w-10" />,
                 title: "Portafolio Digital",
                 desc: "Exhibición profesional de trabajos anteriores y visualización interactiva de horas de vuelo."
               },
               {
-                icon: <Zap className="h-10 w-10 text-[#00b3f3]" />,
+                icon: <Zap className="h-10 w-10" />,
                 title: "Conexión Directa",
                 desc: "Sin comisiones ocultas ni intermediarios. Contacta directamente al piloto ideal para tu proyecto."
               }
             ].map((feature, idx) => (
-              <div key={idx} className="flex flex-col items-center text-center group hover:scale-105 transition-all duration-300">
-                <div className="h-20 w-20 bg-[#00b3f3]/10 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#00b3f3] group-hover:shadow-[0_0_30px_rgba(0,179,243,0.4)] transition-all duration-300">
-                  <div className="group-hover:text-white transition-colors duration-300">
-                    {feature.icon}
-                  </div>
+              <div key={idx} className="flex flex-col items-center text-center group hover:scale-105 transition-all duration-300 cursor-default">
+                <div className="h-20 w-20 bg-[#00b3f3]/10 text-[#00b3f3] rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#00b3f3] group-hover:text-white group-hover:shadow-[0_0_30px_rgba(0,179,243,0.4)] transition-all duration-300">
+                  {feature.icon}
                 </div>
                 <h4 className="text-xl font-bold text-primary mb-3">{feature.title}</h4>
                 <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>

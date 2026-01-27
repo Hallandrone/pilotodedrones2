@@ -424,27 +424,27 @@ const SearchResults = () => {
       {/* Header */}
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-4 sm:py-6">
+        <div className="px-4 py-2">
           <div className="flex items-center gap-4 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate("/")}
-              className="h-12 w-12 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-700"
+              className="h-10 w-10 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-700"
             >
-              <ArrowLeft className="h-7 w-7" />
+              <ArrowLeft className="h-6 w-6" />
             </Button>
             <Logo
-              size="xl"
+              size="lg"
               showText={false}
-              className="flex-shrink-0 [&>div]:h-14 [&>div]:w-14 sm:[&>div]:h-20 sm:[&div]:w-20 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] scale-110"
+              className="flex-shrink-0 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.3)]"
             />
             <div className="flex flex-col">
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-tight">
                 Buscar Pilotos
               </h1>
-              <p className="text-xs sm:text-lg text-gray-600 font-medium uppercase tracking-wider">
-                Explora profesionales certificados
+              <p className="text-[10px] sm:text-sm text-gray-500 font-semibold uppercase tracking-widest leading-none">
+                Profesionales certificados
               </p>
             </div>
           </div>
