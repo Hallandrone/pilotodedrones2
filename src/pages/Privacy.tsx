@@ -165,7 +165,7 @@ const Privacy = () => {
                     <li><strong>Cancelación:</strong> Solicitar la eliminación de tus datos cuando proceda</li>
                     <li><strong>Oposición:</strong> Oponerte al tratamiento de tus datos en ciertos casos</li>
                   </ul>
-                  <p className="mt-4">Para ejercer estos derechos, puedes escribir a: <a href="mailto:contacto@pilotodedrones.cl" className="text-accent font-semibold">contacto@pilotodedrones.cl</a></p>
+                  <p className="mt-4">Para ejercer estos derechos, puedes escribir a: <a href="mailto:info@pilotodedrones.cl" className="text-accent font-semibold">info@pilotodedrones.cl</a></p>
                   <p className="text-sm">La solicitud será atendida dentro de los plazos legales.</p>
                 </section>
 
@@ -208,7 +208,7 @@ const Privacy = () => {
                   </h2>
                   <p>Si tienes dudas, consultas o reclamos relacionados con esta Política de Privacidad o el tratamiento de tus datos personales, puedes contactarnos en:</p>
                   <div className="bg-secondary/10 p-4 rounded-lg mt-2">
-                    <p className="flex items-center gap-2">📧 <a href="mailto:contacto@pilotodedrones.cl" className="text-accent font-semibold">contacto@pilotodedrones.cl</a></p>
+                    <p className="flex items-center gap-2">📧 <a href="mailto:info@pilotodedrones.cl" className="text-accent font-semibold">info@pilotodedrones.cl</a></p>
                     <p className="flex items-center gap-2">🌐 <a href="https://www.pilotodedrones.cl" target="_blank" rel="noopener noreferrer" className="text-accent font-semibold">www.pilotodedrones.cl</a></p>
                   </div>
                 </section>

@@ -1054,12 +1054,12 @@ const PilotMembership = () => {
               <Button
                 variant="outline"
                 className="w-full justify-start bg-[#2C2C2C] border-[#333333] hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-500 transition-all duration-200 rounded-xl p-4 text-[#E0E0E0]"
-                onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
+                onClick={() => window.open('mailto:info@pilotodedrones.cl')}
               >
                 <Mail className="h-5 w-5 mr-4" />
                 <div className="text-left">
                   <div className="font-semibold text-[#E0E0E0]">Email de Soporte</div>
-                  <div className="text-sm text-[#B0B0B0]">soporte@pilotodedrones.cl</div>
+                  <div className="text-sm text-[#B0B0B0]">info@pilotodedrones.cl</div>
                 </div>
               </Button>
 

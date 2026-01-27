@@ -171,7 +171,7 @@ const Terms = () => {
                     Para cualquier consulta sobre estos Términos, comunícate con nosotros:
                   </p>
                   <div className="bg-secondary/10 p-4 rounded-lg mt-2">
-                    <p className="flex items-center gap-2">📧 <a href="mailto:contacto@pilotodedrones.cl" className="text-accent font-semibold">contacto@pilotodedrones.cl</a></p>
+                    <p className="flex items-center gap-2">📧 <a href="mailto:info@pilotodedrones.cl" className="text-accent font-semibold">info@pilotodedrones.cl</a></p>
                     <p className="flex items-center gap-2">🌐 <a href="https://www.pilotodedrones.cl" target="_blank" rel="noopener noreferrer" className="text-accent font-semibold">www.pilotodedrones.cl</a></p>
                   </div>
                 </section>

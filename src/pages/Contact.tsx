@@ -18,7 +18,7 @@ const Contacto = () => {
 	};
 
 	const handleEmail = () => {
-		window.location.href = "mailto:contacto@pilotodedrones.cl";
+		window.location.href = "mailto:info@pilotodedrones.cl";
 	};
 
 	return (
@@ -138,7 +138,7 @@ const Contacto = () => {
 											onClick={handleEmail}
 											className="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-bold h-12 text-base rounded-xl shadow-lg hover:shadow-accent/30 gap-2 transition-all mt-auto"
 										>
-											contacto@pilotodedrones.cl
+											info@pilotodedrones.cl
 											<ChevronRight className="h-4 w-4" />
 										</Button>
 									</CardContent>
