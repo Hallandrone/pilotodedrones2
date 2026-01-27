@@ -13,6 +13,7 @@ import { BannerConfiguration } from "@/components/dashboard/BannerConfiguration"
 import AdminCertificates from "./AdminCertificates";
 import DiplomaGenerator from "./DiplomaGenerator";
 import UserProfile from "./UserProfile";
+import AdminFeedback from "./AdminFeedback";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import { getUserRole, isAdmin } from "@/lib/auth-utils";
@@ -150,6 +151,7 @@ const Dashboard = () => {
                 <Route path="/certificates" element={<AdminCertificates />} />
                 <Route path="/diplomas" element={<DiplomaGenerator />} />
                 <Route path="/banners" element={<BannerConfiguration />} />
+                <Route path="/feedback" element={<AdminFeedback />} />
                 <Route path="/configuracion" element={<Configuration />} />
               </Routes>
             </div>

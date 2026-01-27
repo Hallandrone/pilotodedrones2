@@ -36,8 +36,10 @@ import {
   Award,
   Hash,
   QrCode as QrCodeIcon,
-  MonitorPlay
+  MonitorPlay,
+  MessageSquarePlus
 } from "lucide-react";
+import { FeedbackForm } from "@/components/dashboard/FeedbackForm";
 import type { User } from '@supabase/supabase-js';
 import {
   getCertificationStatus,
@@ -939,26 +941,27 @@ const PilotDashboard = () => {
               <div className="space-y-3 sm:space-y-4">
                 <Button
                   size="lg"
-                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                  onClick={() => window.open('mailto:soporte@pilotodedrones.cl')}
+                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                  onClick={() => window.open('https://wa.me/56969013735')}
                 >
-                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  Enviar Email
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
+                  Soporte Académico
                 </Button>
                 <Button
                   size="lg"
-                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
-                  onClick={() => window.open('https://wa.me/56912345678')}
+                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14"
+                  onClick={() => window.open('https://wa.me/56954751380')}
                 >
                   <Phone className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" />
-                  Soporte WhatsApp
+                  Soporte Técnico
                 </Button>
+                <FeedbackForm />
               </div>
             </CardContent>
           </div>
         </Card>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

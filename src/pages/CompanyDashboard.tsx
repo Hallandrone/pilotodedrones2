@@ -23,8 +23,10 @@ import {
   XCircle,
   Clock,
   Phone,
-  HelpCircle
+  HelpCircle,
+  MessageSquarePlus
 } from "lucide-react";
+import { FeedbackForm } from "@/components/dashboard/FeedbackForm";
 import type { User } from '@supabase/supabase-js';
 import {
   getCertificationStatus,
@@ -471,6 +473,50 @@ const CompanyDashboard = () => {
                     </div>
 
                     {companyData?.id && <CompanyPilotManagement companyId={companyData.id} />}
+
+                    {/* Support Section */}
+                    <div className="grid grid-cols-1 gap-6 pb-12">
+                      <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
+                        <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
+                          <CardContent className="p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-3xl">
+                            <div className="flex items-center gap-4 mb-6">
+                              <div className="h-14 w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <HelpCircle className="h-7 w-7 text-white" />
+                              </div>
+                              <span className="text-white text-xl font-bold">Soporte y Ayuda</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <div className="space-y-2">
+                                <p className="text-white/80 text-base leading-relaxed mb-4">
+                                  ¿Necesitas ayuda académica o técnica? Nuestro equipo está aquí para asistirte.
+                                </p>
+                              </div>
+
+                              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <Button
+                                  size="lg"
+                                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-2xl shadow-xl hover:shadow-2xl h-14"
+                                  onClick={() => window.open('https://wa.me/56969013735')}
+                                >
+                                  <Phone className="h-5 w-5 mr-3" />
+                                  Soporte Académico
+                                </Button>
+                                <Button
+                                  size="lg"
+                                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-2xl shadow-xl hover:shadow-2xl h-14"
+                                  onClick={() => window.open('https://wa.me/56954751380')}
+                                >
+                                  <Phone className="h-5 w-5 mr-3" />
+                                  Soporte Técnico
+                                </Button>
+                                <FeedbackForm />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </div>
+                      </Card>
+                    </div>
                   </div>
                 } />
 

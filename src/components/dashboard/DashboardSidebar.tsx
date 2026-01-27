@@ -154,6 +154,12 @@ const menuItems: MenuItem[] = [
     permission: "manage_banners"
   },
   {
+    title: "Problemas/Sugerencias",
+    url: "/dashboard/feedback",
+    icon: MessageCircle,
+    roles: ["super_admin"]
+  },
+  {
     title: "Configuración",
     url: "/dashboard/configuracion",
     icon: Settings,
@@ -168,7 +174,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const { toast } = useToast();
   const { hasPermission, isSuperAdmin, loading: permissionsLoading } = useUserPermissions();
   const [userId, setUserId] = useState<string | undefined>();
-  
+
   // Obtener userId para el hook de contactos
   useEffect(() => {
     const getUser = async () => {
@@ -177,7 +183,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
     };
     getUser();
   }, []);
-  
+
   const { unreadCount } = useUnreadContacts(userId);
 
   const handleSignOut = async () => {
@@ -203,17 +209,17 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
     if (!userRole || !item.roles.includes(userRole)) {
       return false;
     }
-    
+
     // For super_admin, show everything
     if (userRole === 'super_admin' || isSuperAdmin) {
       return true;
     }
-    
+
     // For admin role, check specific permissions
     if (userRole === 'admin' && item.permission) {
       return hasPermission(item.permission);
     }
-    
+
     return true;
   });
 
