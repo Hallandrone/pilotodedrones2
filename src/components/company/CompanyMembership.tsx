@@ -4,7 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, CheckCircle, Sparkles, Zap, Building } from "lucide-react";
+import { CreditCard, CheckCircle, Sparkles, Zap, Building, Loader2 } from "lucide-react";
+import { createPreference } from "@/integrations/mercadopago/client";
+import { useNavigate } from "react-router-dom";
 
 interface Membership {
 	plan_name: string;
@@ -16,7 +18,9 @@ interface Membership {
 export const CompanyMembership = () => {
 	const [membership, setMembership] = useState<Membership | null>(null);
 	const [loading, setLoading] = useState(true);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const { toast } = useToast();
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		loadMembership();
@@ -41,6 +45,40 @@ export const CompanyMembership = () => {
 			console.error(error);
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const handleSubscribe = async () => {
+		try {
+			setIsSubmitting(true);
+			const { data: { user } } = await supabase.auth.getUser();
+
+			if (!user) {
+				navigate("/auth");
+				return;
+			}
+
+			toast({
+				title: "Iniciando proceso de pago",
+				description: "Te redirigiremos a Mercado Pago...",
+			});
+
+			const response = await createPreference("empresa", "Plan Empresa", 39990);
+
+			if (response.init_point) {
+				window.location.href = response.init_point;
+			} else {
+				throw new Error("No se pudo obtener el punto de inicio de pago");
+			}
+		} catch (error: any) {
+			console.error("Error al suscribirse:", error);
+			toast({
+				title: "Error",
+				description: error.message || "Hubo un problema al iniciar el proceso de pago. Por favor intenta más tarde.",
+				variant: "destructive",
+			});
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -111,8 +149,7 @@ export const CompanyMembership = () => {
 								"Sello 'Empresa Certificada' en el Perfil",
 								"Panel de Gestión (Hasta 4 Pilotos)",
 								"Aparición Destacada en Directorio",
-								"Estadísticas de Perfil y Leads",
-								"Validación Masiva de Certificados",
+								"Validación de Certificados",
 								"QR Profesional para el Portafolio",
 								"Soporte Prioritario vía WhatsApp"
 							].map(benefit => (
@@ -123,8 +160,19 @@ export const CompanyMembership = () => {
 						</ul>
 					</CardContent>
 					<div className="p-6 pt-0 mt-auto">
-						<Button className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-black h-14 rounded-2xl shadow-lg shadow-[#00b3f3]/20 hover:scale-[1.02] transition-all">
-							SUSCRIBIRME AHORA
+						<Button
+							onClick={handleSubscribe}
+							disabled={isSubmitting}
+							className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-black h-14 rounded-2xl shadow-lg shadow-[#00b3f3]/20 hover:scale-[1.02] transition-all"
+						>
+							{isSubmitting ? (
+								<>
+									<Loader2 className="h-5 w-5 mr-2 animate-spin" />
+									PROCESANDO...
+								</>
+							) : (
+								"SUSCRIBIRME AHORA"
+							)}
 						</Button>
 					</div>
 				</Card>
