@@ -76,6 +76,13 @@ const menuItems: MenuItem[] = [
     roles: ["company"]
   },
   {
+    title: "Usuarios",
+    url: "/dashboard/users",
+    icon: User2,
+    roles: ["super_admin", "admin"],
+    permission: "view_users"
+  },
+  {
     title: "Pilotos",
     url: "/dashboard/pilots",
     icon: Plane,

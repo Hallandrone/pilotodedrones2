@@ -29,15 +29,15 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CreateCompanyDialog } from "./CreateCompanyDialog";
 import { CompanyDetailsModal } from "./CompanyDetailsModal";
-import { 
-  Loader2, 
-  Building, 
-  Mail, 
+import {
+  Loader2,
+  Building,
+  Mail,
   Phone,
-  Calendar, 
-  Plus, 
-  MoreHorizontal, 
-  Eye, 
+  Calendar,
+  Plus,
+  MoreHorizontal,
+  Eye,
   Trash2,
   CheckCircle,
   XCircle,
@@ -46,17 +46,22 @@ import {
 
 interface Company {
   id: string;
-  legal_name: string;
-  fantasy_name: string | null;
-  rut: string;
-  address: string | null;
+  company_name: string;
+  email: string | null;
   phone: string | null;
-  email: string;
-  description: string | null;
   logo_url: string | null;
-  status: string;
+  certification_status: boolean | null;
   created_at: string;
   user_id: string;
+  description?: string | null;
+  location?: string | null;
+  address?: string | null;
+  region?: string | null;
+  profiles?: {
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export function Companies() {
@@ -73,39 +78,24 @@ export function Companies() {
 
   const fetchCompanies = async () => {
     try {
-      // Temporary mock data - replace with actual Supabase query when table is created
-      const mockCompanies: Company[] = [
-        {
-          id: "1",
-          legal_name: "Drones Tech SpA",
-          fantasy_name: "DronesTech",
-          rut: "77.123.456-7",
-          address: "Av. Providencia 123, Santiago",
-          phone: "+56 9 1234 5678",
-          email: "contacto@dronestech.cl",
-          description: "Empresa especializada en servicios de drones para agricultura de precisión",
-          logo_url: null,
-          status: "active",
-          created_at: "2024-01-15T10:00:00Z",
-          user_id: "user1"
-        },
-        {
-          id: "2",
-          legal_name: "AeroVision Ltda.",
-          fantasy_name: "AeroVision",
-          rut: "88.987.654-3",
-          address: "Las Condes 456, Santiago",
-          phone: "+56 9 8765 4321",
-          email: "info@aerovision.cl",
-          description: "Fotografía y filmación aérea profesional",
-          logo_url: null,
-          status: "pending",
-          created_at: "2024-01-20T14:30:00Z",
-          user_id: "user2"
-        }
-      ];
-      
-      setCompanies(mockCompanies);
+      setLoading(true);
+      const { data: companiesData, error } = await supabase
+        .from('companies')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setCompanies(companiesData as any);
     } catch (error) {
       console.error('Error fetching companies:', error);
       toast({
@@ -124,10 +114,10 @@ export function Companies() {
       inactive: { label: 'Inactiva', variant: 'secondary' as const, icon: XCircle, color: 'text-gray-500' },
       pending: { label: 'Pendiente', variant: 'outline' as const, icon: Clock, color: 'text-yellow-500' }
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const IconComponent = config.icon;
-    
+
     return (
       <div className="flex items-center gap-1">
         <IconComponent className={`h-3 w-3 ${config.color}`} />
@@ -142,7 +132,7 @@ export function Companies() {
   };
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    return (name || 'E').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   if (loading) {
@@ -206,25 +196,25 @@ export function Companies() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
-                            <AvatarImage src={company.logo_url || ''} />
+                            <AvatarImage src={company.logo_url || company.profiles?.avatar_url || ''} />
                             <AvatarFallback className="bg-primary text-primary-foreground">
-                              {getInitials(company.legal_name)}
+                              {getInitials(company.company_name || company.profiles?.full_name || 'E')}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{company.fantasy_name || company.legal_name}</p>
-                            <p className="text-sm text-muted-foreground">{company.legal_name}</p>
+                            <p className="font-medium">{company.company_name}</p>
+                            <p className="text-sm text-muted-foreground">{company.profiles?.full_name}</p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-mono text-sm">{company.rut}</span>
+                        <span className="font-mono text-sm">{company.user_id.slice(0, 8)}...</span>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           <div className="flex items-center gap-1 text-sm">
                             <Mail className="h-3 w-3 text-muted-foreground" />
-                            <span>{company.email}</span>
+                            <span>{company.email || company.profiles?.email}</span>
                           </div>
                           {company.phone && (
                             <div className="flex items-center gap-1 text-sm">
@@ -235,7 +225,7 @@ export function Companies() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {getStatusBadge(company.status)}
+                        {getStatusBadge(company.certification_status ? 'active' : 'pending')}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -260,7 +250,7 @@ export function Companies() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-[#dc2626]">
                               <Trash2 className="mr-2 h-4 w-4" />
-                              {company.status === 'active' ? 'Desactivar' : 'Eliminar'}
+                              {'Eliminar'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -274,7 +264,7 @@ export function Companies() {
         </CardContent>
       </Card>
 
-      <CreateCompanyDialog 
+      <CreateCompanyDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onSuccess={fetchCompanies}

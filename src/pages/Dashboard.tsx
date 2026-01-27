@@ -6,6 +6,7 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import Logo from "@/components/ui/logo";
+import { Users } from "@/components/dashboard/Users";
 import { Pilots } from "@/components/dashboard/Pilots";
 import { Companies } from "@/components/dashboard/Companies";
 import { Configuration } from "@/components/dashboard/Configuration";
@@ -146,6 +147,7 @@ const Dashboard = () => {
                   </>
                 } />
                 <Route path="/profile" element={<UserProfile />} />
+                <Route path="/users" element={<Users />} />
                 <Route path="/pilots" element={<Pilots />} />
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/certificates" element={<AdminCertificates />} />

@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Building, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  Building,
+  Mail,
+  Phone,
+  MapPin,
   Calendar,
   Edit,
   Plus,
@@ -30,17 +30,22 @@ import { CreateServiceDialog } from "./CreateServiceDialog";
 
 interface Company {
   id: string;
-  legal_name: string;
-  fantasy_name: string | null;
-  rut: string;
-  address: string | null;
+  company_name: string;
+  email: string | null;
   phone: string | null;
-  email: string;
-  description: string | null;
   logo_url: string | null;
-  status: string;
+  certification_status: boolean | null;
   created_at: string;
   user_id: string;
+  description?: string | null;
+  location?: string | null;
+  address?: string | null;
+  region?: string | null;
+  profiles?: {
+    full_name: string | null;
+    email: string | null;
+    avatar_url: string | null;
+  };
 }
 
 interface CompanyService {
@@ -77,7 +82,7 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
       created_at: "2024-01-15T10:00:00Z"
     },
     {
-      id: "2", 
+      id: "2",
       name: "Inspección Técnica de Estructuras",
       description: "Inspección detallada de edificios, puentes y estructuras mediante drones especializados",
       price: "$80.000 CLP/día",
@@ -95,10 +100,10 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
       inactive: { label: 'Inactiva', variant: 'secondary' as const, icon: XCircle, color: 'text-gray-500' },
       pending: { label: 'Pendiente', variant: 'outline' as const, icon: Clock, color: 'text-yellow-500' }
     };
-    
+
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
     const IconComponent = config.icon;
-    
+
     return (
       <div className="flex items-center gap-1">
         <IconComponent className={`h-4 w-4 ${config.color}`} />
@@ -139,7 +144,7 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
               Detalles de la Empresa
             </DialogTitle>
             <DialogDescription>
-              Información completa y servicios de {company.fantasy_name || company.legal_name}
+              Información completa y servicios de {company.company_name}
             </DialogDescription>
           </DialogHeader>
 
@@ -147,21 +152,19 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
           <div className="flex gap-4 border-b">
             <button
               onClick={() => setActiveTab('info')}
-              className={`pb-2 px-1 font-medium text-sm border-b-2 transition-colors ${
-                activeTab === 'info'
+              className={`pb-2 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === 'info'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               Información General
             </button>
             <button
               onClick={() => setActiveTab('services')}
-              className={`pb-2 px-1 font-medium text-sm border-b-2 transition-colors ${
-                activeTab === 'services'
+              className={`pb-2 px-1 font-medium text-sm border-b-2 transition-colors ${activeTab === 'services'
                   ? 'border-primary text-primary'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
+                }`}
             >
               Servicios ({mockServices.length})
             </button>
@@ -174,18 +177,18 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
                 {/* Company Header */}
                 <div className="flex items-start gap-4">
                   <Avatar className="h-16 w-16">
-                    <AvatarImage src={company.logo_url || ''} />
+                    <AvatarImage src={company.logo_url || company.profiles?.avatar_url || ''} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                      {getInitials(company.legal_name)}
+                      {getInitials(company.company_name || company.profiles?.full_name || 'E')}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold">{company.fantasy_name || company.legal_name}</h3>
-                      {getStatusBadge(company.status)}
+                      <h3 className="text-xl font-semibold">{company.company_name}</h3>
+                      {getStatusBadge(company.certification_status ? 'active' : 'pending')}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-1">{company.legal_name}</p>
-                    <p className="text-sm font-mono text-muted-foreground">RUT: {company.rut}</p>
+                    <p className="text-sm text-muted-foreground mb-1">{company.profiles?.full_name}</p>
+                    <p className="text-sm font-mono text-muted-foreground">ID: {company.user_id.slice(0, 8)}...</p>
                   </div>
                   <Button variant="outline" size="sm">
                     <Edit className="h-4 w-4 mr-2" />
@@ -248,7 +251,7 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
                       Gestiona los servicios que ofrece esta empresa
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => setCreateServiceOpen(true)}
                     className="bg-[#2563eb] hover:bg-[#1d4ed8]"
                   >
@@ -264,9 +267,9 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
                       <CardContent className="text-center py-8">
                         <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-muted-foreground">No hay servicios publicados</p>
-                        <Button 
+                        <Button
                           onClick={() => setCreateServiceOpen(true)}
-                          variant="outline" 
+                          variant="outline"
                           className="mt-3"
                         >
                           Publicar primer servicio
@@ -284,8 +287,8 @@ export function CompanyDetailsModal({ company, open, onOpenChange, onUpdate }: C
                                 {getServiceStatusBadge(service.status)}
                               </div>
                               <div className="flex items-center gap-2 mb-3">
-                                <Badge 
-                                  variant="secondary" 
+                                <Badge
+                                  variant="secondary"
                                   className={getCategoryColor(service.category)}
                                 >
                                   {service.category}

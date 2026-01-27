@@ -11,14 +11,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Building, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  FileText, 
+import {
+  Building,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
   Upload,
-  Loader2 
+  Loader2
 } from "lucide-react";
 
 interface CreateCompanyDialogProps {
@@ -30,12 +30,11 @@ interface CreateCompanyDialogProps {
 export function CreateCompanyDialog({ open, onOpenChange, onSuccess }: CreateCompanyDialogProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    legalName: "",
-    fantasyName: "",
-    rut: "",
-    address: "",
-    phone: "",
+    companyName: "",
     email: "",
+    phone: "",
+    location: "",
+    region: "",
     description: "",
     logo: null as File | null
   });
@@ -57,7 +56,7 @@ export function CreateCompanyDialog({ open, onOpenChange, onSuccess }: CreateCom
         });
         return;
       }
-      
+
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({
           title: "Error",
@@ -66,15 +65,15 @@ export function CreateCompanyDialog({ open, onOpenChange, onSuccess }: CreateCom
         });
         return;
       }
-      
+
       setFormData(prev => ({ ...prev, logo: file }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.legalName || !formData.rut || !formData.email) {
+
+    if (!formData.companyName || !formData.email) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos obligatorios",
@@ -84,31 +83,30 @@ export function CreateCompanyDialog({ open, onOpenChange, onSuccess }: CreateCom
     }
 
     setLoading(true);
-    
+
     try {
       // TODO: Replace with actual Supabase insert when table is created
       console.log('Creating company:', formData);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast({
         title: "¡Empresa registrada!",
         description: "La empresa ha sido registrada exitosamente",
       });
-      
+
       // Reset form
       setFormData({
-        legalName: "",
-        fantasyName: "",
-        rut: "",
-        address: "",
-        phone: "",
+        companyName: "",
         email: "",
+        phone: "",
+        location: "",
+        region: "",
         description: "",
         logo: null
       });
-      
+
       onSuccess();
       onOpenChange(false);
     } catch (error) {
@@ -138,44 +136,32 @@ export function CreateCompanyDialog({ open, onOpenChange, onSuccess }: CreateCom
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Nombre Legal */}
+            {/* Nombre de la Empresa */}
             <div className="space-y-2">
-              <Label htmlFor="legal-name" className="flex items-center gap-1">
+              <Label htmlFor="company-name" className="flex items-center gap-1">
                 <Building className="h-4 w-4" />
-                Nombre Legal *
+                Nombre de la Empresa *
               </Label>
               <Input
-                id="legal-name"
-                value={formData.legalName}
-                onChange={(e) => handleInputChange("legalName", e.target.value)}
+                id="company-name"
+                value={formData.companyName}
+                onChange={(e) => handleInputChange("companyName", e.target.value)}
                 placeholder="Ej: Drones Tech SpA"
                 required
               />
             </div>
 
-            {/* Nombre de Fantasía */}
+            {/* Ubicación */}
             <div className="space-y-2">
-              <Label htmlFor="fantasy-name">Nombre de Fantasía</Label>
-              <Input
-                id="fantasy-name"
-                value={formData.fantasyName}
-                onChange={(e) => handleInputChange("fantasyName", e.target.value)}
-                placeholder="Ej: DronesTech"
-              />
-            </div>
-
-            {/* RUT */}
-            <div className="space-y-2">
-              <Label htmlFor="rut" className="flex items-center gap-1">
-                <FileText className="h-4 w-4" />
-                RUT / ID Tributario *
+              <Label htmlFor="location" className="flex items-center gap-1">
+                <MapPin className="h-4 w-4" />
+                Ubicación / Ciudad
               </Label>
               <Input
-                id="rut"
-                value={formData.rut}
-                onChange={(e) => handleInputChange("rut", e.target.value)}
-                placeholder="Ej: 77.123.456-7"
-                required
+                id="location"
+                value={formData.location}
+                onChange={(e) => handleInputChange("location", e.target.value)}
+                placeholder="Ej: Santiago"
               />
             </div>
 
@@ -267,16 +253,16 @@ export function CreateCompanyDialog({ open, onOpenChange, onSuccess }: CreateCom
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
               Cancelar
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={loading}
               className="bg-[#2563eb] hover:bg-[#1d4ed8]"
             >
