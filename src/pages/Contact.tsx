@@ -94,7 +94,7 @@ const Contacto = () => {
 											onClick={() => window.open("https://wa.me/56994677613", "_blank")}
 											className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12 text-base rounded-xl shadow-lg hover:shadow-green-700/30 gap-2 transition-all mt-auto"
 										>
-											Soporte Académico
+											Contacto
 											<ArrowRight className="h-4 w-4" />
 										</Button>
 									</CardContent>
