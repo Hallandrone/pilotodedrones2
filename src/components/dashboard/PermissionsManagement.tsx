@@ -85,7 +85,6 @@ export function PermissionsManagement() {
   const [saving, setSaving] = useState(false);
   const [newAdmin, setNewAdmin] = useState({
     email: "",
-    password: "",
     full_name: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
@@ -229,59 +228,31 @@ export function PermissionsManagement() {
 
     setSaving(true);
     try {
-      // Delete existing permissions
-      await supabase
-        .from('user_permissions')
-        .delete()
-        .eq('user_id', selectedUser.id);
-
-      // Insert new permissions
-      if (selectedPermissions.length > 0) {
-        const { data: { user } } = await supabase.auth.getUser();
-
-        const newPermissions = selectedPermissions.map(permission => ({
-          user_id: selectedUser.id,
-          permission: permission as AdminPermission,
-          granted_by: user?.id,
-        }));
-
-        const { error } = await supabase
-          .from('user_permissions')
-          .insert(newPermissions as any);
-
-        if (error) throw error;
-      }
-
-      toast({
-        title: "Permisos actualizados",
-        description: `Los permisos de ${selectedUser.full_name || selectedUser.email} han sido actualizados`,
+      // Usar la Edge Function para guardar y notificar
+      const { data, error } = await supabase.functions.invoke('invite-admin', {
+        body: {
+          email: selectedUser.email,
+          full_name: selectedUser.full_name,
+          permissions: selectedPermissions,
+          invited_by: (await supabase.auth.getUser()).data.user?.id
+        }
       });
 
-      // Si el usuario no era admin/super_admin, promoverlo a admin
-      if (selectedUser.role !== 'admin' && selectedUser.role !== 'super_admin' && selectedPermissions.length > 0) {
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .upsert({
-            id: selectedUser.id,
-            role: 'admin'
-          });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
 
-        if (roleError) console.error('Error promoting user to admin:', roleError);
-        else {
-          toast({
-            title: "Rol actualizado",
-            description: `${selectedUser.full_name || selectedUser.email} ahora tiene acceso al dashboard como Administrador`,
-          });
-        }
-      }
+      toast({
+        title: "Cambios guardados",
+        description: data.message || `Se han actualizado los permisos de ${selectedUser.full_name || selectedUser.email}`,
+      });
 
       setDialogOpen(false);
       fetchUsersWithPermissions();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving permissions:', error);
       toast({
         title: "Error",
-        description: "No se pudieron guardar los permisos",
+        description: error.message || "No se pudieron guardar los permisos",
         variant: "destructive",
       });
     } finally {
@@ -324,7 +295,7 @@ export function PermissionsManagement() {
       });
 
       setCreateDialogOpen(false);
-      setNewAdmin({ email: "", password: "", full_name: "" });
+      setNewAdmin({ email: "", full_name: "" });
       setSelectedPermissions([]);
       fetchUsersWithPermissions();
     } catch (error: any) {
