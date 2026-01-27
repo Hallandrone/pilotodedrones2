@@ -310,7 +310,7 @@ const Index = () => {
 
       <section className="py-20 lg:py-28 bg-gradient-to-br from-primary via-primary to-primary/90 text-white text-center relative overflow-hidden">
         <div className="container mx-auto px-6 relative z-10">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 italic tracking-tight uppercase">Conecta con Pilotos de Drones <span className="text-[#00b3f3] block">Certificados</span></h1>
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight uppercase">Conecta con Pilotos de Drones <span className="text-[#00b3f3] block">Certificados</span></h1>
           <p className="text-xl md:text-2xl mb-12 max-w-3xl mx-auto opacity-90 font-light tracking-wide text-blue-100">La plataforma líder en Chile para encontrar profesionales de élite y empresas especializadas en tecnología aérea.</p>
           <div className="max-w-4xl mx-auto drop-shadow-2xl"><SearchForm onSearch={handleSearch} /></div>
           {loading && <p className="mt-6 animate-pulse text-[#00b3f3] font-bold">Buscando pilotos de élite...</p>}
