@@ -90,7 +90,7 @@ const DiplomaVerification = () => {
 
 				{/* Header simple */}
 				<div className="flex flex-col items-center justify-center space-y-4 pt-8 animate-fade-in text-center">
-					<Logo size="xl" className="scale-125" />
+					<Logo size="xl" showText={false} className="scale-125" />
 					<div className="space-y-2 mt-4">
 						<h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
 							Verificador de Certificados
