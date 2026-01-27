@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, CheckCircle2, XCircle, Award, Calendar, User, FileText, ArrowLeft, Loader2 } from "lucide-react";
+import { Search, CheckCircle2, XCircle, Award, Calendar, User, FileText, ArrowLeft, Loader2, ExternalLink } from "lucide-react";
 import Logo from "@/components/ui/logo";
 
 interface DiplomaDetails {
@@ -17,6 +17,12 @@ interface DiplomaDetails {
 	id: string;
 }
 
+interface AssociatedProfile {
+	id: string;
+	full_name: string | null;
+	public_profile_slug: string | null;
+}
+
 const DiplomaVerification = () => {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
@@ -24,6 +30,7 @@ const DiplomaVerification = () => {
 	const [loading, setLoading] = useState(false);
 	const [result, setResult] = useState<"initial" | "valid" | "invalid">("initial");
 	const [diploma, setDiploma] = useState<DiplomaDetails | null>(null);
+	const [profile, setProfile] = useState<AssociatedProfile | null>(null);
 
 	useEffect(() => {
 		const urlCode = searchParams.get("codigo");
@@ -39,12 +46,13 @@ const DiplomaVerification = () => {
 		setLoading(true);
 		setResult("initial");
 		setDiploma(null);
+		setProfile(null);
 
 		try {
-			// 1. Buscar el token
+			// 1. Buscar el token y ver si tiene usuario asociado
 			const { data: tokenData, error: tokenError } = await supabase
 				.from("diploma_qr_tokens")
-				.select("diploma_id")
+				.select("diploma_id, user_id")
 				.eq("token", verificationCode.trim())
 				.maybeSingle();
 
@@ -54,7 +62,20 @@ const DiplomaVerification = () => {
 				return;
 			}
 
-			// 2. Buscar datos del diploma
+			// 2. Si tiene usuario, buscar su perfil público
+			if (tokenData.user_id) {
+				const { data: profileData } = await supabase
+					.from("profiles")
+					.select("id, full_name, public_profile_slug")
+					.eq("id", tokenData.user_id)
+					.maybeSingle();
+
+				if (profileData) {
+					setProfile(profileData);
+				}
+			}
+
+			// 3. Buscar datos del diploma
 			const { data: diplomaData, error: diplomaError } = await supabase
 				.from("diplomas")
 				.select("*")
@@ -82,6 +103,15 @@ const DiplomaVerification = () => {
 			month: 'long',
 			day: 'numeric'
 		});
+	};
+
+	const goToProfile = () => {
+		if (!profile) return;
+		if (profile.public_profile_slug) {
+			navigate(`/${profile.public_profile_slug}`);
+		} else {
+			navigate(`/pilot/${profile.id}`);
+		}
 	};
 
 	return (
@@ -163,6 +193,26 @@ const DiplomaVerification = () => {
 								</div>
 							</div>
 
+							{profile && (
+								<div className="mt-4 animate-in fade-in zoom-in duration-500">
+									<Button
+										onClick={goToProfile}
+										className="w-full h-16 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-lg flex items-center justify-between px-6 group transition-all"
+									>
+										<div className="flex items-center gap-4">
+											<div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
+												<User className="h-5 w-5" />
+											</div>
+											<div className="text-left">
+												<span className="text-xs opacity-80 block">Ver perfil profesional de</span>
+												<span className="font-bold text-lg">{profile.full_name || 'Piloto'}</span>
+											</div>
+										</div>
+										<ExternalLink className="h-5 w-5 opacity-50 group-hover:opacity-100 transition-opacity" />
+									</Button>
+								</div>
+							)}
+
 							<div className="bg-blue-50/50 rounded-xl p-4 border border-blue-100 text-center">
 								<p className="text-blue-700 text-sm">
 									Instructor: <span className="font-semibold text-slate-900">{diploma.instructor_name}</span> • Ciudad: <span className="font-semibold text-slate-900">{diploma.city}</span>
@@ -186,11 +236,11 @@ const DiplomaVerification = () => {
 					</Card>
 				)}
 
-				<div className="pt-8 flex justify-center pb-8">
+				<div className="pt-8 flex justify-center pb-8 border-t border-slate-200/50">
 					<Button
 						variant="ghost"
 						onClick={() => navigate("/")}
-						className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 gap-2 transition-all"
+						className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 gap-2 transition-all px-8 py-6 h-auto rounded-2xl"
 					>
 						<ArrowLeft className="h-4 w-4" />
 						Volver al Inicio

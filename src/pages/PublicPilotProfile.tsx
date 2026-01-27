@@ -1040,10 +1040,21 @@ const PublicPilotProfile = () => {
           {/* Capacitaciones y Diplomas Section */}
           {(diplomas.length > 0 || userCertifications.length > 0) && (
             <div className="space-y-8 my-16">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-2">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.4)]">
+                  <Award className="h-7 w-7 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Capacitaciones y Diplomas</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Official Diplomas */}
                 {diplomas.map((diploma) => (
-                  <div key={diploma.id} className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 group bg-white select-none">
+                  <div
+                    key={diploma.id}
+                    className="group relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 bg-white select-none transition-all duration-500 hover:scale-[1.02] hover:shadow-[#00b3f3]/20"
+                    onClick={() => navigate(`/verificar-diploma?codigo=${diploma.token}`)}
+                  >
                     <img
                       src="/DIPLOMA_2026.jpg"
                       className="absolute inset-0 w-full h-full object-cover opacity-80"
@@ -1057,11 +1068,13 @@ const PublicPilotProfile = () => {
                         {new Date(diploma.course_date).toLocaleDateString('es-CL')}
                       </p>
                     </div>
-                    {/* Protection overlay */}
-                    <div
-                      className="absolute inset-0 bg-transparent z-10"
-                      onContextMenu={(e) => e.preventDefault()}
-                    ></div>
+                    <div className="absolute inset-0 bg-transparent z-10 cursor-pointer group-hover:bg-[#00b3f3]/5 transition-colors"></div>
+                    <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-[#00b3f3] text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-bold shadow-lg">
+                        <CheckCircle className="h-4 w-4" />
+                        Verificar en línea
+                      </div>
+                    </div>
                   </div>
                 ))}
 

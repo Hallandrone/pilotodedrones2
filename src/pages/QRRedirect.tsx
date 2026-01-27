@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, GraduationCap, X } from 'lucide-react';
+import { Loader2, GraduationCap, X, UserCheck, UserPlus } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 const QRRedirect = () => {
 	const { token } = useParams<{ token: string }>();
 	const navigate = useNavigate();
-	const [status, setStatus] = useState<'loading' | 'error' | 'redirect'>('loading');
+	const [status, setStatus] = useState<'loading' | 'error' | 'ask_association'>('loading');
 	const [errorMessage, setErrorMessage] = useState<string>('');
 	const [showModal, setShowModal] = useState(false);
 
@@ -20,7 +20,7 @@ const QRRedirect = () => {
 			}
 
 			try {
-				// Buscar el token en la base de datos (query simple sin JOIN)
+				// Buscar el token en la base de datos
 				const { data, error } = await supabase
 					.from('diploma_qr_tokens')
 					.select('user_id, token')
@@ -35,43 +35,24 @@ const QRRedirect = () => {
 					return;
 				}
 
-				// Si el token no existe, mostrar mensaje y esperar acción del usuario
+				// Si el token no existe, mostrar error
 				if (!data) {
-					console.log('Token no encontrado, mostrando modal');
-					setStatus('redirect');
+					console.log('Token no encontrado');
+					setErrorMessage('El código del diploma no es válido o no existe.');
+					setStatus('error');
 					setShowModal(true);
 					return;
 				}
 
-				// Si el token ya está asociado a un usuario, buscar su perfil
+				// Si el token ya está asociado a un usuario, redirigir a VERIFICACIÓN
 				if (data.user_id) {
-					console.log('🔗 Token ya está asociado al usuario:', data.user_id);
-					// Segunda query para obtener el perfil del usuario
-					const { data: profileData, error: profileError } = await supabase
-						.from('profiles')
-						.select('public_profile_slug, id')
-						.eq('id', data.user_id)
-						.maybeSingle();
-
-					console.log('👤 Perfil obtenido:', profileData);
-					console.log('❌ Error al obtener perfil:', profileError);
-
-					if (!profileError && profileData) {
-						if (profileData.public_profile_slug) {
-							console.log('➡️ Redirigiendo a perfil personalizado:', profileData.public_profile_slug);
-							navigate(`/${profileData.public_profile_slug}`);
-						} else {
-							console.log('➡️ Redirigiendo a perfil por defecto:', `/pilot/${profileData.id}`);
-							navigate(`/pilot/${profileData.id}`);
-						}
-						return;
-					} else {
-						console.log('⚠️ No se pudo obtener el perfil, mostrando modal');
-					}
+					console.log('🔗 Token ya está asociado, redirigiendo a verificación');
+					navigate(`/verificar-diploma?codigo=${token}`);
+					return;
 				}
 
-				// Si no está asociado, mostrar mensaje y esperar acción del usuario
-				setStatus('redirect');
+				// Si no está asociado, preguntar al usuario
+				setStatus('ask_association');
 				setShowModal(true);
 			} catch (err: any) {
 				console.error('Error in QR redirect:', err);
@@ -84,51 +65,95 @@ const QRRedirect = () => {
 		handleRedirect();
 	}, [token, navigate]);
 
+	const handleGoToAuth = (tab: 'login' | 'signup') => {
+		setShowModal(false);
+		navigate(`/auth?tab=${tab}&qr_token=${token}`);
+	};
+
 	const handleClose = () => {
 		setShowModal(false);
-		navigate(`/auth?qr_token=${token}`);
+		navigate('/');
 	};
 
-	const handleBackdropClick = () => {
-		handleClose();
-	};
+	if (status === 'loading') {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#083b4e] to-[#0a4a61] p-4">
+				<Card className="w-full max-w-md mx-auto shadow-2xl border-2 border-[#00b3f3]/30 bg-white/95 backdrop-blur-xl animate-fade-in">
+					<CardContent className="text-center py-12">
+						<Loader2 className="h-12 w-12 sm:h-16 sm:w-16 animate-spin text-[#00b3f3] mx-auto mb-4" />
+						<p className="text-sm sm:text-base text-gray-600 font-medium">Procesando código QR...</p>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
 
-	if (status === 'redirect' && showModal) {
+	if (status === 'ask_association' && showModal) {
 		return (
 			<div
-				className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
-				onClick={handleBackdropClick}
+				className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in"
 			>
 				<Card
-					className="w-full max-w-md mx-auto shadow-2xl border-2 border-[#00b3f3]/30 bg-white/95 backdrop-blur-xl animate-scale-in relative"
+					className="w-full max-w-md mx-auto shadow-2xl border-2 border-[#00b3f3]/40 bg-white/95 backdrop-blur-xl animate-scale-in relative overflow-hidden"
 					onClick={(e) => e.stopPropagation()}
 				>
+					<div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#00b3f3] via-[#00d4ff] to-[#00b3f3]"></div>
+
 					<Button
 						variant="ghost"
 						size="icon"
-						className="absolute top-3 right-3 h-8 w-8 rounded-full hover:bg-gray-100"
+						className="absolute top-3 right-3 h-8 w-8 rounded-full hover:bg-gray-100 transition-colors"
 						onClick={handleClose}
 					>
 						<X className="h-5 w-5 text-gray-500" />
 					</Button>
-					<CardHeader className="text-center pb-4 pt-8">
-						<div className="mx-auto mb-4 h-16 w-16 sm:h-20 sm:w-20 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-full flex items-center justify-center shadow-lg">
-							<GraduationCap className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
+
+					<CardHeader className="text-center pb-4 pt-10">
+						<div className="mx-auto mb-6 h-20 w-20 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-2xl flex items-center justify-center shadow-xl rotate-3">
+							<GraduationCap className="h-10 w-10 text-white" />
 						</div>
-						<CardTitle className="text-xl sm:text-2xl font-bold text-gray-900">
-							Asociar Diploma
+						<CardTitle className="text-2xl font-bold text-gray-900 tracking-tight">
+							Validar tu Diploma
 						</CardTitle>
-						<CardDescription className="text-sm sm:text-base text-gray-600 mt-2">
-							Inicia sesión o regístrate en nuestra plataforma para asociar este diploma a tu perfil
+						<CardDescription className="text-base text-gray-600 mt-2 px-4 leading-relaxed">
+							Para asociar este diploma a tu perfil profesional, primero necesitamos saber:
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="text-center pb-6">
-						<Button
-							onClick={handleClose}
-							className="w-full bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-						>
-							Continuar
-						</Button>
+
+					<CardContent className="space-y-4 pb-10 pt-4 px-8">
+						<div className="grid gap-4">
+							<Button
+								onClick={() => handleGoToAuth('login')}
+								className="w-full h-16 flex items-center justify-between px-6 bg-white border-2 border-[#00b3f3]/20 hover:border-[#00b3f3] text-gray-900 hover:bg-[#00b3f3]/5 transition-all duration-300 rounded-xl group"
+							>
+								<div className="flex items-center gap-4 text-left">
+									<div className="h-10 w-10 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center group-hover:bg-[#00b3f3] transition-colors">
+										<UserCheck className="h-5 w-5 text-[#00b3f3] group-hover:text-white" />
+									</div>
+									<div>
+										<span className="font-bold block">Ya tengo cuenta</span>
+										<span className="text-xs text-gray-500">Inicia sesión y asocia</span>
+									</div>
+								</div>
+								<div className="h-2 w-2 rounded-full bg-[#00b3f3]/30"></div>
+							</Button>
+
+							<Button
+								onClick={() => handleGoToAuth('signup')}
+								className="w-full h-16 flex items-center justify-between px-6 bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white shadow-lg hover:shadow-[#00b3f3]/30 transition-all duration-300 rounded-xl group"
+							>
+								<div className="flex items-center gap-4 text-left">
+									<div className="h-10 w-10 bg-white/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+										<UserPlus className="h-5 w-5 text-white" />
+									</div>
+									<div>
+										<span className="font-bold block text-white">Soy nuevo</span>
+										<span className="text-xs text-white/80">Crea tu perfil profesional</span>
+									</div>
+								</div>
+								<div className="h-2 w-2 rounded-full bg-white/40 animate-pulse"></div>
+							</Button>
+						</div>
 					</CardContent>
 				</Card>
 			</div>
@@ -138,8 +163,7 @@ const QRRedirect = () => {
 	if (status === 'error' && showModal) {
 		return (
 			<div
-				className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in"
-				onClick={handleBackdropClick}
+				className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4 animate-fade-in"
 			>
 				<Card
 					className="w-full max-w-md mx-auto shadow-2xl border-2 border-red-500/30 bg-white/95 backdrop-blur-xl animate-scale-in relative"
@@ -156,20 +180,15 @@ const QRRedirect = () => {
 					<CardHeader className="text-center pb-4 pt-8">
 						<CardTitle className="text-xl sm:text-2xl font-bold text-red-600">Error</CardTitle>
 						<CardDescription className="text-sm sm:text-base text-gray-600 mt-2">
-							No se pudo procesar el código QR
+							{errorMessage || 'No se pudo procesar el código QR'}
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="text-center pb-6">
-						{errorMessage && (
-							<p className="text-xs sm:text-sm text-red-600 mb-4 p-3 bg-red-50 rounded-lg">
-								{errorMessage}
-							</p>
-						)}
+					<CardContent className="text-center pb-8 pt-4">
 						<Button
 							onClick={handleClose}
-							className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+							className="w-full bg-gray-900 hover:bg-black text-white font-semibold py-4 rounded-xl shadow-lg transition-all duration-300"
 						>
-							Continuar a Inicio de Sesión
+							Volver al Inicio
 						</Button>
 					</CardContent>
 				</Card>
@@ -177,18 +196,7 @@ const QRRedirect = () => {
 		);
 	}
 
-	return (
-		<div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#083b4e] to-[#0a4a61] p-4">
-			<Card className="w-full max-w-md mx-auto shadow-2xl border-2 border-[#00b3f3]/30 bg-white/95 backdrop-blur-xl animate-fade-in">
-				<CardContent className="text-center py-12">
-					<Loader2 className="h-12 w-12 sm:h-16 sm:w-16 animate-spin text-[#00b3f3] mx-auto mb-4" />
-					<p className="text-sm sm:text-base text-gray-600">Procesando código QR...</p>
-				</CardContent>
-			</Card>
-		</div>
-	);
+	return null;
 };
 
 export default QRRedirect;
-
-

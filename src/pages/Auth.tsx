@@ -164,17 +164,9 @@ const Auth = () => {
                 description: "Tu diploma ha sido asociado a tu perfil exitosamente",
               });
 
-              // Redirigir al perfil público
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('public_profile_slug, id')
-                .eq('id', user.id)
-                .single();
-
-              if (profile) {
-                navigate(profile.public_profile_slug ? `/${profile.public_profile_slug}` : `/pilot/${profile.id}`);
-                return;
-              }
+              // Redirigir a la página de verificación para ver el diploma recién asociado
+              navigate(`/verificar-diploma?codigo=${storedQrToken}`);
+              return;
             }
           } catch (error) {
             console.error('Error in QR association:', error);
