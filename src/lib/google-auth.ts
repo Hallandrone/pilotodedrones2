@@ -82,13 +82,6 @@ export function initGoogleAuth(
             .update({ auth_provider: 'google' })
             .eq('id', data.user.id);
 
-          // Actualizar user_type solo si es nulo
-          await supabase
-            .from('profiles')
-            .update({ user_type: userType })
-            .eq('id', data.user.id)
-            .is('user_type', null);
-
           onSuccess({
             success: true,
             user: {

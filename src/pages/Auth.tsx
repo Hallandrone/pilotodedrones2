@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,11 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const registerUserTypeRef = useRef(registerUserType);
+
+  useEffect(() => {
+    registerUserTypeRef.current = registerUserType;
+  }, [registerUserType]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -83,12 +88,9 @@ const Auth = () => {
   }, [location, setRegisterUserType]);
 
   useEffect(() => {
-    // Cargar Google GSI y configurar el botón invisible
+    // Cargar Google GSI y configurar el botón
     loadGoogleScript().then(() => {
-      // Determinar el tipo de usuario para la inicialización
-      // Si estamos en signup, usamos el tipo seleccionado en el toggle
-      const userTypeToUse = activeTab === 'signup' ? registerUserType : 'pilot';
-      console.log(`[Auth] Inicializando Google Auth con tipo: ${userTypeToUse}`);
+      console.log(`[Auth] Inicializando Google Auth. Tab actual: ${activeTab}`);
 
       initGoogleAuth((result) => {
         if (result.success) {
@@ -100,7 +102,7 @@ const Auth = () => {
             variant: "destructive",
           });
         }
-      }, userTypeToUse);
+      }, registerUserTypeRef.current);
 
       // Renderizar botones (con un pequeño delay para asegurar que el DOM de la pestaña esté listo)
       setTimeout(() => {
@@ -111,32 +113,43 @@ const Auth = () => {
         if (signupBtn) renderGoogleButton("google-signup-btn-overlay");
       }, 500);
     });
-  }, [activeTab, registerUserType]); // Ejecutar cuando cambie la pestaña o el tipo seleccionado
+  }, [activeTab]); // Solo re-inicializar si cambia la pestaña, el tipo se maneja vía Ref
 
   const handleGoogleAuthCompleted = async (result: any) => {
     setLoading(true);
 
     console.log('[Auth] Google Auth completado. Tipo solicitado:', registerUserType, 'Nuevo usuario:', result.isNewUser);
 
-    // Obtener perfil actual
+    // Obtener perfil actual para auditoría
     const { data: profile } = await supabase
       .from('profiles')
       .select('user_type')
       .eq('id', result.user.id)
       .single();
 
-    // Si es un nuevo usuario, forzar que el user_type sea el seleccionado en el UI
-    if (result.isNewUser || !profile?.user_type) {
-      const userTypeToSet = activeTab === 'signup' ? registerUserType : 'pilot';
-      console.log('[Auth] Forzando user_type para nuevo usuario Google:', userTypeToSet);
+    console.log('[Auth] Perfil detectado:', profile?.user_type, 'Nuev?:', result.isNewUser);
+
+    // SIEMPRE que estemos en signup, forzamos el tipo seleccionado en el toggle
+    // Esto permite que si alguien inició como empresa por error, pueda "registrarse" como piloto
+    if (activeTab === 'signup') {
+      const userTypeToSet = registerUserTypeRef.current;
+      console.log('[Auth] Forzando user_type (Registro):', userTypeToSet);
 
       await supabase
         .from('profiles')
         .update({ user_type: userTypeToSet })
         .eq('id', result.user.id);
 
-      // También asegurar que tenga el rol correspondiente
-      await getUserRole(result.user.id);
+      // Re-sincronizar rol en user_roles
+      await supabase.from('user_roles').upsert({ id: result.user.id, role: userTypeToSet });
+    } else if (!profile?.user_type) {
+      // Si no es signup pero no tiene tipo, default a pilot
+      await supabase
+        .from('profiles')
+        .update({ user_type: 'pilot' })
+        .eq('id', result.user.id);
+
+      await supabase.from('user_roles').upsert({ id: result.user.id, role: 'pilot' });
     }
 
     const { data: updatedProfile } = await supabase
@@ -1121,7 +1134,7 @@ const Auth = () => {
         </div>
       </div>
       <Footer />
-    </div>
+    </div >
   );
 };
 

@@ -400,7 +400,7 @@ const CompanyDashboard = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 transform-gpu backface-visibility-hidden">
+                      <Card className="bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate">
                         <CardContent className="p-8">
                           <div className="flex items-center gap-6 mb-8">
                             <Avatar className="h-20 w-20 ring-4 ring-[#00b3f3]/50">
@@ -416,11 +416,11 @@ const CompanyDashboard = () => {
                           </div>
 
                           <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                            <div className="bg-[#083b4e]/50 rounded-2xl p-4 border border-white/10">
                               <div className="text-3xl font-bold text-[#00b3f3]">{metrics.experience_years}</div>
                               <div className="text-sm text-white/60">Años de Experiencia</div>
                             </div>
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                            <div className="bg-[#083b4e]/50 rounded-2xl p-4 border border-white/10">
                               <div className="text-3xl font-bold text-[#00b3f3]">{metrics.services_count}</div>
                               <div className="text-sm text-white/60">Servicios</div>
                             </div>
@@ -432,7 +432,7 @@ const CompanyDashboard = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-emerald-500/30 p-6 flex flex-col justify-between">
+                      <Card className="bg-[#0b485d] border-2 border-emerald-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
                         <div className="flex items-center gap-4 mb-4">
                           <div className="h-12 w-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                             <Shield className="h-6 w-6 text-emerald-400" />
@@ -447,7 +447,7 @@ const CompanyDashboard = () => {
                         </Badge>
                       </Card>
 
-                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-purple-500/30 p-6 flex flex-col justify-between">
+                      <Card className="bg-[#0b485d] border-2 border-purple-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
                         <div className="flex items-center gap-4 mb-4">
                           <div className="h-12 w-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
                             <CreditCard className="h-6 w-6 text-purple-400" />
@@ -462,7 +462,7 @@ const CompanyDashboard = () => {
                         </Badge>
                       </Card>
 
-                      <Card className="bg-white/10 backdrop-blur-xl border-2 border-orange-500/30 p-6 flex flex-col justify-between">
+                      <Card className="bg-[#0b485d] border-2 border-orange-500/30 p-6 flex flex-col justify-between rounded-3xl isolation-isolate">
                         <div className="flex items-center gap-4 mb-4">
                           <div className="h-12 w-12 rounded-xl bg-orange-500/20 flex items-center justify-center">
                             <LayoutDashboard className="h-6 w-6 text-orange-400" />
@@ -482,11 +482,11 @@ const CompanyDashboard = () => {
 
                     {/* Support Section */}
                     <div className="grid grid-cols-1 gap-6 pb-12">
-                      <Card className="group bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
-                        <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-slate-500/10 p-1">
-                          <CardContent className="p-8 bg-[#083b4e]/60 backdrop-blur-sm rounded-3xl">
+                      <Card className="group bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl isolation-isolate">
+                        <div className="p-1">
+                          <CardContent className="p-8 bg-[#083b4e]/60 rounded-3xl">
                             <div className="flex items-center gap-4 mb-6">
-                              <div className="h-14 w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                              <div className="h-14 w-14 bg-gradient-to-br from-slate-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg">
                                 <HelpCircle className="h-7 w-7 text-white" />
                               </div>
                               <span className="text-white text-xl font-bold">Soporte y Ayuda</span>
@@ -502,7 +502,7 @@ const CompanyDashboard = () => {
                               <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <Button
                                   size="lg"
-                                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-2xl shadow-xl hover:shadow-2xl h-14"
+                                  className="w-full justify-start bg-white/5 border-2 border-emerald-500/30 hover:bg-emerald-500 hover:border-emerald-500 text-white transition-all duration-300 rounded-2xl shadow-xl h-14"
                                   onClick={() => window.open('https://wa.me/56969013735')}
                                 >
                                   <Phone className="h-5 w-5 mr-3" />
@@ -510,7 +510,7 @@ const CompanyDashboard = () => {
                                 </Button>
                                 <Button
                                   size="lg"
-                                  className="w-full justify-start bg-white/5 backdrop-blur-xl border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white hover:scale-105 transition-all duration-300 rounded-2xl shadow-xl hover:shadow-2xl h-14"
+                                  className="w-full justify-start bg-white/5 border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:border-[#00b3f3] text-white transition-all duration-300 rounded-2xl shadow-xl h-14"
                                   onClick={() => window.open('https://wa.me/56954751380')}
                                 >
                                   <Phone className="h-5 w-5 mr-3" />
