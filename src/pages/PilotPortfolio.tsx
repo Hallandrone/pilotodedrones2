@@ -114,7 +114,8 @@ const PilotPortfolio = () => {
 
 	const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		// Portafolio es solo para Pro/Empresa
-		if (plan && plan.isFree) {
+		const isUserAdmin = userType === 'admin' || userType === 'super_admin';
+		if (plan && plan.isFree && !isUserAdmin) {
 			setShowUpgradeModal(true);
 			event.target.value = '';
 			return;
@@ -209,7 +210,8 @@ const PilotPortfolio = () => {
 	};
 
 	const handleAddVideo = async () => {
-		if (plan && plan.isFree) {
+		const isUserAdmin = userType === 'admin' || userType === 'super_admin';
+		if (plan && plan.isFree && !isUserAdmin) {
 			setShowUpgradeModal(true);
 			return;
 		}
