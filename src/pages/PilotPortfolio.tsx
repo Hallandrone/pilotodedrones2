@@ -52,6 +52,8 @@ const PilotPortfolio = () => {
 	const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
 	const [editTitle, setEditTitle] = useState('');
 	const [editDescription, setEditDescription] = useState('');
+	const [editVideoUrl, setEditVideoUrl] = useState('');
+	const [editFile, setEditFile] = useState<File | null>(null);
 	const [updating, setUpdating] = useState(false);
 
 	const navigate = useNavigate();
@@ -320,17 +322,64 @@ const PilotPortfolio = () => {
 		setEditingItem(item);
 		setEditTitle(item.title || '');
 		setEditDescription(item.description || '');
+		setEditVideoUrl(item.type === 'video' ? item.url : '');
+		setEditFile(null);
 	};
 
 	const handleUpdateItem = async () => {
 		if (!editingItem) return;
 		try {
 			setUpdating(true);
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) return;
+
+			let finalUrl = editingItem.url;
+
+			// Handle image update
+			if (editingItem.type === 'image' && editFile) {
+				const options = {
+					maxSizeMB: 2,
+					maxWidthOrHeight: 1920,
+					useWebWorker: true,
+					fileType: 'image/webp' as const
+				};
+
+				const compressedFile = await imageCompression(editFile, options);
+				const fileName = `${user.id}/${Date.now()}.webp`;
+
+				const { error: uploadError } = await supabase.storage
+					.from('portfolio')
+					.upload(fileName, compressedFile);
+
+				if (uploadError) throw uploadError;
+
+				const { data: { publicUrl } } = supabase.storage
+					.from('portfolio')
+					.getPublicUrl(fileName);
+
+				finalUrl = publicUrl;
+
+				// Try to delete old image if it was in storage
+				if (editingItem.url.includes('/storage/v1/object/public/portfolio/')) {
+					const oldFileName = editingItem.url.split('/').pop();
+					if (oldFileName) {
+						await supabase.storage
+							.from('portfolio')
+							.remove([`${user.id}/${oldFileName}`]);
+					}
+				}
+			}
+			// Handle video URL update
+			else if (editingItem.type === 'video' && editVideoUrl) {
+				finalUrl = editVideoUrl;
+			}
+
 			const { error } = await supabase
 				.from('pilot_portfolio')
 				.update({
 					title: editTitle,
-					description: editDescription
+					description: editDescription,
+					url: finalUrl
 				})
 				.eq('id', editingItem.id);
 
@@ -342,6 +391,7 @@ const PilotPortfolio = () => {
 			});
 
 			setEditingItem(null);
+			setEditFile(null);
 			await loadPortfolio();
 		} catch (error: any) {
 			console.error('Error updating portfolio item:', error);
@@ -640,9 +690,55 @@ const PilotPortfolio = () => {
 								value={editDescription}
 								onChange={(e) => setEditDescription(e.target.value)}
 								className="bg-[#2C2C2C] border-[#444444]"
-								rows={4}
+								rows={2}
 							/>
 						</div>
+
+						{editingItem.type === 'image' ? (
+							<div className="space-y-3 pt-2">
+								<Label>Cambiar Imagen</Label>
+								<div className="flex flex-col gap-3">
+									{editFile ? (
+										<div className="text-xs text-blue-400 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
+											Nueva imagen seleccionada: {editFile.name}
+										</div>
+									) : (
+										<div className="aspect-video relative rounded-lg overflow-hidden border border-[#333333]">
+											<img src={editingItem.url} className="w-full h-full object-cover opacity-50" />
+											<div className="absolute inset-0 flex items-center justify-center">
+												<span className="text-xs text-white/40">Imagen actual</span>
+											</div>
+										</div>
+									)}
+									<label htmlFor="edit-portfolio-upload" className="cursor-pointer">
+										<Button asChild variant="secondary" className="w-full bg-[#333333] hover:bg-[#444444] text-white">
+											<span>
+												<Upload className="h-4 w-4 mr-2" />
+												Seleccionar Nueva Foto
+											</span>
+										</Button>
+										<input
+											id="edit-portfolio-upload"
+											type="file"
+											accept=".jpg,.jpeg,.png,.webp"
+											className="hidden"
+											onChange={(e) => e.target.files && setEditFile(e.target.files[0])}
+										/>
+									</label>
+								</div>
+							</div>
+						) : (
+							<div className="space-y-2 pt-2">
+								<Label htmlFor="edit-video-url">URL del Video (YouTube/Vimeo)</Label>
+								<Input
+									id="edit-video-url"
+									value={editVideoUrl}
+									onChange={(e) => setEditVideoUrl(e.target.value)}
+									className="bg-[#2C2C2C] border-[#444444]"
+									placeholder="https://www.youtube.com/watch?v=..."
+								/>
+							</div>
+						)}
 					</div>
 					<DialogFooter>
 						<Button variant="ghost" onClick={() => setEditingItem(null)} disabled={updating}>
