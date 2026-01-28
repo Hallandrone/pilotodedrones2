@@ -42,32 +42,43 @@ serve(async (req) => {
 		// 1. Security Check
 		const authHeader = req.headers.get('Authorization')
 		if (!authHeader) {
+			console.error('No Authorization header provided');
 			return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 		}
 
+		console.log('Initializing Supabase clients...');
 		const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } })
 		const { data: { user: currentUser }, error: authError } = await supabaseClient.auth.getUser()
 
 		if (authError || !currentUser) {
+			console.error('Auth check failed:', authError?.message || 'No user found');
 			return new Response(JSON.stringify({ error: 'Token inválido o expirado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 		}
 
+		console.log('Authorized user:', currentUser.email, 'ID:', currentUser.id);
 		const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 		// Verify Caller Role (Must be Admin or Super Admin)
-		const { data: roleData } = await supabaseAdmin
+		const { data: roleData, error: roleError } = await supabaseAdmin
 			.from('user_roles')
 			.select('role')
 			.eq('id', currentUser.id)
 			.single()
 
+		if (roleError) {
+			console.error('Error fetching caller role:', roleError);
+		}
+
 		const isAllowed = roleData?.role === 'super_admin' || roleData?.role === 'admin';
 		if (!isAllowed) {
+			console.error('Access denied for role:', roleData?.role);
 			return new Response(JSON.stringify({ error: 'Permisos insuficientes.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 		}
 
 		// 2. Process Request
-		const { email, full_name, permissions, role, password } = await req.json()
+		const body = await req.json();
+		console.log('Request body:', body);
+		const { email, full_name, permissions, role, password } = body;
 
 		if (!email) {
 			return new Response(JSON.stringify({ error: 'Email es requerido' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -78,20 +89,20 @@ serve(async (req) => {
 		const invitedBy = currentUser.id
 
 		// 3. Find user by email in Auth
-		console.log('Checking if user exists:', cleanEmail);
+		console.log('Listing users to find:', cleanEmail);
 		const { data: listData, error: listError } = await supabaseAdmin.auth.admin.listUsers();
 		if (listError) {
 			console.error('Error listing users:', listError);
 			throw listError;
 		}
 
-		const targetUser = listData.users.find(u => u.email?.toLowerCase() === cleanEmail);
+		const targetUser = listData.users.find((u: any) => u.email?.toLowerCase() === cleanEmail);
 		let targetUserId = targetUser?.id;
 		let isNewUser = !targetUserId;
 
 		if (isNewUser) {
 			// --- NEW USER: Store invitation ---
-			console.log('User not found. Saving pending invitation in admin_invitations...');
+			console.log('User not found. Saving pending invitation in admin_invitations for email:', cleanEmail);
 
 			const { error: inviteError } = await supabaseAdmin.from('admin_invitations').upsert({
 				email: cleanEmail,
@@ -101,39 +112,48 @@ serve(async (req) => {
 			}, { onConflict: 'email' });
 
 			if (inviteError) {
-				console.error('Error saving invitation:', inviteError);
+				console.error('Error saving invitation to DB:', inviteError);
 				throw inviteError;
 			}
+			console.log('Invitation saved successfully');
 		} else {
 			// --- EXISTING USER: Apply role/perms immediately ---
-			console.log('Existing user found. Applying role and permissions...');
+			console.log('Existing user found with ID:', targetUserId, '. Applying role and permissions...');
 
 			// Update profile user_type
-			await supabaseAdmin.from('profiles').update({
+			const { error: profileError } = await supabaseAdmin.from('profiles').update({
 				user_type: targetRole
 			}).eq('id', targetUserId);
+
+			if (profileError) console.error('Error updating profile:', profileError);
 
 			// Update Role
 			const { data: existingRole } = await supabaseAdmin.from('user_roles').select('role').eq('id', targetUserId).maybeSingle();
 			if (existingRole?.role !== 'super_admin') {
-				await supabaseAdmin.from('user_roles').upsert({ id: targetUserId, role: targetRole });
+				const { error: roleUpdateError } = await supabaseAdmin.from('user_roles').upsert({ id: targetUserId, role: targetRole });
+				if (roleUpdateError) console.error('Error updating role:', roleUpdateError);
 			}
 
 			// Update Permissions
 			if (permissions) {
-				await supabaseAdmin.from('user_permissions').delete().eq('user_id', targetUserId);
+				const { error: deletePermsError } = await supabaseAdmin.from('user_permissions').delete().eq('user_id', targetUserId);
+				if (deletePermsError) console.error('Error deleting old perms:', deletePermsError);
+
 				if (permissions.length > 0) {
 					const permsToInsert = permissions.map((p: string) => ({
 						user_id: targetUserId,
 						permission: p,
 						granted_by: invitedBy
 					}));
-					await supabaseAdmin.from('user_permissions').insert(permsToInsert);
+					const { error: insertPermsError } = await supabaseAdmin.from('user_permissions').insert(permsToInsert);
+					if (insertPermsError) console.error('Error inserting new perms:', insertPermsError);
 				}
 			}
+			console.log('User access updated successfully');
 		}
 
 		// --- PREPARE EMAILS ---
+		console.log('Preparing email for:', cleanEmail, 'isNewUser:', isNewUser);
 		let emailSubject = '';
 		let emailHtml = '';
 		const mappedPermissions = permissions ? permissions.map((p: string) => PERMISSION_LABELS[p] || p) : [];
@@ -208,6 +228,7 @@ serve(async (req) => {
 
 		// --- SEND EMAIL ---
 		if (RESEND_API_KEY) {
+			console.log('Sending email via Resend...');
 			try {
 				const emailRes = await fetch('https://api.resend.com/emails', {
 					method: 'POST',
@@ -225,15 +246,18 @@ serve(async (req) => {
 
 				if (!emailRes.ok) {
 					const errorData = await emailRes.json();
-					console.error('Resend error:', errorData);
+					console.error('Resend rejection:', errorData);
 				} else {
-					console.log('Admin invitation email sent successfully to:', cleanEmail);
+					console.log('Email sent successfully');
 				}
 			} catch (err: any) {
-				console.error('Email exception:', err.message);
+				console.error('Error during fetch to Resend:', err.message);
 			}
+		} else {
+			console.warn('RESEND_API_KEY missing, skipping email');
 		}
 
+		console.log('Function execution finished successfully');
 		return new Response(
 			JSON.stringify({
 				success: true,
