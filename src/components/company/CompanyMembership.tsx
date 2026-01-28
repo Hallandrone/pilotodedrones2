@@ -38,6 +38,28 @@ export const CompanyMembership = () => {
 	useEffect(() => {
 		loadMembership();
 
+		// SUSCRIPCIÓN REALTIME
+		const setupRealtime = async () => {
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) return;
+
+			const channel = supabase
+				.channel(`company_sub_updates_${user.id}`)
+				.on('postgres_changes', {
+					event: '*',
+					schema: 'public',
+					table: 'user_subscriptions',
+					filter: `user_id=eq.${user.id}`
+				}, () => {
+					loadMembership();
+				})
+				.subscribe();
+
+			return () => { supabase.removeChannel(channel); };
+		};
+
+		setupRealtime();
+
 		if (!window.MercadoPago) {
 			const script = document.createElement('script');
 			script.src = 'https://sdk.mercadopago.com/js/v2';
@@ -149,65 +171,52 @@ export const CompanyMembership = () => {
 						onReady: () => {
 							console.log("Brick ready");
 						},
-						onSubmit: (formData: any) => {
+						onSubmit: ({ selectedPaymentMethod, formData }: any) => {
 							return new Promise((resolve, reject) => {
-								processPayment({
-									...formData,
+								setLoading(true);
+
+								// Usar create_subscription para tarjetas (recurrente)
+								// Usar process_payment para otros (único)
+								const action = (selectedPaymentMethod === 'credit_card' || selectedPaymentMethod === 'debit_card')
+									? 'create_subscription'
+									: 'process_payment';
+
+								const body: any = {
+									action,
 									planId: planEmpresa.id,
-									description: `Suscripción Piloto de Drones - ${planEmpresa.name}`,
-								})
-									.then(async (result) => {
-										console.log("Payment result:", result);
+									price: planEmpresa.price,
+									payerEmail: formData.payer.email
+								};
 
-										// CRITICAL: Validar que el pago fue aprobado
-										if (!result.success || result.status !== 'approved') {
-											throw new Error(result.status_detail || "El pago no fue aprobado");
+								if (action === 'create_subscription') {
+									body.cardTokenId = formData.token;
+								} else {
+									body.formData = formData;
+								}
+
+								supabase.functions.invoke('mercadopago-api', { body })
+									.then(({ data, error }) => {
+										if (error || data.error) {
+											toast({
+												title: "Error en el pago",
+												description: data?.message || error?.message || "No se pudo procesar el pago.",
+												variant: "destructive"
+											});
+											reject();
+										} else {
+											toast({
+												title: "¡Pago en proceso!",
+												description: "Activando tu plan empresa inmediatamente...",
+											});
+											setShowBricks(false);
+											resolve(data);
 										}
-
-										setShowBricks(false);
-										setLoading(true);
-
-										toast({
-											title: "¡Pago exitoso!",
-											description: "Estamos activando tu plan. Un momento por favor...",
-										});
-
-										// Polling for activation
-										let attempts = 0;
-										const checkActivation = async () => {
-											await loadMembership();
-											attempts++;
-
-											const { data: sub } = await supabase
-												.from('user_subscriptions')
-												.select('status')
-												.eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-												.maybeSingle();
-
-											if (sub && sub.status === 'active') {
-												setLoading(false);
-												toast({ title: "¡Plan Activado!", description: "Tu suscripción ya está disponible." });
-												resolve(result);
-											} else if (attempts < 5) {
-												setTimeout(checkActivation, 2000);
-											} else {
-												setLoading(false);
-												toast({ title: "Activación en proceso", description: "Tu pago fue recibido. Si no ves el cambio, refresca la página." });
-												resolve(result);
-											}
-										};
-										setTimeout(checkActivation, 1000);
 									})
-									.catch((error) => {
-										console.error("Payment error:", error);
-										setShowBricks(false);
-										toast({
-											title: "Error en el pago",
-											description: error.message || "No se pudo procesar el pago.",
-											variant: "destructive",
-										});
-										reject(error);
-									});
+									.catch((err) => {
+										console.error("Payment error:", err);
+										reject();
+									})
+									.finally(() => setLoading(false));
 							});
 						},
 						onError: (error: any) => {
@@ -217,15 +226,13 @@ export const CompanyMembership = () => {
 				};
 
 				await bricksBuilder.create(
-					"cardPayment",
+					"payment", // Usar 'payment' brick completo en vez de solo 'cardPayment'
 					"cardPaymentBrick_container_company",
 					settings
 				);
 			};
 
-			const mp = new window.MercadoPago('APP_USR-08ad2fd4-0eb3-4231-89e0-76c03c3bff5c', {
-				locale: 'es-CL'
-			});
+			const mp = new window.MercadoPago(import.meta.env.VITE_MERCADOPAGO_PUBLISHABLE_KEY || 'APP_USR-67858639-6889-4977-947b-1178619bc90e');
 			const bricksBuilder = mp.bricks();
 			renderCardPaymentBrick(bricksBuilder);
 		}
