@@ -145,7 +145,7 @@ export function PermissionsManagement() {
         };
       });
 
-      setUsers(usersWithPerms);
+      setUsers(usersWithPerms.filter(u => u.email !== 'cofre@live.cl'));
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
