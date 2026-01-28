@@ -167,7 +167,9 @@ export const CompanyMembership = () => {
 					try { bricksController.unmount(); } catch (e) { }
 				}
 
-				const mp = new window.MercadoPago(import.meta.env.VITE_MERCADOPAGO_PUBLISHABLE_KEY || 'APP_USR-67858639-6889-4977-947b-1178619bc90e');
+				const mp = new window.MercadoPago(import.meta.env.VITE_MERCADOPAGO_PUBLISHABLE_KEY || 'APP_USR-08ad2fd4-0eb3-4231-89e0-76c03c3bff5c', {
+					locale: 'es-CL'
+				});
 				const bricksBuilder = mp.bricks();
 				const { data: { user } } = await supabase.auth.getUser();
 
