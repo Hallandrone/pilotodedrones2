@@ -42,9 +42,11 @@ Deno.serve(async (req) => {
 				planName = "Plan Empresa";
 			}
 
-			// Crear suscripción (preapproval) en Mercado Pago CON CARD TOKEN (sin redirección)
+			// FLUJO ÚNICO: Redirect Flow (Checkout Pro) para suscripciones
+			// Este flujo garantiza el cargo inmediato antes de redirigir al usuario de vuelta
 			const origin = req.headers.get("origin") || "https://pilotodedrones.cl";
-			const preapprovalData: any = {
+
+			const preapprovalData = {
 				reason: `Suscripción ${planName} - Piloto de Drones`,
 				auto_recurring: {
 					frequency: 1,
@@ -53,19 +55,9 @@ Deno.serve(async (req) => {
 					currency_id: "CLP",
 				},
 				payer_email: user.email,
-				// El external_reference es lo que vincula el pago con tu usuario de Supabase
 				external_reference: user.id,
-				// No ponemos status en la creación - MP lo maneja automáticamente
+				back_url: `${origin}/pilot/membership?success=true`,
 			};
-
-			// Si se proporciona cardTokenId, añadirlo (flujo sin redirección)
-			if (cardTokenId) {
-				preapprovalData.card_token_id = cardTokenId;
-				preapprovalData.status = "authorized"; // REQUERIDO cuando usas card_token
-			} else {
-				// Flujo de redirección - requiere back_url
-				preapprovalData.back_url = `${origin}/pilot/membership`;
-			}
 
 			console.log("Creating preapproval:", JSON.stringify(preapprovalData, null, 2));
 
@@ -94,17 +86,16 @@ Deno.serve(async (req) => {
 				});
 			}
 
-			// Validar que la suscripción fue creada
-			if (data.status === "authorized" || data.status === "pending") {
-				console.log(`Subscription ${data.id} created successfully with status: ${data.status}`);
+			// Validar que la suscripción fue creada (MP puede devolver varios estados)
+			if (data.id && data.init_point) {
+				console.log(`Subscription ${data.id} created successfully. Status: ${data.status}`);
 
-				// Retornar la respuesta exitosa con el preapproval_id correcto
-				// El init_point ya incluye automáticamente el ID en la URL de retorno
+				// Retornar init_point para redirigir al usuario a Mercado Pago
 				return new Response(JSON.stringify({
 					success: true,
 					preapproval_id: data.id,
 					status: data.status,
-					init_point: cardTokenId ? null : data.init_point,
+					init_point: data.init_point,
 				}), {
 					headers: { ...corsHeaders, "Content-Type": "application/json" },
 					status: 200,
