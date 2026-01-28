@@ -43,16 +43,32 @@ serve(async (req) => {
 		const authHeader = req.headers.get('Authorization')
 		if (!authHeader) {
 			console.error('No Authorization header provided');
-			return new Response(JSON.stringify({ error: 'No autorizado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+			return new Response(JSON.stringify({ error: 'No autorizado: Falta cabecera Authorization' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 		}
 
 		console.log('Initializing Supabase clients...');
-		const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } })
+		// Debug info (safe)
+		console.log('Auth Header Length:', authHeader.length);
+		console.log('Supabase URL defined:', !!SUPABASE_URL);
+
+		const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+			global: { headers: { Authorization: authHeader } },
+			auth: {
+				persistSession: false,
+				autoRefreshToken: false,
+				detectSessionInUrl: false
+			}
+		})
+
 		const { data: { user: currentUser }, error: authError } = await supabaseClient.auth.getUser()
 
 		if (authError || !currentUser) {
-			console.error('Auth check failed:', authError?.message || 'No user found');
-			return new Response(JSON.stringify({ error: 'Token inválido o expirado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+			console.error('Auth check failed. Error:', authError);
+			console.error('Auth Error Message:', authError?.message);
+			return new Response(JSON.stringify({
+				error: 'Token inválido o expirado',
+				details: authError?.message
+			}), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 		}
 
 		console.log('Authorized user:', currentUser.email, 'ID:', currentUser.id);
