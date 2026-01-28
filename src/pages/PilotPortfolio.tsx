@@ -744,11 +744,20 @@ const PilotPortfolio = () => {
 							)}
 						</div>
 					)}
-					<DialogFooter>
-						<Button variant="ghost" onClick={() => setEditingItem(null)} disabled={updating}>
+					<DialogFooter className="flex-col sm:flex-row gap-4 sm:gap-6 pt-6">
+						<Button
+							variant="ghost"
+							onClick={() => setEditingItem(null)}
+							disabled={updating}
+							className="w-full sm:w-auto"
+						>
 							Cancelar
 						</Button>
-						<Button onClick={handleUpdateItem} disabled={updating} className="bg-[#00b3f3] hover:bg-[#0099cc]">
+						<Button
+							onClick={handleUpdateItem}
+							disabled={updating}
+							className="bg-[#00b3f3] hover:bg-[#0099cc] w-full sm:w-auto"
+						>
 							{updating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
 							Guardar Cambios
 						</Button>

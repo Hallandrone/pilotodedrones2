@@ -69,7 +69,7 @@ const Index = () => {
 
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, location, region, specialties, drone_types, avatar_url, experience_years, user_type')
+        .select('id, full_name, email, location, region, specialties, drone_types, avatar_url, experience_years, user_type')
         .in('id', pilotUserIds);
 
       if (profilesError) throw profilesError;
@@ -96,6 +96,10 @@ const Index = () => {
         const subscription = subscriptions?.find(s => s.user_id === pilot.user_id);
         const isCompany = profile?.user_type === 'company';
         const hasActiveSub = !!subscription;
+
+        // Excluir super administrador específico
+        if (profile?.email === 'cofre@live.cl') return;
+        if (profile?.user_type === 'super_admin') return;
 
         // Las empresas sin plan pagado no deben ser visibles
         if (isCompany && !hasActiveSub) return;
