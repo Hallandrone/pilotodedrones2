@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
 
 		// ========== NUEVA ACCIÓN: CREAR SUSCRIPCIÓN ==========
 		if (action === "create_subscription") {
-			const { planId, price } = body;
+			const { planId, price, cardTokenId } = body;
 
 			// Determinar precio: si es qrescueid@gmail.com, usar precio de prueba
 			let finalPrice = price;
@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
 				planName = "Plan Empresa";
 			}
 
-			// Crear suscripción (preapproval) en Mercado Pago
-			const preapprovalData = {
+			// Crear suscripción (preapproval) en Mercado Pago CON CARD TOKEN (sin redirección)
+			const preapprovalData: any = {
 				reason: `Suscripción ${planName} - Piloto de Drones`,
 				auto_recurring: {
 					frequency: 1,
@@ -54,8 +54,15 @@ Deno.serve(async (req) => {
 				payer_email: user.email,
 				external_reference: user.id,
 				status: "authorized", // Autorizar inmediatamente
-				back_url: `${req.headers.get("origin")}/pilot/membership?success=true`,
 			};
+
+			// Si se proporciona cardTokenId, añadirlo (flujo sin redirección)
+			if (cardTokenId) {
+				preapprovalData.card_token_id = cardTokenId;
+			} else {
+				// Si NO hay card token, devolver la URL de redirección (fallback)
+				preapprovalData.back_url = `${req.headers.get("origin")}/pilot/membership?success=true`;
+			}
 
 			console.log("Creating preapproval:", JSON.stringify(preapprovalData, null, 2));
 
@@ -76,12 +83,18 @@ Deno.serve(async (req) => {
 				throw new Error(data.message || "Error al crear la suscripción");
 			}
 
-			// Retornar la URL de inicialización y el ID de preapproval
+			// Validar que la suscripción fue creada
+			if (data.status !== "authorized" && data.status !== "pending") {
+				throw new Error(`La suscripción no fue autorizada. Estado: ${data.status}`);
+			}
+
+			// Retornar la respuesta
 			return new Response(JSON.stringify({
 				success: true,
 				preapproval_id: data.id,
-				init_point: data.init_point,
 				status: data.status,
+				// Solo incluye init_point si no hay card token (fallback a redirección)
+				init_point: cardTokenId ? null : data.init_point,
 			}), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 				status: 200,
