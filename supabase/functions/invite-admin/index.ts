@@ -148,16 +148,18 @@ serve(async (req) => {
 			}
 		}
 
-		// --- PREPARE EMAILS (solo para admin/super_admin) ---
+		// --- PREPARE EMAILS (para admin/super_admin siempre) ---
 		let emailSubject = '';
 		let emailHtml = '';
 		const mappedPermissions = permissions ? permissions.map((p: string) => PERMISSION_LABELS[p] || p) : [];
 
-		const shouldSendEmail = (targetRole === 'admin' || targetRole === 'super_admin') && isNewUser;
+		const shouldSendEmail = (targetRole === 'admin' || targetRole === 'super_admin');
 
 		if (shouldSendEmail) {
-			emailSubject = '¡Bienvenido! Tu cuenta de Administrador ha sido creada';
-			emailHtml = `
+			if (isNewUser) {
+				// Email para usuario NUEVO con credenciales
+				emailSubject = '¡Bienvenido! Tu cuenta de Administrador ha sido creada';
+				emailHtml = `
       <!DOCTYPE html>
       <html>
       <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -190,6 +192,37 @@ serve(async (req) => {
       </body>
       </html>
       `;
+			} else {
+				// Email para usuario EXISTENTE - notificación de permisos actualizados
+				emailSubject = 'Tus permisos de Administrador han sido actualizados';
+				emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
+        <div style="background-color: #083b4e; padding: 25px; text-align: center;">
+          <h1 style="color: white; margin: 0;">Piloto de Drones</h1>
+        </div>
+        <div style="padding: 30px; border: 1px solid #edf2f7; border-top: 0; border-radius: 0 0 8px 8px;">
+          <h2 style="color: #2d3748;">${full_name ? `Hola ${full_name},` : 'Hola,'}</h2>
+          <p>Te informamos que tus privilegios de <strong>Administrador</strong> en Piloto de Drones han sido otorgados o actualizados.</p>
+          
+          <div style="background: #e6f7ff; padding: 20px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #00b3f3;">
+            <p style="margin: 0 0 10px; font-weight: bold;">Tus permisos actuales:</p>
+            <ul style="margin: 0; padding-left: 20px;">
+              ${mappedPermissions.map((label: string) => `<li>${label}</li>`).join('')}
+            </ul>
+          </div>
+
+          <p>Puedes acceder a estas herramientas iniciando sesión normalmente en la plataforma profesional con tu contraseña habitual.</p>
+          
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="${FRONTEND_URL}/dashboard" style="background-color: #00b3f3; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(0,179,243,0.2);">Ir al Panel de Control</a>
+          </div>
+        </div>
+      </body>
+      </html>
+      `;
+			}
 
 			// --- SEND EMAIL ---
 			if (RESEND_API_KEY) {
