@@ -17,68 +17,56 @@ Deno.serve(async (req) => {
 
 		const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-		// Obtener datos del webhook (puede venir en URL o en el Body)
+		// 1. Obtener datos del evento (IPN o Webhook JSON)
 		const url = new URL(req.url);
 		let id = url.searchParams.get("data.id") || url.searchParams.get("id");
 		let type = url.searchParams.get("type") || url.searchParams.get("topic");
 
-		// Si no hay datos en la URL, intentar leer del BODY (formato Webhook JSON)
 		if (!id || !type) {
 			try {
 				const body = await req.json();
-				console.log("Webhook body received:", JSON.stringify(body));
-
+				console.log(`[MP Webhook] JSON Body Received:`, JSON.stringify(body));
 				if (body.data?.id) id = body.data.id;
 				else if (body.id) id = body.id;
-
 				if (body.type) type = body.type;
 				else if (body.topic) type = body.topic;
-			} catch (e) {
-				console.log("No JSON body found or error parsing it");
-			}
+			} catch (_) { /* No body or non-JSON */ }
 		}
 
-		console.log(`[MP Webhook] Processing: type=${type}, id=${id}`);
+		console.log(`[MP Webhook] Processing Event -> Type: ${type}, ID: ${id}`);
 
 		if (!id || !type) {
-			console.log("[MP Webhook] Missing id or type, skipping...");
 			return new Response(JSON.stringify({ received: true, skipped: true }), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 				status: 200,
 			});
 		}
 
-		// ========== MANEJAR EVENTOS DE SUSCRIPCIÓN (PREAPPROVAL) ==========
+		// ========== MANEJO DE SUSCRIPCIONES (PREAPPROVAL) ==========
 		if (type === "subscription_preapproval" || type === "preapproval") {
-			console.log(`[MP Webhook] Processing preapproval: ${id}`);
-
 			const response = await fetch(`https://api.mercadopago.com/preapproval/${id}`, {
 				headers: { Authorization: `Bearer ${mpAccessToken}` },
 			});
 
-			if (!response.ok) {
-				const errText = await response.text();
-				console.error(`[MP Webhook] Error fetching subscription ${id}:`, errText);
-				throw new Error("Error fetching subscription from Mercado Pago");
-			}
+			if (!response.ok) throw new Error(`Error fetching preapproval ${id}: ${await response.text()}`);
 
-			const subscription = await response.json();
-			const userId = subscription.external_reference;
-			const status = subscription.status;
+			const sub = await response.json();
+			const userId = sub.external_reference;
+			const mpStatus = sub.status; // authorized, paused, cancelled, pending
+			const nextPaymentDate = sub.next_payment_date;
 
-			console.log(`[MP Webhook] Sub ID: ${id}, Status: ${status}, User: ${userId}`);
+			console.log(`[MP Webhook] Sub ${id} | MP Status: ${mpStatus} | User: ${userId} | Next Payment: ${nextPaymentDate}`);
 
-			if (userId && (status === "authorized" || status === "paused" || status === "cancelled")) {
-				const amount = subscription.auto_recurring?.transaction_amount || 0;
-				let planName = "profesional";
-				if (amount > 30000) planName = "empresa";
+			if (userId) {
+				// Mapeo exhaustivo de estados
+				let dbStatus = "inactive";
+				if (mpStatus === "authorized") dbStatus = "active";
+				else if (mpStatus === "paused") dbStatus = "paused";
+				else if (mpStatus === "cancelled") dbStatus = "cancelled";
+				else if (mpStatus === "pending") dbStatus = "pending";
 
-				const now = new Date();
-				const renewalDate = new Date();
-				renewalDate.setMonth(renewalDate.getMonth() + 1);
-
-				let dbStatus = "active";
-				if (status === "cancelled" || status === "paused") dbStatus = "cancelled";
+				const amount = sub.auto_recurring?.transaction_amount || 0;
+				const planName = amount >= 30000 ? "empresa" : "profesional";
 
 				const { error: upsertError } = await supabase
 					.from("user_subscriptions")
@@ -87,83 +75,76 @@ Deno.serve(async (req) => {
 						plan_name: planName,
 						status: dbStatus,
 						payment_method: "Mercado Pago Subscription",
-						renewal_date: renewalDate.toISOString(),
+						renewal_date: nextPaymentDate, // FECHA REAL DE MP
 						updated_at: new Date().toISOString(),
 						reveniu_subscription_id: id,
 					}, { onConflict: "user_id" });
 
-				if (upsertError) {
-					console.error("[MP Webhook] DB Error (preapproval):", upsertError);
-					throw upsertError;
-				}
-				console.log(`[MP Webhook] Subscription successfully updated for user ${userId}`);
+				if (upsertError) console.error("[MP Webhook] DB Error (Sub):", upsertError);
+				else console.log(`[MP Webhook] DB Updated -> User: ${userId}, Status: ${dbStatus}`);
 			}
 		}
 
-		// ========== MANEJAR EVENTOS DE PAGO (PAYMENT) ==========
+		// ========== MANEJO DE PAGOS (PAYMENT) ==========
 		if (type === "payment") {
-			console.log(`[MP Webhook] Processing payment: ${id}`);
-
 			const response = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
 				headers: { Authorization: `Bearer ${mpAccessToken}` },
 			});
 
-			if (!response.ok) {
-				const errText = await response.text();
-				console.error(`[MP Webhook] Error fetching payment ${id}:`, errText);
-				throw new Error("Error fetching payment from Mercado Pago");
-			}
+			if (!response.ok) throw new Error(`Error fetching payment ${id}: ${await response.text()}`);
 
 			const payment = await response.json();
 			const userId = payment.external_reference;
-			const status = payment.status;
+			const mpStatus = payment.status;
+			// approved, authorized, in_process, pending, rejected, cancelled, refunded, charged_back
 
-			console.log(`[MP Webhook] Payment ID: ${id}, Status: ${status}, Detail: ${payment.status_detail}, User: ${userId}`);
+			console.log(`[MP Webhook] Payment ${id} | MP Status: ${mpStatus} | User: ${userId}`);
 
-			if (userId && (status === "approved" || status === "authorized")) {
-				const isRecurring = !!payment.preapproval_id;
+			if (userId) {
+				const isPositive = (mpStatus === "approved" || mpStatus === "authorized");
+				const isNegative = ["rejected", "cancelled", "refunded", "charged_back"].includes(mpStatus);
 
-				if (isRecurring) {
-					console.log("[MP Webhook] Recurring payment detected - updating renewal date");
-					const nextMonth = new Date();
-					nextMonth.setMonth(nextMonth.getMonth() + 1);
+				if (isPositive) {
+					// Confirmar activación (especialmente útil para el primer pago de Bricks o pagos únicos)
+					const planItem = payment.additional_info?.items?.[0];
+					const planName = (planItem?.id === "empresa" || payment.transaction_amount >= 30000) ? "empresa" : "profesional";
+
+					const updateData: any = {
+						user_id: userId,
+						status: "active",
+						updated_at: new Date().toISOString(),
+					};
+
+					// Si NO es recurrente, calculamos fallback. Si ES recurrente, el webhook de preapproval pondrá la fecha real.
+					if (!payment.preapproval_id) {
+						updateData.plan_name = planName;
+						updateData.payment_method = "Mercado Pago Single";
+						const fallbackDate = new Date();
+						fallbackDate.setMonth(fallbackDate.getMonth() + 1);
+						updateData.renewal_date = fallbackDate.toISOString();
+					}
+
+					const { error } = await supabase
+						.from("user_subscriptions")
+						.upsert(updateData, { onConflict: "user_id" });
+
+					if (error) console.error("[MP Webhook] DB Error (Payment Positive):", error);
+					else console.log(`[MP Webhook] DB Confirmed Active -> User: ${userId}`);
+				}
+				else if (isNegative) {
+					// FAIL-SAFE: Desactivación por reversión de pago o rechazo
+					console.warn(`[MP Webhook] Payment Negative Status (${mpStatus}). Deactivating user ${userId}.`);
 
 					const { error } = await supabase
 						.from("user_subscriptions")
 						.update({
-							status: "active",
-							renewal_date: nextMonth.toISOString(),
+							status: "inactive",
 							updated_at: new Date().toISOString(),
 						})
 						.eq("user_id", userId);
 
-					if (error) console.error("[MP Webhook] DB Error (recurring):", error);
-				} else {
-					console.log("[MP Webhook] Single payment - activating/updating plan");
-
-					// Intentar extraer plan del item o del monto
-					const planItem = payment.additional_info?.items?.[0];
-					let planName = planItem?.id === "empresa" || payment.transaction_amount > 30000 ? "empresa" : "profesional";
-
-					const renewalDate = new Date();
-					renewalDate.setMonth(renewalDate.getMonth() + 1);
-
-					const { error: upsertError } = await supabase
-						.from("user_subscriptions")
-						.upsert({
-							user_id: userId,
-							plan_name: planName,
-							status: "active",
-							payment_method: "Mercado Pago",
-							renewal_date: renewalDate.toISOString(),
-							updated_at: new Date().toISOString(),
-						}, { onConflict: "user_id" });
-
-					if (upsertError) {
-						console.error("[MP Webhook] DB Error (payment):", upsertError);
-						throw upsertError;
-					}
-					console.log(`[MP Webhook] Plan active for user ${userId} via single payment`);
+					if (error) console.error("[MP Webhook] DB Error (Payment Negative):", error);
+					else console.log(`[MP Webhook] DB Updated -> User: ${userId}, Status: inactive (due to ${mpStatus})`);
 				}
 			}
 		}
@@ -173,9 +154,9 @@ Deno.serve(async (req) => {
 			status: 200,
 		});
 	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-		console.error("[MP Webhook] Fatal Error:", errorMessage);
-		return new Response(JSON.stringify({ error: errorMessage }), {
+		const msg = error instanceof Error ? error.message : 'Unknown error';
+		console.error("[MP Webhook] Fatal Error:", msg);
+		return new Response(JSON.stringify({ error: msg }), {
 			headers: { ...corsHeaders, "Content-Type": "application/json" },
 			status: 400,
 		});

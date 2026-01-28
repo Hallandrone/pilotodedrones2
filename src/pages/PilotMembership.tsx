@@ -570,20 +570,60 @@ const PilotMembership = () => {
     renderPaymentBrick(bricksBuilder);
   };
 
+  useEffect(() => {
+    let interval: any;
+
+    if (showBricks && selectedPlanForBrick) {
+      // Función para verificar si el contenedor existe y es visible
+      const checkAndInit = () => {
+        const container = document.getElementById("cardPaymentBrick_container");
+        if (container && container.offsetParent !== null) { // Existe y es visible (offsetParent verifica visibilidad)
+          console.log("Container found and visible, initializing brick...");
+          clearInterval(interval);
+          initBricks(selectedPlanForBrick);
+        }
+      };
+
+      // Poll cada 150ms para esperar que el modal termine de animar
+      let attempts = 0;
+      interval = setInterval(() => {
+        attempts++;
+        checkAndInit();
+        if (attempts > 30) { // Máximo 4.5 segundos de espera
+          console.error("Brick container never became visible");
+          clearInterval(interval);
+        }
+      }, 150);
+
+      checkAndInit(); // Intento inmediato
+    } else if (!showBricks && bricksController) {
+      console.log("Unmounting brick controller...");
+      try {
+        bricksController.unmount();
+      } catch (e) {
+        console.warn("Unmount error (expected if already unmounted):", e);
+      }
+      setBricksController(null);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showBricks, selectedPlanForBrick]);
+
   const handleSubscribeRequest = (planId: string) => {
     const plan = availablePlans.find(p => p.id === planId);
     if (!plan) return;
 
+    // Resetear controlador previo si existe (para seguridad adicional)
+    if (bricksController) {
+      try { bricksController.unmount(); } catch (e) { }
+      setBricksController(null);
+    }
+
     setSelectedPlanForBrick(plan);
     setShowBricks(true);
-    setTimeout(() => initBricks(plan), 100);
   };
-
-  useEffect(() => {
-    if (!showBricks && bricksController) {
-      // bricksController.unmount();
-    }
-  }, [showBricks]);
 
   const handleCancelSubscription = async () => {
     try {
@@ -1227,8 +1267,14 @@ const PilotMembership = () => {
                 </span>
               </div>
             </div>
-            <div className="p-4 bg-gray-50/50">
-              <div id="cardPaymentBrick_container"></div>
+            <div className="p-4 bg-gray-50/50 min-h-[400px] flex flex-col items-center justify-center">
+              {!bricksController && (
+                <div className="flex flex-col items-center gap-2 text-gray-400">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <p className="text-sm">Cargando formulario de pago...</p>
+                </div>
+              )}
+              <div id="cardPaymentBrick_container" className="w-full"></div>
             </div>
           </DialogContent>
         </Dialog>

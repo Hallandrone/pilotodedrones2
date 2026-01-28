@@ -5,8 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { CreditCard, CheckCircle, Zap, Building, AlertCircle } from "lucide-react";
-import { processPayment } from "@/integrations/mercadopago/client";
+import { CreditCard, CheckCircle, Zap, Building, AlertCircle, Loader2 } from "lucide-react";
 
 declare global {
 	interface Window {
@@ -27,6 +26,7 @@ export const CompanyMembership = () => {
 	const [showBricks, setShowBricks] = useState(false);
 	const [showCancelDialog, setShowCancelDialog] = useState(false);
 	const [cancelling, setCancelling] = useState(false);
+	const [bricksController, setBricksController] = useState<any>(null);
 	const { toast } = useToast();
 
 	const planEmpresa = {
@@ -66,7 +66,9 @@ export const CompanyMembership = () => {
 			script.async = true;
 			document.body.appendChild(script);
 			return () => {
-				document.body.removeChild(script);
+				if (document.body.contains(script)) {
+					document.body.removeChild(script);
+				}
 			};
 		}
 	}, []);
@@ -148,13 +150,32 @@ export const CompanyMembership = () => {
 	};
 
 	useEffect(() => {
+		let interval: any;
+
 		if (showBricks && window.MercadoPago) {
-			const renderCardPaymentBrick = async (bricksBuilder: any) => {
+			const checkAndInit = () => {
+				const container = document.getElementById("cardPaymentBrick_container_company");
+				if (container && container.offsetParent !== null) {
+					console.log("Company Brick container ready, init...");
+					clearInterval(interval);
+					renderCardPaymentBrick();
+				}
+			};
+
+			const renderCardPaymentBrick = async () => {
+				if (bricksController) {
+					try { bricksController.unmount(); } catch (e) { }
+				}
+
+				const mp = new window.MercadoPago(import.meta.env.VITE_MERCADOPAGO_PUBLISHABLE_KEY || 'APP_USR-67858639-6889-4977-947b-1178619bc90e');
+				const bricksBuilder = mp.bricks();
+				const { data: { user } } = await supabase.auth.getUser();
+
 				const settings = {
 					initialization: {
 						amount: planEmpresa.price,
 						payer: {
-							email: (await supabase.auth.getUser()).data.user?.email,
+							email: user?.email,
 						},
 					},
 					customization: {
@@ -175,8 +196,6 @@ export const CompanyMembership = () => {
 							return new Promise((resolve, reject) => {
 								setLoading(true);
 
-								// Usar create_subscription para tarjetas (recurrente)
-								// Usar process_payment para otros (único)
 								const action = (selectedPaymentMethod === 'credit_card' || selectedPaymentMethod === 'debit_card')
 									? 'create_subscription'
 									: 'process_payment';
@@ -221,21 +240,36 @@ export const CompanyMembership = () => {
 						},
 						onError: (error: any) => {
 							console.error("Brick error:", error);
+							toast({
+								title: "Error",
+								description: "Hubo un problema al cargar el formulario de pago",
+								variant: "destructive"
+							});
 						},
 					},
 				};
 
-				await bricksBuilder.create(
-					"payment", // Usar 'payment' brick completo en vez de solo 'cardPayment'
-					"cardPaymentBrick_container_company",
-					settings
-				);
+				const controller = await bricksBuilder.create("payment", "cardPaymentBrick_container_company", settings);
+				setBricksController(controller);
 			};
 
-			const mp = new window.MercadoPago(import.meta.env.VITE_MERCADOPAGO_PUBLISHABLE_KEY || 'APP_USR-67858639-6889-4977-947b-1178619bc90e');
-			const bricksBuilder = mp.bricks();
-			renderCardPaymentBrick(bricksBuilder);
+			let attempts = 0;
+			interval = setInterval(() => {
+				attempts++;
+				checkAndInit();
+				if (attempts > 30) clearInterval(interval);
+			}, 150);
+
+			checkAndInit();
+		} else if (!showBricks && bricksController) {
+			console.log("Unmounting company brick...");
+			try { bricksController.unmount(); } catch (e) { }
+			setBricksController(null);
 		}
+
+		return () => {
+			if (interval) clearInterval(interval);
+		};
 	}, [showBricks]);
 
 	const formatPrice = (price: number) => {
@@ -404,8 +438,14 @@ export const CompanyMembership = () => {
 							</span>
 						</div>
 					</div>
-					<div className="p-4 bg-gray-50/50">
-						<div id="cardPaymentBrick_container_company"></div>
+					<div className="p-4 bg-gray-50/50 min-h-[400px] flex flex-col items-center justify-center">
+						{!bricksController && (
+							<div className="flex flex-col items-center gap-2 text-gray-400">
+								<Loader2 className="h-8 w-8 animate-spin" />
+								<p className="text-sm">Iniciando formulario de pago...</p>
+							</div>
+						)}
+						<div id="cardPaymentBrick_container_company" className="w-full"></div>
 					</div>
 				</DialogContent>
 			</Dialog>
