@@ -113,6 +113,16 @@ const DiplomaGenerator = () => {
 
 				if (tokenError) throw tokenError;
 
+				// Notify admins
+				const { sendNotification } = await import('@/lib/notification-service');
+				await sendNotification({
+					targetAdmins: true,
+					type: 'diploma_created',
+					title: 'Nuevo Diploma Generado',
+					message: `Se ha generado un nuevo diploma para ${formData.studentName} (Certificado #${formData.certificateNumber})`,
+					data: { diplomaId: diplomaData.id }
+				});
+
 				console.log('Diploma and QR token saved successfully');
 				showToast({
 					title: "Diploma Generado",

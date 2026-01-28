@@ -15,6 +15,7 @@ import AdminCertificates from "./AdminCertificates";
 import DiplomaGenerator from "./DiplomaGenerator";
 import UserProfile from "./UserProfile";
 import AdminFeedback from "./AdminFeedback";
+import { Notifications } from "@/components/dashboard/Notifications";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2, UserCog } from "lucide-react";
 import { getUserRole, isAdmin } from "@/lib/auth-utils";
@@ -164,6 +165,7 @@ const Dashboard = () => {
                 <Route path="/companies" element={<Companies />} />
                 <Route path="/certificates" element={<AdminCertificates />} />
                 <Route path="/diplomas" element={<DiplomaGenerator />} />
+                <Route path="/notifications" element={<Notifications />} />
                 <Route path="/banners" element={<BannerConfiguration />} />
                 <Route path="/feedback" element={<AdminFeedback />} />
                 <Route path="/configuracion" element={<Configuration />} />

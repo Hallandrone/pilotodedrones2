@@ -1,4 +1,4 @@
-import { Bell, Search, User, FileText } from "lucide-react";
+import { Bell, Search, User, FileText, Clock, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useNotifications } from "@/hooks/useNotifications";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface DashboardHeaderProps {
@@ -245,6 +246,8 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     }
   };
 
+  const { notifications: dbNotifications, unreadCount, markAsRead } = useNotifications(user?.id);
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
@@ -281,16 +284,21 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
     }
   };
 
-  const handleNotificationClick = () => {
-    navigate('/dashboard/certificates');
-  };
+  const handleNotificationClick = (notificationId: string, type: string) => {
+    markAsRead(notificationId);
 
-  const handleFlightLogNotificationClick = () => {
-    navigate('/dashboard/certificates');
+    // Redirigir según el tipo de notificación
+    if (type === 'new_certification' || type === 'new_flight_log') {
+      navigate('/dashboard/certificates');
+    } else if (type === 'diploma_created') {
+      navigate('/dashboard/diplomas');
+    } else {
+      navigate('/dashboard/notifications');
+    }
   };
 
   const isSuperAdmin = userRole?.role === 'super_admin';
-  const notificationCount = pendingCertifications.length + pendingFlightLogs.length;
+  const isAdminOrSuper = isSuperAdmin || userRole?.role === 'admin';
 
   return (
     <header className="h-16 bg-white/95 backdrop-blur-xl border-b border-gray-200 flex items-center justify-between px-6">
@@ -308,14 +316,14 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Notifications Button - Visible siempre, pero solo funciona para super_admin */}
+        {/* Notifications Button */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative hover:bg-gray-100">
               <Bell className="h-5 w-5 text-gray-700 hover:text-gray-900 transition-colors" />
-              {isSuperAdmin && notificationCount > 0 && (
+              {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-5 w-5 bg-[#00b3f3] rounded-full text-xs text-white flex items-center justify-center font-semibold shadow-md">
-                  {notificationCount > 9 ? '9+' : notificationCount}
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </Button>
@@ -323,103 +331,60 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel className="flex items-center justify-between">
               <span>Notificaciones</span>
-              {isSuperAdmin && notificationCount > 0 && (
+              {unreadCount > 0 && (
                 <span className="text-xs text-muted-foreground">
-                  {notificationCount} {notificationCount === 1 ? 'pendiente' : 'pendientes'}
+                  {unreadCount} {unreadCount === 1 ? 'pendiente' : 'pendientes'}
                 </span>
               )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {!isSuperAdmin ? (
+            {dbNotifications.length === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">
-                Solo disponible para administradores
-              </div>
-            ) : loadingNotifications ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                Cargando notificaciones...
-              </div>
-            ) : notificationCount === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
-                No hay notificaciones pendientes
+                No hay notificaciones
               </div>
             ) : (
               <>
-                {pendingCertifications.length > 0 && (
-                  <>
-                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
-                      Certificaciones
-                    </div>
-                    {pendingCertifications.map((cert) => (
-                      <DropdownMenuItem
-                        key={cert.id}
-                        className="flex flex-col items-start p-3 cursor-pointer"
-                        onClick={handleNotificationClick}
-                      >
-                        <div className="flex items-start gap-3 w-full">
-                          <div className="h-8 w-8 bg-[#00b3f3]/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FileText className="h-4 w-4 text-[#00b3f3]" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {cert.profiles?.full_name || 'Usuario'} envió una certificación
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {cert.file_name}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDate(cert.uploaded_at)}
-                            </p>
-                          </div>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </>
-                )}
-                {pendingFlightLogs.length > 0 && (
-                  <>
-                    {pendingCertifications.length > 0 && <DropdownMenuSeparator />}
-                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
-                      Vitacoras de Vuelo
-                    </div>
-                    {pendingFlightLogs.map((log) => (
-                      <DropdownMenuItem
-                        key={log.id}
-                        className="flex flex-col items-start p-3 cursor-pointer"
-                        onClick={handleFlightLogNotificationClick}
-                      >
-                        <div className="flex items-start gap-3 w-full">
-                          <div className="h-8 w-8 bg-orange-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FileText className="h-4 w-4 text-orange-500" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {log.profiles?.full_name || 'Usuario'} envió una vitacora
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {log.file_name}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {formatDate(log.uploaded_at)}
-                            </p>
-                          </div>
-                        </div>
-                      </DropdownMenuItem>
-                    ))}
-                  </>
-                )}
-                {notificationCount > 0 && (
-                  <>
-                    <DropdownMenuSeparator />
+                <div className="max-h-[300px] overflow-y-auto">
+                  {dbNotifications.slice(0, 5).map((notification) => (
                     <DropdownMenuItem
-                      className="text-center justify-center cursor-pointer"
-                      onClick={handleNotificationClick}
+                      key={notification.id}
+                      className={`flex flex-col items-start p-3 cursor-pointer ${!notification.read ? 'bg-blue-50/50' : ''}`}
+                      onClick={() => handleNotificationClick(notification.id, notification.type)}
                     >
-                      <span className="text-sm font-medium text-[#00b3f3]">
-                        Ver todos los documentos
-                      </span>
+                      <div className="flex items-start gap-3 w-full">
+                        <div className={`h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 ${notification.type === 'new_certification' ? 'bg-[#00b3f3]/10' :
+                          notification.type === 'new_flight_log' ? 'bg-orange-500/10' :
+                            'bg-yellow-500/10'
+                          }`}>
+                          {notification.type === 'new_certification' && <FileText className="h-4 w-4 text-[#00b3f3]" />}
+                          {notification.type === 'new_flight_log' && <Clock className="h-4 w-4 text-orange-500" />}
+                          {notification.type === 'diploma_created' && <Award className="h-4 w-4 text-yellow-500" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium transition-colors ${!notification.read ? 'text-blue-900' : 'text-foreground'} truncate`}>
+                            {notification.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {notification.message}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground mt-1 text-right">
+                            {formatDate(notification.created_at)}
+                          </p>
+                        </div>
+                      </div>
                     </DropdownMenuItem>
-                  </>
-                )}
+                  ))}
+                </div>
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-center justify-center cursor-pointer"
+                  onClick={() => navigate('/dashboard/notifications')}
+                >
+                  <span className="text-sm font-medium text-[#00b3f3]">
+                    Ver todas las notificaciones
+                  </span>
+                </DropdownMenuItem>
               </>
             )}
           </DropdownMenuContent>

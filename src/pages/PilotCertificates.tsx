@@ -156,6 +156,16 @@ const PilotCertificates = () => {
 
       if (dbError) throw dbError;
 
+      // Notify admins
+      const { sendNotification } = await import('@/lib/notification-service');
+      await sendNotification({
+        targetAdmins: true,
+        type: 'new_certification',
+        title: 'Nueva Certificación Pendiente',
+        message: `${user.email} ha subido el certificado: ${file.name}`,
+        data: { certificateId: dbError } // Optional: add record ID if available
+      });
+
       toast({
         title: "Certificación subida",
         description: "Tu certificación ha sido enviada para revisión",

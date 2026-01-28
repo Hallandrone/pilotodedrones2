@@ -398,6 +398,16 @@ const PilotFlightHours = () => {
 
       if (dbError) throw dbError;
 
+      // Notify admins
+      const { sendNotification } = await import('@/lib/notification-service');
+      await sendNotification({
+        targetAdmins: true,
+        type: 'new_flight_log',
+        title: 'Nueva Bitácora Pendiente',
+        message: `${user.email} ha subido una bitácora de vuelo: ${file.name}`,
+        data: { logId: data?.[0]?.id }
+      });
+
       // Reload certificates
       await loadCertificates();
 

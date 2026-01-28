@@ -91,6 +91,16 @@ export const CompanyCertificates = () => {
 			});
 			if (dbError) throw dbError;
 
+			// Notify admins
+			const { sendNotification } = await import('@/lib/notification-service');
+			await sendNotification({
+				targetAdmins: true,
+				type: 'new_certification',
+				title: 'Nueva Certificación de Empresa',
+				message: `${user.email} ha subido el documento: ${file.name}`,
+				data: { certificateId: dbError }
+			});
+
 			toast({ title: "Certificación subida", description: "Enviada para revisión" });
 			await loadCertifications();
 		} catch (error) {
