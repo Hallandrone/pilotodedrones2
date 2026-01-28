@@ -54,13 +54,16 @@ Deno.serve(async (req) => {
 				},
 				payer_email: user.email,
 				external_reference: user.id,
-				status: "authorized",
-				back_url: `${origin}/pilot/membership?success=true`,
+				// No ponemos status en la creación - MP lo maneja automáticamente
 			};
 
 			// Si se proporciona cardTokenId, añadirlo (flujo sin redirección)
 			if (cardTokenId) {
 				preapprovalData.card_token_id = cardTokenId;
+				preapprovalData.status = "authorized"; // REQUERIDO cuando usas card_token
+			} else {
+				// Flujo de redirección - requiere back_url
+				preapprovalData.back_url = `${origin}/pilot/membership`;
 			}
 
 			console.log("Creating preapproval:", JSON.stringify(preapprovalData, null, 2));
@@ -78,12 +81,12 @@ Deno.serve(async (req) => {
 			console.log("Mercado Pago response:", JSON.stringify(data, null, 2));
 
 			if (!response.ok) {
-				console.error("Mercado Pago Subscription Error:", data);
+				console.error("Mercado Pago Subscription Error:", JSON.stringify(data, null, 2));
 				// Devolver el error detallado de Mercado Pago
 				return new Response(JSON.stringify({
-					error: true,
-					message: data.message || "Error al crear la suscripción",
-					details: data.cause || data,
+					error: "MP_ERROR",
+					message: data.message || "Error al crear la suscripción en Mercado Pago",
+					full_response: data,
 				}), {
 					headers: { ...corsHeaders, "Content-Type": "application/json" },
 					status: 400,
@@ -92,9 +95,10 @@ Deno.serve(async (req) => {
 
 			// Validar que la suscripción fue creada
 			if (data.status === "authorized" || data.status === "pending") {
-				console.log(`Subscription ${data.id} created successfully.`);
+				console.log(`Subscription ${data.id} created successfully with status: ${data.status}`);
 
-				// Retornar la respuesta exitosa
+				// Retornar la respuesta exitosa con el preapproval_id correcto
+				// El init_point ya incluye automáticamente el ID en la URL de retorno
 				return new Response(JSON.stringify({
 					success: true,
 					preapproval_id: data.id,
