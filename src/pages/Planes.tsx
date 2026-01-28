@@ -19,10 +19,9 @@ import {
   Globe,
   Star,
   ArrowRight,
-  Home,
   Plane
 } from "lucide-react";
-import Logo from "@/components/ui/logo";
+import Header from "@/components/layout/Header";
 
 const Planes = () => {
   const navigate = useNavigate();
@@ -135,40 +134,7 @@ const Planes = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
       {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm shadow-sm sticky top-0 z-50 w-full">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-5">
-          <div className="flex items-center justify-between gap-2 sm:gap-4 w-full max-w-7xl mx-auto">
-            <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 flex-shrink-0 ml-4 sm:ml-12" />
-
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/')}
-                className="h-9 px-2 sm:px-4 hover:bg-accent/10 transition-all duration-200"
-              >
-                <Home className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Home</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/contacto')}
-                className="h-9 px-2 sm:px-4 hover:bg-accent/10 transition-all duration-200"
-              >
-                <span className="">Contacto</span>
-              </Button>
-              <Button
-                size="sm"
-                className="h-9 px-3 sm:px-4 bg-accent hover:bg-accent/90 text-accent-foreground transition-all duration-300 text-sm sm:text-base font-bold shadow-sm"
-                onClick={() => navigate('/auth?tab=signup')}
-              >
-                Registrarse
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <div className="flex-1">
         {/* Hero Section */}

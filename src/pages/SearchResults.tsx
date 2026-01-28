@@ -7,11 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, MapPin, DollarSign, Shield, Briefcase, Search, Filter, Phone, Mail, Instagram, Linkedin } from "lucide-react";
+import { MapPin, DollarSign, Shield, Briefcase, Search, Filter, Phone, Mail, Instagram, Linkedin } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import Logo from "@/components/ui/logo";
 import PilotCard from "@/components/ui/pilot-card";
 import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
 
 interface PilotWithServices {
   id: string;
@@ -433,30 +433,18 @@ const SearchResults = () => {
 
       {/* Header */}
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-2">
-          <div className="flex items-center gap-4 max-w-7xl mx-auto">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/")}
-              className="h-10 w-10 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-700"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-            <Logo
-              size="lg"
-              showText={false}
-              className="flex-shrink-0 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.3)]"
-            />
-            <div className="flex flex-col">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-tight">
-                Buscar Pilotos
-              </h1>
-              <p className="text-[10px] sm:text-sm text-gray-500 font-semibold uppercase tracking-widest leading-none">
-                Profesionales certificados
-              </p>
-            </div>
+      <Header />
+
+      {/* Page Title Section */}
+      <div className="bg-white border-b border-gray-200 py-6">
+        <div className="container mx-auto px-4">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+              Buscar Pilotos
+            </h1>
+            <p className="text-sm text-gray-500 font-medium uppercase tracking-widest mt-1">
+              Profesionales certificados
+            </p>
           </div>
         </div>
       </div>
