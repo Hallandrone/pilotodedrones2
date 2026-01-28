@@ -174,6 +174,12 @@ const menuItems: MenuItem[] = [
     roles: ["super_admin"]
   },
   {
+    title: "Drones",
+    url: "/dashboard/drones",
+    icon: Plane,
+    roles: ["super_admin"]
+  },
+  {
     title: "Configuración",
     url: "/dashboard/configuracion",
     icon: Settings,

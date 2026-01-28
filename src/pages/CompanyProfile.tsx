@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -1098,17 +1099,7 @@ export default function CompanyProfile() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#083b4e] flex items-center justify-center font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
-        <div className="relative z-10 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
-          <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando perfil...</p>
-        </div>
-      </div>
-    );
-  }
+  const isLoading = loading;
 
   return (
     <div className="min-h-screen bg-[#083b4e] text-white font-inter relative overflow-hidden">
@@ -1151,141 +1142,168 @@ export default function CompanyProfile() {
 
       {/* Status and Preview Section */}
       <div className="p-3 sm:p-6 max-w-7xl mx-auto relative">
-        <div className="mb-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 bg-white/5 isolate border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl hover:border-[#00b3f3]/30 transition-all duration-300">
-          <div className="flex items-center gap-6">
-            <div className="h-16 w-16 rounded-2xl bg-[#00b3f3]/20 flex items-center justify-center border border-[#00b3f3]/30">
-              <CheckCircle className="h-8 w-8 text-[#00b3f3]" />
+        {isLoading ? (
+          <div className="space-y-6">
+            <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
+              <div className="flex items-center gap-6">
+                <Skeleton className="h-16 w-16 rounded-2xl" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-8 w-64" />
+                  <Skeleton className="h-5 w-80" />
+                </div>
+              </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-white tracking-tight">Perfil Corporativo Activo</h3>
-              <p className="text-white/60 text-lg">Tu empresa está visible para todos los pilotos</p>
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="bg-white/10 border-2 border-[#00b3f3]/30 p-6 space-y-4">
+                  <div className="flex flex-col items-center space-y-3">
+                    <Skeleton className="h-16 w-16 rounded-xl" />
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                </Card>
+              ))}
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={async () => {
-              try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (!user) {
-                  toast.error("No se pudo obtener el usuario");
-                  return;
-                }
-
-                const { data: profileData } = await supabase
-                  .from('profiles')
-                  .select('public_profile_slug')
-                  .eq('id', user.id)
-                  .single();
-
-                const profileUrl = profileData?.public_profile_slug
-                  ? `${window.location.origin}/${profileData.public_profile_slug}`
-                  : `${window.location.origin}/pilot/${user.id}`;
-
-                window.open(profileUrl, '_blank');
-              } catch (error) {
-                console.error('Error opening preview:', error);
-                toast.error("No se pudo abrir la vista previa");
-              }
-            }}
-            className="w-full sm:w-auto bg-[#00b3f3] hover:bg-[#0099cc] text-white border-[#00b3f3] h-14 px-8 rounded-xl font-bold transition-all duration-300 hover:scale-105 shadow-[0_0_20px_rgba(0,179,243,0.3)]"
-          >
-            <Eye className="h-5 w-5 mr-2" />
-            Vista Previa del Perfil
-          </Button>
-        </div>
-
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Información Básica y Ubicación */}
-          <Card
-            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
-            onClick={() => setOpenModal('basic')}
-          >
-            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
-                <Building2 className="h-8 w-8 text-white" />
+        ) : (
+          <>
+            <div className="mb-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 bg-white/5 isolate border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl hover:border-[#00b3f3]/30 transition-all duration-300">
+              <div className="flex items-center gap-6">
+                <div className="h-16 w-16 rounded-2xl bg-[#00b3f3]/20 flex items-center justify-center border border-[#00b3f3]/30">
+                  <CheckCircle className="h-8 w-8 text-[#00b3f3]" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white tracking-tight">Perfil Corporativo Activo</h3>
+                  <p className="text-white/60 text-lg">Tu empresa está visible para todos los pilotos</p>
+                </div>
               </div>
-              <CardTitle className="text-sm sm:text-base font-bold text-white">Información y Ubicación</CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-white/70">Datos de contacto, ubicación y experiencia</CardDescription>
-            </CardContent>
-          </Card>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                      toast.error("No se pudo obtener el usuario");
+                      return;
+                    }
 
-          {/* Servicios y Tipos de Drones */}
-          <Card
-            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
-            onClick={() => setOpenModal('services')}
-          >
-            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
-                <Briefcase className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-sm sm:text-base font-bold text-white">Servicios y Drones</CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-white/70">Servicios y modelos de drones</CardDescription>
-            </CardContent>
-          </Card>
+                    const { data: profileData } = await supabase
+                      .from('profiles')
+                      .select('public_profile_slug')
+                      .eq('id', user.id)
+                      .single();
 
-          {/* Redes Sociales */}
-          <Card
-            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
-            onClick={() => setOpenModal('social')}
-          >
-            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
-                <LinkIcon className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-sm sm:text-base font-bold text-white">Redes Sociales</CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-white/70">Instagram y LinkedIn</CardDescription>
-            </CardContent>
-          </Card>
+                    const profileUrl = profileData?.public_profile_slug
+                      ? `${window.location.origin}/${profileData.public_profile_slug}`
+                      : `${window.location.origin}/pilot/${user.id}`;
 
-          {/* URL Personalizada */}
-          <Card
-            className={`bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group relative ${!subscription ? 'opacity-90' : ''}`}
-            onClick={() => setOpenModal('url')}
-          >
-            {!subscription && (
-              <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-amber-500/20 border border-amber-500/30 rounded flex items-center gap-1 z-10 backdrop-blur-md">
-                <LockIcon className="h-3 w-3 text-amber-500" />
-                <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
-              </div>
-            )}
-            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
-                <Crown className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-sm sm:text-base font-bold text-white">URL Personalizada</CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-white/70">Personaliza tu URL</CardDescription>
-            </CardContent>
-          </Card>
+                    window.open(profileUrl, '_blank');
+                  } catch (error) {
+                    console.error('Error opening preview:', error);
+                    toast.error("No se pudo abrir la vista previa");
+                  }
+                }}
+                className="w-full sm:w-auto bg-[#00b3f3] hover:bg-[#0099cc] text-white border-[#00b3f3] h-14 px-8 rounded-xl font-bold transition-all duration-300 hover:scale-105 shadow-[0_0_20px_rgba(0,179,243,0.3)]"
+              >
+                <Eye className="h-5 w-5 mr-2" />
+                Vista Previa del Perfil
+              </Button>
+            </div>
 
-          {/* Certificados */}
-          <Card
-            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
-            onClick={() => setOpenModal('certificates')}
-          >
-            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
-                <FileText className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-sm sm:text-base font-bold text-white">Certificados</CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-white/70">AOC y CEO</CardDescription>
-            </CardContent>
-          </Card>
+            {/* Dashboard Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Información Básica y Ubicación */}
+              <Card
+                className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
+                onClick={() => setOpenModal('basic')}
+              >
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+                  <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                    <Building2 className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-sm sm:text-base font-bold text-white">Información y Ubicación</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-white/70">Datos de contacto, ubicación y experiencia</CardDescription>
+                </CardContent>
+              </Card>
 
-          {/* Seguridad */}
-          <Card
-            className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
-            onClick={() => setOpenModal('security')}
-          >
-            <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
-              <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
-                <LockIcon className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-sm sm:text-base font-bold text-white">Seguridad</CardTitle>
-              <CardDescription className="text-xs sm:text-sm text-white/70">Contraseña y email</CardDescription>
-            </CardContent>
-          </Card>
-        </div>
+              {/* Servicios y Tipos de Drones */}
+              <Card
+                className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]"
+                onClick={() => setOpenModal('services')}
+              >
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+                  <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                    <Briefcase className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-sm sm:text-base font-bold text-white">Servicios y Drones</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-white/70">Servicios y modelos de drones</CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Redes Sociales */}
+              <Card
+                className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
+                onClick={() => setOpenModal('social')}
+              >
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+                  <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                    <LinkIcon className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-sm sm:text-base font-bold text-white">Redes Sociales</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-white/70">Instagram y LinkedIn</CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* URL Personalizada */}
+              <Card
+                className={`bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group relative ${!subscription ? 'opacity-90' : ''}`}
+                onClick={() => setOpenModal('url')}
+              >
+                {!subscription && (
+                  <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-amber-500/20 border border-amber-500/30 rounded flex items-center gap-1 z-10 backdrop-blur-md">
+                    <LockIcon className="h-3 w-3 text-amber-500" />
+                    <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider">Pro</span>
+                  </div>
+                )}
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+                  <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                    <Crown className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-sm sm:text-base font-bold text-white">URL Personalizada</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-white/70">Personaliza tu URL</CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Certificados */}
+              <Card
+                className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
+                onClick={() => setOpenModal('certificates')}
+              >
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+                  <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                    <FileText className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-sm sm:text-base font-bold text-white">Certificados</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-white/70">AOC y CEO</CardDescription>
+                </CardContent>
+              </Card>
+
+              {/* Seguridad */}
+              <Card
+                className="bg-white/10 isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl overflow-hidden cursor-pointer hover:scale-105 transition-all duration-300 hover:border-[#00b3f3]/50 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)] group"
+                onClick={() => setOpenModal('security')}
+              >
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center text-center space-y-3">
+                  <div className="h-16 w-16 bg-[#00b3f3] rounded-xl flex items-center justify-center">
+                    <LockIcon className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-sm sm:text-base font-bold text-white">Seguridad</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm text-white/70">Contraseña y email</CardDescription>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Save Button Section */}

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft,
   Save,
@@ -1006,17 +1007,7 @@ const PilotProfile = () => {
     return () => clearTimeout(timer);
   }, [hasChanges, profile]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#083b4e] flex items-center justify-center font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
-        <div className="relative z-10 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
-          <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando tu perfil...</p>
-        </div>
-      </div>
-    );
-  }
+  const isLoading = loading;
 
   return (
     <div className="min-h-screen bg-[#083b4e] text-white font-inter relative overflow-hidden">
@@ -1078,669 +1069,693 @@ const PilotProfile = () => {
 
       {/* Content */}
       <div className="p-4 sm:p-6 space-y-8 pb-32 max-w-5xl mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-        {/* Basic Information */}
-        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-transparent rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <User className="h-6 w-6 text-white" />
-                </div>
-                Información Básica
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
-              {/* Avatar Section */}
-              <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
-                <Avatar className="h-32 w-32 ring-4 ring-accent/50">
-                  <AvatarImage
-                    src={avatarUrl || ''}
-                    key={avatarUrl} // Forzar re-render cuando cambie la URL
-                    onError={(e) => {
-                      // Si falla la carga, intentar recargar sin parámetros de caché
-                      const target = e.target as HTMLImageElement;
-                      if (avatarUrl) {
-                        const baseUrl = avatarUrl.split('?')[0];
-                        if (target.src !== baseUrl) {
-                          target.src = baseUrl;
-                        }
-                      }
-                    }}
-                  />
-                  <AvatarFallback className="bg-accent text-white text-3xl">
-                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-center gap-2">
-                  <Label htmlFor="avatar-upload" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
-                      {uploadingAvatar ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Subiendo...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Camera className="h-4 w-4" />
-                          <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
-                        </>
-                      )}
-                    </div>
-                  </Label>
-                  <Input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarSelect}
-                    disabled={uploadingAvatar}
-                  />
-                  <p className="text-xs text-white/60 text-center">
-                    JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
-                  </p>
-                </div>
+        {isLoading ? (
+          <div className="space-y-8">
+            <Card className="bg-white/5 border-white/10 p-8 space-y-6">
+              <div className="flex flex-col items-center gap-4">
+                <Skeleton className="h-32 w-32 rounded-full" />
+                <Skeleton className="h-10 w-48" />
               </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="full_name" className="text-base font-semibold text-white">
-                  Nombre completo *
-                </Label>
-                <Input
-                  id="full_name"
-                  value={profile.full_name}
-                  onChange={(e) => handleInputChange('full_name', e.target.value)}
-                  placeholder="Tu nombre completo"
-                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
               </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="email" className="text-base font-semibold text-white">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profile.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  placeholder="tu@email.com"
-                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
-                />
-                {subscription && subscription.status === 'active' && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="default" className="bg-accent text-accent-foreground">
-                      <Crown className="h-3 w-3 mr-1" />
-                      Plan {subscription.plan_name || 'Pro'} Activo
-                    </Badge>
-                  </div>
-                )}
+            </Card>
+            <Card className="bg-white/5 border-white/10 p-8 space-y-4">
+              <Skeleton className="h-8 w-32" />
+              <div className="space-y-2">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
               </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="phone" className="text-base font-semibold text-white flex items-center gap-2">
-                  <Phone className="h-5 w-5" />
-                  Teléfono
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={profile.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  placeholder="+56 9 1234 5678"
-                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="bio" className="text-base font-semibold text-white">
-                  Biografía Profesional
-                </Label>
-                <Textarea
-                  id="bio"
-                  value={profile.bio}
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  placeholder="Cuéntanos sobre tu experiencia como piloto..."
-                  className="rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 resize-none min-h-[120px] text-base"
-                />
-              </div>
-            </CardContent>
+            </Card>
           </div>
-        </Card>
-
-        {/* Location Information */}
-        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-transparent rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-white" />
-                </div>
-                Ubicación y Zona de Trabajo
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
-              <div className="space-y-3">
-                <Label htmlFor="region" className="text-base font-semibold text-white">
-                  Región *
-                </Label>
-                <Select value={profile.region} onValueChange={(value) => handleInputChange('region', value)}>
-                  <SelectTrigger className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base">
-                    <SelectValue placeholder="Selecciona tu región" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {regions.map((region) => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="location" className="text-base font-semibold text-white flex items-center gap-2">
-                  <MapIcon className="h-5 w-5" />
-                  Ciudad/Comuna
-                </Label>
-                <Input
-                  id="location"
-                  value={profile.location}
-                  onChange={(e) => handleInputChange('location', e.target.value)}
-                  placeholder="Ej: Santiago, Las Condes"
-                  className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="experience_years" className="text-sm font-semibold text-[#E0E0E0]">
-                  Años de Experiencia
-                </Label>
-                <Input
-                  id="experience_years"
-                  type="number"
-                  value={profile.experience_years}
-                  onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value))}
-                  className="h-12 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="youtube_url" className="text-white/70 font-bold flex items-center gap-2">
-                  <Youtube className="h-4 w-4 text-red-500" />
-                  Canal de YouTube
-                </Label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-[#00b3f3] transition-colors" />
-                  </div>
-                  <Input
-                    id="youtube_url"
-                    placeholder="https://youtube.com/@tu_canal"
-                    value={profile.youtube_url}
-                    onChange={(e) => handleInputChange('youtube_url', e.target.value)}
-                    className="bg-white/5 border-white/10 text-white rounded-xl pl-10"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* Specialties */}
-        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-transparent rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <MapPin className="h-6 w-6 text-white" />
-                </div>
-                Especialidades
-              </CardTitle>
-              <CardDescription className="text-[#B0B0B0] font-medium">
-                Selecciona las áreas en las que tienes experiencia
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
-              <div className="space-y-4">
-                {/* Especialidades predefinidas */}
-                <div className="flex flex-wrap gap-3">
-                  {specialtyOptions.map((specialty) => (
-                    <Badge
-                      key={specialty}
-                      variant={profile.specialties.includes(specialty) ? "default" : "outline"}
-                      className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.specialties.includes(specialty)
-                        ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                        : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                        }`}
-                      onClick={() => toggleSpecialty(specialty)}
-                    >
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
-
-                {/* Especialidades personalizadas agregadas */}
-                {profile.specialties.filter(isCustomSpecialty).length > 0 && (
-                  <div className="pt-4 border-t border-[#333333]">
-                    <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
-                      Especialidades personalizadas:
-                    </Label>
-                    <div className="flex flex-wrap gap-3">
-                      {profile.specialties.filter(isCustomSpecialty).map((specialty) => (
-                        <Badge
-                          key={specialty}
-                          variant="default"
-                          className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                          onClick={() => removeCustomSpecialty(specialty)}
-                        >
-                          {specialty}
-                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </Badge>
-                      ))}
+        ) : (
+          <>
+            {/* Basic Information */}
+            <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+              <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+                <CardHeader className="p-8 bg-transparent rounded-xl">
+                  <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+                    <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                      <User className="h-6 w-6 text-white" />
                     </div>
-                  </div>
-                )}
-
-                {/* Campo para agregar otra especialidad */}
-                <div className="pt-4 border-t border-[#333333]">
-                  <Label htmlFor="custom-specialty" className="text-[#E0E0E0] text-sm mb-2 block font-medium">
-                    Otra
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="custom-specialty"
-                      type="text"
-                      value={customSpecialty}
-                      onChange={(e) => handleCustomSpecialty(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addCustomSpecialty();
-                        }
-                      }}
-                      placeholder="Escribe otra especialidad..."
-                      className="bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/40"
-                    />
-                    <Button
-                      type="button"
-                      onClick={addCustomSpecialty}
-                      disabled={!customSpecialty.trim() || profile.specialties.includes(customSpecialty.trim())}
-                      className="bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Agregar
-                    </Button>
-                  </div>
-                  <p className="text-xs text-[#B0B0B0] mt-2">
-                    Presiona Enter o haz clic en "Agregar" para incluir tu especialidad personalizada
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* Drone Types */}
-        <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-transparent rounded-xl">
-              <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
-                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                  <Plane className="h-6 w-6 text-white" />
-                </div>
-                Tipos de Drones
-              </CardTitle>
-              <CardDescription className="text-[#B0B0B0] font-medium">
-                Selecciona los modelos de drones que estás habilitado para pilotear
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
-              <div className="space-y-6">
-                {/* Drones seleccionados */}
-                {profile.drone_types.length > 0 && (
-                  <div className="pb-4 border-b border-[#333333]">
-                    <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
-                      Drones seleccionados ({profile.drone_types.length}):
-                    </Label>
-                    <div className="flex flex-wrap gap-2">
-                      {profile.drone_types.map((drone) => (
-                        <Badge
-                          key={drone}
-                          variant="default"
-                          className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                          onClick={() => toggleDroneType(drone)}
-                        >
-                          {drone}
-                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Acordeones por nivel */}
-                <Accordion type="multiple" className="w-full space-y-2">
-                  {/* Nivel Básico */}
-                  <AccordionItem value="basic" className="border-[#333333]">
-                    <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🟢</span>
-                        <span className="font-semibold">Nivel Básico/Principiante</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
-                          {basicDrones.filter(d => profile.drone_types.includes(d)).length}/{basicDrones.length}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4">
-                      <div className="flex flex-wrap gap-3">
-                        {basicDrones.map((drone) => (
-                          <Badge
-                            key={drone}
-                            variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
-                              ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                              : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                              }`}
-                            onClick={() => toggleDroneType(drone)}
-                          >
-                            {drone}
-                          </Badge>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  {/* Nivel Intermedio */}
-                  <AccordionItem value="intermediate" className="border-[#333333]">
-                    <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🟡</span>
-                        <span className="font-semibold">Nivel Intermedio</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
-                          {intermediateDrones.filter(d => profile.drone_types.includes(d)).length}/{intermediateDrones.length}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4">
-                      <div className="flex flex-wrap gap-3">
-                        {intermediateDrones.map((drone) => (
-                          <Badge
-                            key={drone}
-                            variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
-                              ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                              : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                              }`}
-                            onClick={() => toggleDroneType(drone)}
-                          >
-                            {drone}
-                          </Badge>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  {/* Nivel Profesional */}
-                  <AccordionItem value="professional" className="border-[#333333]">
-                    <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🔴</span>
-                        <span className="font-semibold">Nivel Profesional</span>
-                        <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
-                          {professionalDrones.filter(d => profile.drone_types.includes(d)).length}/{professionalDrones.length}
-                        </Badge>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4">
-                      <div className="flex flex-wrap gap-3">
-                        {professionalDrones.map((drone) => (
-                          <Badge
-                            key={drone}
-                            variant={profile.drone_types.includes(drone) ? "default" : "outline"}
-                            className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
-                              ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
-                              : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
-                              }`}
-                            onClick={() => toggleDroneType(drone)}
-                          >
-                            {drone}
-                          </Badge>
-                        ))}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-
-                {/* Drones personalizados agregados */}
-                {profile.drone_types.filter(isCustomDrone).length > 0 && (
-                  <div className="pt-4 border-t border-[#333333]">
-                    <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
-                      Modelos personalizados:
-                    </Label>
-                    <div className="flex flex-wrap gap-3">
-                      {profile.drone_types.filter(isCustomDrone).map((drone) => (
-                        <Badge
-                          key={drone}
-                          variant="default"
-                          className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
-                          onClick={() => toggleDroneType(drone)}
-                        >
-                          {drone}
-                          <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Campo para agregar otro modelo de drone */}
-                <div className="pt-4 border-t border-[#333333]">
-                  <Label htmlFor="custom-drone" className="text-[#E0E0E0] text-sm mb-2 block font-medium">
-                    Otra
-                  </Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="custom-drone"
-                      type="text"
-                      value={customDrone}
-                      onChange={(e) => handleCustomDrone(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addCustomDrone();
-                        }
-                      }}
-                      placeholder="Escribe otro modelo de drone..."
-                      className="bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/30"
-                    />
-                    <Button
-                      type="button"
-                      onClick={addCustomDrone}
-                      disabled={!customDrone.trim() || profile.drone_types.includes(customDrone.trim())}
-                      className="bg-[#00b3f3] hover:bg-[#0099cc] text-white disabled:opacity-50"
-                    >
-                      Agregar
-                    </Button>
-                  </div>
-                  <p className="text-xs text-[#B0B0B0] mt-2">
-                    Presiona Enter o haz clic en "Agregar" para incluir tu modelo de drone personalizado
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
-
-        {/* URL Personalizada del Perfil Público */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
-          <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
-            <CardHeader className="p-8 bg-transparent rounded-xl">
-              <CardTitle className="flex items-center justify-between gap-3 text-2xl font-bold text-white">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
-                    <Crown className="h-6 w-6 text-white" />
-                  </div>
-                  URL Personalizada del Perfil Público
-                </div>
-                {!subscription && (
-                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 flex items-center gap-1.5 px-3 py-1">
-                    <LockIcon className="h-3.5 w-3.5" />
-                    Función Pro
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription className="text-[#B0B0B0] font-medium">
-                Personaliza la URL de tu perfil público para que sea más fácil de compartir.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
-              <div className="space-y-4">
-                {/* Mensaje de advertencia */}
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-amber-400 mb-1">
-                        ⚠️ Importante sobre cambios de URL
-                      </p>
-                      <p className="text-sm text-amber-300/90 leading-relaxed">
-                        Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio.
-                        Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="public_profile_slug" className="text-[#E0E0E0] font-medium flex items-center gap-2">
-                    <LinkIcon className="h-4 w-4" />
-                    Nombre de usuario para tu perfil
-                  </Label>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                    <div className="relative flex-1">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B0B0B0] text-sm">
-                        /
-                      </div>
-                      <Input
-                        id="public_profile_slug"
-                        type="text"
-                        value={profile.public_profile_slug || ''}
-                        onChange={(e) => handleSlugChange(e.target.value)}
-                        disabled={!subscription}
-                        className={`bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/40 pl-8 ${!subscription ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        placeholder={subscription ? "nombreusuario" : "Disponible en Plan Pro"}
+                    Información Básica
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
+                  {/* Avatar Section */}
+                  <div className="flex flex-col items-center gap-4 pb-6 border-b border-border/50">
+                    <Avatar className="h-32 w-32 ring-4 ring-accent/50">
+                      <AvatarImage
+                        src={avatarUrl || ''}
+                        key={avatarUrl} // Forzar re-render cuando cambie la URL
+                        onError={(e) => {
+                          // Si falla la carga, intentar recargar sin parámetros de caché
+                          const target = e.target as HTMLImageElement;
+                          if (avatarUrl) {
+                            const baseUrl = avatarUrl.split('?')[0];
+                            if (target.src !== baseUrl) {
+                              target.src = baseUrl;
+                            }
+                          }
+                        }}
                       />
-                      {checkingSlug && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          <Loader2 className="h-4 w-4 animate-spin text-[#B0B0B0]" />
-                        </div>
-                      )}
-                      {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          {slugAvailable ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
+                      <AvatarFallback className="bg-accent text-white text-3xl">
+                        {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-center gap-2">
+                      <Label htmlFor="avatar-upload" className="cursor-pointer">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white rounded-lg transition-all duration-200">
+                          {uploadingAvatar ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span>Subiendo...</span>
+                            </>
                           ) : (
-                            <X className="h-4 w-4 text-red-500" />
+                            <>
+                              <Camera className="h-4 w-4" />
+                              <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
+                            </>
                           )}
                         </div>
-                      )}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleSlugVerification}
-                      disabled={checkingSlug || !profile.public_profile_slug || !subscription}
-                      className="sm:w-auto w-full bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white border-[#00b3f3] disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {checkingSlug ? (
-                        <span className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Verificando...
-                        </span>
-                      ) : (
-                        'Verificar disponibilidad'
-                      )}
-                    </Button>
-                  </div>
-                  {slugFeedback && (
-                    <p
-                      className={`text-xs flex items-center gap-1 mt-2 ${slugFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
-                        }`}
-                    >
-                      {slugFeedback.type === 'success' ? (
-                        <CheckCircle className="h-3 w-3" />
-                      ) : (
-                        <AlertCircle className="h-3 w-3" />
-                      )}
-                      {slugFeedback.text}
-                    </p>
-                  )}
-                  {checkingSlug && (
-                    <p className="text-xs text-[#B0B0B0] flex items-center gap-1 mt-1">
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      Verificando disponibilidad...
-                    </p>
-                  )}
-                  {!subscription && (
-                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                      <p className="text-xs text-blue-400 font-medium leading-relaxed">
-                        🚀 La URL personalizada es un beneficio exclusivo del Plan Pro.
-                        Mejora tu cuenta para poder elegir cómo se verá tu link profesional.
+                      </Label>
+                      <Input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarSelect}
+                        disabled={uploadingAvatar}
+                      />
+                      <p className="text-xs text-white/60 text-center">
+                        JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
                       </p>
                     </div>
-                  )}
-                  <p className="text-xs text-[#B0B0B0]">
-                    Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
-                  </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="full_name" className="text-base font-semibold text-white">
+                      Nombre completo *
+                    </Label>
+                    <Input
+                      id="full_name"
+                      value={profile.full_name}
+                      onChange={(e) => handleInputChange('full_name', e.target.value)}
+                      placeholder="Tu nombre completo"
+                      className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="email" className="text-base font-semibold text-white">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={profile.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="tu@email.com"
+                      className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
+                    />
+                    {subscription && subscription.status === 'active' && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="default" className="bg-accent text-accent-foreground">
+                          <Crown className="h-3 w-3 mr-1" />
+                          Plan {subscription.plan_name || 'Pro'} Activo
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="phone" className="text-base font-semibold text-white flex items-center gap-2">
+                      <Phone className="h-5 w-5" />
+                      Teléfono
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={profile.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      placeholder="+56 9 1234 5678"
+                      className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="bio" className="text-base font-semibold text-white">
+                      Biografía Profesional
+                    </Label>
+                    <Textarea
+                      id="bio"
+                      value={profile.bio}
+                      onChange={(e) => handleInputChange('bio', e.target.value)}
+                      placeholder="Cuéntanos sobre tu experiencia como piloto..."
+                      className="rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 resize-none min-h-[120px] text-base"
+                    />
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+
+            {/* Location Information */}
+            <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+              <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+                <CardHeader className="p-8 bg-transparent rounded-xl">
+                  <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+                    <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                      <MapPin className="h-6 w-6 text-white" />
+                    </div>
+                    Ubicación y Zona de Trabajo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
+                  <div className="space-y-3">
+                    <Label htmlFor="region" className="text-base font-semibold text-white">
+                      Región *
+                    </Label>
+                    <Select value={profile.region} onValueChange={(value) => handleInputChange('region', value)}>
+                      <SelectTrigger className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base">
+                        <SelectValue placeholder="Selecciona tu región" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regions.map((region) => (
+                          <SelectItem key={region} value={region}>
+                            {region}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="location" className="text-base font-semibold text-white flex items-center gap-2">
+                      <MapIcon className="h-5 w-5" />
+                      Ciudad/Comuna
+                    </Label>
+                    <Input
+                      id="location"
+                      value={profile.location}
+                      onChange={(e) => handleInputChange('location', e.target.value)}
+                      placeholder="Ej: Santiago, Las Condes"
+                      className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="experience_years" className="text-sm font-semibold text-[#E0E0E0]">
+                      Años de Experiencia
+                    </Label>
+                    <Input
+                      id="experience_years"
+                      type="number"
+                      value={profile.experience_years}
+                      onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value))}
+                      className="h-12 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="youtube_url" className="text-white/70 font-bold flex items-center gap-2">
+                      <Youtube className="h-4 w-4 text-red-500" />
+                      Canal de YouTube
+                    </Label>
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-[#00b3f3] transition-colors" />
+                      </div>
+                      <Input
+                        id="youtube_url"
+                        placeholder="https://youtube.com/@tu_canal"
+                        value={profile.youtube_url}
+                        onChange={(e) => handleInputChange('youtube_url', e.target.value)}
+                        className="bg-white/5 border-white/10 text-white rounded-xl pl-10"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+
+            {/* Specialties */}
+            <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+              <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+                <CardHeader className="p-8 bg-transparent rounded-xl">
+                  <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+                    <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                      <MapPin className="h-6 w-6 text-white" />
+                    </div>
+                    Especialidades
+                  </CardTitle>
+                  <CardDescription className="text-[#B0B0B0] font-medium">
+                    Selecciona las áreas en las que tienes experiencia
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
+                  <div className="space-y-4">
+                    {/* Especialidades predefinidas */}
+                    <div className="flex flex-wrap gap-3">
+                      {specialtyOptions.map((specialty) => (
+                        <Badge
+                          key={specialty}
+                          variant={profile.specialties.includes(specialty) ? "default" : "outline"}
+                          className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.specialties.includes(specialty)
+                            ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                            : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                            }`}
+                          onClick={() => toggleSpecialty(specialty)}
+                        >
+                          {specialty}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    {/* Especialidades personalizadas agregadas */}
+                    {profile.specialties.filter(isCustomSpecialty).length > 0 && (
+                      <div className="pt-4 border-t border-[#333333]">
+                        <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
+                          Especialidades personalizadas:
+                        </Label>
+                        <div className="flex flex-wrap gap-3">
+                          {profile.specialties.filter(isCustomSpecialty).map((specialty) => (
+                            <Badge
+                              key={specialty}
+                              variant="default"
+                              className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                              onClick={() => removeCustomSpecialty(specialty)}
+                            >
+                              {specialty}
+                              <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Campo para agregar otra especialidad */}
+                    <div className="pt-4 border-t border-[#333333]">
+                      <Label htmlFor="custom-specialty" className="text-[#E0E0E0] text-sm mb-2 block font-medium">
+                        Otra
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="custom-specialty"
+                          type="text"
+                          value={customSpecialty}
+                          onChange={(e) => handleCustomSpecialty(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addCustomSpecialty();
+                            }
+                          }}
+                          placeholder="Escribe otra especialidad..."
+                          className="bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/40"
+                        />
+                        <Button
+                          type="button"
+                          onClick={addCustomSpecialty}
+                          disabled={!customSpecialty.trim() || profile.specialties.includes(customSpecialty.trim())}
+                          className="bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Agregar
+                        </Button>
+                      </div>
+                      <p className="text-xs text-[#B0B0B0] mt-2">
+                        Presiona Enter o haz clic en "Agregar" para incluir tu especialidad personalizada
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+
+            {/* Drone Types */}
+            <Card className="bg-white/5 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+              <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+                <CardHeader className="p-8 bg-transparent rounded-xl">
+                  <CardTitle className="flex items-center gap-3 text-2xl font-bold text-white">
+                    <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                      <Plane className="h-6 w-6 text-white" />
+                    </div>
+                    Tipos de Drones
+                  </CardTitle>
+                  <CardDescription className="text-[#B0B0B0] font-medium">
+                    Selecciona los modelos de drones que estás habilitado para pilotear
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
+                  <div className="space-y-6">
+                    {/* Drones seleccionados */}
+                    {profile.drone_types.length > 0 && (
+                      <div className="pb-4 border-b border-[#333333]">
+                        <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
+                          Drones seleccionados ({profile.drone_types.length}):
+                        </Label>
+                        <div className="flex flex-wrap gap-2">
+                          {profile.drone_types.map((drone) => (
+                            <Badge
+                              key={drone}
+                              variant="default"
+                              className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                              onClick={() => toggleDroneType(drone)}
+                            >
+                              {drone}
+                              <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Acordeones por nivel */}
+                    <Accordion type="multiple" className="w-full space-y-2">
+                      {/* Nivel Básico */}
+                      <AccordionItem value="basic" className="border-[#333333]">
+                        <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🟢</span>
+                            <span className="font-semibold">Nivel Básico/Principiante</span>
+                            <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
+                              {basicDrones.filter(d => profile.drone_types.includes(d)).length}/{basicDrones.length}
+                            </Badge>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4">
+                          <div className="flex flex-wrap gap-3">
+                            {basicDrones.map((drone) => (
+                              <Badge
+                                key={drone}
+                                variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                                className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
+                                  ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                                  : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                                  }`}
+                                onClick={() => toggleDroneType(drone)}
+                              >
+                                {drone}
+                              </Badge>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Nivel Intermedio */}
+                      <AccordionItem value="intermediate" className="border-[#333333]">
+                        <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🟡</span>
+                            <span className="font-semibold">Nivel Intermedio</span>
+                            <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
+                              {intermediateDrones.filter(d => profile.drone_types.includes(d)).length}/{intermediateDrones.length}
+                            </Badge>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4">
+                          <div className="flex flex-wrap gap-3">
+                            {intermediateDrones.map((drone) => (
+                              <Badge
+                                key={drone}
+                                variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                                className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
+                                  ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                                  : 'bg-white/5 border-white/10 text-white hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                                  }`}
+                                onClick={() => toggleDroneType(drone)}
+                              >
+                                {drone}
+                              </Badge>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      {/* Nivel Profesional */}
+                      <AccordionItem value="professional" className="border-[#333333]">
+                        <AccordionTrigger className="text-[#E0E0E0] hover:text-[#00b3f3] hover:no-underline py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">🔴</span>
+                            <span className="font-semibold">Nivel Profesional</span>
+                            <Badge variant="outline" className="ml-2 text-xs border-white/10 text-white/50 bg-white/5">
+                              {professionalDrones.filter(d => profile.drone_types.includes(d)).length}/{professionalDrones.length}
+                            </Badge>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4">
+                          <div className="flex flex-wrap gap-3">
+                            {professionalDrones.map((drone) => (
+                              <Badge
+                                key={drone}
+                                variant={profile.drone_types.includes(drone) ? "default" : "outline"}
+                                className={`cursor-pointer transition-all duration-200 px-4 py-2 rounded-xl font-medium ${profile.drone_types.includes(drone)
+                                  ? 'bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg hover:shadow-xl hover:scale-105'
+                                  : 'bg-[#2C2C2C] border-[#333333] text-[#E0E0E0] hover:bg-[#00b3f3]/10 hover:border-[#00b3f3] hover:text-[#00b3f3]'
+                                  }`}
+                                onClick={() => toggleDroneType(drone)}
+                              >
+                                {drone}
+                              </Badge>
+                            ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+
+                    {/* Drones personalizados agregados */}
+                    {profile.drone_types.filter(isCustomDrone).length > 0 && (
+                      <div className="pt-4 border-t border-[#333333]">
+                        <Label className="text-[#B0B0B0] text-sm mb-3 block font-medium">
+                          Modelos personalizados:
+                        </Label>
+                        <div className="flex flex-wrap gap-3">
+                          {profile.drone_types.filter(isCustomDrone).map((drone) => (
+                            <Badge
+                              key={drone}
+                              variant="default"
+                              className="bg-[#00b3f3] text-white border-[#00b3f3] shadow-lg px-4 py-2 rounded-xl font-medium cursor-pointer hover:scale-105 transition-all duration-200 flex items-center gap-2 group"
+                              onClick={() => toggleDroneType(drone)}
+                            >
+                              {drone}
+                              <X className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Campo para agregar otro modelo de drone */}
+                    <div className="pt-4 border-t border-[#333333]">
+                      <Label htmlFor="custom-drone" className="text-[#E0E0E0] text-sm mb-2 block font-medium">
+                        Otra
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="custom-drone"
+                          type="text"
+                          value={customDrone}
+                          onChange={(e) => handleCustomDrone(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addCustomDrone();
+                            }
+                          }}
+                          placeholder="Escribe otro modelo de drone..."
+                          className="bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/30"
+                        />
+                        <Button
+                          type="button"
+                          onClick={addCustomDrone}
+                          disabled={!customDrone.trim() || profile.drone_types.includes(customDrone.trim())}
+                          className="bg-[#00b3f3] hover:bg-[#0099cc] text-white disabled:opacity-50"
+                        >
+                          Agregar
+                        </Button>
+                      </div>
+                      <p className="text-xs text-[#B0B0B0] mt-2">
+                        Presiona Enter o haz clic en "Agregar" para incluir tu modelo de drone personalizado
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+
+            {/* URL Personalizada del Perfil Público */}
+            <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
+              <div className="bg-gradient-to-r from-accent/10 via-accent/5 to-transparent p-1">
+                <CardHeader className="p-8 bg-transparent rounded-xl">
+                  <CardTitle className="flex items-center justify-between gap-3 text-2xl font-bold text-white">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
+                        <Crown className="h-6 w-6 text-white" />
+                      </div>
+                      URL Personalizada del Perfil Público
+                    </div>
+                    {!subscription && (
+                      <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 flex items-center gap-1.5 px-3 py-1">
+                        <LockIcon className="h-3.5 w-3.5" />
+                        Función Pro
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription className="text-[#B0B0B0] font-medium">
+                    Personaliza la URL de tu perfil público para que sea más fácil de compartir.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
+                  <div className="space-y-4">
+                    {/* Mensaje de advertencia */}
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-amber-400 mb-1">
+                            ⚠️ Importante sobre cambios de URL
+                          </p>
+                          <p className="text-sm text-amber-300/90 leading-relaxed">
+                            Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio.
+                            Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="public_profile_slug" className="text-[#E0E0E0] font-medium flex items-center gap-2">
+                        <LinkIcon className="h-4 w-4" />
+                        Nombre de usuario para tu perfil
+                      </Label>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                        <div className="relative flex-1">
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#B0B0B0] text-sm">
+                            /
+                          </div>
+                          <Input
+                            id="public_profile_slug"
+                            type="text"
+                            value={profile.public_profile_slug || ''}
+                            onChange={(e) => handleSlugChange(e.target.value)}
+                            disabled={!subscription}
+                            className={`bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/40 pl-8 ${!subscription ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            placeholder={subscription ? "nombreusuario" : "Disponible en Plan Pro"}
+                          />
+                          {checkingSlug && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              <Loader2 className="h-4 w-4 animate-spin text-[#B0B0B0]" />
+                            </div>
+                          )}
+                          {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
+                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                              {slugAvailable ? (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <X className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleSlugVerification}
+                          disabled={checkingSlug || !profile.public_profile_slug || !subscription}
+                          className="sm:w-auto w-full bg-[#00b3f3] hover:bg-[#00b3f3]/90 text-white border-[#00b3f3] disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {checkingSlug ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Verificando...
+                            </span>
+                          ) : (
+                            'Verificar disponibilidad'
+                          )}
+                        </Button>
+                      </div>
+                      {slugFeedback && (
+                        <p
+                          className={`text-xs flex items-center gap-1 mt-2 ${slugFeedback.type === 'success' ? 'text-green-400' : 'text-red-400'
+                            }`}
+                        >
+                          {slugFeedback.type === 'success' ? (
+                            <CheckCircle className="h-3 w-3" />
+                          ) : (
+                            <AlertCircle className="h-3 w-3" />
+                          )}
+                          {slugFeedback.text}
+                        </p>
+                      )}
+                      {checkingSlug && (
+                        <p className="text-xs text-[#B0B0B0] flex items-center gap-1 mt-1">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Verificando disponibilidad...
+                        </p>
+                      )}
+                      {!subscription && (
+                        <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                          <p className="text-xs text-blue-400 font-medium leading-relaxed">
+                            🚀 La URL personalizada es un beneficio exclusivo del Plan Pro.
+                            Mejora tu cuenta para poder elegir cómo se verá tu link profesional.
+                          </p>
+                        </div>
+                      )}
+                      <p className="text-xs text-[#B0B0B0]">
+                        Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+            </Card>
+
+            {/* Save Button */}
+            <div className="sticky bottom-4 space-y-4">
+              {/* Status indicator */}
+              {hasChanges && (
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 px-5 py-3 bg-transparent border-2 border-accent text-accent rounded-xl text-base font-semibold shadow-lg">
+                    <div className="h-2.5 w-2.5 bg-amber-500 rounded-full animate-pulse"></div>
+                    Tienes cambios sin guardar
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
+              )}
 
-        {/* Save Button */}
-        <div className="sticky bottom-4 space-y-4">
-          {/* Status indicator */}
-          {hasChanges && (
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-5 py-3 bg-transparent border-2 border-accent text-accent rounded-xl text-base font-semibold shadow-lg">
-                <div className="h-2.5 w-2.5 bg-amber-500 rounded-full animate-pulse"></div>
-                Tienes cambios sin guardar
-              </div>
+              {lastSaved && !hasChanges && (
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-2 px-5 py-3 bg-transparent border-2 border-green-500 text-green-400 rounded-xl text-base font-semibold shadow-lg">
+                    <div className="h-2.5 w-2.5 bg-green-500 rounded-full"></div>
+                    Guardado {lastSaved.toLocaleTimeString()}
+                  </div>
+                </div>
+              )}
+
+              <Button
+                onClick={handleSave}
+                disabled={saving || !profile.full_name.trim()}
+                size="lg"
+                className="w-full h-16 text-lg font-bold rounded-2xl bg-accent hover:bg-accent/90 text-white shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                <Save className="h-6 w-6 mr-3" />
+                {saving ? 'Guardando...' : hasChanges ? 'Guardar Cambios' : 'Perfil Actualizado'}
+              </Button>
             </div>
-          )}
+          </>
+        )}
 
-          {lastSaved && !hasChanges && (
-            <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-5 py-3 bg-transparent border-2 border-green-500 text-green-400 rounded-xl text-base font-semibold shadow-lg">
-                <div className="h-2.5 w-2.5 bg-green-500 rounded-full"></div>
-                Guardado {lastSaved.toLocaleTimeString()}
-              </div>
-            </div>
-          )}
-
-          <Button
-            onClick={handleSave}
-            disabled={saving || !profile.full_name.trim()}
-            size="lg"
-            className="w-full h-16 text-lg font-bold rounded-2xl bg-accent hover:bg-accent/90 text-white shadow-xl hover:shadow-2xl transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            <Save className="h-6 w-6 mr-3" />
-            {saving ? 'Guardando...' : hasChanges ? 'Guardar Cambios' : 'Perfil Actualizado'}
-          </Button>
-        </div>
+        {/* Image Cropper Modal */}
+        {imageToCrop && (
+          <ImageCropper
+            open={cropperOpen}
+            onOpenChange={setCropperOpen}
+            imageSrc={imageToCrop}
+            onCropComplete={handleAvatarCropComplete}
+            aspect={1}
+            title="Recortar foto de perfil"
+          />
+        )}
       </div>
-
-      {/* Image Cropper Modal */}
-      {imageToCrop && (
-        <ImageCropper
-          open={cropperOpen}
-          onOpenChange={setCropperOpen}
-          imageSrc={imageToCrop}
-          onCropComplete={handleAvatarCropComplete}
-          aspect={1}
-          title="Recortar foto de perfil"
-        />
-      )}
     </div>
   );
 };

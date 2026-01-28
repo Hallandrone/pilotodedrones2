@@ -35,6 +35,8 @@ import CompanyDashboard from "./pages/CompanyDashboard";
 import ProfileContacts from "./pages/ProfileContacts";
 import InvitationAccept from "./pages/InvitationAccept";
 import DiplomaGenerator from "./pages/DiplomaGenerator";
+import AdminDrones from "./pages/AdminDrones";
+import DronePublicView from "./pages/DronePublicView";
 import QRRedirect from "./pages/QRRedirect";
 import NotFound from "./pages/NotFound";
 import "./lib/debug-auth"; // Importar funciones de debug
@@ -91,6 +93,9 @@ const App = () => (
 
             {/* Ruta para QR codes de diplomas */}
             <Route path="/qr/:token" element={<QRRedirect />} />
+
+            {/* Ruta para vista pública de drones via QR */}
+            <Route path="/drone/:token" element={<DronePublicView />} />
 
             {/* Perfil público del piloto (para QR) - mantener ruta antigua por compatibilidad */}
             <Route path="/pilot/:pilotId" element={<div className="dark"><PublicPilotProfile /></div>} />

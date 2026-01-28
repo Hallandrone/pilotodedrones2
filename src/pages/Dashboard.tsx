@@ -15,6 +15,7 @@ import AdminCertificates from "./AdminCertificates";
 import DiplomaGenerator from "./DiplomaGenerator";
 import UserProfile from "./UserProfile";
 import AdminFeedback from "./AdminFeedback";
+import AdminDrones from "./AdminDrones";
 import { Notifications } from "@/components/dashboard/Notifications";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { Loader2, UserCog } from "lucide-react";
@@ -168,6 +169,7 @@ const Dashboard = () => {
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/banners" element={<BannerConfiguration />} />
                 <Route path="/feedback" element={<AdminFeedback />} />
+                <Route path="/drones" element={<AdminDrones />} />
                 <Route path="/configuracion" element={<Configuration />} />
               </Routes>
             </div>

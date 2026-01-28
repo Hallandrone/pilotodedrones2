@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Skeleton } from "@/components/ui/skeleton";
 import Logo from "@/components/ui/logo";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -1240,73 +1241,7 @@ const UserProfile = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
-        <div className="relative z-10 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#00b3f3]/20 border-b-[#00b3f3] mb-6 shadow-[0_0_15px_rgba(0,179,243,0.4)]"></div>
-          <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando tu perfil...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Si no hay usuario, mostrar mensaje
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 font-inter relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-30"></div>
-        <Card className="max-w-md w-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl relative z-10">
-          <CardHeader>
-            <CardTitle className="text-center text-white text-3xl font-bold tracking-tight">No autenticado</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center text-white/70 space-y-6">
-            <p className="text-lg">Por favor, inicia sesión para gestionar tu información profesional.</p>
-            <Button
-              onClick={() => navigate('/auth')}
-              className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
-            >
-              Iniciar Sesión
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Redirect super admins
-  if (userRole === 'super_admin') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/30">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="text-center">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Acceso Restringido</h1>
-              <p className="text-muted-foreground">Los super administradores no tienen perfil personal</p>
-            </div>
-            <Card className="max-w-md mx-auto shadow-md border-0 bg-card/50 backdrop-blur-sm">
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Panel de Administración</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Como super administrador, utiliza las herramientas de gestión disponibles en el panel principal.
-                  </p>
-                  <Button
-                    onClick={() => window.history.back()}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    Volver al Dashboard
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const isLoading = loading;
 
   return (
     <div className="min-h-screen bg-[#020617] text-white font-inter relative overflow-hidden">
@@ -1314,764 +1249,828 @@ const UserProfile = () => {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjAzIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-20 pointer-events-none"></div>
 
       <div className="container mx-auto px-4 py-8 max-w-5xl relative z-10">
-        {/* Header */}
-        <div className="mb-12 flex flex-col sm:flex-row items-center gap-6 animate-fade-in">
-          <Logo size="xl" className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] md:[&>div]:h-28 md:[&>div]:w-28" showText={false} />
-          <div className="text-center sm:text-left">
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2 tracking-tight">Mi Perfil</h1>
-            <p className="text-[#00b3f3] text-lg font-medium">Gestiona tu información personal y certificaciones</p>
+        {isLoading ? (
+          <div className="space-y-8">
+            <div className="mb-12 flex flex-col sm:flex-row items-center gap-6">
+              <Skeleton className="h-28 w-28 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-64" />
+                <Skeleton className="h-6 w-96" />
+              </div>
+            </div>
+            <Card className="bg-[#0f172a]/95 border border-white/10 p-8 space-y-8">
+              <div className="flex flex-col items-center gap-6">
+                <Skeleton className="h-40 w-40 rounded-full" />
+                <Skeleton className="h-12 w-48 rounded-xl" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-14 w-full rounded-xl" />
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
-        </div>
-
-        <div className="grid gap-6">
-          {/* Personal Information */}
-          <Card className="bg-[#0f172a]/95 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <CardHeader className="p-8 bg-transparent">
-              <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
-                <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
-                  <Mail className="h-6 w-6 text-white" />
-                </div>
-                Información Personal
-              </CardTitle>
-              <CardDescription className="text-white/70 text-lg mt-2">
-                Actualiza tu información básica de contacto
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 pt-0">
-              {/* Avatar Section */}
-              <div className="flex flex-col items-center gap-6 pb-8 mb-8 border-b border-white/10">
-                <Avatar className="h-40 w-40 ring-4 ring-[#00b3f3]/50 shadow-2xl">
-                  <AvatarImage src={avatarUrl || ''} className="object-cover" />
-                  <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-4xl font-bold">
-                    {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-center gap-2">
-                  <Label htmlFor="avatar-upload" className="cursor-pointer">
-                    <div className="flex items-center gap-2 px-6 py-3 bg-[#00b3f3] hover:bg-[#0099cc] text-white rounded-xl transition-all duration-300 font-bold shadow-lg hover:shadow-[#00b3f3]/20 hover:scale-105">
-                      {uploadingAvatar ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          <span>Subiendo...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Camera className="h-5 w-5" />
-                          <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
-                        </>
-                      )}
-                    </div>
-                  </Label>
-                  <Input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleAvatarSelect}
-                    disabled={uploadingAvatar}
-                  />
-                  <p className="text-xs text-muted-foreground text-center">
-                    JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
-                  </p>
-                </div>
+        ) : !user ? (
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <Card className="max-w-md w-full bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl relative z-10">
+              <CardHeader>
+                <CardTitle className="text-center text-white text-3xl font-bold tracking-tight">No autenticado</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center text-white/70 space-y-6">
+                <p className="text-lg">Por favor, inicia sesión para gestionar tu información profesional.</p>
+                <Button
+                  onClick={() => navigate('/auth')}
+                  className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
+                >
+                  Iniciar Sesión
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        ) : userRole === 'super_admin' ? (
+          <div className="text-center py-20">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-white mb-2">Acceso Restringido</h1>
+              <p className="text-white/60">Los super administradores no tienen perfil personal</p>
+            </div>
+            <Card className="max-w-md mx-auto shadow-md border-0 bg-white/5 backdrop-blur-sm p-8">
+              <Shield className="h-12 w-12 text-[#00b3f3] mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Panel de Administración</h3>
+              <p className="text-sm text-white/60 mb-6">
+                Como super administrador, utiliza las herramientas de gestión disponibles en el panel principal.
+              </p>
+              <Button
+                onClick={() => window.history.back()}
+                className="bg-[#00b3f3] hover:bg-[#0099cc] text-white w-full"
+              >
+                Volver al Dashboard
+              </Button>
+            </Card>
+          </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="mb-12 flex flex-col sm:flex-row items-center gap-6 animate-fade-in">
+              <Logo size="xl" className="hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.4)] md:[&>div]:h-28 md:[&>div]:w-28" showText={false} />
+              <div className="text-center sm:text-left">
+                <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2 tracking-tight">Mi Perfil</h1>
+                <p className="text-[#00b3f3] text-lg font-medium">Gestiona tu información personal y certificaciones</p>
               </div>
+            </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="full_name" className="text-foreground font-medium">
-                    Nombre completo *
-                  </Label>
-                  <Input
-                    id="full_name"
-                    type="text"
-                    value={profile.full_name}
-                    onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
-                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
-                    placeholder="Tu nombre completo"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white font-semibold">
-                    Email
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
-                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white/50 focus:border-[#00b3f3] transition-all duration-200 text-lg cursor-not-allowed"
-                    placeholder="tu@email.com"
-                    disabled
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-white font-semibold">
-                    <Phone className="inline h-5 w-5 mr-2 text-[#00b3f3]" />
-                    Teléfono
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={profile.phone}
-                    onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
-                    placeholder="+56 9 1234 5678"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="text-white font-semibold">
-                    <MapPin className="inline h-5 w-5 mr-2 text-[#00b3f3]" />
-                    Dirección
-                  </Label>
-                  <Input
-                    id="address"
-                    type="text"
-                    value={profile.address}
-                    onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
-                    className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
-                    placeholder="Tu dirección"
-                  />
-                </div>
-
-                {/* Redes Sociales */}
-                <div className="space-y-4 pt-8 border-t border-white/10">
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-bold text-white mb-2">Redes Sociales</h3>
-                    <p className="text-sm text-white/60">
-                      Agrega tus redes sociales. Puedes ingresar solo tu alias (ej: juan_perez) o la URL completa.
-                    </p>
-                  </div>
-
-                  {/* Instagram */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="instagram" className="text-foreground font-medium">
-                        <span className="inline-block mr-1">📷</span>
-                        Instagram
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="instagram-url-toggle" className="text-xs text-muted-foreground cursor-pointer">
-                          Usar URL completa
-                        </Label>
-                        <Switch
-                          id="instagram-url-toggle"
-                          checked={useInstagramUrl}
-                          onCheckedChange={(checked) => {
-                            setUseInstagramUrl(checked);
-                            // Si se activa el toggle y hay username, construir URL
-                            if (checked && profile.instagram_username && !profile.instagram_url) {
-                              setProfile(prev => ({
-                                ...prev,
-                                instagram_url: buildInstagramUrl(prev.instagram_username || '')
-                              }));
-                            }
-                            // Si se desactiva, extraer username de la URL
-                            if (!checked && profile.instagram_url) {
-                              const username = extractInstagramUsername(profile.instagram_url);
-                              setProfile(prev => ({
-                                ...prev,
-                                instagram_username: username,
-                                instagram_url: ''
-                              }));
-                            }
-                          }}
-                        />
-                      </div>
+            <div className="grid gap-6">
+              {/* Personal Information */}
+              <Card className="bg-[#0f172a]/95 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+                <CardHeader className="p-8 bg-transparent">
+                  <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
+                    <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
+                      <Mail className="h-6 w-6 text-white" />
                     </div>
-                    {useInstagramUrl ? (
-                      <Input
-                        id="instagram"
-                        type="text"
-                        value={profile.instagram_url || ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setProfile(prev => ({ ...prev, instagram_url: value }));
-                          if (value && isUrl(value)) {
-                            const username = extractInstagramUsername(value);
-                            setProfile(prev => ({ ...prev, instagram_username: username }));
-                          }
-                        }}
-                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
-                        placeholder="https://instagram.com/juan_perez"
-                      />
-                    ) : (
-                      <Input
-                        id="instagram"
-                        type="text"
-                        value={profile.instagram_username || ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (isUrl(value)) {
-                            const username = extractInstagramUsername(value);
-                            setProfile(prev => ({ ...prev, instagram_username: username }));
-                          } else {
-                            const cleaned = cleanSocialUsername(value);
-                            setProfile(prev => ({ ...prev, instagram_username: cleaned }));
-                          }
-                        }}
-                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
-                        placeholder="juan_perez"
-                      />
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {useInstagramUrl
-                        ? "Ingresa la URL completa de tu perfil de Instagram"
-                        : "Ingresa solo tu nombre de usuario (ej: juan_perez). El sistema construirá la URL automáticamente."}
-                    </p>
-                  </div>
-
-                  {/* LinkedIn */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="linkedin" className="text-foreground font-medium">
-                        <span className="inline-block mr-1">💼</span>
-                        LinkedIn
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="linkedin-url-toggle" className="text-xs text-muted-foreground cursor-pointer">
-                          Usar URL completa
-                        </Label>
-                        <Switch
-                          id="linkedin-url-toggle"
-                          checked={useLinkedInUrl}
-                          onCheckedChange={(checked) => {
-                            setUseLinkedInUrl(checked);
-                            // Si se activa el toggle y hay username, construir URL
-                            if (checked && profile.linkedin_username && !profile.linkedin_url) {
-                              setProfile(prev => ({
-                                ...prev,
-                                linkedin_url: buildLinkedInUrl(prev.linkedin_username || '')
-                              }));
-                            }
-                            // Si se desactiva, extraer username de la URL
-                            if (!checked && profile.linkedin_url) {
-                              const username = extractLinkedInUsername(profile.linkedin_url);
-                              setProfile(prev => ({
-                                ...prev,
-                                linkedin_username: username,
-                                linkedin_url: ''
-                              }));
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                    {useLinkedInUrl ? (
-                      <Input
-                        id="linkedin"
-                        type="text"
-                        value={profile.linkedin_url || ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setProfile(prev => ({ ...prev, linkedin_url: value }));
-                          if (value && isUrl(value)) {
-                            const username = extractLinkedInUsername(value);
-                            setProfile(prev => ({ ...prev, linkedin_username: username }));
-                          }
-                        }}
-                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
-                        placeholder="https://linkedin.com/in/juan-perez"
-                      />
-                    ) : (
-                      <Input
-                        id="linkedin"
-                        type="text"
-                        value={profile.linkedin_username || ''}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (isUrl(value)) {
-                            const username = extractLinkedInUsername(value);
-                            setProfile(prev => ({ ...prev, linkedin_username: username }));
-                          } else {
-                            const cleaned = cleanSocialUsername(value);
-                            setProfile(prev => ({ ...prev, linkedin_username: cleaned }));
-                          }
-                        }}
-                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
-                        placeholder="juan-perez"
-                      />
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {useLinkedInUrl
-                        ? "Ingresa la URL completa de tu perfil de LinkedIn"
-                        : "Ingresa solo tu nombre de usuario (ej: juan-perez). El sistema construirá la URL automáticamente."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* URL Personalizada del Perfil Público */}
-              <div className="mt-6 pt-6 border-t border-border/50">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Crown className="h-5 w-5 text-yellow-500" />
-                    <Label className="text-foreground font-semibold text-lg">
-                      URL Personalizada del Perfil Público
-                    </Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Personaliza la URL de tu perfil público.
-                  </p>
-
-                  {/* Mensaje de advertencia */}
-                  <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
-                          ⚠️ Importante sobre cambios de URL
-                        </p>
-                        <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">
-                          Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio.
-                          Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
-                      <Link className="inline h-4 w-4 mr-1" />
-                      Nombre de usuario para tu perfil
-                    </Label>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-                      <div className="relative flex-1">
-                        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/30 text-sm">
-                          /
+                    Información Personal
+                  </CardTitle>
+                  <CardDescription className="text-white/70 text-lg mt-2">
+                    Actualiza tu información básica de contacto
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-8 pt-0">
+                  {/* Avatar Section */}
+                  <div className="flex flex-col items-center gap-6 pb-8 mb-8 border-b border-white/10">
+                    <Avatar className="h-40 w-40 ring-4 ring-[#00b3f3]/50 shadow-2xl">
+                      <AvatarImage src={avatarUrl || ''} className="object-cover" />
+                      <AvatarFallback className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] text-white text-4xl font-bold">
+                        {profile.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-center gap-2">
+                      <Label htmlFor="avatar-upload" className="cursor-pointer">
+                        <div className="flex items-center gap-2 px-6 py-3 bg-[#00b3f3] hover:bg-[#0099cc] text-white rounded-xl transition-all duration-300 font-bold shadow-lg hover:shadow-[#00b3f3]/20 hover:scale-105">
+                          {uploadingAvatar ? (
+                            <>
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                              <span>Subiendo...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="h-5 w-5" />
+                              <span>{avatarUrl ? 'Cambiar foto' : 'Subir foto'}</span>
+                            </>
+                          )}
                         </div>
-                        <Input
-                          id="public_profile_slug"
-                          type="text"
-                          value={profile.public_profile_slug || ''}
-                          onChange={(e) => handleSlugChange(e.target.value)}
-                          className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 pl-8"
-                          placeholder="nombreusuario"
-                        />
-                        {checkingSlug && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      </Label>
+                      <Input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarSelect}
+                        disabled={uploadingAvatar}
+                      />
+                      <p className="text-xs text-muted-foreground text-center">
+                        JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="full_name" className="text-foreground font-medium">
+                        Nombre completo *
+                      </Label>
+                      <Input
+                        id="full_name"
+                        type="text"
+                        value={profile.full_name}
+                        onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
+                        placeholder="Tu nombre completo"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-white font-semibold">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={profile.email}
+                        onChange={(e) => setProfile(prev => ({ ...prev, email: e.target.value }))}
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white/50 focus:border-[#00b3f3] transition-all duration-200 text-lg cursor-not-allowed"
+                        placeholder="tu@email.com"
+                        disabled
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="text-white font-semibold">
+                        <Phone className="inline h-5 w-5 mr-2 text-[#00b3f3]" />
+                        Teléfono
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={profile.phone}
+                        onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
+                        placeholder="+56 9 1234 5678"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="address" className="text-white font-semibold">
+                        <MapPin className="inline h-5 w-5 mr-2 text-[#00b3f3]" />
+                        Dirección
+                      </Label>
+                      <Input
+                        id="address"
+                        type="text"
+                        value={profile.address}
+                        onChange={(e) => setProfile(prev => ({ ...prev, address: e.target.value }))}
+                        className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
+                        placeholder="Tu dirección"
+                      />
+                    </div>
+
+                    {/* Redes Sociales */}
+                    <div className="space-y-4 pt-8 border-t border-white/10">
+                      <div className="mb-6">
+                        <h3 className="text-2xl font-bold text-white mb-2">Redes Sociales</h3>
+                        <p className="text-sm text-white/60">
+                          Agrega tus redes sociales. Puedes ingresar solo tu alias (ej: juan_perez) o la URL completa.
+                        </p>
+                      </div>
+
+                      {/* Instagram */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="instagram" className="text-foreground font-medium">
+                            <span className="inline-block mr-1">📷</span>
+                            Instagram
+                          </Label>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor="instagram-url-toggle" className="text-xs text-muted-foreground cursor-pointer">
+                              Usar URL completa
+                            </Label>
+                            <Switch
+                              id="instagram-url-toggle"
+                              checked={useInstagramUrl}
+                              onCheckedChange={(checked) => {
+                                setUseInstagramUrl(checked);
+                                // Si se activa el toggle y hay username, construir URL
+                                if (checked && profile.instagram_username && !profile.instagram_url) {
+                                  setProfile(prev => ({
+                                    ...prev,
+                                    instagram_url: buildInstagramUrl(prev.instagram_username || '')
+                                  }));
+                                }
+                                // Si se desactiva, extraer username de la URL
+                                if (!checked && profile.instagram_url) {
+                                  const username = extractInstagramUsername(profile.instagram_url);
+                                  setProfile(prev => ({
+                                    ...prev,
+                                    instagram_username: username,
+                                    instagram_url: ''
+                                  }));
+                                }
+                              }}
+                            />
                           </div>
+                        </div>
+                        {useInstagramUrl ? (
+                          <Input
+                            id="instagram"
+                            type="text"
+                            value={profile.instagram_url || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setProfile(prev => ({ ...prev, instagram_url: value }));
+                              if (value && isUrl(value)) {
+                                const username = extractInstagramUsername(value);
+                                setProfile(prev => ({ ...prev, instagram_username: username }));
+                              }
+                            }}
+                            className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
+                            placeholder="https://instagram.com/juan_perez"
+                          />
+                        ) : (
+                          <Input
+                            id="instagram"
+                            type="text"
+                            value={profile.instagram_username || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (isUrl(value)) {
+                                const username = extractInstagramUsername(value);
+                                setProfile(prev => ({ ...prev, instagram_username: username }));
+                              } else {
+                                const cleaned = cleanSocialUsername(value);
+                                setProfile(prev => ({ ...prev, instagram_username: cleaned }));
+                              }
+                            }}
+                            className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
+                            placeholder="juan_perez"
+                          />
                         )}
-                        {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
-                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            {slugAvailable ? (
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <X className="h-4 w-4 text-red-500" />
+                        <p className="text-xs text-muted-foreground">
+                          {useInstagramUrl
+                            ? "Ingresa la URL completa de tu perfil de Instagram"
+                            : "Ingresa solo tu nombre de usuario (ej: juan_perez). El sistema construirá la URL automáticamente."}
+                        </p>
+                      </div>
+
+                      {/* LinkedIn */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="linkedin" className="text-foreground font-medium">
+                            <span className="inline-block mr-1">💼</span>
+                            LinkedIn
+                          </Label>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor="linkedin-url-toggle" className="text-xs text-muted-foreground cursor-pointer">
+                              Usar URL completa
+                            </Label>
+                            <Switch
+                              id="linkedin-url-toggle"
+                              checked={useLinkedInUrl}
+                              onCheckedChange={(checked) => {
+                                setUseLinkedInUrl(checked);
+                                // Si se activa el toggle y hay username, construir URL
+                                if (checked && profile.linkedin_username && !profile.linkedin_url) {
+                                  setProfile(prev => ({
+                                    ...prev,
+                                    linkedin_url: buildLinkedInUrl(prev.linkedin_username || '')
+                                  }));
+                                }
+                                // Si se desactiva, extraer username de la URL
+                                if (!checked && profile.linkedin_url) {
+                                  const username = extractLinkedInUsername(profile.linkedin_url);
+                                  setProfile(prev => ({
+                                    ...prev,
+                                    linkedin_username: username,
+                                    linkedin_url: ''
+                                  }));
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {useLinkedInUrl ? (
+                          <Input
+                            id="linkedin"
+                            type="text"
+                            value={profile.linkedin_url || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setProfile(prev => ({ ...prev, linkedin_url: value }));
+                              if (value && isUrl(value)) {
+                                const username = extractLinkedInUsername(value);
+                                setProfile(prev => ({ ...prev, linkedin_username: username }));
+                              }
+                            }}
+                            className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
+                            placeholder="https://linkedin.com/in/juan-perez"
+                          />
+                        ) : (
+                          <Input
+                            id="linkedin"
+                            type="text"
+                            value={profile.linkedin_username || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (isUrl(value)) {
+                                const username = extractLinkedInUsername(value);
+                                setProfile(prev => ({ ...prev, linkedin_username: username }));
+                              } else {
+                                const cleaned = cleanSocialUsername(value);
+                                setProfile(prev => ({ ...prev, linkedin_username: cleaned }));
+                              }
+                            }}
+                            className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
+                            placeholder="juan-perez"
+                          />
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {useLinkedInUrl
+                            ? "Ingresa la URL completa de tu perfil de LinkedIn"
+                            : "Ingresa solo tu nombre de usuario (ej: juan-perez). El sistema construirá la URL automáticamente."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* URL Personalizada del Perfil Público */}
+                  <div className="mt-6 pt-6 border-t border-border/50">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Crown className="h-5 w-5 text-yellow-500" />
+                        <Label className="text-foreground font-semibold text-lg">
+                          URL Personalizada del Perfil Público
+                        </Label>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Personaliza la URL de tu perfil público.
+                      </p>
+
+                      {/* Mensaje de advertencia */}
+                      <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-semibold text-amber-800 dark:text-amber-300 mb-1">
+                              ⚠️ Importante sobre cambios de URL
+                            </p>
+                            <p className="text-sm text-amber-700 dark:text-amber-400 leading-relaxed">
+                              Es importante que no realices cambios periódicos de tu URL personalizada, ya que esto puede perjudicar tus futuros leads o contactos de negocio.
+                              Si cambias tu URL, los enlaces antiguos seguirán funcionando, pero es recomendable mantener una URL estable para facilitar que los clientes te encuentren.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="public_profile_slug" className="text-foreground font-medium">
+                          <Link className="inline h-4 w-4 mr-1" />
+                          Nombre de usuario para tu perfil
+                        </Label>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                          <div className="relative flex-1">
+                            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/30 text-sm">
+                              /
+                            </div>
+                            <Input
+                              id="public_profile_slug"
+                              type="text"
+                              value={profile.public_profile_slug || ''}
+                              onChange={(e) => handleSlugChange(e.target.value)}
+                              className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 pl-8"
+                              placeholder="nombreusuario"
+                            />
+                            {checkingSlug && (
+                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              </div>
+                            )}
+                            {!checkingSlug && profile.public_profile_slug && slugAvailable !== null && (
+                              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                {slugAvailable ? (
+                                  <CheckCircle className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <X className="h-4 w-4 text-red-500" />
+                                )}
+                              </div>
                             )}
                           </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleSlugVerification}
+                            disabled={checkingSlug || !profile.public_profile_slug}
+                            className="sm:w-auto w-full h-14 bg-[#00b3f3] hover:bg-[#0099cc] text-white border-[#00b3f3] rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-[#00b3f3]/20"
+                          >
+                            {checkingSlug ? (
+                              <span className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Verificando...
+                              </span>
+                            ) : (
+                              'Verificar disponibilidad'
+                            )}
+                          </Button>
+                        </div>
+                        {slugFeedback && (
+                          <p
+                            className={`text-xs flex items-center gap-1 mt-2 ${slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
+                              }`}
+                          >
+                            {slugFeedback.type === 'success' ? (
+                              <CheckCircle className="h-3 w-3" />
+                            ) : (
+                              <AlertCircle className="h-3 w-3" />
+                            )}
+                            {slugFeedback.text}
+                          </p>
                         )}
-                      </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleSlugVerification}
-                        disabled={checkingSlug || !profile.public_profile_slug}
-                        className="sm:w-auto w-full h-14 bg-[#00b3f3] hover:bg-[#0099cc] text-white border-[#00b3f3] rounded-xl font-bold transition-all duration-300 shadow-lg hover:shadow-[#00b3f3]/20"
-                      >
-                        {checkingSlug ? (
-                          <span className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Verificando...
-                          </span>
-                        ) : (
-                          'Verificar disponibilidad'
+                        {checkingSlug && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Verificando disponibilidad...
+                          </p>
                         )}
-                      </Button>
-                    </div>
-                    {slugFeedback && (
-                      <p
-                        className={`text-xs flex items-center gap-1 mt-2 ${slugFeedback.type === 'success' ? 'text-green-600' : 'text-red-600'
-                          }`}
-                      >
-                        {slugFeedback.type === 'success' ? (
-                          <CheckCircle className="h-3 w-3" />
-                        ) : (
-                          <AlertCircle className="h-3 w-3" />
-                        )}
-                        {slugFeedback.text}
-                      </p>
-                    )}
-                    {checkingSlug && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Verificando disponibilidad...
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-center">
-                <Button
-                  onClick={handleSaveProfile}
-                  disabled={saving}
-                  size="lg"
-                  className="w-full sm:w-auto h-16 bg-[#00b3f3] hover:bg-[#0099cc] text-white px-12 rounded-2xl font-bold shadow-xl hover:shadow-[#00b3f3]/20 transition-all duration-300 hover:scale-105"
-                >
-                  <Save className="h-6 w-6 mr-3" />
-                  {saving ? 'Guardando...' : 'Guardar Datos Personales'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Certifications */}
-          <Card className="bg-[#0f172a]/95 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <CardHeader className="p-8 bg-transparent">
-              <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
-                <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
-                  <FileText className="h-6 w-6 text-white" />
-                </div>
-                Certificaciones
-              </CardTitle>
-              <CardDescription className="text-white/70 text-lg mt-2">
-                Gestiona tus certificaciones y registros de vuelo
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-8 pt-0">
-              {/* Apartado 1: Certificados de Academia Drone Chile */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-accent" />
-                  <Label className="text-foreground font-semibold text-lg">
-                    Certificados de Academia Drone Chile
-                  </Label>
-                </div>
-
-                {/* Info Message */}
-                <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                        Información sobre la validación de certificados
-                      </p>
-                      <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
-                        <p>
-                          <strong>• Solo los certificados impartidos por Academia de Drone Chile serán autenticados.</strong>
-                        </p>
-                        <p>
-                          • Esta acción es realizada por un administrador humano que revisa cada certificado.
-                        </p>
-                        <p>
-                          • Si tu certificado es válido, tu perfil contará con un <strong>distintivo de certificación válida</strong> que aumentará la confianza de los clientes y mejorará tu visibilidad en la plataforma.
+                        <p className="text-xs text-muted-foreground">
+                          Solo letras minúsculas, números, guiones y guiones bajos. Mínimo 3 caracteres, máximo 30.
                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Upload Area - Apartado 1 */}
-                <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
-                  <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Arrastra y suelta tu certificación aquí, o
-                  </p>
-                  <Label htmlFor="certification-upload" className="cursor-pointer">
-                    <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
-                    <Input
-                      id="certification-upload"
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
-                  </p>
-                </div>
-              </div>
+                  <div className="mt-8 flex justify-center">
+                    <Button
+                      onClick={handleSaveProfile}
+                      disabled={saving}
+                      size="lg"
+                      className="w-full sm:w-auto h-16 bg-[#00b3f3] hover:bg-[#0099cc] text-white px-12 rounded-2xl font-bold shadow-xl hover:shadow-[#00b3f3]/20 transition-all duration-300 hover:scale-105"
+                    >
+                      <Save className="h-6 w-6 mr-3" />
+                      {saving ? 'Guardando...' : 'Guardar Datos Personales'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Certifications List - Apartado 1 */}
-              {certifications.length > 0 && (
-                <div className="mt-6">
-                  <Separator className="mb-4" />
-                  <h4 className="font-medium text-foreground mb-4">Certificados de Academia Drone Chile subidos</h4>
-                  <div className="space-y-3">
-                    {certifications.map((cert) => (
-                      <div key={cert.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <FileText className="h-5 w-5 text-muted-foreground" />
-                            <div>
-                              <p className="font-medium text-foreground">{cert.file_name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className={getStatusColor(cert.status)}>
-                              {getStatusIcon(cert.status)}
-                              <span className="ml-1">{getStatusText(cert.status)}</span>
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewCertification(cert.id)}
-                              className="text-primary hover:text-primary hover:bg-primary/10"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteCertification(cert.id)}
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
+              {/* Certifications */}
+              <Card className="bg-[#0f172a]/95 isolate border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                <CardHeader className="p-8 bg-transparent">
+                  <CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
+                    <div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
+                      <FileText className="h-6 w-6 text-white" />
+                    </div>
+                    Certificaciones
+                  </CardTitle>
+                  <CardDescription className="text-white/70 text-lg mt-2">
+                    Gestiona tus certificaciones y registros de vuelo
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-8 pt-0">
+                  {/* Apartado 1: Certificados de Academia Drone Chile */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-accent" />
+                      <Label className="text-foreground font-semibold text-lg">
+                        Certificados de Academia Drone Chile
+                      </Label>
+                    </div>
+
+                    {/* Info Message */}
+                    <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                            Información sobre la validación de certificados
+                          </p>
+                          <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
+                            <p>
+                              <strong>• Solo los certificados impartidos por Academia de Drone Chile serán autenticados.</strong>
+                            </p>
+                            <p>
+                              • Esta acción es realizada por un administrador humano que revisa cada certificado.
+                            </p>
+                            <p>
+                              • Si tu certificado es válido, tu perfil contará con un <strong>distintivo de certificación válida</strong> que aumentará la confianza de los clientes y mejorará tu visibilidad en la plataforma.
+                            </p>
                           </div>
                         </div>
-                        {cert.rejection_observations && (
-                          <div className={`mt-3 p-3 rounded-lg border ${cert.status === 'rejected'
-                            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                            : cert.status === 'validated'
-                              ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-                              : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
-                            }`}>
-                            <div className="flex items-start gap-2">
-                              {cert.status === 'rejected' ? (
-                                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                              ) : cert.status === 'validated' ? (
-                                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                              ) : (
-                                <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                              )}
-                              <div className="flex-1">
-                                <p className={`text-sm font-semibold mb-1 ${cert.status === 'rejected'
-                                  ? 'text-red-800 dark:text-red-300'
-                                  : cert.status === 'validated'
-                                    ? 'text-green-800 dark:text-green-300'
-                                    : 'text-blue-800 dark:text-blue-300'
-                                  }`}>
-                                  {cert.status === 'rejected'
-                                    ? 'Observaciones del administrador (Rechazado):'
-                                    : cert.status === 'validated'
-                                      ? 'Observaciones del administrador (Validado):'
-                                      : 'Observaciones del administrador:'
-                                  }
-                                </p>
-                                <p className={`text-sm whitespace-pre-wrap ${cert.status === 'rejected'
-                                  ? 'text-red-700 dark:text-red-400'
-                                  : cert.status === 'validated'
-                                    ? 'text-green-700 dark:text-green-400'
-                                    : 'text-blue-700 dark:text-blue-400'
-                                  }`}>
-                                  {cert.rejection_observations}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Separador entre apartados */}
-              <Separator className="my-8" />
-
-              {/* Apartado 2: Certificados o Registros de Vuelo */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-accent" />
-                  <Label className="text-foreground font-semibold text-lg">
-                    Certificados o Registros de Vuelo
-                  </Label>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Sube certificados adicionales o registros de vuelo (archivos PDF o imagen) para validación.
-                </p>
-
-                {/* Upload Area - Apartado 2 */}
-                <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
-                  <Upload className={`mx-auto h-8 w-8 ${uploadingFlightLog ? 'text-muted-foreground/50' : 'text-muted-foreground'} mb-2`} />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Arrastra y suelta tu certificado o registro de vuelo aquí, o
-                  </p>
-                  <Label htmlFor="flight-log-upload" className="cursor-pointer">
-                    <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
-                    <Input
-                      id="flight-log-upload"
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFlightLogFileUpload}
-                      className="hidden"
-                      disabled={uploadingFlightLog}
-                    />
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
-                  </p>
-                  {uploadingFlightLog && (
-                    <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Subiendo archivo...</span>
                     </div>
-                  )}
-                </div>
 
-                {/* Flight Logs List - Apartado 2 */}
-                {flightLogs.length > 0 && (
-                  <div className="mt-6">
-                    <Separator className="mb-4" />
-                    <h4 className="font-medium text-foreground mb-4">Certificados o registros de vuelo subidos</h4>
-                    <div className="space-y-3">
-                      {flightLogs.map((log) => (
-                        <div key={log.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                                <FileText className="h-5 w-5 text-accent" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-foreground">{log.file_name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Subido el {new Date(log.uploaded_at).toLocaleDateString()}
-                                </p>
-                                {log.flight_hours && (
-                                  <p className="text-xs text-accent font-medium mt-1">
-                                    {log.flight_hours} horas validadas
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge className={getStatusColor(log.status)}>
-                                {getStatusIcon(log.status)}
-                                <span className="ml-1">{getStatusText(log.status)}</span>
-                              </Badge>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleViewFlightLog(log.id)}
-                                className="text-primary hover:text-primary hover:bg-primary/10"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteFlightLog(log.id)}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                          {log.rejection_observations && (
-                            <div className={`mt-3 p-3 rounded-lg border ${log.status === 'rejected'
-                              ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
-                              : log.status === 'validated'
-                                ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
-                                : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
-                              }`}>
-                              <div className="flex items-start gap-2">
-                                {log.status === 'rejected' ? (
-                                  <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                                ) : log.status === 'validated' ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                                ) : (
-                                  <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                                )}
-                                <div className="flex-1">
-                                  <p className={`text-sm font-semibold mb-1 ${log.status === 'rejected'
-                                    ? 'text-red-800 dark:text-red-300'
-                                    : log.status === 'validated'
-                                      ? 'text-green-800 dark:text-green-300'
-                                      : 'text-blue-800 dark:text-blue-300'
-                                    }`}>
-                                    {log.status === 'rejected'
-                                      ? 'Observaciones del administrador (Rechazado):'
-                                      : log.status === 'validated'
-                                        ? 'Observaciones del administrador (Validado):'
-                                        : 'Observaciones del administrador:'
-                                    }
-                                  </p>
-                                  <p className={`text-sm whitespace-pre-wrap ${log.status === 'rejected'
-                                    ? 'text-red-700 dark:text-red-400'
-                                    : log.status === 'validated'
-                                      ? 'text-green-700 dark:text-green-400'
-                                      : 'text-blue-700 dark:text-blue-400'
-                                    }`}>
-                                    {log.rejection_observations}
+                    {/* Upload Area - Apartado 1 */}
+                    <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
+                      <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Arrastra y suelta tu certificación aquí, o
+                      </p>
+                      <Label htmlFor="certification-upload" className="cursor-pointer">
+                        <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
+                        <Input
+                          id="certification-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Certifications List - Apartado 1 */}
+                  {certifications.length > 0 && (
+                    <div className="mt-6">
+                      <Separator className="mb-4" />
+                      <h4 className="font-medium text-foreground mb-4">Certificados de Academia Drone Chile subidos</h4>
+                      <div className="space-y-3">
+                        {certifications.map((cert) => (
+                          <div key={cert.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                  <p className="font-medium text-foreground">{cert.file_name}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Subido el {new Date(cert.uploaded_at).toLocaleDateString()}
                                   </p>
                                 </div>
                               </div>
+                              <div className="flex items-center gap-2">
+                                <Badge className={getStatusColor(cert.status)}>
+                                  {getStatusIcon(cert.status)}
+                                  <span className="ml-1">{getStatusText(cert.status)}</span>
+                                </Badge>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleViewCertification(cert.id)}
+                                  className="text-primary hover:text-primary hover:bg-primary/10"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteCertification(cert.id)}
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            {cert.rejection_observations && (
+                              <div className={`mt-3 p-3 rounded-lg border ${cert.status === 'rejected'
+                                ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                                : cert.status === 'validated'
+                                  ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+                                  : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+                                }`}>
+                                <div className="flex items-start gap-2">
+                                  {cert.status === 'rejected' ? (
+                                    <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                  ) : cert.status === 'validated' ? (
+                                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                  ) : (
+                                    <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                  )}
+                                  <div className="flex-1">
+                                    <p className={`text-sm font-semibold mb-1 ${cert.status === 'rejected'
+                                      ? 'text-red-800 dark:text-red-300'
+                                      : cert.status === 'validated'
+                                        ? 'text-green-800 dark:text-green-300'
+                                        : 'text-blue-800 dark:text-blue-300'
+                                      }`}>
+                                      {cert.status === 'rejected'
+                                        ? 'Observaciones del administrador (Rechazado):'
+                                        : cert.status === 'validated'
+                                          ? 'Observaciones del administrador (Validado):'
+                                          : 'Observaciones del administrador:'
+                                      }
+                                    </p>
+                                    <p className={`text-sm whitespace-pre-wrap ${cert.status === 'rejected'
+                                      ? 'text-red-700 dark:text-red-400'
+                                      : cert.status === 'validated'
+                                        ? 'text-green-700 dark:text-green-400'
+                                        : 'text-blue-700 dark:text-blue-400'
+                                      }`}>
+                                      {cert.rejection_observations}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          {/* Subscription */}
-          {subscription && (
-            <Card className="shadow-md border-0 bg-[#0f172a]/95 isolate">
-              <CardHeader className="border-b border-border/50">
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <div className="h-5 w-5 rounded bg-accent/20 flex items-center justify-center">
-                    <CreditCard className="h-3 w-3 text-accent" />
-                  </div>
-                  Suscripción
-                </CardTitle>
-                <CardDescription>
-                  Detalles de tu plan y facturación
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <Label className="text-muted-foreground text-sm">Plan actual</Label>
-                    <p className="font-semibold text-foreground capitalize">{subscription.plan_name}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground text-sm">Estado</Label>
-                    <div>
-                      <Badge className={getStatusColor(subscription.status)}>
-                        {getStatusText(subscription.status)}
-                      </Badge>
+                  )}
+
+                  {/* Separador entre apartados */}
+                  <Separator className="my-8" />
+
+                  {/* Apartado 2: Certificados o Registros de Vuelo */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-accent" />
+                      <Label className="text-foreground font-semibold text-lg">
+                        Certificados o Registros de Vuelo
+                      </Label>
                     </div>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground text-sm">
-                      <Calendar className="inline h-4 w-4 mr-1" />
-                      Próxima renovación
-                    </Label>
-                    <p className="font-medium text-foreground">
-                      {subscription.renewal_date ? new Date(subscription.renewal_date).toLocaleDateString() : 'No especificado'}
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Sube certificados adicionales o registros de vuelo (archivos PDF o imagen) para validación.
                     </p>
+
+                    {/* Upload Area - Apartado 2 */}
+                    <div className="border-2 border-dashed border-border/50 rounded-lg p-6 text-center hover:border-accent/50 transition-colors">
+                      <Upload className={`mx-auto h-8 w-8 ${uploadingFlightLog ? 'text-muted-foreground/50' : 'text-muted-foreground'} mb-2`} />
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Arrastra y suelta tu certificado o registro de vuelo aquí, o
+                      </p>
+                      <Label htmlFor="flight-log-upload" className="cursor-pointer">
+                        <span className="text-accent hover:text-accent/80 font-medium">selecciona un archivo</span>
+                        <Input
+                          id="flight-log-upload"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={handleFlightLogFileUpload}
+                          className="hidden"
+                          disabled={uploadingFlightLog}
+                        />
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                      </p>
+                      {uploadingFlightLog && (
+                        <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Subiendo archivo...</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Flight Logs List - Apartado 2 */}
+                    {flightLogs.length > 0 && (
+                      <div className="mt-6">
+                        <Separator className="mb-4" />
+                        <h4 className="font-medium text-foreground mb-4">Certificados o registros de vuelo subidos</h4>
+                        <div className="space-y-3">
+                          {flightLogs.map((log) => (
+                            <div key={log.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                                    <FileText className="h-5 w-5 text-accent" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-foreground">{log.file_name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Subido el {new Date(log.uploaded_at).toLocaleDateString()}
+                                    </p>
+                                    {log.flight_hours && (
+                                      <p className="text-xs text-accent font-medium mt-1">
+                                        {log.flight_hours} horas validadas
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge className={getStatusColor(log.status)}>
+                                    {getStatusIcon(log.status)}
+                                    <span className="ml-1">{getStatusText(log.status)}</span>
+                                  </Badge>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleViewFlightLog(log.id)}
+                                    className="text-primary hover:text-primary hover:bg-primary/10"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleDeleteFlightLog(log.id)}
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                              {log.rejection_observations && (
+                                <div className={`mt-3 p-3 rounded-lg border ${log.status === 'rejected'
+                                  ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800'
+                                  : log.status === 'validated'
+                                    ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'
+                                    : 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800'
+                                  }`}>
+                                  <div className="flex items-start gap-2">
+                                    {log.status === 'rejected' ? (
+                                      <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
+                                    ) : log.status === 'validated' ? (
+                                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                                    ) : (
+                                      <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                                    )}
+                                    <div className="flex-1">
+                                      <p className={`text-sm font-semibold mb-1 ${log.status === 'rejected'
+                                        ? 'text-red-800 dark:text-red-300'
+                                        : log.status === 'validated'
+                                          ? 'text-green-800 dark:text-green-300'
+                                          : 'text-blue-800 dark:text-blue-300'
+                                        }`}>
+                                        {log.status === 'rejected'
+                                          ? 'Observaciones del administrador (Rechazado):'
+                                          : log.status === 'validated'
+                                            ? 'Observaciones del administrador (Validado):'
+                                            : 'Observaciones del administrador:'
+                                        }
+                                      </p>
+                                      <p className={`text-sm whitespace-pre-wrap ${log.status === 'rejected'
+                                        ? 'text-red-700 dark:text-red-400'
+                                        : log.status === 'validated'
+                                          ? 'text-green-700 dark:text-green-400'
+                                          : 'text-blue-700 dark:text-blue-400'
+                                        }`}>
+                                        {log.rejection_observations}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <Label className="text-muted-foreground text-sm">Método de pago</Label>
-                    <p className="font-medium text-foreground">{subscription.payment_method}</p>
-                  </div>
-                </div>
-                <div className="mt-6">
-                  <Button variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white">
-                    Actualizar plan
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                </CardContent>
+              </Card>
+              {/* Subscription */}
+              {subscription && (
+                <Card className="shadow-md border-0 bg-[#0f172a]/95 isolate">
+                  <CardHeader className="border-b border-border/50">
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                      <div className="h-5 w-5 rounded bg-accent/20 flex items-center justify-center">
+                        <CreditCard className="h-3 w-3 text-accent" />
+                      </div>
+                      Suscripción
+                    </CardTitle>
+                    <CardDescription>
+                      Detalles de tu plan y facturación
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label className="text-muted-foreground text-sm">Plan actual</Label>
+                        <p className="font-semibold text-foreground capitalize">{subscription.plan_name}</p>
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground text-sm">Estado</Label>
+                        <div>
+                          <Badge className={getStatusColor(subscription.status)}>
+                            {getStatusText(subscription.status)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground text-sm">
+                          <Calendar className="inline h-4 w-4 mr-1" />
+                          Próxima renovación
+                        </Label>
+                        <p className="font-medium text-foreground">
+                          {subscription.renewal_date ? new Date(subscription.renewal_date).toLocaleDateString() : 'No especificado'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground text-sm">Método de pago</Label>
+                        <p className="font-medium text-foreground">{subscription.payment_method}</p>
+                      </div>
+                    </div>
+                    <div className="mt-6">
+                      <Button variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white">
+                        Actualizar plan
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
-      {/* Image Cropper Modal */}
       {imageToCrop && (
         <ImageCropper
           open={cropperOpen}
