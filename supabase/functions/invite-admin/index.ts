@@ -155,6 +155,14 @@ serve(async (req) => {
 
 		const shouldSendEmail = (targetRole === 'admin' || targetRole === 'super_admin');
 
+		console.log('Email sending logic:', {
+			targetRole,
+			shouldSendEmail,
+			isNewUser,
+			hasResendKey: !!RESEND_API_KEY,
+			email: cleanEmail
+		});
+
 		if (shouldSendEmail) {
 			if (isNewUser) {
 				// Email para usuario NUEVO con credenciales
@@ -224,30 +232,41 @@ serve(async (req) => {
       `;
 			}
 
+			console.log('Attempting to send email with subject:', emailSubject, 'to:', cleanEmail);
+
 			// --- SEND EMAIL ---
 			if (RESEND_API_KEY) {
-				const emailRes = await fetch('https://api.resend.com/emails', {
-					method: 'POST',
-					headers: {
-						'Authorization': `Bearer ${RESEND_API_KEY}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						from: 'Piloto de Drones <info@pilotodedrones.cl>',
-						to: cleanEmail,
-						subject: emailSubject,
-						html: emailHtml
-					})
-				});
+				try {
+					const emailRes = await fetch('https://api.resend.com/emails', {
+						method: 'POST',
+						headers: {
+							'Authorization': `Bearer ${RESEND_API_KEY}`,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							from: 'Piloto de Drones <info@pilotodedrones.cl>',
+							to: cleanEmail,
+							subject: emailSubject,
+							html: emailHtml
+						})
+					});
 
-				if (!emailRes.ok) {
-					const errorText = await emailRes.text();
-					console.error('Error sending email via Resend:', errorText);
-				} else {
-					console.log('Email sent successfully to:', cleanEmail);
+					const emailResponseData = await emailRes.json();
+
+					if (!emailRes.ok) {
+						console.error('Email sending failed:', {
+							status: emailRes.status,
+							statusText: emailRes.statusText,
+							response: emailResponseData
+						});
+					} else {
+						console.log('Email sent successfully:', emailResponseData);
+					}
+				} catch (emailError: any) {
+					console.error('Exception while sending email:', emailError.message);
 				}
 			} else {
-				console.warn('RESEND_API_KEY not found. Skipping email.');
+				console.error('⚠️ RESEND_API_KEY is not configured! Cannot send email.');
 			}
 		}
 
