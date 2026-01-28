@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
 			}
 
 			// Crear suscripción (preapproval) en Mercado Pago CON CARD TOKEN (sin redirección)
+			const origin = req.headers.get("origin") || "https://pilotodedrones.cl";
 			const preapprovalData: any = {
 				reason: `Suscripción ${planName} - Piloto de Drones`,
 				auto_recurring: {
@@ -53,15 +54,13 @@ Deno.serve(async (req) => {
 				},
 				payer_email: user.email,
 				external_reference: user.id,
-				status: "authorized", // Autorizar inmediatamente
+				status: "authorized",
+				back_url: `${origin}/pilot/membership?success=true`,
 			};
 
 			// Si se proporciona cardTokenId, añadirlo (flujo sin redirección)
 			if (cardTokenId) {
 				preapprovalData.card_token_id = cardTokenId;
-			} else {
-				// Si NO hay card token, devolver la URL de redirección (fallback)
-				preapprovalData.back_url = `${req.headers.get("origin")}/pilot/membership?success=true`;
 			}
 
 			console.log("Creating preapproval:", JSON.stringify(preapprovalData, null, 2));
@@ -80,20 +79,34 @@ Deno.serve(async (req) => {
 
 			if (!response.ok) {
 				console.error("Mercado Pago Subscription Error:", data);
-				throw new Error(data.message || "Error al crear la suscripción");
+				// Devolver el error detallado de Mercado Pago
+				return new Response(JSON.stringify({
+					error: true,
+					message: data.message || "Error al crear la suscripción",
+					details: data.cause || data,
+				}), {
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+					status: 400,
+				});
 			}
 
 			// Validar que la suscripción fue creada
 			if (data.status !== "authorized" && data.status !== "pending") {
-				throw new Error(`La suscripción no fue autorizada. Estado: ${data.status}`);
+				return new Response(JSON.stringify({
+					error: true,
+					message: `La suscripción no fue autorizada. Estado: ${data.status}`,
+					details: data,
+				}), {
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+					status: 400,
+				});
 			}
 
-			// Retornar la respuesta
+			// Retornar la respuesta exitosa
 			return new Response(JSON.stringify({
 				success: true,
 				preapproval_id: data.id,
 				status: data.status,
-				// Solo incluye init_point si no hay card token (fallback a redirección)
 				init_point: cardTokenId ? null : data.init_point,
 			}), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
