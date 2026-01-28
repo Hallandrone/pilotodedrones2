@@ -91,7 +91,20 @@ Deno.serve(async (req) => {
 			}
 
 			// Validar que la suscripción fue creada
-			if (data.status !== "authorized" && data.status !== "pending") {
+			if (data.status === "authorized" || data.status === "pending") {
+				console.log(`Subscription ${data.id} created successfully.`);
+
+				// Retornar la respuesta exitosa
+				return new Response(JSON.stringify({
+					success: true,
+					preapproval_id: data.id,
+					status: data.status,
+					init_point: cardTokenId ? null : data.init_point,
+				}), {
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+					status: 200,
+				});
+			} else {
 				return new Response(JSON.stringify({
 					error: true,
 					message: `La suscripción no fue autorizada. Estado: ${data.status}`,
@@ -101,17 +114,6 @@ Deno.serve(async (req) => {
 					status: 400,
 				});
 			}
-
-			// Retornar la respuesta exitosa
-			return new Response(JSON.stringify({
-				success: true,
-				preapproval_id: data.id,
-				status: data.status,
-				init_point: cardTokenId ? null : data.init_point,
-			}), {
-				headers: { ...corsHeaders, "Content-Type": "application/json" },
-				status: 200,
-			});
 		}
 
 		// ========== ACCIÓN: CANCELAR SUSCRIPCIÓN ==========

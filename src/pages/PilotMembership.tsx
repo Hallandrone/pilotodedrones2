@@ -136,23 +136,45 @@ const PilotMembership = () => {
     loadMembership();
     checkUserType();
 
-    // Manejar parámetros de URL después del checkout
+    // Manejar parámetros de URL después del checkout (NUEVO: Activación inmediata)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
+    const preapprovalId = urlParams.get('preapproval_id');
+    const success = urlParams.get('success');
+
+    if (preapprovalId && success === 'true') {
       toast({
-        title: "¡Pago procesado!",
-        description: "Verificando el estado de tu suscripción...",
+        title: "¡Pago recibido!",
+        description: "Activando tu plan ahora mismo...",
       });
-      // Limpiar URL
-      window.history.replaceState({}, '', window.location.pathname);
-      // Esperar un momento y recargar membresía (el webhook puede tardar)
-      setTimeout(() => {
-        loadMembership();
-      }, 2000);
-      // Recargar nuevamente después de 5 segundos por si el webhook tardó
-      setTimeout(() => {
-        loadMembership();
-      }, 5000);
+
+      setLoading(true);
+
+      // LLAMADA INMEDIATA AL BACKEND PARA ACTIVAR
+      supabase.functions.invoke('mercadopago-api', {
+        body: {
+          action: 'verify_subscription',
+          preapproval_id: preapprovalId
+        }
+      })
+        .then(async ({ data, error }) => {
+          if (error) console.error("Error verifying:", error);
+
+          // Limpiar URL para evitar recargas infinitas
+          window.history.replaceState({}, '', window.location.pathname);
+
+          // Recargar membresía (el backend ya debería haberla activado)
+          await loadMembership();
+          setLoading(false);
+
+          toast({
+            title: "¡Plan Pro Activado!",
+            description: "Ya puedes disfrutar de todos los beneficios.",
+          });
+        })
+        .catch((err) => {
+          console.error("Verification error:", err);
+          setLoading(false);
+        });
     } else if (urlParams.get('canceled') === 'true') {
       toast({
         title: "Pago cancelado",
@@ -369,6 +391,7 @@ const PilotMembership = () => {
 
   const handleSubscribe = async (planId: string) => {
     try {
+      setSubscribing(planId);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
@@ -392,13 +415,43 @@ const PilotMembership = () => {
       const selectedPlan = availablePlans.find(p => p.id === planId);
       if (!selectedPlan) return;
 
-      setSelectedPlanForBrick(selectedPlan);
-      setShowBricks(true);
+      // Determinar precio (con filtro de prueba)
+      let finalPrice = selectedPlan.price;
+      if (user.email === 'qrescueid@gmail.com') {
+        finalPrice = 1500;
+        console.log('🧪 Test mode: Price reduced to $1,500 for qrescueid@gmail.com');
+      }
+
+      toast({
+        title: "Redirigiendo a Mercado Pago",
+        description: "Serás redirigido para completar tu pago de forma segura e inmediata.",
+      });
+
+      // Llamar a create_subscription (sin cardTokenId para forzar redirección)
+      const { data, error } = await supabase.functions.invoke('mercadopago-api', {
+        body: {
+          action: 'create_subscription',
+          planId: selectedPlan.id,
+          price: finalPrice,
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      console.log("Subscription created (Redirect Flow):", data);
+
+      if (data.init_point) {
+        // REDIRECCIÓN: Es la forma más rápida y segura de que se procese el pago altiro
+        window.location.href = data.init_point;
+      } else {
+        throw new Error("No se recibió URL de pago");
+      }
 
     } catch (error: any) {
       console.error('Error creating subscription:', error);
       toast({
-        title: "Error",
+        title: "Error al crear suscripción",
         description: error.message || "No se pudo crear la suscripción. Intenta nuevamente.",
         variant: "destructive",
       });
@@ -414,145 +467,11 @@ const PilotMembership = () => {
     setPendingPlanId(null);
   };
 
+  // ELIMINADO: Mercado Pago Bricks para suscripciones suele ser lento en procesar el primer cobro
+  // Usamos Checkout Pro (Redirección) que es instantáneo.
   useEffect(() => {
-    if (showBricks && selectedPlanForBrick && window.MercadoPago) {
-      const renderCardPaymentBrick = async (bricksBuilder: any) => {
-        // Determinar precio (con filtro de prueba)
-        const { data: { user } } = await supabase.auth.getUser();
-        let finalPrice = selectedPlanForBrick.price;
-        if (user?.email === 'qrescueid@gmail.com') {
-          finalPrice = 1500;
-          console.log('🧪 Test mode: Price reduced to $1,500 for qrescueid@gmail.com');
-        }
-
-        const settings = {
-          initialization: {
-            amount: finalPrice,
-            payer: {
-              email: user?.email,
-            },
-          },
-          customization: {
-            visual: {
-              style: {
-                theme: "default",
-              },
-            },
-            paymentMethods: {
-              maxInstallments: 1,
-            }
-          },
-          callbacks: {
-            onReady: () => {
-              console.log("Brick ready");
-            },
-            onSubmit: (formData: any) => {
-              return new Promise((resolve, reject) => {
-                // Extraer el card token del formData
-                const cardTokenId = formData.token;
-
-                // Llamar a create_subscription en lugar de process_payment
-                supabase.functions.invoke('mercadopago-api', {
-                  body: {
-                    action: 'create_subscription',
-                    planId: selectedPlanForBrick.id,
-                    price: finalPrice,
-                    cardTokenId: cardTokenId, // Enviar el token de la tarjeta
-                  }
-                })
-                  .then(async ({ data, error }) => {
-                    if (error) throw error;
-                    if (data.error) throw new Error(data.error);
-
-                    console.log("Subscription created:", data);
-
-                    // Validar que la suscripción fue creada
-                    if (!data.success || (data.status !== 'authorized' && data.status !== 'pending')) {
-                      throw new Error("La suscripción no fue autorizada");
-                    }
-
-                    setShowBricks(false);
-                    setLoading(true);
-
-                    toast({
-                      title: "¡Suscripción creada!",
-                      description: "Estamos activando tu plan. Un momento por favor...",
-                    });
-
-                    // Polling para verificar activación
-                    let attempts = 0;
-                    const maxAttempts = 5;
-
-                    const checkActivation = async () => {
-                      await loadMembership();
-                      attempts++;
-
-                      const { data: sub } = await supabase
-                        .from('user_subscriptions')
-                        .select('status, plan_name')
-                        .eq('user_id', user?.id)
-                        .maybeSingle();
-
-                      if (sub && (sub.status === 'active' || sub.status === 'cancelled')) {
-                        setLoading(false);
-                        toast({
-                          title: "¡Plan Activado!",
-                          description: "Tu suscripción ya está disponible.",
-                        });
-                        resolve(data);
-                      } else if (attempts < maxAttempts) {
-                        setTimeout(checkActivation, 2000);
-                      } else {
-                        setLoading(false);
-                        toast({
-                          title: "Activación en proceso",
-                          description: "Tu suscripción fue creada. Si no ves el cambio en un momento, por favor refresca la página.",
-                        });
-                        resolve(data);
-                      }
-                    };
-
-                    setTimeout(checkActivation, 1000);
-                  })
-                  .catch((error) => {
-                    console.error("Subscription error:", error);
-                    setShowBricks(false);
-                    toast({
-                      title: "Error al crear suscripción",
-                      description: error.message || "No se pudo crear la suscripción. Intenta nuevamente.",
-                      variant: "destructive",
-                    });
-                    reject(error);
-                  });
-              });
-            },
-            onError: (error: any) => {
-              console.error("Brick error:", error);
-            },
-          },
-        };
-
-        const controller = await bricksBuilder.create(
-          "cardPayment",
-          "cardPaymentBrick_container",
-          settings
-        );
-        setBricksController(controller);
-      };
-
-      const mp = new window.MercadoPago('APP_USR-08ad2fd4-0eb3-4231-89e0-76c03c3bff5c', {
-        locale: 'es-CL'
-      });
-      const bricksBuilder = mp.bricks();
-      renderCardPaymentBrick(bricksBuilder);
-    }
-
-    return () => {
-      if (bricksController) {
-        // bricksController.unmount();
-      }
-    };
-  }, [showBricks, selectedPlanForBrick]);
+    // Solo cargamos el script de MP si fuera necesario, pero la redirección no lo requiere estrictamente.
+  }, []);
 
   const handleCancelSubscription = async () => {
     try {
