@@ -67,58 +67,54 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      // Si el rol es administrativo, usamos la Edge Function de invitación
-      // que es segura (service role) y envía correo con password temporal
-      if (data.role === 'admin' || data.role === 'super_admin') {
-        console.log('Invitando administrador vía Edge Function...');
-        const { data: funcData, error: funcError } = await supabase.functions.invoke('invite-admin', {
-          body: {
-            email: data.email,
-            full_name: data.full_name,
-            permissions: data.role === 'super_admin' ? [
-              'create_diplomas',
-              'manage_certificates',
-              'approve_deny_certificates',
-              'view_users',
-              'view_companies',
-              'view_notifications',
-              'manage_banners',
-              'upload_banners'
-            ] : ['view_users'], // Permisos base para nuevo admin
-            invited_by: currentUser?.id
-          }
-        });
+      // SIEMPRE usar la Edge Function para evitar conflictos de sesión
+      console.log('Creando/actualizando usuario vía Edge Function...');
 
-        if (funcError || funcData?.error) {
-          throw new Error(funcError?.message || funcData?.error || "Error al invocar la función de invitación");
-        }
-
-        toast({
-          title: "Invitación enviada",
-          description: `Se ha enviado un correo a ${data.email} con sus credenciales de administrador.`,
-        });
-      } else {
-        // Para pilotos y empresas, usamos signUp
-        // Nota: Si la confirmación de email está desactivada, esto cerrará la sesión actual
-        // Por eso advertimos o recomendamos usar el flujo de invitación si estuviera disponible
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password,
-          options: {
-            data: {
-              full_name: data.full_name,
-              user_type: data.role,
-            }
-          }
-        });
-
-        if (authError) throw authError;
-
-        toast({
-          title: "Usuario creado",
-          description: "El usuario ha sido registrado exitosamente.",
-        });
+      // Determinar permisos según el rol
+      let permissions: string[] = [];
+      if (data.role === 'super_admin') {
+        permissions = [
+          'create_diplomas',
+          'manage_certificates',
+          'approve_deny_certificates',
+          'view_users',
+          'view_companies',
+          'view_notifications',
+          'manage_banners',
+          'upload_banners'
+        ];
+      } else if (data.role === 'admin') {
+        permissions = ['view_users']; // Permisos base
       }
+      // Para pilot y company, permissions queda vacío []
+
+      const { data: funcData, error: funcError } = await supabase.functions.invoke('invite-admin', {
+        body: {
+          email: data.email,
+          full_name: data.full_name,
+          permissions: permissions,
+          role: data.role, // Enviar el rol explícitamente
+          password: data.password, // Enviar contraseña para que la función la use si es necesario
+          invited_by: currentUser?.id
+        }
+      });
+
+      if (funcError) {
+        console.error('Error de la Edge Function:', funcError);
+        throw new Error(funcError.message || "Error al invocar la función");
+      }
+
+      if (funcData?.error) {
+        console.error('Error en respuesta de la función:', funcData.error);
+        throw new Error(funcData.error);
+      }
+
+      const isAdmin = data.role === 'admin' || data.role === 'super_admin';
+
+      toast({
+        title: isAdmin ? "Invitación enviada" : "Usuario creado",
+        description: funcData?.message || `Usuario ${data.email} configurado exitosamente`,
+      });
 
       form.reset();
       onOpenChange(false);
