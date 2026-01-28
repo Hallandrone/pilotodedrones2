@@ -12,6 +12,8 @@ interface StatsData {
   activeUsers: number;
   totalLocations: number;
   totalDiplomas: number;
+  totalViews: number;
+  registrationTrend: number;
 }
 
 export function DashboardStats() {
@@ -51,10 +53,37 @@ export function DashboardStats() {
         .select('*', { count: 'exact', head: true })
         .gte('created_at', startOfMonth.toISOString());
 
-      // For now, we'll use mock data for active users and locations
-      // These would typically come from more complex queries or analytics tables
-      const activeUsers = Math.floor((totalUsers || 0) * 0.7); // 70% active rate
-      const totalLocations = Math.floor((totalPilots || 0) * 1.2); // Assuming pilots have multiple locations
+      // Get active users (updated in the last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { count: activeUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('updated_at', thirtyDaysAgo.toISOString());
+
+      // Get real unique locations
+      const { data: locationsData } = await supabase
+        .from('profiles')
+        .select('location')
+        .not('location', 'is', null)
+        .neq('location', '');
+
+      const uniqueLocations = new Set(locationsData?.map(l => l.location?.trim()).filter(Boolean) || []).size;
+
+      // Calculate registration trend (this month vs last month)
+      const lastMonthStart = new Date(startOfMonth);
+      lastMonthStart.setMonth(lastMonthStart.getMonth() - 1);
+
+      const { count: lastMonthUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', lastMonthStart.toISOString())
+        .lt('created_at', startOfMonth.toISOString());
+
+      // Get total views count
+      const { count: totalViews } = await supabase
+        .from('profile_views')
+        .select('*', { count: 'exact', head: true });
 
       // Get total diplomas count
       const { count: totalDiplomas } = await supabase
@@ -66,9 +95,11 @@ export function DashboardStats() {
         totalPilots: totalPilots || 0,
         totalCompanies: totalCompanies || 0,
         newUsersThisMonth: newUsersThisMonth || 0,
-        activeUsers,
-        totalLocations,
-        totalDiplomas: totalDiplomas || 0
+        activeUsers: activeUsers || 0,
+        totalLocations: uniqueLocations || 0,
+        totalDiplomas: totalDiplomas || 0,
+        totalViews: totalViews || 0,
+        registrationTrend: lastMonthUsers || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -134,7 +165,9 @@ export function DashboardStats() {
       value: stats?.newUsersThisMonth || 0,
       description: "Registros este mes",
       icon: TrendingUp,
-      trend: "Comparado con el mes anterior",
+      trend: stats?.registrationTrend && stats.registrationTrend > 0
+        ? `${(((stats.newUsersThisMonth - stats.registrationTrend) / stats.registrationTrend) * 100).toFixed(0)}% vs mes anterior`
+        : "Sin registros el mes anterior",
       color: "text-emerald-600"
     },
     {
@@ -152,6 +185,14 @@ export function DashboardStats() {
       icon: Award,
       trend: "Control correlativo",
       color: "text-amber-600"
+    },
+    {
+      title: "Vistas de Perfil",
+      value: stats?.totalViews || 0,
+      description: "Visualizaciones totales de perfiles públicos",
+      icon: TrendingUp,
+      trend: "Tráfico total acumulado",
+      color: "text-indigo-600"
     }
   ];
 
