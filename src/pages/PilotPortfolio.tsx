@@ -675,73 +675,75 @@ const PilotPortfolio = () => {
 							Modifica la información de tu trabajo en el portafolio.
 						</DialogDescription>
 					</DialogHeader>
-					<div className="space-y-4 py-4">
-						<div className="space-y-2">
-							<Label htmlFor="edit-title">Título</Label>
-							<Input
-								id="edit-title"
-								value={editTitle}
-								onChange={(e) => setEditTitle(e.target.value)}
-								className="bg-[#2C2C2C] border-[#444444]"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="edit-description">Descripción</Label>
-							<Textarea
-								id="edit-description"
-								value={editDescription}
-								onChange={(e) => setEditDescription(e.target.value)}
-								className="bg-[#2C2C2C] border-[#444444]"
-								rows={2}
-							/>
-						</div>
-
-						{editingItem.type === 'image' ? (
-							<div className="space-y-3 pt-2">
-								<Label>Cambiar Imagen</Label>
-								<div className="flex flex-col gap-3">
-									{editFile ? (
-										<div className="text-xs text-blue-400 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
-											Nueva imagen seleccionada: {editFile.name}
-										</div>
-									) : (
-										<div className="aspect-video relative rounded-lg overflow-hidden border border-[#333333]">
-											<img src={editingItem.url} className="w-full h-full object-cover opacity-50" />
-											<div className="absolute inset-0 flex items-center justify-center">
-												<span className="text-xs text-white/40">Imagen actual</span>
-											</div>
-										</div>
-									)}
-									<label htmlFor="edit-portfolio-upload" className="cursor-pointer">
-										<Button asChild variant="secondary" className="w-full bg-[#333333] hover:bg-[#444444] text-white">
-											<span>
-												<Upload className="h-4 w-4 mr-2" />
-												Seleccionar Nueva Foto
-											</span>
-										</Button>
-										<input
-											id="edit-portfolio-upload"
-											type="file"
-											accept=".jpg,.jpeg,.png,.webp"
-											className="hidden"
-											onChange={(e) => e.target.files && setEditFile(e.target.files[0])}
-										/>
-									</label>
-								</div>
-							</div>
-						) : (
-							<div className="space-y-2 pt-2">
-								<Label htmlFor="edit-video-url">URL del Video (YouTube/Vimeo)</Label>
+					{editingItem && (
+						<div className="space-y-4 py-4">
+							<div className="space-y-2">
+								<Label htmlFor="edit-title">Título</Label>
 								<Input
-									id="edit-video-url"
-									value={editVideoUrl}
-									onChange={(e) => setEditVideoUrl(e.target.value)}
+									id="edit-title"
+									value={editTitle}
+									onChange={(e) => setEditTitle(e.target.value)}
 									className="bg-[#2C2C2C] border-[#444444]"
-									placeholder="https://www.youtube.com/watch?v=..."
 								/>
 							</div>
-						)}
-					</div>
+							<div className="space-y-2">
+								<Label htmlFor="edit-description">Descripción</Label>
+								<Textarea
+									id="edit-description"
+									value={editDescription}
+									onChange={(e) => setEditDescription(e.target.value)}
+									className="bg-[#2C2C2C] border-[#444444]"
+									rows={2}
+								/>
+							</div>
+
+							{editingItem.type === 'image' ? (
+								<div className="space-y-3 pt-2">
+									<Label>Cambiar Imagen</Label>
+									<div className="flex flex-col gap-3">
+										{editFile ? (
+											<div className="text-xs text-blue-400 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">
+												Nueva imagen seleccionada: {editFile.name}
+											</div>
+										) : (
+											<div className="aspect-video relative rounded-lg overflow-hidden border border-[#333333]">
+												<img src={editingItem.url} className="w-full h-full object-cover opacity-50" />
+												<div className="absolute inset-0 flex items-center justify-center">
+													<span className="text-xs text-white/40">Imagen actual</span>
+												</div>
+											</div>
+										)}
+										<label htmlFor="edit-portfolio-upload" className="cursor-pointer">
+											<Button asChild variant="secondary" className="w-full bg-[#333333] hover:bg-[#444444] text-white">
+												<span>
+													<Upload className="h-4 w-4 mr-2" />
+													Seleccionar Nueva Foto
+												</span>
+											</Button>
+											<input
+												id="edit-portfolio-upload"
+												type="file"
+												accept=".jpg,.jpeg,.png,.webp"
+												className="hidden"
+												onChange={(e) => e.target.files && setEditFile(e.target.files[0])}
+											/>
+										</label>
+									</div>
+								</div>
+							) : (
+								<div className="space-y-2 pt-2">
+									<Label htmlFor="edit-video-url">URL del Video (YouTube/Vimeo)</Label>
+									<Input
+										id="edit-video-url"
+										value={editVideoUrl}
+										onChange={(e) => setEditVideoUrl(e.target.value)}
+										className="bg-[#2C2C2C] border-[#444444]"
+										placeholder="https://www.youtube.com/watch?v=..."
+									/>
+								</div>
+							)}
+						</div>
+					)}
 					<DialogFooter>
 						<Button variant="ghost" onClick={() => setEditingItem(null)} disabled={updating}>
 							Cancelar
