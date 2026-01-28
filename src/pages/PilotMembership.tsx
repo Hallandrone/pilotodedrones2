@@ -164,15 +164,35 @@ const PilotMembership = () => {
     }
   }, []);
 
-  // Filtrar planes según el tipo de usuario
+  // Filtrar planes según el tipo de usuario Y aplicar precio de prueba
   useEffect(() => {
-    if (userType === 'company') {
-      // Si es empresa, solo mostrar Plan Empresa
-      setAvailablePlans(defaultPlans.filter(p => p.id === 'empresa'));
-    } else {
-      // Si es piloto (o no se ha determinado), solo mostrar Plan Profesional
-      setAvailablePlans(defaultPlans.filter(p => p.id === 'profesional'));
-    }
+    const applyTestPricing = async () => {
+      // Obtener usuario actual
+      const { data: { user } } = await supabase.auth.getUser();
+
+      let filteredPlans: AvailablePlan[] = [];
+
+      if (userType === 'company') {
+        // Si es empresa, solo mostrar Plan Empresa
+        filteredPlans = defaultPlans.filter(p => p.id === 'empresa');
+      } else {
+        // Si es piloto (o no se ha determinado), solo mostrar Plan Profesional
+        filteredPlans = defaultPlans.filter(p => p.id === 'profesional');
+      }
+
+      // 🧪 PRECIO DE PRUEBA: Si es qrescueid@gmail.com, cambiar precio a $1,500
+      if (user?.email === 'qrescueid@gmail.com') {
+        filteredPlans = filteredPlans.map(plan => ({
+          ...plan,
+          price: 1500 // Precio de prueba
+        }));
+        console.log('🧪 Test mode: Prices adjusted to $1,500 for qrescueid@gmail.com');
+      }
+
+      setAvailablePlans(filteredPlans);
+    };
+
+    applyTestPricing();
   }, [userType]);
 
   const checkUserType = async () => {
