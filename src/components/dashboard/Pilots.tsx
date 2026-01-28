@@ -475,18 +475,14 @@ export function Pilots() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        {pilot.subscription_status ? (
+                        {pilot.subscription_status === 'active' ? (
                           <div className="flex items-center gap-1">
-                            {pilot.subscription_status === 'active' ? (
-                              <CheckCircle className="h-3 w-3 text-green-500" />
-                            ) : (
-                              <XCircle className="h-3 w-3 text-gray-500" />
-                            )}
+                            <CheckCircle className="h-3 w-3 text-green-500" />
                             <Badge
-                              variant={pilot.subscription_status === 'active' ? 'default' : 'secondary'}
-                              className={pilot.subscription_status === 'active' ? 'bg-green-500' : ''}
+                              variant="default"
+                              className="bg-green-500"
                             >
-                              {pilot.subscription_status === 'active' ? 'Activa' : 'Inactiva'}
+                              Suscripción Activa
                             </Badge>
                             {pilot.subscription_plan && (
                               <span className="text-xs text-muted-foreground ml-1">
@@ -494,9 +490,7 @@ export function Pilots() {
                               </span>
                             )}
                           </div>
-                        ) : (
-                          <Badge variant="outline">Sin suscripción</Badge>
-                        )}
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
