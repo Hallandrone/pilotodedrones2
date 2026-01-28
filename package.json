@@ -4,21 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Plataforma profesional para conectar pilotos de drones certificados con clientes que necesitan servicios aéreos en Chile",
-  "author": {
-    "name": "Alvaro Cofré",
-    "email": "web@alvarocofre.dev",
-    "url": "https://www.alvarocofre.dev"
-  },
-  "keywords": [
-    "drones",
-    "pilotos",
-    "servicios aéreos",
-    "Chile",
-    "React",
-    "TypeScript",
-    "Supabase"
-  ],
-  "homepage": "https://www.alvarocofre.dev/projects/pilotodedrones",
+  "author": "Academia de Drones",
+  "homepage": "https://pilotodedrones.cl",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -65,26 +65,60 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
   const onSubmit = async (data: CreateUserFormData) => {
     setLoading(true);
     try {
-      // Create user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      // Si el rol es administrativo, usamos la Edge Function de invitación
+      // que es segura (service role) y envía correo con password temporal
+      if (data.role === 'admin' || data.role === 'super_admin') {
+        console.log('Invitando administrador vía Edge Function...');
+        const { data: funcData, error: funcError } = await supabase.functions.invoke('invite-admin', {
+          body: {
+            email: data.email,
             full_name: data.full_name,
-            user_type: data.role,
+            permissions: data.role === 'super_admin' ? [
+              'create_diplomas',
+              'manage_certificates',
+              'approve_deny_certificates',
+              'view_users',
+              'view_companies',
+              'view_notifications',
+              'manage_banners',
+              'upload_banners'
+            ] : ['view_users'], // Permisos base para nuevo admin
+            invited_by: currentUser?.id
           }
+        });
+
+        if (funcError || funcData?.error) {
+          throw new Error(funcError?.message || funcData?.error || "Error al invocar la función de invitación");
         }
-      });
 
-      if (authError) {
-        throw authError;
+        toast({
+          title: "Invitación enviada",
+          description: `Se ha enviado un correo a ${data.email} con sus credenciales de administrador.`,
+        });
+      } else {
+        // Para pilotos y empresas, usamos signUp
+        // Nota: Si la confirmación de email está desactivada, esto cerrará la sesión actual
+        // Por eso advertimos o recomendamos usar el flujo de invitación si estuviera disponible
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              full_name: data.full_name,
+              user_type: data.role,
+            }
+          }
+        });
+
+        if (authError) throw authError;
+
+        toast({
+          title: "Usuario creado",
+          description: "El usuario ha sido registrado exitosamente.",
+        });
       }
-
-      toast({
-        title: "Usuario creado",
-        description: "El usuario ha sido creado exitosamente",
-      });
 
       form.reset();
       onOpenChange(false);
