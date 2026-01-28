@@ -25,50 +25,106 @@ Deno.serve(async (req) => {
 		const body = await req.json();
 		const { action } = body;
 
-		if (action === "create_preference") {
-			const { planId, planName, price } = body;
-			const preference = {
-				items: [
-					{
-						id: planId,
-						title: `Suscripción Piloto de Drones - ${planName}`,
-						quantity: 1,
-						unit_price: price,
-						currency_id: "CLP",
-					},
-				],
-				payer: {
-					email: user.email,
-					name: user.user_metadata?.full_name,
+		// ========== NUEVA ACCIÓN: CREAR SUSCRIPCIÓN ==========
+		if (action === "create_subscription") {
+			const { planId, price } = body;
+
+			// Determinar precio: si es qrescueid@gmail.com, usar precio de prueba
+			let finalPrice = price;
+			if (user.email === "qrescueid@gmail.com") {
+				finalPrice = 1500; // Precio de prueba
+				console.log("🧪 Test mode activated for qrescueid@gmail.com - Price: $1,500");
+			}
+
+			// Determinar nombre del plan
+			let planName = "Plan Profesional";
+			if (planId === "empresa") {
+				planName = "Plan Empresa";
+			}
+
+			// Crear suscripción (preapproval) en Mercado Pago
+			const preapprovalData = {
+				reason: `Suscripción ${planName} - Piloto de Drones`,
+				auto_recurring: {
+					frequency: 1,
+					frequency_type: "months",
+					transaction_amount: finalPrice,
+					currency_id: "CLP",
 				},
-				back_urls: {
-					success: `${req.headers.get("origin")}/pilot/membership?success=true`,
-					failure: `${req.headers.get("origin")}/pilot/membership?error=true`,
-					pending: `${req.headers.get("origin")}/pilot/membership?pending=true`,
-				},
-				auto_return: "approved",
-				notification_url: `${supabaseUrl}/functions/v1/mercadopago-webhook`,
+				payer_email: user.email,
 				external_reference: user.id,
+				status: "authorized", // Autorizar inmediatamente
+				back_url: `${req.headers.get("origin")}/pilot/membership?success=true`,
 			};
 
-			const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+			console.log("Creating preapproval:", JSON.stringify(preapprovalData, null, 2));
+
+			const response = await fetch("https://api.mercadopago.com/preapproval", {
 				method: "POST",
 				headers: {
 					Authorization: `Bearer ${mpAccessToken}`,
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(preference),
+				body: JSON.stringify(preapprovalData),
 			});
 
 			const data = await response.json();
-			if (!response.ok) throw new Error(data.message || "Error al crear la preferencia");
+			console.log("Mercado Pago response:", JSON.stringify(data, null, 2));
 
-			return new Response(JSON.stringify({ id: data.id, init_point: data.init_point }), {
+			if (!response.ok) {
+				console.error("Mercado Pago Subscription Error:", data);
+				throw new Error(data.message || "Error al crear la suscripción");
+			}
+
+			// Retornar la URL de inicialización y el ID de preapproval
+			return new Response(JSON.stringify({
+				success: true,
+				preapproval_id: data.id,
+				init_point: data.init_point,
+				status: data.status,
+			}), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 				status: 200,
 			});
+		}
 
-		} else if (action === "process_payment") {
+		// ========== ACCIÓN: CANCELAR SUSCRIPCIÓN ==========
+		if (action === "cancel_subscription") {
+			const { preapprovalId } = body;
+
+			if (!preapprovalId) {
+				throw new Error("preapprovalId is required");
+			}
+
+			const response = await fetch(`https://api.mercadopago.com/preapproval/${preapprovalId}`, {
+				method: "PUT",
+				headers: {
+					Authorization: `Bearer ${mpAccessToken}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					status: "cancelled",
+				}),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) {
+				console.error("Error cancelling subscription:", data);
+				throw new Error(data.message || "Error al cancelar la suscripción");
+			}
+
+			return new Response(JSON.stringify({
+				success: true,
+				status: data.status,
+			}), {
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+				status: 200,
+			});
+		}
+
+		// ========== MANTENER COMPATIBILIDAD CON PAGOS ÚNICOS (LEGACY) ==========
+		if (action === "process_payment") {
 			const { formData } = body;
 
 			// Preparar el objeto de pago para Mercado Pago
@@ -89,7 +145,7 @@ Deno.serve(async (req) => {
 				additional_info: {
 					items: [
 						{
-							id: formData.planId || "profesional", // Usamos el ID del plan para el webhook
+							id: formData.planId || "profesional",
 							title: formData.description,
 							quantity: 1,
 							unit_price: formData.transaction_amount,
@@ -116,18 +172,13 @@ Deno.serve(async (req) => {
 
 			const data = await response.json();
 
-			// Validar que la respuesta sea exitosa
 			if (!response.ok) {
 				console.error("Mercado Pago Payment Error:", data);
 				throw new Error(data.message || "Error al procesar el pago");
 			}
 
-			// CRITICAL: Validar el estado del pago
-			// Solo devolver éxito si el pago está APROBADO
 			if (data.status !== "approved") {
 				console.log(`Payment not approved. Status: ${data.status}, Status Detail: ${data.status_detail}`);
-
-				// Mapear mensajes de error según el estado
 				let errorMessage = "El pago no fue aprobado.";
 
 				if (data.status === "rejected") {
@@ -141,7 +192,6 @@ Deno.serve(async (req) => {
 				throw new Error(errorMessage);
 			}
 
-			// Solo si llegamos aquí, el pago fue aprobado exitosamente
 			return new Response(JSON.stringify({
 				...data,
 				success: true,

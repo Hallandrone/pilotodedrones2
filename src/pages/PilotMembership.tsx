@@ -349,6 +349,7 @@ const PilotMembership = () => {
 
   const handleSubscribe = async (planId: string) => {
     try {
+      setSubscribing(planId);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({
@@ -372,8 +373,36 @@ const PilotMembership = () => {
       const selectedPlan = availablePlans.find(p => p.id === planId);
       if (!selectedPlan) return;
 
-      setSelectedPlanForBrick(selectedPlan);
-      setShowBricks(true);
+      // Determinar el precio
+      let finalPrice = selectedPlan.price;
+      if (user.email === 'qrescueid@gmail.com') {
+        finalPrice = 1500; // Precio de prueba
+        console.log('🧪 Test mode: Price reduced to $1,500 for qrescueid@gmail.com');
+      }
+
+      toast({
+        title: "Redirigiendo a Mercado Pago",
+        description: "Serás redirigido para completar tu suscripción...",
+      });
+
+      // Llamar a la Edge Function para crear la suscripción
+      const { data, error } = await supabase.functions.invoke('mercadopago-api', {
+        body: {
+          action: 'create_subscription',
+          planId: selectedPlan.id,
+          price: finalPrice,
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      // Redirigir al usuario a Mercado Pago
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        throw new Error("No se recibió URL de pago");
+      }
 
     } catch (error: any) {
       console.error('Error creating subscription:', error);
@@ -382,7 +411,6 @@ const PilotMembership = () => {
         description: error.message || "No se pudo crear la suscripción. Intenta nuevamente.",
         variant: "destructive",
       });
-    } finally {
       setSubscribing(null);
     }
   };
@@ -395,129 +423,12 @@ const PilotMembership = () => {
     setPendingPlanId(null);
   };
 
-  useEffect(() => {
-    if (showBricks && selectedPlanForBrick && window.MercadoPago) {
-      const renderCardPaymentBrick = async (bricksBuilder: any) => {
-        const settings = {
-          initialization: {
-            amount: selectedPlanForBrick.price,
-            payer: {
-              email: (await supabase.auth.getUser()).data.user?.email,
-            },
-          },
-          customization: {
-            visual: {
-              style: {
-                theme: "default",
-              },
-            },
-            paymentMethods: {
-              maxInstallments: 1,
-            }
-          },
-          callbacks: {
-            onReady: () => {
-              console.log("Brick ready");
-            },
-            onSubmit: (formData: any) => {
-              return new Promise((resolve, reject) => {
-                processPayment({
-                  ...formData,
-                  planId: selectedPlanForBrick.id,
-                  description: `Suscripción Piloto de Drones - ${selectedPlanForBrick.name}`,
-                })
-                  .then(async (result) => {
-                    console.log("Payment result:", result);
-
-                    // CRITICAL: Validar que el pago fue aprobado
-                    if (!result.success || result.status !== 'approved') {
-                      throw new Error(result.status_detail || "El pago no fue aprobado");
-                    }
-
-                    setShowBricks(false);
-                    setLoading(true); // Mostrar estado de carga global mientras verificamos
-
-                    toast({
-                      title: "¡Pago exitoso!",
-                      description: "Estamos activando tu plan. Un momento por favor...",
-                    });
-
-                    // Función de sondeo (polling) para verificar el cambio en la base de datos
-                    let attempts = 0;
-                    const maxAttempts = 5;
-
-                    const checkActivation = async () => {
-                      await loadMembership();
-                      attempts++;
-
-                      // Obtenemos el estado más reciente después de loadMembership
-                      // Si el plan ya no es null y es Pro/Empresa, terminamos
-                      const { data: sub } = await supabase
-                        .from('user_subscriptions')
-                        .select('status, plan_name')
-                        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-                        .maybeSingle();
-
-                      if (sub && (sub.status === 'active' || sub.status === 'cancelled')) {
-                        setLoading(false);
-                        toast({
-                          title: "¡Plan Activado!",
-                          description: "Tu suscripción ya está disponible.",
-                        });
-                        resolve(result);
-                      } else if (attempts < maxAttempts) {
-                        setTimeout(checkActivation, 2000); // Reintentar cada 2 seg
-                      } else {
-                        setLoading(false);
-                        toast({
-                          title: "Activación en proceso",
-                          description: "Tu pago fue recibido. Si no ves el cambio en un momento, por favor refresca la página.",
-                        });
-                        resolve(result);
-                      }
-                    };
-
-                    setTimeout(checkActivation, 1000);
-                  })
-                  .catch((error) => {
-                    console.error("Payment error:", error);
-                    setShowBricks(false);
-                    toast({
-                      title: "Error en el pago",
-                      description: error.message || "No se pudo procesar el pago. Intenta nuevamente.",
-                      variant: "destructive",
-                    });
-                    reject(error);
-                  });
-              });
-            },
-            onError: (error: any) => {
-              console.error("Brick error:", error);
-            },
-          },
-        };
-
-        const controller = await bricksBuilder.create(
-          "cardPayment",
-          "cardPaymentBrick_container",
-          settings
-        );
-        setBricksController(controller);
-      };
-
-      const mp = new window.MercadoPago('APP_USR-08ad2fd4-0eb3-4231-89e0-76c03c3bff5c', {
-        locale: 'es-CL'
-      });
-      const bricksBuilder = mp.bricks();
-      renderCardPaymentBrick(bricksBuilder);
-    }
-
-    return () => {
-      if (bricksController) {
-        // bricksController.unmount(); // Mercado Pago a veces da error al desmontar así
-      }
-    };
-  }, [showBricks, selectedPlanForBrick]);
+  // ELIMINADO: El código del Brick ya no es necesario porque usamos redirección
+  // useEffect(() => {
+  //   if (showBricks && selectedPlanForBrick && window.MercadoPago) {
+  //     ...
+  //   }
+  // }, [showBricks, selectedPlanForBrick]);
 
   const handleCancelSubscription = async () => {
     try {
