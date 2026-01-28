@@ -28,7 +28,12 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const name = full_name || 'Piloto'
+    if (!full_name) {
+      console.log('Skipping welcome email: full_name is missing (likely duplicate generic trigger)')
+      return new Response(JSON.stringify({ skipped: true, reason: 'Missing full_name' }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    const name = full_name
 
     const emailHtml = `
     <!DOCTYPE html>
