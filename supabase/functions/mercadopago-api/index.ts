@@ -52,7 +52,8 @@ Deno.serve(async (req) => {
 					transaction_amount: finalPrice,
 					currency_id: "CLP",
 				},
-				payer_email: user.email,
+				// NO enviamos payer_email para permitir flexibilidad
+				// El usuario puede pagar con cualquier cuenta de Mercado Pago
 				external_reference: user.id,
 				// No ponemos status en la creación - MP lo maneja automáticamente
 			};
