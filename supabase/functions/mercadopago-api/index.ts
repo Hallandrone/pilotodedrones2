@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
 					transaction_amount: finalPrice,
 					currency_id: "CLP",
 				},
-				// NO enviamos payer_email para permitir flexibilidad
-				// El usuario puede pagar con cualquier cuenta de Mercado Pago
+				payer_email: user.email,
+				// El external_reference es lo que vincula el pago con tu usuario de Supabase
 				external_reference: user.id,
 				// No ponemos status en la creación - MP lo maneja automáticamente
 			};
