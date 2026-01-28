@@ -19,8 +19,10 @@ import {
   HelpCircle,
   ExternalLink,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Info
 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { createPreference, processPayment } from "@/integrations/mercadopago/client";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 import Logo from "@/components/ui/logo";
@@ -913,6 +915,15 @@ const PilotMembership = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-6">
+                {/* Informative message about email editing */}
+                <Alert className="bg-blue-500/10 border-blue-500/30 text-blue-100">
+                  <Info className="h-4 w-4 text-blue-400" />
+                  <AlertTitle className="text-blue-200 font-semibold">Verificación de Email</AlertTitle>
+                  <AlertDescription className="text-blue-300/90">
+                    Si tu email de Mercado Pago es diferente al de esta plataforma, podrás modificarlo en la siguiente pantalla de pago.
+                  </AlertDescription>
+                </Alert>
+
                 {availablePlans.map((plan) => {
                   const isCurrentPlan = membership?.plan_name === plan.name;
                   const isSubscribing = subscribing === plan.id;
