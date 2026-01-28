@@ -16,8 +16,10 @@ import {
 	ExternalLink,
 	Youtube,
 	MonitorPlay,
-	Loader2
+	Loader2,
+	Pencil
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import imageCompression from 'browser-image-compression';
@@ -40,6 +42,10 @@ export const CompanyPortfolio = () => {
 	const [videoUrl, setVideoUrl] = useState('');
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
+	const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
+	const [editTitle, setEditTitle] = useState('');
+	const [editDescription, setEditDescription] = useState('');
+	const [updating, setUpdating] = useState(false);
 	const { toast } = useToast();
 	const { plan } = useSubscriptionPlan();
 
@@ -114,27 +120,66 @@ export const CompanyPortfolio = () => {
 		return (match && match[2].length === 11) ? match[2] : null;
 	};
 
+	const handleEditClick = (item: PortfolioItem) => {
+		setEditingItem(item);
+		setEditTitle(item.title || '');
+		setEditDescription(item.description || '');
+	};
+
+	const handleUpdateItem = async () => {
+		if (!editingItem) return;
+		try {
+			setUpdating(true);
+			const { error } = await supabase
+				.from('pilot_portfolio')
+				.update({
+					title: editTitle,
+					description: editDescription
+				})
+				.eq('id', editingItem.id);
+
+			if (error) throw error;
+
+			toast({
+				title: "Elemento actualizado",
+				description: "Los cambios se guardaron correctamente.",
+			});
+
+			setEditingItem(null);
+			await loadPortfolio();
+		} catch (error: any) {
+			console.error('Error updating portfolio item:', error);
+			toast({
+				title: "Error",
+				description: error.message || "No se pudo actualizar el elemento",
+				variant: "destructive",
+			});
+		} finally {
+			setUpdating(false);
+		}
+	};
+
 	if (loading) return <div className="text-white">Cargando...</div>;
 
 	return (
 		<div className="space-y-8 animate-fade-in">
-		<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden">
-			<CardHeader className="p-4 md:p-6">
-				<div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-					<div className="min-w-0">
-						<CardTitle className="text-lg sm:text-2xl text-white">Portafolio Profesional</CardTitle>
-						<CardDescription className="text-white/60 text-sm">Muestra tus mejores trabajos visuales.</CardDescription>
+			<Card className="bg-white/10 backdrop-blur-xl border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden">
+				<CardHeader className="p-4 md:p-6">
+					<div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+						<div className="min-w-0">
+							<CardTitle className="text-lg sm:text-2xl text-white">Portafolio Profesional</CardTitle>
+							<CardDescription className="text-white/60 text-sm">Muestra tus mejores trabajos visuales.</CardDescription>
+						</div>
+						<div className="flex bg-white/5 p-1 rounded-xl border border-white/10 self-start sm:self-auto shrink-0">
+							<Button variant={newItemType === 'image' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('image')} className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}>
+								<ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> Imagen
+							</Button>
+							<Button variant={newItemType === 'video' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('video')} className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}>
+								<Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> Video
+							</Button>
+						</div>
 					</div>
-					<div className="flex bg-white/5 p-1 rounded-xl border border-white/10 self-start sm:self-auto shrink-0">
-						<Button variant={newItemType === 'image' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('image')} className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}>
-							<ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> Imagen
-						</Button>
-						<Button variant={newItemType === 'video' ? 'default' : 'ghost'} size="sm" onClick={() => setNewItemType('video')} className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}>
-							<Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> Video
-						</Button>
-					</div>
-				</div>
-			</CardHeader>
+				</CardHeader>
 				<CardContent className="space-y-6">
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="space-y-4">
@@ -187,9 +232,19 @@ export const CompanyPortfolio = () => {
 									</div>
 								</div>
 							)}
-							<Button size="icon" variant="destructive" className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(item.id)}>
-								<Trash2 className="h-4 w-4" />
-							</Button>
+							<div className="absolute top-2 right-2 flex gap-2">
+								<Button
+									size="icon"
+									variant="secondary"
+									className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 hover:bg-white/20 text-white border-white/10"
+									onClick={() => handleEditClick(item)}
+								>
+									<Pencil className="h-4 w-4" />
+								</Button>
+								<Button size="icon" variant="destructive" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => handleDelete(item.id)}>
+									<Trash2 className="h-4 w-4" />
+								</Button>
+							</div>
 						</div>
 						<CardContent className="p-4">
 							<h4 className="text-white font-bold truncate">{item.title}</h4>
@@ -200,6 +255,48 @@ export const CompanyPortfolio = () => {
 			</div>
 
 			<UpgradeModal open={showUpgradeModal} onOpenChange={setShowUpgradeModal} requiredPlan="pro" feature="Portafolio" featureDescription="El portafolio profesional es para planes Pro y Empresa." />
+
+			{/* Modal de edición */}
+			<Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+				<DialogContent className="bg-[#1A1A1A] border-[#333333] text-white">
+					<DialogHeader>
+						<DialogTitle>Editar Elemento</DialogTitle>
+						<DialogDescription className="text-white/60">
+							Modifica la información de tu trabajo en el portafolio.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4 py-4">
+						<div className="space-y-2">
+							<Label htmlFor="edit-title">Título</Label>
+							<Input
+								id="edit-title"
+								value={editTitle}
+								onChange={(e) => setEditTitle(e.target.value)}
+								className="bg-[#2C2C2C] border-[#444444] text-white"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="edit-description">Descripción</Label>
+							<Textarea
+								id="edit-description"
+								value={editDescription}
+								onChange={(e) => setEditDescription(e.target.value)}
+								className="bg-[#2C2C2C] border-[#444444] text-white"
+								rows={4}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="ghost" onClick={() => setEditingItem(null)} disabled={updating}>
+							Cancelar
+						</Button>
+						<Button onClick={handleUpdateItem} disabled={updating} className="bg-[#00b3f3] hover:bg-[#0099cc] text-white">
+							{updating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+							Guardar Cambios
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 };

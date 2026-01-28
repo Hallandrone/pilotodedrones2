@@ -22,7 +22,8 @@ import {
   ExternalLink,
   Play,
   MonitorPlay,
-  X
+  X,
+  Youtube
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
@@ -52,6 +53,7 @@ interface PilotProfile {
   website?: string | null;
   region?: string | null;
   services?: string[] | null;
+  youtube_url?: string | null;
 }
 
 interface PilotData {
@@ -425,6 +427,7 @@ const PublicPilotProfile = () => {
             linkedin_username: companyInfo.linkedin_username || profileData.linkedin_username,
             instagram_url: companyInfo.instagram_url || profileData.instagram_url,
             linkedin_url: companyInfo.linkedin_url || profileData.linkedin_url,
+            youtube_url: companyInfo.youtube_url || profileData.youtube_url,
           } as PilotProfile));
         }
       }
@@ -874,7 +877,7 @@ const PublicPilotProfile = () => {
 
 
           {/* Redes Sociales - Solo si tiene */}
-          {(profile.instagram_url || profile.instagram_username || profile.linkedin_url || profile.linkedin_username) && (
+          {(profile.instagram_url || profile.instagram_username || profile.linkedin_url || profile.linkedin_username || profile.youtube_url) && (
             <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
               <CardHeader className="bg-white border-b border-gray-200">
                 <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
@@ -919,6 +922,22 @@ const PublicPilotProfile = () => {
                         <p className="font-bold text-gray-900 text-lg">
                           {profile.linkedin_username || (profile.linkedin_url ? profile.linkedin_url.split('/').pop() : '')}
                         </p>
+                      </div>
+                    </a>
+                  )}
+                  {profile.youtube_url && (
+                    <a
+                      href={profile.youtube_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all sm:col-span-2 md:col-span-1"
+                    >
+                      <div className="h-14 w-14 bg-red-600 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform shadow-[0_0_15px_rgba(220,38,38,0.4)]">
+                        <Youtube className="h-7 w-7 text-white fill-current" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">YouTube</p>
+                        <p className="font-bold text-gray-900 text-lg">Canal de Contenido</p>
                       </div>
                     </a>
                   )}

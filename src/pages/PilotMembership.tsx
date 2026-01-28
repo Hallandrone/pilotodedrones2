@@ -481,6 +481,20 @@ const PilotMembership = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // LLAMAR AL BACKEND PARA CANCELAR EN MERCADO PAGO
+      if (membership?.reveniu_subscription_id) {
+        const { error: mpError } = await supabase.functions.invoke('mercadopago-api', {
+          body: {
+            action: 'cancel_subscription',
+            preapprovalId: membership.reveniu_subscription_id
+          }
+        });
+        if (mpError) {
+          console.error("Error cancelling in MP:", mpError);
+          // Continuamos de todas formas para marcar como cancelado en la BD
+        }
+      }
+
       const { error } = await supabase
         .from('user_subscriptions')
         .update({

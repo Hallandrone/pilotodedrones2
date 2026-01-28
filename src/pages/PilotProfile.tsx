@@ -29,7 +29,9 @@ import {
   CheckCircle,
   AlertCircle,
   Eye,
-  Lock as LockIcon
+  Lock as LockIcon,
+  Youtube,
+  ExternalLink
 } from "lucide-react";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -48,6 +50,7 @@ interface ProfileData {
   drone_types: string[];
   public_profile_slug?: string;
   slug_updated_at?: string;
+  youtube_url?: string;
 }
 
 interface Subscription {
@@ -89,7 +92,8 @@ const PilotProfile = () => {
     specialties: [],
     drone_types: [],
     public_profile_slug: '',
-    slug_updated_at: ''
+    slug_updated_at: '',
+    youtube_url: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -491,7 +495,8 @@ const PilotProfile = () => {
           experience_years: data.experience_years || 0,
           specialties: data.specialties || [],
           drone_types: data.drone_types || [],
-          public_profile_slug: data.public_profile_slug || ''
+          public_profile_slug: data.public_profile_slug || '',
+          youtube_url: data.youtube_url || ''
         });
         setAvatarUrl(data.avatar_url || null);
       }
@@ -576,7 +581,8 @@ const PilotProfile = () => {
         region: profile.region || null,
         experience_years: profile.experience_years || 0,
         specialties: profile.specialties || [],
-        drone_types: profile.drone_types || []
+        drone_types: profile.drone_types || [],
+        youtube_url: profile.youtube_url || null
       };
 
       // Validar slug si existe
@@ -1246,17 +1252,35 @@ const PilotProfile = () => {
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="experience" className="text-sm font-semibold text-[#E0E0E0]">
+                <Label htmlFor="experience_years" className="text-sm font-semibold text-[#E0E0E0]">
                   Años de Experiencia
                 </Label>
                 <Input
-                  id="experience"
+                  id="experience_years"
                   type="number"
                   value={profile.experience_years}
-                  onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
-                  placeholder="0"
+                  onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value))}
                   className="h-12 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
                 />
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="youtube_url" className="text-white/70 font-bold flex items-center gap-2">
+                  <Youtube className="h-4 w-4 text-red-500" />
+                  Canal de YouTube
+                </Label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-[#00b3f3] transition-colors" />
+                  </div>
+                  <Input
+                    id="youtube_url"
+                    placeholder="https://youtube.com/@tu_canal"
+                    value={profile.youtube_url}
+                    onChange={(e) => handleInputChange('youtube_url', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white rounded-xl pl-10"
+                  />
+                </div>
               </div>
             </CardContent>
           </div>

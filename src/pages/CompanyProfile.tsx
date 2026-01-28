@@ -13,7 +13,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map as MapIcon, Link as LinkIcon, Crown, Lock as LockIcon, Briefcase } from "lucide-react";
+import { Building2, Upload, X, FileText, Eye, CheckCircle, Clock, XCircle, AlertCircle, Camera, Loader2, ArrowLeft, Save, MapPin, Phone, Mail, Map as MapIcon, Link as LinkIcon, Crown, Lock as LockIcon, Briefcase, Youtube, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
@@ -37,6 +37,7 @@ interface Company {
   linkedin_username?: string | null;
   instagram_url?: string | null;
   linkedin_url?: string | null;
+  youtube_url?: string | null;
 }
 
 
@@ -85,6 +86,7 @@ export default function CompanyProfile() {
     linkedin_username: "",
     instagram_url: "",
     linkedin_url: "",
+    youtube_url: "",
   });
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [changingPassword, setChangingPassword] = useState(false);
@@ -289,6 +291,7 @@ export default function CompanyProfile() {
           linkedin_username: companyData.linkedin_username || "",
           instagram_url: companyData.instagram_url || "",
           linkedin_url: companyData.linkedin_url || "",
+          youtube_url: (companyData as any).youtube_url || "",
         });
 
         setPublicProfileSlug(profileData?.public_profile_slug || '');
@@ -688,6 +691,7 @@ export default function CompanyProfile() {
         instagram_url: instagramUrlFinal,
         linkedin_username: linkedinUsernameFinal,
         linkedin_url: linkedinUrlFinal,
+        youtube_url: formData.youtube_url || null,
       };
 
       // Asegurar que logo_url se incluya si está en additionalData
@@ -1501,18 +1505,36 @@ export default function CompanyProfile() {
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <Label htmlFor="experience_years_modal" className="text-base font-semibold text-white">
-                        Años de Experiencia Operando
-                      </Label>
-                      <Input
-                        id="experience_years_modal"
-                        type="number"
-                        value={formData.experience_years}
-                        onChange={(e) => handleInputChange('experience_years', parseInt(e.target.value) || 0)}
-                        placeholder="0"
-                        className="h-12 sm:h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label htmlFor="experience_years" className="text-[#00b3f3] font-bold">Años de Experiencia</Label>
+                        <Input
+                          id="experience_years"
+                          type="number"
+                          value={formData.experience_years}
+                          onChange={(e) => handleInputChange("experience_years", parseInt(e.target.value) || 0)}
+                          className="bg-white/5 border-white/10 text-white rounded-xl h-12"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label htmlFor="youtube_url" className="text-[#00b3f3] font-bold flex items-center gap-2">
+                          <Youtube className="h-4 w-4 text-red-500" />
+                          Canal de YouTube
+                        </Label>
+                        <div className="relative group">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-[#00b3f3] transition-colors" />
+                          </div>
+                          <Input
+                            id="youtube_url"
+                            placeholder="https://youtube.com/@tu_empresa"
+                            value={formData.youtube_url}
+                            onChange={(e) => handleInputChange("youtube_url", e.target.value)}
+                            className="bg-white/5 border-white/10 text-white rounded-xl h-12 pl-10"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

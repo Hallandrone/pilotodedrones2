@@ -80,6 +80,7 @@ Deno.serve(async (req) => {
 						renewal_date: renewalDate,
 						featured_until: featuredUntil,
 						updated_at: createdAt,
+						reveniu_subscription_id: id,
 					}, {
 						onConflict: "user_id",
 					});

@@ -19,8 +19,10 @@ import {
 	ExternalLink,
 	Youtube,
 	MonitorPlay,
-	Loader2
+	Loader2,
+	Pencil
 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
 import Logo from "@/components/ui/logo";
@@ -47,6 +49,10 @@ const PilotPortfolio = () => {
 	const [videoUrl, setVideoUrl] = useState('');
 	const [title, setTitle] = useState('');
 	const [description, setDescription] = useState('');
+	const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
+	const [editTitle, setEditTitle] = useState('');
+	const [editDescription, setEditDescription] = useState('');
+	const [updating, setUpdating] = useState(false);
 
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -310,6 +316,45 @@ const PilotPortfolio = () => {
 		return (match && match[2].length === 11) ? match[2] : null;
 	};
 
+	const handleEditClick = (item: PortfolioItem) => {
+		setEditingItem(item);
+		setEditTitle(item.title || '');
+		setEditDescription(item.description || '');
+	};
+
+	const handleUpdateItem = async () => {
+		if (!editingItem) return;
+		try {
+			setUpdating(true);
+			const { error } = await supabase
+				.from('pilot_portfolio')
+				.update({
+					title: editTitle,
+					description: editDescription
+				})
+				.eq('id', editingItem.id);
+
+			if (error) throw error;
+
+			toast({
+				title: "Elemento actualizado",
+				description: "Los cambios se guardaron correctamente.",
+			});
+
+			setEditingItem(null);
+			await loadPortfolio();
+		} catch (error: any) {
+			console.error('Error updating portfolio item:', error);
+			toast({
+				title: "Error",
+				description: error.message || "No se pudo actualizar el elemento",
+				variant: "destructive",
+			});
+		} finally {
+			setUpdating(false);
+		}
+	};
+
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center">
@@ -323,86 +368,86 @@ const PilotPortfolio = () => {
 
 	return (
 		<div className="min-h-screen bg-[#1A1A1A] text-[#E0E0E0]">
-		{/* Header */}
-		<div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-2xl sticky top-0 z-50">
-			<div className="px-3 sm:px-4 py-3 sm:py-4">
-				<div className="flex items-center gap-2 sm:gap-4 max-w-7xl mx-auto">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => {
-							const isCompany = location.pathname.includes('/company') || userType === 'company';
-							navigate(isCompany ? '/company' : '/pilot');
-						}}
-						className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-gray-100 transition-all duration-300 text-gray-900 shrink-0"
-					>
-						<ArrowLeft className="h-5 w-5 sm:h-7 sm:w-7" />
-					</Button>
+			{/* Header */}
+			<div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-2xl sticky top-0 z-50">
+				<div className="px-3 sm:px-4 py-3 sm:py-4">
+					<div className="flex items-center gap-2 sm:gap-4 max-w-7xl mx-auto">
+						<Button
+							variant="ghost"
+							size="sm"
+							onClick={() => {
+								const isCompany = location.pathname.includes('/company') || userType === 'company';
+								navigate(isCompany ? '/company' : '/pilot');
+							}}
+							className="h-10 w-10 sm:h-12 sm:w-12 rounded-full hover:bg-gray-100 transition-all duration-300 text-gray-900 shrink-0"
+						>
+							<ArrowLeft className="h-5 w-5 sm:h-7 sm:w-7" />
+						</Button>
 
-					<Logo
-						size="lg"
-						className="flex-shrink-0 [&>div]:h-10 [&>div]:w-10 sm:[&>div]:h-14 sm:[&>div]:w-14 transition-all duration-300"
-						showText={false}
-					/>
+						<Logo
+							size="lg"
+							className="flex-shrink-0 [&>div]:h-10 [&>div]:w-10 sm:[&>div]:h-14 sm:[&>div]:w-14 transition-all duration-300"
+							showText={false}
+						/>
 
-					<div className="flex flex-col min-w-0">
-						<h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight truncate">
-							Portafolio
-						</h1>
-						<p className="text-[10px] sm:text-sm text-gray-600 font-medium uppercase tracking-wider truncate">
-							Imágenes y Videos
-						</p>
+						<div className="flex flex-col min-w-0">
+							<h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight truncate">
+								Portafolio
+							</h1>
+							<p className="text-[10px] sm:text-sm text-gray-600 font-medium uppercase tracking-wider truncate">
+								Imágenes y Videos
+							</p>
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
 
-		{/* Content */}
-		<div className="p-3 sm:p-4 space-y-4 sm:space-y-6 pb-20 max-w-7xl mx-auto">
-			{/* Help Info */}
-			<div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-3 sm:p-4 flex gap-3 sm:gap-4 items-start">
-				<ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 flex-shrink-0 mt-0.5" />
-				<div className="text-xs sm:text-sm min-w-0">
-					<p className="font-bold text-blue-300">Portafolio Profesional</p>
-					<p className="text-blue-100/70">Muestra tus mejores tomas y videos editados para generar confianza en tus clientes.</p>
+			{/* Content */}
+			<div className="p-3 sm:p-4 space-y-4 sm:space-y-6 pb-20 max-w-7xl mx-auto">
+				{/* Help Info */}
+				<div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-3 sm:p-4 flex gap-3 sm:gap-4 items-start">
+					<ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 flex-shrink-0 mt-0.5" />
+					<div className="text-xs sm:text-sm min-w-0">
+						<p className="font-bold text-blue-300">Portafolio Profesional</p>
+						<p className="text-blue-100/70">Muestra tus mejores tomas y videos editados para generar confianza en tus clientes.</p>
+					</div>
 				</div>
-			</div>
 
-			{/* Action Tabs */}
-			<Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
-				<div className="bg-gradient-to-r from-[#00b3f3]/20 via-[#00b3f3]/10 to-[#00b3f3]/20 p-1">
-					<CardHeader className="p-4 sm:p-6 bg-[#2C2C2C] rounded-xl">
-						<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-							<div className="flex items-center gap-3 min-w-0">
-								<div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
-									<Plus className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+				{/* Action Tabs */}
+				<Card className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
+					<div className="bg-gradient-to-r from-[#00b3f3]/20 via-[#00b3f3]/10 to-[#00b3f3]/20 p-1">
+						<CardHeader className="p-4 sm:p-6 bg-[#2C2C2C] rounded-xl">
+							<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+								<div className="flex items-center gap-3 min-w-0">
+									<div className="h-8 w-8 sm:h-10 sm:w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+										<Plus className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+									</div>
+									<CardTitle className="text-base sm:text-xl font-bold text-[#E0E0E0] truncate">
+										Añadir al Portafolio
+									</CardTitle>
 								</div>
-								<CardTitle className="text-base sm:text-xl font-bold text-[#E0E0E0] truncate">
-									Añadir al Portafolio
-								</CardTitle>
+								<div className="flex bg-[#1A1A1A] p-1 rounded-xl shrink-0 self-start sm:self-auto">
+									<Button
+										variant={newItemType === 'image' ? 'default' : 'ghost'}
+										size="sm"
+										onClick={() => setNewItemType('image')}
+										className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}
+									>
+										<ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+										Imagen
+									</Button>
+									<Button
+										variant={newItemType === 'video' ? 'default' : 'ghost'}
+										size="sm"
+										onClick={() => setNewItemType('video')}
+										className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}
+									>
+										<Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+										Video
+									</Button>
+								</div>
 							</div>
-							<div className="flex bg-[#1A1A1A] p-1 rounded-xl shrink-0 self-start sm:self-auto">
-								<Button
-									variant={newItemType === 'image' ? 'default' : 'ghost'}
-									size="sm"
-									onClick={() => setNewItemType('image')}
-									className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'image' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}
-								>
-									<ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-									Imagen
-								</Button>
-								<Button
-									variant={newItemType === 'video' ? 'default' : 'ghost'}
-									size="sm"
-									onClick={() => setNewItemType('video')}
-									className={`text-xs sm:text-sm px-2 sm:px-3 ${newItemType === 'video' ? "bg-[#00b3f3] text-white" : "text-white/60"}`}
-								>
-									<Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-									Video
-								</Button>
-							</div>
-						</div>
-					</CardHeader>
+						</CardHeader>
 						<CardContent className="p-6 bg-[#2C2C2C] rounded-xl space-y-4">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-4">
@@ -522,6 +567,14 @@ const PilotPortfolio = () => {
 										<div className="absolute top-2 right-2 flex gap-2">
 											<Button
 												size="icon"
+												variant="secondary"
+												className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-white/10 hover:bg-white/20 text-white border-white/10"
+												onClick={() => handleEditClick(item)}
+											>
+												<Pencil className="h-4 w-4" />
+											</Button>
+											<Button
+												size="icon"
 												variant="destructive"
 												className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
 												onClick={() => handleDeleteItem(item.id, item.url, item.type)}
@@ -560,6 +613,48 @@ const PilotPortfolio = () => {
 				feature="Portafolio Profesional"
 				featureDescription="La galería de trabajos e integración de videos está disponible en Plan Pro y Plan Empresa. Sube tus mejores tomas para impresionar a tus clientes."
 			/>
+
+			{/* Modal de edición */}
+			<Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+				<DialogContent className="bg-[#1A1A1A] border-[#333333] text-white">
+					<DialogHeader>
+						<DialogTitle>Editar Elemento</DialogTitle>
+						<DialogDescription className="text-white/60">
+							Modifica la información de tu trabajo en el portafolio.
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4 py-4">
+						<div className="space-y-2">
+							<Label htmlFor="edit-title">Título</Label>
+							<Input
+								id="edit-title"
+								value={editTitle}
+								onChange={(e) => setEditTitle(e.target.value)}
+								className="bg-[#2C2C2C] border-[#444444]"
+							/>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="edit-description">Descripción</Label>
+							<Textarea
+								id="edit-description"
+								value={editDescription}
+								onChange={(e) => setEditDescription(e.target.value)}
+								className="bg-[#2C2C2C] border-[#444444]"
+								rows={4}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="ghost" onClick={() => setEditingItem(null)} disabled={updating}>
+							Cancelar
+						</Button>
+						<Button onClick={handleUpdateItem} disabled={updating} className="bg-[#00b3f3] hover:bg-[#0099cc]">
+							{updating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+							Guardar Cambios
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 };

@@ -22,6 +22,11 @@ Deno.serve(async (req) => {
 		const { data: { user }, error: authError } = await supabase.auth.getUser();
 		if (authError || !user) throw new Error("Unauthorized");
 
+		// Cliente con service role para operaciones administrativas (como activar planes)
+		const supabaseServiceRole = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+			auth: { persistSession: false }
+		});
+
 		const body = await req.json();
 		const { action } = body;
 
@@ -110,6 +115,100 @@ Deno.serve(async (req) => {
 					status: 400,
 				});
 			}
+		}
+
+		// ========== NUEVA ACCIÓN: VERIFICAR Y ACTIVAR SUSCRIPCIÓN ==========
+		if (action === "verify_subscription") {
+			const { preapproval_id } = body;
+
+			if (!preapproval_id) throw new Error("preapproval_id is required");
+
+			console.log(`Verifying subscription: ${preapproval_id}`);
+
+			// Consultar estado en Mercado Pago
+			const response = await fetch(`https://api.mercadopago.com/preapproval/${preapproval_id}`, {
+				headers: { Authorization: `Bearer ${mpAccessToken}` },
+			});
+
+			const data = await response.json();
+			console.log("MP Verification response:", JSON.stringify(data, null, 2));
+
+			if (!response.ok) throw new Error("Error consultando Mercado Pago");
+
+			// Si el estado es "authorized" o "active", activar en base de datos
+			if (data.status === "authorized" || data.status === "active") {
+				// Determinar el nombre del plan a partir del reason o amount
+				let planName = "profesional";
+				if (data.auto_recurring.transaction_amount >= 30000) {
+					planName = "empresa";
+				}
+
+				const renewalDate = new Date();
+				renewalDate.setMonth(renewalDate.getMonth() + 1);
+
+				const { error: upsertError } = await supabaseServiceRole
+					.from("user_subscriptions")
+					.upsert({
+						user_id: user.id,
+						status: "active",
+						plan_name: planName,
+						renewal_date: renewalDate.toISOString(),
+						updated_at: new Date().toISOString(),
+						reveniu_subscription_id: preapproval_id
+					}, { onConflict: "user_id" });
+
+				if (upsertError) throw upsertError;
+
+				return new Response(JSON.stringify({ success: true, status: data.status }), {
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+					status: 200,
+				});
+			}
+
+			return new Response(JSON.stringify({ success: false, status: data.status }), {
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+				status: 200,
+			});
+		}
+
+		// ========== NUEVA ACCIÓN: CREAR PREFERENCIA (PAGOS ÚNICOS) ==========
+		if (action === "create_preference") {
+			const { planId, planName, price } = body;
+
+			const preferenceData = {
+				items: [{
+					id: planId,
+					title: `Plan ${planName}`,
+					quantity: 1,
+					unit_price: price,
+					currency_id: "CLP",
+				}],
+				payer: { email: user.email },
+				external_reference: user.id,
+				back_urls: {
+					success: `${req.headers.get("origin")}/pilot/membership?success=true`,
+					failure: `${req.headers.get("origin")}/pilot/membership?error=true`,
+					pending: `${req.headers.get("origin")}/pilot/membership?pending=true`,
+				},
+				auto_return: "approved",
+			};
+
+			const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
+				method: "POST",
+				headers: {
+					Authorization: `Bearer ${mpAccessToken}`,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(preferenceData),
+			});
+
+			const data = await response.json();
+
+			if (!response.ok) throw new Error(data.message || "Error al crear preferencia");
+
+			return new Response(JSON.stringify({ id: data.id, init_point: data.init_point }), {
+				headers: { ...corsHeaders, "Content-Type": "application/json" },
+			});
 		}
 
 		// ========== ACCIÓN: CANCELAR SUSCRIPCIÓN ==========
