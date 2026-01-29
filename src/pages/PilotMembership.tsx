@@ -597,8 +597,8 @@ const PilotMembership = () => {
       // Función para verificar si el contenedor existe y es visible
       const checkAndInit = () => {
         const container = document.getElementById("cardPaymentBrick_container");
-        if (container && container.offsetParent !== null) {
-          console.log("Container found and visible, initializing brick for mode:", paymentMode);
+        if (container) {
+          console.log("Container found, initializing brick for mode:", paymentMode);
           clearInterval(interval);
           initBricks(selectedPlanForBrick, paymentMode);
         }
@@ -626,7 +626,7 @@ const PilotMembership = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [showBricks, selectedPlanForBrick]);
+  }, [showBricks, selectedPlanForBrick, paymentMode]);
 
   const handleSubscribeRequest = (planId: string) => {
     const plan = availablePlans.find(p => p.id === planId);
@@ -1298,10 +1298,16 @@ const PilotMembership = () => {
           <DialogContent className="bg-white text-black max-w-md p-0 overflow-hidden rounded-2xl shadow-2xl border-0">
             <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
               <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-bold">Plan {selectedPlanForBrick?.name}</h3>
-                  <p className="text-blue-100 text-sm">Elige tu método preferido</p>
-                </div>
+                <DialogHeader className="text-left">
+                  <DialogTitle className="text-xl font-bold text-white">
+                    {selectedPlanForBrick?.name.toLowerCase().includes('plan')
+                      ? selectedPlanForBrick?.name
+                      : `Plan ${selectedPlanForBrick?.name}`}
+                  </DialogTitle>
+                  <DialogDescription className="text-blue-100/70 text-sm">
+                    Selecciona modalidad de pago
+                  </DialogDescription>
+                </DialogHeader>
                 <div className="text-right">
                   <span className="text-2xl font-black">
                     {selectedPlanForBrick ? formatPrice(selectedPlanForBrick.price) : ''}

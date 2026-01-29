@@ -157,8 +157,8 @@ export const CompanyMembership = () => {
 		if (showBricks && window.MercadoPago && paymentMode) {
 			const checkAndInit = () => {
 				const container = document.getElementById("cardPaymentBrick_container_company");
-				if (container && container.offsetParent !== null) {
-					console.log("Company Brick container ready, init mode:", paymentMode);
+				if (container) {
+					console.log("Company Brick container found, init mode:", paymentMode);
 					clearInterval(interval);
 					renderCardPaymentBrick(paymentMode);
 				}
@@ -461,10 +461,14 @@ export const CompanyMembership = () => {
 				<DialogContent className="bg-white text-black max-w-md p-0 overflow-hidden rounded-2xl shadow-2xl border-0">
 					<div className="p-6 bg-[#00b3f3] text-white">
 						<div className="flex justify-between items-center">
-							<div>
-								<h3 className="text-xl font-bold">Plan Empresa</h3>
-								<p className="text-blue-50 text-sm">Escoge la modalidad de pago</p>
-							</div>
+							<DialogHeader className="text-left">
+								<DialogTitle className="text-xl font-bold text-white">
+									Plan Empresa
+								</DialogTitle>
+								<DialogDescription className="text-blue-50 text-sm">
+									Escoge la modalidad de pago
+								</DialogDescription>
+							</DialogHeader>
 							<div className="text-right">
 								<span className="text-2xl font-black">{formatPrice(planEmpresa.price)}</span>
 								<p className="text-xs text-blue-50">/mes</p>
