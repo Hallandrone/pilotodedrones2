@@ -77,18 +77,15 @@ Deno.serve(async (req) => {
 				});
 			}
 
-			// Si fue exitoso y es "authorized", activar de UNA vez en la DB
-			if (data.status === "authorized") {
-				const renewalDate = new Date();
-				renewalDate.setMonth(renewalDate.getMonth() + 1);
-
+			// Si fue exitoso e inicialmente autorizado, marcamos como PENDING_PAYMENT
+			// La activación real (status: active) SOLO la hará el webhook al ver el pago aprobado.
+			if (data.status === "authorized" || data.status === "pending") {
 				await supabaseAdmin
 					.from("user_subscriptions")
 					.upsert({
 						user_id: user.id,
-						status: "active",
+						status: "pending_payment",
 						plan_name: planId === "empresa" ? "empresa" : "profesional",
-						renewal_date: renewalDate.toISOString(),
 						updated_at: new Date().toISOString(),
 						reveniu_subscription_id: data.id,
 						payment_method: "Mercado Pago Bricks"
@@ -104,7 +101,6 @@ Deno.serve(async (req) => {
 				});
 			}
 
-			// Si el status no es authorized (ej. pending), no activamos en DB y el front decidirá
 			return new Response(JSON.stringify({
 				success: data.status === "pending" || data.status === "authorized",
 				preapproval_id: data.id,
@@ -144,19 +140,16 @@ Deno.serve(async (req) => {
 				throw new Error(data.message || "Error al procesar el pago");
 			}
 
-			// Optimización: Si el pago es aprobado, activar el plan INMEDIATAMENTE
-			if (data.status === "approved" && planId) {
-				console.log(`[MP API] Payment approved, activating plan ${planId} immediately`);
-				const renewalDate = new Date();
-				renewalDate.setMonth(renewalDate.getMonth() + 1);
-
+			// NO ACTIVAR AQUÍ. Solo marcar como pendiente si el pago está en proceso.
+			// La activación real la hará el webhook al confirmar 'approved'.
+			if ((data.status === "approved" || data.status === "in_process" || data.status === "pending") && planId) {
+				console.log(`[MP API] Payment initiated (${data.status}), setting status to pending_payment`);
 				await supabaseAdmin
 					.from("user_subscriptions")
 					.upsert({
 						user_id: user.id,
-						status: "active",
+						status: "pending_payment",
 						plan_name: planId === "empresa" ? "empresa" : "profesional",
-						renewal_date: renewalDate.toISOString(),
 						updated_at: new Date().toISOString(),
 						payment_method: "Mercado Pago Bricks"
 					}, { onConflict: "user_id" });

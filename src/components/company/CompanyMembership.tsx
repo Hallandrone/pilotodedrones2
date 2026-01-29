@@ -293,8 +293,14 @@ export const CompanyMembership = () => {
 			{membership && (
 				<Card className="bg-[#0b485d] border-2 border-[#00b3f3]/30 shadow-2xl rounded-3xl overflow-hidden relative isolate">
 					<div className="absolute top-0 right-0 p-6">
-						<Badge className={membership?.status === 'active' ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"}>
-							{membership?.status === 'active' ? "ACTIVA" : "INACTIVA"}
+						<Badge className={
+							membership?.status === 'active'
+								? "bg-emerald-500 text-white"
+								: membership?.status === 'pending_payment'
+									? "bg-amber-500 text-white"
+									: "bg-red-500 text-white"
+						}>
+							{membership?.status === 'active' ? "ACTIVA" : membership?.status === 'pending_payment' ? "PENDIENTE" : "INACTIVA"}
 						</Badge>
 					</div>
 					<CardHeader className="pt-10">
@@ -436,15 +442,22 @@ export const CompanyMembership = () => {
 			{/* Modal de Pago (Bricks) para Empresa */}
 			<Dialog open={showBricks} onOpenChange={setShowBricks}>
 				<DialogContent className="bg-white text-black max-w-md p-0 overflow-hidden rounded-2xl">
-					<div className="p-6 border-b border-gray-100 flex justify-between items-center">
-						<div>
-							<h3 className="text-lg font-bold">Pago de Suscripción Empresa</h3>
-							<p className="text-sm text-gray-500">Membresía Empresarial</p>
-						</div>
-						<div className="text-right">
-							<span className="text-xl font-bold text-blue-600">
-								{formatPrice(planEmpresa.price)}
-							</span>
+					<div className="p-6 border-b border-gray-100">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<h3 className="text-xl font-bold">{membership.plan_name}</h3>
+								{membership.status === 'active' ? (
+									<Badge className="bg-green-500 hover:bg-green-600 text-white border-0">Activo</Badge>
+								) : membership.status === 'pending_payment' ? (
+									<Badge className="bg-yellow-500 hover:bg-yellow-600 text-white border-0">Pago Pendiente</Badge>
+								) : (
+									<Badge variant="secondary">Inactivo</Badge>
+								)}
+							</div>
+							<p className="text-2xl font-bold text-blue-500">
+								${membership.price.toLocaleString('es-CL')}
+								<span className="text-sm font-normal text-muted-foreground">/mes</span>
+							</p>
 						</div>
 					</div>
 					<div className="p-4 bg-gray-50/50 min-h-[400px] flex flex-col items-center justify-center">

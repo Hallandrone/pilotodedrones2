@@ -55,15 +55,17 @@ Deno.serve(async (req) => {
 			const mpStatus = sub.status; // authorized, paused, cancelled, pending
 			const nextPaymentDate = sub.next_payment_date;
 
-			console.log(`[MP Webhook] Sub ${id} | MP Status: ${mpStatus} | User: ${userId} | Next Payment: ${nextPaymentDate}`);
+			console.log(`[MP Webhook] Sub ${id} | MP Status: ${mpStatus} | User: ${userId}`);
 
 			if (userId) {
-				// Mapeo exhaustivo de estados
+				// Mapeo de estados para suscripción
+				// IMPORTANTE: 'authorized' en preapproval NO significa que esté pagado. 
+				// Lo ponemos como 'pending_payment' hasta que llegue el evento 'payment' con status 'approved'.
 				let dbStatus = "inactive";
-				if (mpStatus === "authorized") dbStatus = "active";
+				if (mpStatus === "authorized") dbStatus = "pending_payment";
 				else if (mpStatus === "paused") dbStatus = "paused";
 				else if (mpStatus === "cancelled") dbStatus = "cancelled";
-				else if (mpStatus === "pending") dbStatus = "pending";
+				else if (mpStatus === "pending") dbStatus = "pending_payment";
 
 				const amount = sub.auto_recurring?.transaction_amount || 0;
 				const planName = amount >= 30000 ? "empresa" : "profesional";
@@ -75,13 +77,12 @@ Deno.serve(async (req) => {
 						plan_name: planName,
 						status: dbStatus,
 						payment_method: "Mercado Pago Subscription",
-						renewal_date: nextPaymentDate, // FECHA REAL DE MP
+						renewal_date: nextPaymentDate,
 						updated_at: new Date().toISOString(),
 						reveniu_subscription_id: id,
 					}, { onConflict: "user_id" });
 
 				if (upsertError) console.error("[MP Webhook] DB Error (Sub):", upsertError);
-				else console.log(`[MP Webhook] DB Updated -> User: ${userId}, Status: ${dbStatus}`);
 			}
 		}
 
@@ -101,11 +102,8 @@ Deno.serve(async (req) => {
 			console.log(`[MP Webhook] Payment ${id} | MP Status: ${mpStatus} | User: ${userId}`);
 
 			if (userId) {
-				const isPositive = (mpStatus === "approved" || mpStatus === "authorized");
-				const isNegative = ["rejected", "cancelled", "refunded", "charged_back"].includes(mpStatus);
-
-				if (isPositive) {
-					// Confirmar activación (especialmente útil para el primer pago de Bricks o pagos únicos)
+				if (mpStatus === "approved") {
+					// REGLA DE ORO: Solo activamos si el pago es 'approved'
 					const planItem = payment.additional_info?.items?.[0];
 					const planName = (planItem?.id === "empresa" || payment.transaction_amount >= 30000) ? "empresa" : "profesional";
 
@@ -115,7 +113,8 @@ Deno.serve(async (req) => {
 						updated_at: new Date().toISOString(),
 					};
 
-					// Si NO es recurrente, calculamos fallback. Si ES recurrente, el webhook de preapproval pondrá la fecha real.
+					// Si es el primer pago de una suscripción, Mercado Pago a veces no envía renewal_date aquí.
+					// Pero el webhook de preapproval ya debería haberlo puesto.
 					if (!payment.preapproval_id) {
 						updateData.plan_name = planName;
 						updateData.payment_method = "Mercado Pago Single";
@@ -128,12 +127,12 @@ Deno.serve(async (req) => {
 						.from("user_subscriptions")
 						.upsert(updateData, { onConflict: "user_id" });
 
-					if (error) console.error("[MP Webhook] DB Error (Payment Positive):", error);
-					else console.log(`[MP Webhook] DB Confirmed Active -> User: ${userId}`);
+					if (error) console.error("[MP Webhook] DB Error (Payment Approved):", error);
+					else console.log(`[MP Webhook] ACTIVATION SUCCESS -> User: ${userId} is now ACTIVE`);
 				}
-				else if (isNegative) {
-					// FAIL-SAFE: Desactivación por reversión de pago o rechazo
-					console.warn(`[MP Webhook] Payment Negative Status (${mpStatus}). Deactivating user ${userId}.`);
+				else if (["rejected", "cancelled", "refunded", "charged_back"].includes(mpStatus)) {
+					// Desactivación inmediata por pago fallido o devuelto
+					console.warn(`[MP Webhook] Payment ${mpStatus}. Deactivating user ${userId}.`);
 
 					const { error } = await supabase
 						.from("user_subscriptions")
@@ -144,7 +143,17 @@ Deno.serve(async (req) => {
 						.eq("user_id", userId);
 
 					if (error) console.error("[MP Webhook] DB Error (Payment Negative):", error);
-					else console.log(`[MP Webhook] DB Updated -> User: ${userId}, Status: inactive (due to ${mpStatus})`);
+				}
+				else if (["pending", "in_process", "authorized"].includes(mpStatus)) {
+					// Mantener como pendiente si aún no es approved
+					console.log(`[MP Webhook] Payment ${mpStatus}. Keeping status as pending_payment for user ${userId}.`);
+					await supabase
+						.from("user_subscriptions")
+						.update({
+							status: "pending_payment",
+							updated_at: new Date().toISOString(),
+						})
+						.eq("user_id", userId);
 				}
 			}
 		}

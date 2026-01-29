@@ -36,7 +36,7 @@ declare global {
 
 interface Membership {
   plan_name: string;
-  status: 'active' | 'pending' | 'expired' | 'cancelled' | 'inactive';
+  status: 'active' | 'pending' | 'expired' | 'cancelled' | 'inactive' | 'pending_payment';
   renewal_date: string | null;
   created_at: string | null;
   payment_method: string | null;
@@ -156,10 +156,16 @@ const PilotMembership = () => {
           (payload) => {
             console.log('🔔 Suscripción actualizada en tiempo real:', payload);
             loadMembership();
-            if (payload.new && (payload.new as any).status === 'active') {
+            const newStatus = (payload.new as any)?.status;
+            if (newStatus === 'active') {
               toast({
                 title: "¡Suscripción Activada!",
-                description: "Tu plan se ha actualizado correctamente.",
+                description: "Tu pago fue aprobado y el plan ya está activo.",
+              });
+            } else if (newStatus === 'pending_payment') {
+              toast({
+                title: "Pago en proceso",
+                description: "Estamos esperando la confirmación de Mercado Pago.",
               });
             }
           }
@@ -256,7 +262,7 @@ const PilotMembership = () => {
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .or('status.eq.active,status.eq.cancelled')
+        .or('status.eq.active,status.eq.cancelled,status.eq.pending_payment')
         .maybeSingle();
 
       if (error) {
@@ -857,6 +863,25 @@ const PilotMembership = () => {
                       <span className="text-[#E0E0E0] font-semibold text-sm">
                         {formatDate(membership.created_at)}
                       </span>
+                    </div>
+                  )}
+                  {membership.status === 'active' && membership.renewal_date && (
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <Calendar className="h-5 w-5 text-blue-500" />
+                      <div>
+                        <p className="text-sm text-[#A0A0A0]">Próxima renovación</p>
+                        <p className="text-[#E0E0E0] font-medium">{formatDate(membership.renewal_date)}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {membership.status === 'pending_payment' && (
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
+                      <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+                      <div>
+                        <p className="text-sm text-yellow-500 font-medium">Validando Pago</p>
+                        <p className="text-xs text-[#A0A0A0]">Tu plan se activará automáticamente al confirmarse el cobro.</p>
+                      </div>
                     </div>
                   )}
                   {membership.renewal_date && (membership.status === 'active' || (membership.status === 'cancelled' && new Date(membership.renewal_date) > new Date())) && (
