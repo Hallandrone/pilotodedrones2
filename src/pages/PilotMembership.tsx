@@ -532,10 +532,17 @@ const PilotMembership = () => {
 
               supabase.functions.invoke('mercadopago-api', { body })
                 .then(({ data, error }) => {
-                  if (error || data.error) {
+                  if (error || data.error || !data.success) {
+                    const status = data?.status;
+                    let errorMsg = data?.message || error?.message || "Revisa tus datos e intenta nuevamente";
+
+                    if (status === 'rejected') {
+                      errorMsg = "Pago rechazado. Por favor usa otro medio de pago.";
+                    }
+
                     toast({
                       title: "Error en el pago",
-                      description: (data?.message || error?.message || "Revisa tus datos e intenta nuevamente"),
+                      description: errorMsg,
                       variant: "destructive"
                     });
                     reject();

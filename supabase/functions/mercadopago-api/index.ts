@@ -93,13 +93,23 @@ Deno.serve(async (req) => {
 						reveniu_subscription_id: data.id,
 						payment_method: "Mercado Pago Bricks"
 					}, { onConflict: "user_id" });
+
+				return new Response(JSON.stringify({
+					success: true,
+					preapproval_id: data.id,
+					status: data.status,
+				}), {
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+					status: 200,
+				});
 			}
 
+			// Si el status no es authorized (ej. pending), no activamos en DB y el front decidirá
 			return new Response(JSON.stringify({
-				success: true,
+				success: data.status === "pending" || data.status === "authorized",
 				preapproval_id: data.id,
 				status: data.status,
-				init_point: data.init_point, // Para el flujo de redirección si no hay token
+				init_point: data.init_point,
 			}), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 				status: 200,
@@ -152,7 +162,12 @@ Deno.serve(async (req) => {
 					}, { onConflict: "user_id" });
 			}
 
-			return new Response(JSON.stringify({ ...data, success: true }), {
+			const isSuccessful = data.status === "approved" || data.status === "authorized" || data.status === "in_process";
+
+			return new Response(JSON.stringify({
+				...data,
+				success: isSuccessful && !data.error
+			}), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 				status: 200,
 			});
