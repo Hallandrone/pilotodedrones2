@@ -138,7 +138,7 @@ const PilotMembership = () => {
   }, []);
 
   useEffect(() => {
-    loadMembership();
+    loadMembership(true);
     checkUserType();
 
     // SUSCRIPCIÓN EN TIEMPO REAL: Para activación inmediata cuando el webhook o la API actualizan la DB
@@ -158,7 +158,7 @@ const PilotMembership = () => {
           },
           (payload) => {
             console.log('🔔 Suscripción actualizada en tiempo real:', payload);
-            loadMembership();
+            loadMembership(false);
             const newStatus = (payload.new as any)?.status;
             if (newStatus === 'active') {
               toast({
@@ -196,7 +196,7 @@ const PilotMembership = () => {
         body: { action: 'verify_subscription', preapproval_id: preapprovalId }
       }).then(async () => {
         window.history.replaceState({}, '', window.location.pathname);
-        await loadMembership();
+        await loadMembership(false);
         setLoading(false);
       });
     }
@@ -252,8 +252,9 @@ const PilotMembership = () => {
     }
   };
 
-  const loadMembership = async () => {
+  const loadMembership = async (isInitial = false) => {
     try {
+      if (isInitial) setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate('/auth');
@@ -369,7 +370,7 @@ const PilotMembership = () => {
               description: `Tu Plan Pro de ${companyName} ha sido activado.`,
             });
             // Recargar para obtener el estado actualizado
-            loadMembership();
+            loadMembership(false);
             return; // Salir para evitar continuar con el estado antiguo
           }
         }
@@ -401,7 +402,7 @@ const PilotMembership = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   };
 
@@ -540,10 +541,11 @@ const PilotMembership = () => {
               }
 
               supabase.functions.invoke('mercadopago-api', { body })
-                .then(({ data, error }) => {
-                  if (error || data.error || !data.success) {
-                    const status = data?.status;
-                    let errorMsg = data?.message || error?.message || "Revisa tus datos e intenta nuevamente";
+                .then(({ data, error: invokeError }) => {
+                  if (invokeError || data?.error || (data && !data.success && data.status === 'rejected')) {
+                    console.error("Payment submission failed:", invokeError, data);
+                    const status = data?.status || data?.details?.status;
+                    let errorMsg = data?.message || data?.details?.message || invokeError?.message || "Revisa tus datos e intenta nuevamente";
 
                     if (status === 'rejected') {
                       errorMsg = "Pago rechazado. Por favor usa otro medio de pago.";
@@ -567,7 +569,12 @@ const PilotMembership = () => {
                   }
                 })
                 .catch((err) => {
-                  console.error("Payment error:", err);
+                  console.error("Payment exception:", err);
+                  toast({
+                    title: "Error de Conexión",
+                    description: "No pudimos comunicarnos con el servidor de pagos. Intenta de nuevo.",
+                    variant: "destructive"
+                  });
                   reject();
                 })
                 .finally(() => setSubscribing(null));

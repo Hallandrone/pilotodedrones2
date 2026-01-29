@@ -158,8 +158,11 @@ Deno.serve(async (req) => {
 			const isSuccessful = data.status === "approved" || data.status === "authorized" || data.status === "in_process";
 
 			return new Response(JSON.stringify({
-				...data,
-				success: isSuccessful && !data.error
+				success: isSuccessful && !data.error,
+				status: data.status,
+				status_detail: data.status_detail,
+				id: data.id,
+				message: data.message || (data.status === 'rejected' ? 'Pago rechazado por el banco' : null)
 			}), {
 				headers: { ...corsHeaders, "Content-Type": "application/json" },
 				status: 200,

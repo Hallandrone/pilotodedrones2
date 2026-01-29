@@ -37,7 +37,7 @@ export const CompanyMembership = () => {
 	};
 
 	useEffect(() => {
-		loadMembership();
+		loadMembership(true);
 
 		// SUSCRIPCIÓN REALTIME
 		const setupRealtime = async () => {
@@ -52,7 +52,7 @@ export const CompanyMembership = () => {
 					table: 'user_subscriptions',
 					filter: `user_id=eq.${user.id}`
 				}, () => {
-					loadMembership();
+					loadMembership(false);
 				})
 				.subscribe();
 
@@ -74,8 +74,9 @@ export const CompanyMembership = () => {
 		}
 	}, []);
 
-	const loadMembership = async () => {
+	const loadMembership = async (isInitial = false) => {
 		try {
+			if (isInitial) setLoading(true);
 			const { data: { user } } = await supabase.auth.getUser();
 			if (!user) return;
 
@@ -92,7 +93,7 @@ export const CompanyMembership = () => {
 		} catch (error) {
 			console.error(error);
 		} finally {
-			setLoading(false);
+			if (isInitial) setLoading(false);
 		}
 	};
 
