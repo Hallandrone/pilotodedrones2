@@ -59,8 +59,7 @@ Deno.serve(async (req) => {
 
 			if (userId) {
 				// Mapeo de estados para suscripción
-				// IMPORTANTE: 'authorized' en preapproval NO significa que esté pagado. 
-				// Lo ponemos como 'pending_payment' hasta que llegue el evento 'payment' con status 'approved'.
+				// Estricto: 'authorized' no es activo hasta que llegue el pago 'approved'
 				let dbStatus = "inactive";
 				if (mpStatus === "authorized") dbStatus = "pending_payment";
 				else if (mpStatus === "paused") dbStatus = "paused";
@@ -113,14 +112,20 @@ Deno.serve(async (req) => {
 						updated_at: new Date().toISOString(),
 					};
 
-					// Si es el primer pago de una suscripción, Mercado Pago a veces no envía renewal_date aquí.
-					// Pero el webhook de preapproval ya debería haberlo puesto.
+					// Lógica de Pago Único (Débito) vs Suscripción (Crédito)
 					if (!payment.preapproval_id) {
+						// PAGO ÚNICO: Activar por 30 días exactos
+						console.log(`[MP Webhook] Single payment detected for user ${userId}. Setting 30 days active period.`);
 						updateData.plan_name = planName;
-						updateData.payment_method = "Mercado Pago Single";
-						const fallbackDate = new Date();
-						fallbackDate.setMonth(fallbackDate.getMonth() + 1);
-						updateData.renewal_date = fallbackDate.toISOString();
+						updateData.payment_method = "Mercado Pago Single (Debit/Refill)";
+						const expirationDate = new Date();
+						expirationDate.setDate(expirationDate.getDate() + 30);
+						updateData.renewal_date = expirationDate.toISOString();
+					} else {
+						// PAGO DE SUSCRIPCIÓN: Solo confirmar activación
+						console.log(`[MP Webhook] Subscription payment approved for user ${userId}.`);
+						updateData.payment_method = "Mercado Pago Subscription (Credit)";
+						// La fecha de renovación ya la maneja el evento 'preapproval'
 					}
 
 					const { error } = await supabase
@@ -144,8 +149,8 @@ Deno.serve(async (req) => {
 
 					if (error) console.error("[MP Webhook] DB Error (Payment Negative):", error);
 				}
-				else if (["pending", "in_process", "authorized"].includes(mpStatus)) {
-					// Mantener como pendiente si aún no es approved
+				else if (["pending", "in_process", "authorized", "in_mediation"].includes(mpStatus)) {
+					// Mantener como pendiente si aún no es approved. NUNCA activar aquí.
 					console.log(`[MP Webhook] Payment ${mpStatus}. Keeping status as pending_payment for user ${userId}.`);
 					await supabase
 						.from("user_subscriptions")

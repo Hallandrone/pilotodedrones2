@@ -20,7 +20,9 @@ import {
   ExternalLink,
   Loader2,
   RefreshCw,
-  Info
+  Info,
+  Zap,
+  Shield
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { createPreference, processPayment } from "@/integrations/mercadopago/client";
@@ -66,6 +68,7 @@ const PilotMembership = () => {
   const [sponsoringCompany, setSponsoringCompany] = useState<string | null>(null);
   const [showBricks, setShowBricks] = useState(false);
   const [selectedPlanForBrick, setSelectedPlanForBrick] = useState<AvailablePlan | null>(null);
+  const [paymentMode, setPaymentMode] = useState<'subscription' | 'single' | null>(null);
   const [bricksController, setBricksController] = useState<any>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showResumeDialog, setShowResumeDialog] = useState(false);
@@ -262,7 +265,7 @@ const PilotMembership = () => {
         .from('user_subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .or('status.eq.active,status.eq.cancelled,status.eq.pending_payment')
+        .or('status.eq.active,status.eq.cancelled,status.eq.pending_payment,status.eq.expired')
         .maybeSingle();
 
       if (error) {
@@ -480,7 +483,7 @@ const PilotMembership = () => {
     setPendingPlanId(null);
   };
 
-  const initBricks = async (plan: AvailablePlan) => {
+  const initBricks = async (plan: AvailablePlan, mode: 'subscription' | 'single') => {
     if (!window.MercadoPago) {
       console.error("Mercado Pago SDK not loaded");
       return;
@@ -503,11 +506,11 @@ const PilotMembership = () => {
         },
         customization: {
           paymentMethods: {
-            ticket: "all",
-            bankTransfer: "all",
+            ticket: mode === 'single' ? "all" : undefined,
+            bankTransfer: mode === 'single' ? "all" : undefined,
             creditCard: "all",
-            debitCard: "all",
-            mercadoPago: "all",
+            debitCard: mode === 'single' ? "all" : undefined,
+            mercadoPago: mode === 'single' ? "all" : undefined,
           },
         },
         callbacks: {
@@ -519,7 +522,7 @@ const PilotMembership = () => {
               console.log("Submitting payment...", selectedPaymentMethod);
               setSubscribing(plan.id);
 
-              const action = (selectedPaymentMethod === 'credit_card' || selectedPaymentMethod === 'debit_card')
+              const action = (mode === 'subscription' && (selectedPaymentMethod === 'credit_card' || selectedPaymentMethod === 'debit_card'))
                 ? 'create_subscription'
                 : 'process_payment';
 
@@ -554,8 +557,10 @@ const PilotMembership = () => {
                     reject();
                   } else {
                     toast({
-                      title: "¡Pago Procesado!",
-                      description: "Tu suscripción se está activando...",
+                      title: "¡Solicitud Procesada!",
+                      description: mode === 'subscription'
+                        ? "Tu suscripción ha sido creada. Se activará en cuanto se confirme el primer pago."
+                        : "Tu pago está siendo procesado por Mercado Pago.",
                     });
                     setShowBricks(false);
                     resolve(data);
@@ -588,29 +593,26 @@ const PilotMembership = () => {
   useEffect(() => {
     let interval: any;
 
-    if (showBricks && selectedPlanForBrick) {
+    if (showBricks && selectedPlanForBrick && paymentMode) {
       // Función para verificar si el contenedor existe y es visible
       const checkAndInit = () => {
         const container = document.getElementById("cardPaymentBrick_container");
-        if (container && container.offsetParent !== null) { // Existe y es visible (offsetParent verifica visibilidad)
-          console.log("Container found and visible, initializing brick...");
+        if (container && container.offsetParent !== null) {
+          console.log("Container found and visible, initializing brick for mode:", paymentMode);
           clearInterval(interval);
-          initBricks(selectedPlanForBrick);
+          initBricks(selectedPlanForBrick, paymentMode);
         }
       };
 
-      // Poll cada 150ms para esperar que el modal termine de animar
       let attempts = 0;
       interval = setInterval(() => {
         attempts++;
         checkAndInit();
-        if (attempts > 30) { // Máximo 4.5 segundos de espera
+        if (attempts > 30) {
           console.error("Brick container never became visible");
           clearInterval(interval);
         }
       }, 150);
-
-      checkAndInit(); // Intento inmediato
     } else if (!showBricks && bricksController) {
       console.log("Unmounting brick controller...");
       try {
@@ -1284,31 +1286,94 @@ const PilotMembership = () => {
 
         {/* Dialog de Checkout Bricks (Card Payment) */}
         <Dialog open={showBricks} onOpenChange={(open) => {
-          if (!open && bricksController) {
-            // bricksController.unmount();
+          if (!open) {
+            if (bricksController) {
+              try { bricksController.unmount(); } catch (e) { }
+              setBricksController(null);
+            }
+            setPaymentMode(null);
           }
           setShowBricks(open);
         }}>
-          <DialogContent className="bg-white text-black max-w-md p-0 overflow-hidden rounded-2xl">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-bold">Pago de Suscripción</h3>
-                <p className="text-sm text-gray-500">{selectedPlanForBrick?.name}</p>
-              </div>
-              <div className="text-right">
-                <span className="text-xl font-bold text-blue-600">
-                  {selectedPlanForBrick ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(selectedPlanForBrick.price) : ''}
-                </span>
+          <DialogContent className="bg-white text-black max-w-md p-0 overflow-hidden rounded-2xl shadow-2xl border-0">
+            <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold">Plan {selectedPlanForBrick?.name}</h3>
+                  <p className="text-blue-100 text-sm">Elige tu método preferido</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black">
+                    {selectedPlanForBrick ? formatPrice(selectedPlanForBrick.price) : ''}
+                  </span>
+                  <p className="text-xs text-blue-100">/mes</p>
+                </div>
               </div>
             </div>
-            <div className="p-4 bg-gray-50/50 min-h-[400px] flex flex-col items-center justify-center">
-              {!bricksController && (
-                <div className="flex flex-col items-center gap-2 text-gray-400">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <p className="text-sm">Cargando formulario de pago...</p>
+
+            <div className="p-6 bg-gray-50 flex flex-col gap-4">
+              {!paymentMode ? (
+                <>
+                  <button
+                    onClick={() => setPaymentMode('subscription')}
+                    className="flex items-center gap-4 p-4 bg-white border-2 border-transparent hover:border-blue-500 rounded-2xl shadow-sm transition-all group"
+                  >
+                    <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                      <Zap className="h-6 w-6" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-gray-900">Suscripción Automática</p>
+                      <p className="text-xs text-gray-500">Solo Tarjeta de Crédito. Renovación mensual.</p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setPaymentMode('single')}
+                    className="flex items-center gap-4 p-4 bg-white border-2 border-transparent hover:border-indigo-500 rounded-2xl shadow-sm transition-all group"
+                  >
+                    <div className="h-12 w-12 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <CreditCard className="h-6 w-6" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-gray-900">Pago Único (30 días)</p>
+                      <p className="text-xs text-gray-500">Débito, Prepago u Otros. Sin renovación auto.</p>
+                    </div>
+                  </button>
+
+                  <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-400 justify-center uppercase tracking-widest font-semibold">
+                    <Shield className="h-3 w-3" />
+                    Pagos seguros vía Mercado Pago
+                  </div>
+                </>
+              ) : (
+                <div className="min-h-[400px] flex flex-col">
+                  <div className="flex items-center justify-between mb-4">
+                    <button
+                      onClick={() => {
+                        if (bricksController) {
+                          try { bricksController.unmount(); } catch (e) { }
+                          setBricksController(null);
+                        }
+                        setPaymentMode(null);
+                      }}
+                      className="text-xs text-blue-600 font-bold hover:underline flex items-center gap-1"
+                    >
+                      ← Cambiar método
+                    </button>
+                    <Badge variant="outline" className="text-[10px] uppercase border-blue-200 text-blue-600">
+                      {paymentMode === 'subscription' ? 'Suscripción' : 'Pago Único'}
+                    </Badge>
+                  </div>
+
+                  {!bricksController && (
+                    <div className="flex flex-col items-center justify-center flex-1 gap-2 text-gray-400">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                      <p className="text-sm font-medium">Iniciando pasarela segura...</p>
+                    </div>
+                  )}
+                  <div id="cardPaymentBrick_container" className="w-full"></div>
                 </div>
               )}
-              <div id="cardPaymentBrick_container" className="w-full"></div>
             </div>
           </DialogContent>
         </Dialog>
