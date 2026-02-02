@@ -143,10 +143,19 @@ serve(async (req) => {
 
 			if (profileError) console.error('Error updating profile:', profileError);
 
-			// Update Role
+			// Update Role (only if explicitly specified, otherwise preserve existing admin role)
 			const { data: existingRole } = await supabaseAdmin.from('user_roles').select('role').eq('id', targetUserId).maybeSingle();
+
+			// Don't downgrade super_admin
 			if (existingRole?.role !== 'super_admin') {
-				const { error: roleUpdateError } = await supabaseAdmin.from('user_roles').upsert({ id: targetUserId, role: targetRole });
+				// If no role specified and user is already admin, keep them as admin
+				let roleToSet = targetRole;
+				if (!role && existingRole?.role === 'admin') {
+					roleToSet = 'admin';
+					console.log('Preserving existing admin role');
+				}
+
+				const { error: roleUpdateError } = await supabaseAdmin.from('user_roles').upsert({ id: targetUserId, role: roleToSet });
 				if (roleUpdateError) console.error('Error updating role:', roleUpdateError);
 			}
 

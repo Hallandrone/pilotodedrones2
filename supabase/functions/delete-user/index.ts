@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     const { data: roleData, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
     if (roleError) {
