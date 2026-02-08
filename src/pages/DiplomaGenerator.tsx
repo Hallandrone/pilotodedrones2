@@ -346,40 +346,70 @@ const DiplomaGenerator = () => {
 					<CardHeader className="p-6 bg-transparent border-b border-white/10">
 						<CardTitle className="text-white text-2xl font-bold">Vista Previa</CardTitle>
 					</CardHeader>
-					<CardContent className="p-6">
-						<div className="relative bg-white rounded-lg p-8 shadow-lg border-8 border-[#00A8E1]" style={{
-							backgroundImage: 'url(/DIPLOMA_2026.jpg)',
-							backgroundSize: 'cover',
-							backgroundPosition: 'center',
-							backgroundBlendMode: 'lighten',
-						}}>
-							<div className="relative bg-white/90 p-6 rounded">
-								<div className="absolute top-12 left-6 text-gray-400 font-light text-[7px] opacity-70">
-									#{String(correlativeNumber).padStart(4, '0')}
-								</div>
-								<div className="text-center space-y-3 text-gray-800">
-									<h2 className="text-5xl font-bold text-[#00A8E1]">CERTIFICADO</h2>
-									<div className="w-64 h-0.5 bg-[#00A8E1] mx-auto my-2"></div>
-									<p className="text-xs italic text-gray-600 pt-3">
-										Academia de Drones de Chile, AOC N°1501, entrega el presente certificado a:
-									</p>
-									<p className="text-4xl italic py-3 font-serif text-black font-bold">{formData.studentName}</p>
-									<p className="text-xs text-gray-600 px-8">
+					<CardContent className="p-0 sm:p-6 overflow-hidden">
+						<div className="flex justify-center items-center bg-gray-900/50 p-2 sm:p-10 min-h-[400px]">
+							<div className="relative shadow-2xl overflow-hidden" style={{
+								width: '842px',
+								height: '595px',
+								maxWidth: '100%',
+								aspectRatio: '842/595',
+								backgroundColor: 'white'
+							}}>
+								{/* Fondo Real del Diploma */}
+								<img
+									src="/DIPLOMA_2026.jpg"
+									className="absolute inset-0 w-full h-full object-fill pointer-events-none"
+									alt="Fondo Diploma"
+								/>
+
+								{/* Contenido Sincronizado con DiplomaPDF.tsx */}
+								<div className="absolute inset-0 pointer-events-none p-0 flex flex-col items-center">
+									{/* Correlativo */}
+									<div className="absolute top-[80px] left-[60px] text-[7px] text-[#999] font-sans">
+										#{String(correlativeNumber).padStart(4, '0')}
+									</div>
+
+
+
+									{/* Intro Text */}
+									<div className="absolute top-[150px] left-[80px] right-[80px] text-center text-[14px] text-[#666] italic font-sans">
+										Academia de Drones de Chile, AOC N°{formData.certificateNumber || '1501'}, entrega el presente certificado a:
+									</div>
+
+									{/* Nombre Estudiante (Dinámico) */}
+									<div className="absolute top-[170px] left-[80px] right-[80px] h-[100px] flex items-center justify-center text-center text-black italic font-serif" style={{
+										fontSize: `${formData.studentName.length <= 20 ? 60 : formData.studentName.length <= 30 ? 50 : formData.studentName.length <= 40 ? 40 : formData.studentName.length <= 50 ? 32 : 28}px`,
+										lineHeight: 1
+									}}>
+										{formData.studentName}
+									</div>
+
+									{/* Descripción */}
+									<div className="absolute top-[245px] left-[100px] right-[100px] text-center text-[12px] text-[#666] leading-relaxed font-sans">
 										Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
 										{formData.startDate && formData.endDate ? (
 											` desde el ${new Date(formData.startDate + 'T00:00:00').getDate()} al ${new Date(formData.endDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
 										) : formData.startDate ? (
 											` el día ${new Date(formData.startDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
 										) : ''} de {formData.courseHours} horas cronológicas.
-									</p>
-									<p className="text-3xl font-bold text-[#00A8E1] py-3">{formData.courseTitle}</p>
-									<p className="text-sm italic text-[#00A8E1]">{formData.courseDate}</p>
-									<p className="text-sm italic text-[#00A8E1]">{formData.city}</p>
-									<p className="text-xs text-gray-600 pt-8">DIRECTOR ACADEMIA DE DRONES CHILE</p>
-									<div className="flex justify-between items-center pt-6 px-2 text-xs">
-										<span className="font-bold text-gray-800 text-sm">AOC N° {formData.certificateNumber}</span>
-										<span className="text-gray-600">WWW.PILOTODEDRONES.CL</span>
 									</div>
+
+									{/* Título del Curso (Dinámico) */}
+									<div className="absolute top-[300px] left-[80px] right-[80px] text-center text-[#00A8E1] font-bold tracking-widest uppercase" style={{
+										fontSize: `${formData.courseTitle.length <= 20 ? 40 : formData.courseTitle.length <= 30 ? 35 : formData.courseTitle.length <= 40 ? 30 : 26}px`
+									}}>
+										{formData.courseTitle}
+									</div>
+
+									{/* Fecha y Ciudad */}
+									<div className="absolute top-[370px] w-full text-center text-[14px] text-[#666] italic font-sans">
+										{formData.courseDate ? new Date(formData.courseDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+									</div>
+									<div className="absolute top-[390px] w-full text-center text-[14px] text-[#666] italic font-sans">
+										{formData.city}
+									</div>
+
+
 								</div>
 							</div>
 						</div>

@@ -313,6 +313,15 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 	const formattedDate = formatDateToSpanish(data.courseDate);
 	const courseTitle = data.courseTitle || 'OPERADOR DE DRONES';
 
+	const getStudentNameFontSize = (name: string): number => {
+		const length = name.length;
+		if (length <= 20) return 60;
+		if (length <= 30) return 50;
+		if (length <= 40) return 40;
+		if (length <= 50) return 32;
+		return 28;
+	};
+
 	const getCourseTitleFontSize = (title: string): number => {
 		const length = title.length;
 		if (length <= 20) return 40;
@@ -321,6 +330,7 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 		return 26;
 	};
 
+	const studentNameFontSize = getStudentNameFontSize(data.studentName);
 	const courseTitleFontSize = getCourseTitleFontSize(courseTitle);
 
 	return (
@@ -330,7 +340,7 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 				<Text style={styles.introText}>
 					Academia de Drones de Chile, AOC N°{data.certificateNumber}, entrega el presente certificado a:
 				</Text>
-				<Text style={styles.studentName}>{data.studentName}</Text>
+				<Text style={{ ...styles.studentName, fontSize: studentNameFontSize }}>{data.studentName}</Text>
 				<Text style={styles.description}>
 					Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
 					{data.startDate && data.endDate ? (
