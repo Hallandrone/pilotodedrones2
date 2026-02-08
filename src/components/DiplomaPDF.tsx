@@ -16,6 +16,10 @@ Font.register({
 			fontStyle: 'italic',
 		},
 		{
+			src: '/fonts/Montserrat-Regular.ttf',
+			fontWeight: 400,
+		},
+		{
 			src: '/fonts/Montserrat-Bold.ttf',
 			fontWeight: 700,
 		},
@@ -125,7 +129,6 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontFamily: 'Montserrat',
 		fontWeight: 400,
-		fontStyle: 'italic',
 		color: '#333',
 		textAlign: 'center',
 	},
@@ -137,7 +140,6 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		fontFamily: 'Montserrat',
 		fontWeight: 400,
-		fontStyle: 'italic',
 		color: '#333',
 		textAlign: 'center',
 	},

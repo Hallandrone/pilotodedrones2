@@ -402,10 +402,10 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Fecha y Ciudad */}
-									<div className="absolute top-[370px] w-full text-center text-[14px] text-[#333] italic font-sans font-normal">
+									<div className="absolute top-[370px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
 										{formData.courseDate ? new Date(formData.courseDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
 									</div>
-									<div className="absolute top-[390px] w-full text-center text-[14px] text-[#333] italic font-sans font-normal">
+									<div className="absolute top-[390px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
 										{formData.city}
 									</div>
 
