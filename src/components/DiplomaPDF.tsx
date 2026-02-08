@@ -124,9 +124,9 @@ const styles = StyleSheet.create({
 		right: 0,
 		fontSize: 14,
 		fontFamily: 'Montserrat',
-		fontWeight: 300,
+		fontWeight: 400,
 		fontStyle: 'italic',
-		color: '#666',
+		color: '#333',
 		textAlign: 'center',
 	},
 	city: {
@@ -136,9 +136,9 @@ const styles = StyleSheet.create({
 		right: 0,
 		fontSize: 14,
 		fontFamily: 'Montserrat',
-		fontWeight: 300,
+		fontWeight: 400,
 		fontStyle: 'italic',
-		color: '#666',
+		color: '#333',
 		textAlign: 'center',
 	},
 	signature: {
@@ -315,11 +315,11 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 
 	const getStudentNameFontSize = (name: string): number => {
 		const length = name.length;
-		if (length <= 20) return 60;
-		if (length <= 30) return 50;
-		if (length <= 40) return 40;
-		if (length <= 50) return 32;
-		return 28;
+		if (length <= 20) return 70;  // Aumentado de 60
+		if (length <= 30) return 60;  // Aumentado de 50
+		if (length <= 40) return 50;  // Aumentado de 40
+		if (length <= 50) return 40;  // Aumentado de 32
+		return 35;  // Aumentado de 28
 	};
 
 	const getCourseTitleFontSize = (title: string): number => {
