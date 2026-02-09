@@ -101,11 +101,11 @@ const styles = StyleSheet.create({
 	},
 	description: {
 		position: 'absolute',
-		top: 310, // Bajado de 245
+		top: 255,
 		left: 0,
 		right: 0,
 		paddingHorizontal: 80,
-		fontSize: 13,
+		fontSize: 14, // Aumentado de 13 para igualar al introText
 		fontFamily: 'OpenSans',
 		color: '#666',
 		textAlign: 'center',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
 	},
 	courseTitle: {
 		position: 'absolute',
-		top: 380, // Bajado de 300
+		top: 310, // Ajustado (antes 325, original 300)
 		left: 0,
 		right: 0,
 		fontFamily: 'Croogla4F',
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
 	},
 	dateCity: {
 		position: 'absolute',
-		top: 440, // Bajado de 370
+		top: 370, // Ajustado (antes 385, original 370)
 		left: 0,
 		right: 0,
 		fontSize: 14,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
 	},
 	city: {
 		position: 'absolute',
-		top: 460, // Bajado de 390
+		top: 390, // Ajustado (antes 405, original 390)
 		left: 0,
 		right: 0,
 		fontSize: 14,
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
 	},
 	signature: {
 		position: 'absolute',
-		top: 520, // Bajado de 480
+		top: 480, // Ajustado (antes 485, original 480)
 		left: 0,
 		right: 0,
 		fontSize: 26,
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
 	},
 	signatureTitle: {
 		position: 'absolute',
-		top: 550, // Bajado de 510
+		top: 510, // Ajustado (antes 512, original 510)
 		left: 0,
 		right: 0,
 		fontSize: 10,
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
 	},
 	qrCode: {
 		position: 'absolute',
-		left: 800,  // Movido más a la derecha
+		left: 775,  // Movido levemente a la izquierda (antes 800)
 		top: 72,
 		width: 61,
 		height: 61,
@@ -245,8 +245,8 @@ const styles = StyleSheet.create({
 	validationCode: {
 		position: 'absolute',
 		top: 135,
-		left: 770,  // Movido más a la derecha
-		width: 120,
+		left: 740,  // Movido levemente a la izquierda (antes 770)
+		width: 130, // Un poco más ancho para las 3 líneas
 		fontSize: 5.5,
 		fontFamily: 'Helvetica',
 		color: '#333',
@@ -255,8 +255,8 @@ const styles = StyleSheet.create({
 	legalText: {
 		position: 'absolute',
 		top: 155,
-		left: 770,  // Movido más a la derecha
-		width: 120,
+		left: 740,  // Movido levemente a la izquierda (antes 770)
+		width: 130, // Un poco más ancho para las 3 líneas
 		fontSize: 4.5,
 		fontFamily: 'Helvetica',
 		color: '#666',
@@ -346,7 +346,7 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 					</Text>
 					<Text style={{ ...styles.studentName, fontSize: studentNameFontSize }}>{data.studentName}</Text>
 					<Text style={styles.description}>
-						Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
+						Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados{'\n'}en el curso teórico y práctico
 						{data.startDate && data.endDate ? (
 							` ${formatDateRange(data.startDate, data.endDate)}`
 						) : data.startDate ? (
@@ -361,8 +361,9 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 						<>
 							<Text style={styles.validationCode}>{data.qrToken}</Text>
 							<Text style={styles.legalText}>
-								Código QR de validación del certificado HDRONES®.{'\n'}
-								La ausencia de este QR invalida el documento.
+								Código QR de validación del certificado{'\n'}
+								HDRONES®, la ausencia de este QR{'\n'}
+								invalida el documento
 							</Text>
 						</>
 					)}

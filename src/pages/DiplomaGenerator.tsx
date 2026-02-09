@@ -386,8 +386,8 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Descripción */}
-									<div className="absolute top-[310px] left-0 right-0 px-20 text-center text-[12px] text-[#666] leading-relaxed font-sans">
-										Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
+									<div className="absolute top-[255px] left-0 right-0 px-20 text-center text-[14px] text-[#666] leading-relaxed font-sans">
+										Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados<br />en el curso teórico y práctico
 										{formData.startDate && formData.endDate ? (
 											` desde el ${new Date(formData.startDate + 'T00:00:00').getDate()} al ${new Date(formData.endDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
 										) : formData.startDate ? (
@@ -396,19 +396,38 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Título del Curso (Dinámico) */}
-									<div className="absolute top-[380px] left-0 right-0 text-center text-[#00A8E1] font-bold tracking-widest uppercase" style={{
+									<div className="absolute top-[310px] left-0 right-0 text-center text-[#00A8E1] font-bold tracking-widest uppercase" style={{
 										fontSize: `${formData.courseTitle.length <= 20 ? 40 : formData.courseTitle.length <= 30 ? 35 : formData.courseTitle.length <= 40 ? 30 : 26}px`
 									}}>
 										{formData.courseTitle}
 									</div>
 
 									{/* Fecha y Ciudad */}
-									<div className="absolute top-[440px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
+									<div className="absolute top-[370px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
 										{formData.courseDate ? new Date(formData.courseDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
 									</div>
-									<div className="absolute top-[460px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
+									<div className="absolute top-[390px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
 										{formData.city}
 									</div>
+
+									{/* QR Code y Texto Legal (Preview) */}
+									{qrCodeDataUrl && (
+										<div className="absolute top-[72px] left-[775px] w-[61px] h-[61px]">
+											<img src={qrCodeDataUrl} className="w-full h-full" alt="QR Code" />
+										</div>
+									)}
+									{qrToken && (
+										<>
+											<div className="absolute top-[135px] left-[740px] w-[130px] text-center text-[5.5px] text-[#333] font-sans">
+												{qrToken}
+											</div>
+											<div className="absolute top-[155px] left-[740px] w-[130px] text-center text-[4.5px] text-[#666] font-sans leading-tight">
+												Código QR de validación del certificado<br />
+												HDRONES®, la ausencia de este QR<br />
+												invalida el documento
+											</div>
+										</>
+									)}
 
 
 								</div>
