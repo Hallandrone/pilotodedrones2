@@ -38,8 +38,8 @@ Font.register({
 
 const styles = StyleSheet.create({
 	page: {
-		width: 842,
-		height: 595,
+		width: 935.43,   // 330mm
+		height: 612.28,  // 216mm
 		margin: 0,
 		padding: 0,
 	},
@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
 		position: 'absolute',
 		top: 0,
 		left: 0,
-		width: 842,
-		height: 595,
+		width: 935.43,   // 330mm
+		height: 612.28,  // 216mm
 		objectFit: 'fill',
 	},
 	content: {
