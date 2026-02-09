@@ -10,6 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Award, Download, FileText, User, Calendar, Hash } from 'lucide-react';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 
 interface DiplomaFormData {
 	studentName: string;
@@ -40,6 +47,7 @@ const DiplomaGenerator = () => {
 	const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 	const [qrToken, setQrToken] = useState<string>('');
 	const [correlativeNumber, setCorrelativeNumber] = useState<number>(0);
+	const [certOption, setCertOption] = useState<string>('');
 	const { toast: showToast } = useToast();
 
 	useEffect(() => {
@@ -294,13 +302,38 @@ const DiplomaGenerator = () => {
 								Número de Certificado
 								<span className="text-red-400">*</span>
 							</Label>
-							<Input
-								id="certificateNumber"
-								value={formData.certificateNumber}
-								onChange={(e) => handleInputChange('certificateNumber', e.target.value)}
-								placeholder="Ej: 1501"
-								className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
-							/>
+							<div className="space-y-3">
+								<Select
+									value={certOption}
+									onValueChange={(value) => {
+										setCertOption(value);
+										if (value !== 'other') {
+											handleInputChange('certificateNumber', value);
+										} else {
+											handleInputChange('certificateNumber', '');
+										}
+									}}
+								>
+									<SelectTrigger className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] text-lg">
+										<SelectValue placeholder="Seleccione número..." />
+									</SelectTrigger>
+									<SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+										<SelectItem value="1501">1501</SelectItem>
+										<SelectItem value="1688">1688</SelectItem>
+										<SelectItem value="other">Otro (Ingresar manualmente)</SelectItem>
+									</SelectContent>
+								</Select>
+
+								{certOption === 'other' && (
+									<Input
+										id="certificateNumber"
+										value={formData.certificateNumber}
+										onChange={(e) => handleInputChange('certificateNumber', e.target.value)}
+										placeholder="Ingrese número de certificado"
+										className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
+									/>
+								)}
+							</div>
 						</div>
 					</div>
 
