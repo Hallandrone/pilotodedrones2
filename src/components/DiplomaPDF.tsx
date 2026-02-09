@@ -81,35 +81,37 @@ const styles = StyleSheet.create({
 	},
 	introText: {
 		position: 'absolute',
-		top: 150,
+		top: 155, // Bajado (estaba en 140)
 		left: 0,
 		right: 0,
-		fontSize: 14,
-		fontFamily: 'OpenSans',
+		fontSize: 15,
+		fontFamily: 'Montserrat',
+		fontWeight: 400,
 		color: '#666',
 		textAlign: 'center',
 	},
 	studentName: {
 		position: 'absolute',
-		top: 170,
+		top: 182, // Subido levemente de 188
 		left: 0,
 		right: 0,
-		fontSize: 60,
+		fontSize: 65, // Aumentado
 		fontFamily: 'Euphorigenic',
 		color: '#1a1a1a',
 		textAlign: 'center',
 	},
 	description: {
 		position: 'absolute',
-		top: 255,
+		top: 265,
 		left: 0,
 		right: 0,
 		paddingHorizontal: 80,
-		fontSize: 14, // Aumentado de 13 para igualar al introText
-		fontFamily: 'OpenSans',
+		fontSize: 15, // Reducido según solicitud
+		fontFamily: 'Montserrat',
+		fontWeight: 400,
 		color: '#666',
 		textAlign: 'center',
-		lineHeight: 1.5,
+		lineHeight: 1.2,
 	},
 	courseTitle: {
 		position: 'absolute',
@@ -120,7 +122,7 @@ const styles = StyleSheet.create({
 		fontWeight: 400,
 		color: '#00A8E1',
 		textAlign: 'center',
-		letterSpacing: 2,
+		letterSpacing: 0.5, // Reducido de 1 para que las letras estén más juntas
 	},
 	dateCity: {
 		position: 'absolute',
@@ -318,19 +320,19 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 
 	const getStudentNameFontSize = (name: string): number => {
 		const length = name.length;
-		if (length <= 20) return 70;  // Aumentado de 60
-		if (length <= 30) return 60;  // Aumentado de 50
-		if (length <= 40) return 50;  // Aumentado de 40
-		if (length <= 50) return 40;  // Aumentado de 32
-		return 35;  // Aumentado de 28
+		if (length <= 20) return 65;  // Aumentado de 60
+		if (length <= 30) return 56;  // Aumentado
+		if (length <= 40) return 48;  // Aumentado
+		if (length <= 50) return 40;  // Aumentado
+		return 32;
 	};
 
 	const getCourseTitleFontSize = (title: string): number => {
 		const length = title.length;
-		if (length <= 20) return 40;
-		if (length <= 30) return 35;
-		if (length <= 40) return 30;
-		return 26;
+		if (length <= 20) return 54; // Aumentado de 48
+		if (length <= 30) return 46; // Aumentado de 40
+		if (length <= 40) return 38; // Aumentado de 34
+		return 32; // Aumentado de 28
 	};
 
 	const studentNameFontSize = getStudentNameFontSize(data.studentName);

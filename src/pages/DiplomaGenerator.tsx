@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Award, Download, FileText, User, Calendar, Hash } from 'lucide-react';
+import { Award, Download, FileText, User, Calendar, Hash, History } from 'lucide-react';
 import {
 	Select,
 	SelectContent,
@@ -152,6 +152,68 @@ const DiplomaGenerator = () => {
 		}
 	};
 
+	const useLastDiplomaData = async () => {
+		try {
+			const { data: lastDiplomas, error } = await supabase
+				.from('diplomas')
+				.select('*')
+				.order('created_at', { ascending: false })
+				.limit(1);
+
+			if (error) throw error;
+
+			if (lastDiplomas && lastDiplomas.length > 0) {
+				const last = lastDiplomas[0];
+
+				// Actualizar datos del formulario (excepto el nombre del estudiante)
+				const newFormData = {
+					...formData,
+					courseDate: last.course_date || '',
+					courseHours: last.course_hours || '12',
+					courseTitle: last.course_title || 'OPERADOR DE DRONES',
+					city: last.city || '',
+					certificateNumber: last.certificate_number || '',
+					instructorName: last.instructor_name || '',
+				};
+
+				setFormData(newFormData);
+
+				// Sincronizar el selector de número de certificado
+				if (['1501', '1688'].includes(last.certificate_number)) {
+					setCertOption(last.certificate_number);
+				} else if (last.certificate_number) {
+					setCertOption('other');
+				}
+
+				showToast({
+					title: "Datos Cargados",
+					description: "Se ha cargado la información del último diploma generado.",
+				});
+
+				// Validar el formulario con los nuevos datos
+				setIsFormValid(
+					newFormData.studentName.trim() !== '' &&
+					newFormData.courseDate.trim() !== '' &&
+					newFormData.certificateNumber.trim() !== '' &&
+					newFormData.city.trim() !== ''
+				);
+			} else {
+				showToast({
+					title: "Sin registros",
+					description: "No se encontraron diplomas previos en el sistema.",
+					variant: "destructive"
+				});
+			}
+		} catch (error) {
+			console.error('Error fetching last diploma:', error);
+			showToast({
+				title: "Error",
+				description: "No se pudo obtener la información del último diploma.",
+				variant: "destructive"
+			});
+		}
+	};
+
 	const handleInputChange = (field: keyof DiplomaFormData, value: string) => {
 		const newData = { ...formData, [field]: value };
 		setFormData(newData);
@@ -181,15 +243,28 @@ const DiplomaGenerator = () => {
 
 			<Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/30 transition-all duration-300">
 				<CardHeader className="p-8 bg-transparent border-b border-white/10">
-					<CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
-						<div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
-							<FileText className="h-6 w-6 text-white" />
+					<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+						<div>
+							<CardTitle className="flex items-center gap-3 text-white text-3xl font-bold">
+								<div className="h-12 w-12 rounded-xl bg-[#00b3f3] flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
+									<FileText className="h-6 w-6 text-white" />
+								</div>
+								Datos del Certificado
+							</CardTitle>
+							<CardDescription className="text-white/70 text-lg mt-2">
+								Complete los campos requeridos para generar el diploma
+							</CardDescription>
 						</div>
-						Datos del Certificado
-					</CardTitle>
-					<CardDescription className="text-white/70 text-lg mt-2">
-						Complete los campos requeridos para generar el diploma
-					</CardDescription>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={useLastDiplomaData}
+							className="h-12 border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-[#00b3f3] transition-all duration-200 flex items-center gap-2 rounded-xl"
+						>
+							<History className="h-5 w-5" />
+							Usar datos del último diploma
+						</Button>
+					</div>
 				</CardHeader>
 
 				<CardContent className="p-8 space-y-8">
@@ -406,20 +481,21 @@ const DiplomaGenerator = () => {
 
 
 									{/* Intro Text */}
-									<div className="absolute top-[150px] left-0 right-0 text-center text-[14px] text-[#666] italic font-sans">
+									<div className="absolute top-[155px] left-0 right-0 text-center text-[15px] text-[#666] font-sans" style={{ fontFamily: 'Montserrat', fontWeight: 400 }}>
 										Academia de Drones de Chile, AOC N°{formData.certificateNumber || '1501'}, entrega el presente certificado a:
 									</div>
 
 									{/* Nombre Estudiante (Dinámico) */}
-									<div className="absolute top-[170px] left-0 right-0 h-[100px] flex items-center justify-center text-center text-black italic font-serif" style={{
-										fontSize: `${formData.studentName.length <= 20 ? 60 : formData.studentName.length <= 30 ? 50 : formData.studentName.length <= 40 ? 40 : formData.studentName.length <= 50 ? 32 : 28}px`,
+									<div className="absolute top-[184px] left-0 right-0 h-[100px] flex items-center justify-center text-center text-black" style={{
+										fontFamily: 'Euphorigenic',
+										fontSize: `${formData.studentName.length <= 20 ? 65 : formData.studentName.length <= 30 ? 56 : formData.studentName.length <= 40 ? 48 : formData.studentName.length <= 50 ? 40 : 32}px`,
 										lineHeight: 1
 									}}>
 										{formData.studentName}
 									</div>
 
 									{/* Descripción */}
-									<div className="absolute top-[255px] left-0 right-0 px-20 text-center text-[14px] text-[#666] leading-relaxed font-sans">
+									<div className="absolute top-[265px] left-0 right-0 px-20 text-center text-[15px] text-[#666] leading-[1.2] font-sans" style={{ fontFamily: 'Montserrat', fontWeight: 400 }}>
 										Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados<br />en el curso teórico y práctico
 										{formData.startDate && formData.endDate ? (
 											` desde el ${new Date(formData.startDate + 'T00:00:00').getDate()} al ${new Date(formData.endDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
@@ -429,8 +505,10 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Título del Curso (Dinámico) */}
-									<div className="absolute top-[310px] left-0 right-0 text-center text-[#00A8E1] font-bold tracking-widest uppercase" style={{
-										fontSize: `${formData.courseTitle.length <= 20 ? 40 : formData.courseTitle.length <= 30 ? 35 : formData.courseTitle.length <= 40 ? 30 : 26}px`
+									<div className="absolute top-[310px] left-0 right-0 text-center text-[#00A8E1] uppercase font-normal" style={{
+										fontFamily: 'Croogla4F',
+										fontSize: `${formData.courseTitle.length <= 20 ? 54 : formData.courseTitle.length <= 30 ? 46 : formData.courseTitle.length <= 40 ? 38 : 32}px`,
+										letterSpacing: '0.5px'
 									}}>
 										{formData.courseTitle}
 									</div>
