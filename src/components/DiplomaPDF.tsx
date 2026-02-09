@@ -371,7 +371,7 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 					)}
 					{data.correlativeNumber && (
 						<Text style={styles.serialNumber}>
-							#{String(data.correlativeNumber).padStart(4, '0')}
+							#{String(data.correlativeNumber).padStart(5, '0')}
 						</Text>
 					)}
 				</View>

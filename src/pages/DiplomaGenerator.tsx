@@ -62,8 +62,8 @@ const DiplomaGenerator = () => {
 				.select('*', { count: 'exact', head: true });
 
 			if (error) throw error;
-			// Comienza en #14500: suma 14499 al count actual
-			setCorrelativeNumber((count || 0) + 14500);
+			// Comienza en #14600: suma 14600 al count actual
+			setCorrelativeNumber((count || 0) + 14600);
 		} catch (error) {
 			console.error('Error fetching correlative:', error);
 		}
@@ -475,7 +475,7 @@ const DiplomaGenerator = () => {
 								<div className="absolute inset-0 pointer-events-none p-0 flex flex-col items-center">
 									{/* Correlativo */}
 									<div className="absolute top-[80px] left-[60px] text-[7px] text-[#999] font-sans">
-										#{String(correlativeNumber).padStart(4, '0')}
+										#{String(correlativeNumber).padStart(5, '0')}
 									</div>
 
 
