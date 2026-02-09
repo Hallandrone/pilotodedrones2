@@ -32,7 +32,6 @@ export function UpgradeModal({
 			color: 'from-blue-500 to-cyan-500',
 			features: [
 				'Subida ilimitada de certificados',
-				'Bitácora de vuelos y horas acumuladas',
 				'Datos meteorológicos geolocalizados',
 				'URL personalizada para tu perfil',
 				'Sello digital "Perfil Certificado"',

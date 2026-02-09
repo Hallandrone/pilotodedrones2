@@ -58,7 +58,6 @@ const Planes = () => {
         'Todo lo del Plan Gratis',
         'Sello digital "Perfil Certificado"',
         'Subida ilimitada de certificados',
-        'Bitácora de vuelos y horas acumuladas',
         'URL personalizada para tu perfil',
         'Perfil destacado en búsquedas',
         'Datos meteorológicos geolocalizados',

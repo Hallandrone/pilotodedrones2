@@ -54,7 +54,8 @@ const DiplomaGenerator = () => {
 				.select('*', { count: 'exact', head: true });
 
 			if (error) throw error;
-			setCorrelativeNumber((count || 0) + 1);
+			// Comienza en #14500: suma 14499 al count actual
+			setCorrelativeNumber((count || 0) + 14500);
 		} catch (error) {
 			console.error('Error fetching correlative:', error);
 		}
@@ -349,10 +350,10 @@ const DiplomaGenerator = () => {
 					<CardContent className="p-0 sm:p-6 overflow-hidden">
 						<div className="flex justify-center items-center bg-gray-900/50 p-2 sm:p-10 min-h-[400px]">
 							<div className="relative shadow-2xl overflow-hidden" style={{
-								width: '842px',
-								height: '595px',
+								width: '935.43px',   // 330mm
+								height: '612.28px',  // 216mm
 								maxWidth: '100%',
-								aspectRatio: '842/595',
+								aspectRatio: '935.43/612.28',
 								backgroundColor: 'white'
 							}}>
 								{/* Fondo Real del Diploma */}

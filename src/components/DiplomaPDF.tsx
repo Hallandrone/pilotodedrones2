@@ -337,38 +337,40 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 
 	return (
 		<Document>
-			<Page size="A4" orientation="landscape" style={styles.page}>
-				<Image src="/DIPLOMA_2026.jpg" style={styles.backgroundImage} />
-				<Text style={styles.introText}>
-					Academia de Drones de Chile, AOC N°{data.certificateNumber}, entrega el presente certificado a:
-				</Text>
-				<Text style={{ ...styles.studentName, fontSize: studentNameFontSize }}>{data.studentName}</Text>
-				<Text style={styles.description}>
-					Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
-					{data.startDate && data.endDate ? (
-						` ${formatDateRange(data.startDate, data.endDate)}`
-					) : data.startDate ? (
-						` el día ${formatDateToSpanish(data.startDate)}`
-					) : ''} de {hours} horas cronológicas.
-				</Text>
-				<Text style={{ ...styles.courseTitle, fontSize: courseTitleFontSize }}>{courseTitle}</Text>
-				<Text style={styles.dateCity}>{formattedDate}</Text>
-				<Text style={styles.city}>{city}</Text>
-				{data.qrCodeDataUrl && <Image src={data.qrCodeDataUrl} style={styles.qrCode} />}
-				{data.qrToken && (
-					<>
-						<Text style={styles.validationCode}>{data.qrToken}</Text>
-						<Text style={styles.legalText}>
-							Código QR de validación del certificado HDRONES®.{'\n'}
-							La ausencia de este QR invalida el documento.
-						</Text>
-					</>
-				)}
-				{data.correlativeNumber && (
-					<Text style={styles.serialNumber}>
-						#{String(data.correlativeNumber).padStart(4, '0')}
+			<Page size={{ width: 935.43, height: 612.28 }} style={styles.page}>
+				<View style={styles.content}>
+					<Image src="/DIPLOMA_2026.jpg" style={styles.backgroundImage} />
+					<Text style={styles.introText}>
+						Academia de Drones de Chile, AOC N°{data.certificateNumber}, entrega el presente certificado a:
 					</Text>
-				)}
+					<Text style={{ ...styles.studentName, fontSize: studentNameFontSize }}>{data.studentName}</Text>
+					<Text style={styles.description}>
+						Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
+						{data.startDate && data.endDate ? (
+							` ${formatDateRange(data.startDate, data.endDate)}`
+						) : data.startDate ? (
+							` el día ${formatDateToSpanish(data.startDate)}`
+						) : ''} de {hours} horas cronológicas.
+					</Text>
+					<Text style={{ ...styles.courseTitle, fontSize: courseTitleFontSize }}>{courseTitle}</Text>
+					<Text style={styles.dateCity}>{formattedDate}</Text>
+					<Text style={styles.city}>{city}</Text>
+					{data.qrCodeDataUrl && <Image src={data.qrCodeDataUrl} style={styles.qrCode} />}
+					{data.qrToken && (
+						<>
+							<Text style={styles.validationCode}>{data.qrToken}</Text>
+							<Text style={styles.legalText}>
+								Código QR de validación del certificado HDRONES®.{'\n'}
+								La ausencia de este QR invalida el documento.
+							</Text>
+						</>
+					)}
+					{data.correlativeNumber && (
+						<Text style={styles.serialNumber}>
+							#{String(data.correlativeNumber).padStart(4, '0')}
+						</Text>
+					)}
+				</View>
 			</Page>
 		</Document>
 	);
