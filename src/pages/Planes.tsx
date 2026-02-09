@@ -49,7 +49,9 @@ const Planes = () => {
     {
       id: 'profesional',
       name: 'Plan Pro',
-      price: 14990,
+      price: 8000,            // Precio de lanzamiento
+      originalPrice: 14990,   // Precio original
+      isLaunch: true,         // Indicador de precio de lanzamiento
       description: 'Ideal para pilotos individuales que buscan destacar su experiencia certificada',
       popular: true,
       features: [
@@ -208,11 +210,23 @@ const Planes = () => {
                     </CardHeader>
 
                     <CardContent className="space-y-6">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-5xl font-bold text-primary">
-                          {formatPrice(plan.price)}
-                        </span>
-                        <span className="text-muted-foreground">/mes</span>
+                      <div className="flex flex-col gap-2">
+                        {plan.originalPrice && plan.isLaunch && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-lg text-muted-foreground line-through">
+                              {formatPrice(plan.originalPrice)}
+                            </span>
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20">
+                              🚀 LANZAMIENTO
+                            </Badge>
+                          </div>
+                        )}
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-5xl font-bold text-primary">
+                            {formatPrice(plan.price)}
+                          </span>
+                          <span className="text-muted-foreground">/mes</span>
+                        </div>
                       </div>
 
                       <ul className="space-y-3">

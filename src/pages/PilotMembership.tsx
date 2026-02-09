@@ -93,7 +93,7 @@ const PilotMembership = () => {
     {
       id: 'profesional',
       name: 'Plan Pro',
-      price: 14990,
+      price: 8000,  // Precio de lanzamiento
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
       features: [
         'Todo lo del Plan Gratis',
@@ -1152,12 +1152,24 @@ const PilotMembership = () => {
                           </div>
                         )}
                       </div>
-                      <p className={`text-3xl font-bold bg-clip-text text-transparent mb-2 ${plan.id === 'profesional'
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
-                        : 'bg-gradient-to-r from-purple-600 to-pink-600'
-                        }`}>
-                        {formatPrice(plan.price)}
-                      </p>
+                      <div className="mb-4">
+                        {plan.id === 'profesional' && (
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className="text-lg text-gray-400 line-through">
+                              $14.990
+                            </span>
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20">
+                              🚀 LANZAMIENTO
+                            </Badge>
+                          </div>
+                        )}
+                        <p className={`text-3xl font-bold bg-clip-text text-transparent ${plan.id === 'profesional'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                          : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                          }`}>
+                          {formatPrice(plan.price)}
+                        </p>
+                      </div>
                       <p className="text-[#B0B0B0] font-medium mb-4">{plan.description}</p>
                       <ul className="text-[#E0E0E0] space-y-2 mb-4">
                         {plan.features.map((feature, idx) => (
