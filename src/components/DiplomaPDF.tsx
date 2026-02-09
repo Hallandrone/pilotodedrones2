@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
 	introText: {
 		position: 'absolute',
 		top: 150,
-		left: 80,
-		right: 80,
+		left: 0,
+		right: 0,
 		fontSize: 14,
 		fontFamily: 'OpenSans',
 		color: '#666',
@@ -92,8 +92,8 @@ const styles = StyleSheet.create({
 	studentName: {
 		position: 'absolute',
 		top: 170,
-		left: 80,
-		right: 80,
+		left: 0,
+		right: 0,
 		fontSize: 60,
 		fontFamily: 'Euphorigenic',
 		color: '#1a1a1a',
@@ -101,9 +101,10 @@ const styles = StyleSheet.create({
 	},
 	description: {
 		position: 'absolute',
-		top: 245,
-		left: 100,
-		right: 100,
+		top: 310, // Bajado de 245
+		left: 0,
+		right: 0,
+		paddingHorizontal: 80,
 		fontSize: 13,
 		fontFamily: 'OpenSans',
 		color: '#666',
@@ -112,9 +113,9 @@ const styles = StyleSheet.create({
 	},
 	courseTitle: {
 		position: 'absolute',
-		top: 300,
-		left: 80,
-		right: 80,
+		top: 380, // Bajado de 300
+		left: 0,
+		right: 0,
 		fontFamily: 'Croogla4F',
 		fontWeight: 400,
 		color: '#00A8E1',
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
 	},
 	dateCity: {
 		position: 'absolute',
-		top: 370,
+		top: 440, // Bajado de 370
 		left: 0,
 		right: 0,
 		fontSize: 14,
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
 	},
 	city: {
 		position: 'absolute',
-		top: 390,
+		top: 460, // Bajado de 390
 		left: 0,
 		right: 0,
 		fontSize: 14,
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
 	},
 	signature: {
 		position: 'absolute',
-		top: 480,
+		top: 520, // Bajado de 480
 		left: 0,
 		right: 0,
 		fontSize: 26,
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
 	},
 	signatureTitle: {
 		position: 'absolute',
-		top: 510,
+		top: 550, // Bajado de 510
 		left: 0,
 		right: 0,
 		fontSize: 10,

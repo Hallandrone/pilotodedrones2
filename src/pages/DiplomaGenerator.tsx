@@ -373,12 +373,12 @@ const DiplomaGenerator = () => {
 
 
 									{/* Intro Text */}
-									<div className="absolute top-[150px] left-[80px] right-[80px] text-center text-[14px] text-[#666] italic font-sans">
+									<div className="absolute top-[150px] left-0 right-0 text-center text-[14px] text-[#666] italic font-sans">
 										Academia de Drones de Chile, AOC N°{formData.certificateNumber || '1501'}, entrega el presente certificado a:
 									</div>
 
 									{/* Nombre Estudiante (Dinámico) */}
-									<div className="absolute top-[170px] left-[80px] right-[80px] h-[100px] flex items-center justify-center text-center text-black italic font-serif" style={{
+									<div className="absolute top-[170px] left-0 right-0 h-[100px] flex items-center justify-center text-center text-black italic font-serif" style={{
 										fontSize: `${formData.studentName.length <= 20 ? 60 : formData.studentName.length <= 30 ? 50 : formData.studentName.length <= 40 ? 40 : formData.studentName.length <= 50 ? 32 : 28}px`,
 										lineHeight: 1
 									}}>
@@ -386,7 +386,7 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Descripción */}
-									<div className="absolute top-[245px] left-[100px] right-[100px] text-center text-[12px] text-[#666] leading-relaxed font-sans">
+									<div className="absolute top-[310px] left-0 right-0 px-20 text-center text-[12px] text-[#666] leading-relaxed font-sans">
 										Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados en el curso teórico y práctico
 										{formData.startDate && formData.endDate ? (
 											` desde el ${new Date(formData.startDate + 'T00:00:00').getDate()} al ${new Date(formData.endDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
@@ -396,17 +396,17 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Título del Curso (Dinámico) */}
-									<div className="absolute top-[300px] left-[80px] right-[80px] text-center text-[#00A8E1] font-bold tracking-widest uppercase" style={{
+									<div className="absolute top-[380px] left-0 right-0 text-center text-[#00A8E1] font-bold tracking-widest uppercase" style={{
 										fontSize: `${formData.courseTitle.length <= 20 ? 40 : formData.courseTitle.length <= 30 ? 35 : formData.courseTitle.length <= 40 ? 30 : 26}px`
 									}}>
 										{formData.courseTitle}
 									</div>
 
 									{/* Fecha y Ciudad */}
-									<div className="absolute top-[370px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
+									<div className="absolute top-[440px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
 										{formData.courseDate ? new Date(formData.courseDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
 									</div>
-									<div className="absolute top-[390px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
+									<div className="absolute top-[460px] w-full text-center text-[14px] text-[#333] font-sans font-normal">
 										{formData.city}
 									</div>
 
