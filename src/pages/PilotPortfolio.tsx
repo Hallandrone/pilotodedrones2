@@ -116,9 +116,12 @@ const PilotPortfolio = () => {
 		// Portafolio es solo para Pro/Empresa
 		const isUserAdmin = userType === 'admin' || userType === 'super_admin';
 		if (plan && plan.isFree && !isUserAdmin) {
-			setShowUpgradeModal(true);
-			event.target.value = '';
-			return;
+			// Verificar límite de 2 portafolios para usuarios gratis
+			if (items.length >= 2) {
+				setShowUpgradeModal(true);
+				event.target.value = '';
+				return;
+			}
 		}
 
 		const file = event.target.files?.[0];
@@ -212,8 +215,11 @@ const PilotPortfolio = () => {
 	const handleAddVideo = async () => {
 		const isUserAdmin = userType === 'admin' || userType === 'super_admin';
 		if (plan && plan.isFree && !isUserAdmin) {
-			setShowUpgradeModal(true);
-			return;
+			// Verificar límite de 2 portafolios para usuarios gratis
+			if (items.length >= 2) {
+				setShowUpgradeModal(true);
+				return;
+			}
 		}
 
 		if (!videoUrl) {
@@ -462,6 +468,11 @@ const PilotPortfolio = () => {
 					<div className="text-xs sm:text-sm min-w-0">
 						<p className="font-bold text-blue-300">Portafolio Profesional</p>
 						<p className="text-blue-100/70">Muestra tus mejores tomas y videos editados para generar confianza en tus clientes.</p>
+						{plan && plan.isFree && userType !== 'admin' && userType !== 'super_admin' && (
+							<p className="text-yellow-300 font-semibold mt-2">
+								⚠️ Plan Gratis: Puedes subir hasta 2 portafolios. Mejora a Plan Pro para portafolios ilimitados.
+							</p>
+						)}
 					</div>
 				</div>
 
