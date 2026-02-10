@@ -7,7 +7,7 @@ export interface MercadoPagoPreferenceResponse {
 }
 
 /**
- * Crea una preferencia de pago en Mercado Pago llamando a la Edge Function
+ * Crea una preferencia de pago en Mercado Pago llamando a la Edge Function.
  */
 export async function createPreference(planId: string, planName: string, price: number): Promise<MercadoPagoPreferenceResponse> {
 	const { data, error } = await supabase.functions.invoke("mercadopago-api", {
