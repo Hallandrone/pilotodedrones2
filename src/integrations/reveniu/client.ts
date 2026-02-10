@@ -33,7 +33,7 @@ export interface ReveniuSubscriptionResponse {
 }
 
 /**
- * Llama a la API de Reveniu a través de la edge function
+ * Llama a la API de Reveniu a través de la edge function.
  */
 export async function callReveniu<T = any>(
   endpoint: string,
