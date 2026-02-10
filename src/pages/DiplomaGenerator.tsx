@@ -108,7 +108,8 @@ const DiplomaGenerator = () => {
 						course_title: formData.courseTitle,
 						instructor_name: formData.instructorName,
 						city: formData.city,
-						certificate_number: formData.certificateNumber
+						certificate_number: formData.certificateNumber,
+						correlative_number: correlativeNumber
 					})
 					.select()
 					.single();
@@ -140,6 +141,7 @@ const DiplomaGenerator = () => {
 
 				// Regenerar token para el siguiente diploma y evitar duplicados
 				await generateQRCode();
+				// Forzar recálculo del correlativo para el siguiente diploma
 				await fetchNextCorrelative();
 			} catch (error) {
 				console.error('Error saving diploma data:', error);
