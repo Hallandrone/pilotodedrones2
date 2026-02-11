@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { Card } from "@/components/ui/card";
+import { ContactForm } from "@/components/ui/ContactForm";
 
 interface AdBanner {
   id: string;
@@ -517,6 +519,21 @@ const Index = () => {
                       <Zap className="ml-2 h-4 w-4 fill-current group-hover/btn:animate-bounce" />
                     </Button>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Contact Section */}
+            <section id="contacto" className="py-16 bg-white rounded-[3rem] border border-blue-100/50 shadow-sm overflow-hidden relative">
+              <div className="px-8 md:px-12">
+                <div className="text-center max-w-3xl mx-auto mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">¿Tienes alguna duda?</h2>
+                  <p className="text-muted-foreground">Nuestro equipo de expertos está listo para ayudarte a despegar.</p>
+                </div>
+                <div className="max-w-3xl mx-auto">
+                  <Card className="p-8 md:p-12 border-none shadow-xl bg-slate-50/50 backdrop-blur-sm">
+                    <ContactForm />
+                  </Card>
                 </div>
               </div>
             </section>

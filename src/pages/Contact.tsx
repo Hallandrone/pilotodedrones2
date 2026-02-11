@@ -1,24 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, MessageCircle, ArrowRight, ChevronRight, Send, User, AtSign, FileText } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Mail, MessageCircle, ArrowRight, ChevronRight } from "lucide-react";
+import { ContactForm } from "@/components/ui/ContactForm";
 
 const Contacto = () => {
 	const navigate = useNavigate();
-	const [loading, setLoading] = useState(false);
-	const [formData, setFormData] = useState({
-		name: "",
-		email: "",
-		subject: "",
-		message: ""
-	});
 
 	useEffect(() => {
 		window.scrollTo(0, 0);
@@ -30,53 +20,6 @@ const Contacto = () => {
 
 	const handleEmail = () => {
 		window.location.href = "mailto:info@pilotodedrones.cl";
-	};
-
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-		const { name, value } = e.target;
-		setFormData(prev => ({
-			...prev,
-			[name]: value
-		}));
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setLoading(true);
-
-		try {
-			const { error } = await supabase
-				.from("contact_messages")
-				.insert([
-					{
-						name: formData.name,
-						email: formData.email,
-						subject: formData.subject,
-						message: formData.message,
-						status: 'pending'
-					}
-				]);
-
-			if (error) throw error;
-
-			toast.success("Mensaje enviado con éxito", {
-				description: "Nos pondremos en contacto contigo a la brevedad."
-			});
-
-			setFormData({
-				name: "",
-				email: "",
-				subject: "",
-				message: ""
-			});
-		} catch (error) {
-			console.error("Error sending message:", error);
-			toast.error("Error al enviar mensaje", {
-				description: "Por favor, intenta nuevamente o contáctanos por WhatsApp."
-			});
-		} finally {
-			setLoading(false);
-		}
 	};
 
 	return (
@@ -137,8 +80,8 @@ const Contacto = () => {
 
 							<Card className="border shadow-2xl bg-card/50 backdrop-blur-md overflow-hidden">
 								<div className="grid md:grid-cols-5 h-full">
-									{/* Sidebar Informativo */}
-									<div className="md:col-span-2 bg-primary p-8 text-white hidden md:flex flex-col justify-between relative overflow-hidden">
+									{/* Sidebar Informativo - Visible en todos los tamaños pero arriba en móvil */}
+									<div className="md:col-span-2 bg-primary p-8 text-white flex flex-col justify-between relative overflow-hidden order-2 md:order-1">
 										<div className="relative z-10">
 											<h3 className="text-2xl font-bold mb-6">Información de Contacto</h3>
 											<p className="text-primary-foreground/80 mb-8 leading-relaxed">
@@ -170,90 +113,13 @@ const Contacto = () => {
 										<div className="absolute top-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
 									</div>
 
-									{/* Formulario */}
-									<div className="md:col-span-3 p-8 md:p-12">
-										<form onSubmit={handleSubmit} className="space-y-6">
-											<div className="space-y-2">
-												<label htmlFor="name" className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-													<User className="w-4 h-4" />
-													Nombre Completo
-												</label>
-												<Input
-													id="name"
-													name="name"
-													placeholder="Tu nombre"
-													value={formData.name}
-													onChange={handleChange}
-													required
-													className="h-12 bg-background/50"
-												/>
-											</div>
-
-											<div className="grid md:grid-cols-2 gap-6">
-												<div className="space-y-2">
-													<label htmlFor="email" className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-														<AtSign className="w-4 h-4" />
-														Correo Electrónico
-													</label>
-													<Input
-														id="email"
-														name="email"
-														type="email"
-														placeholder="tu@email.com"
-														value={formData.email}
-														onChange={handleChange}
-														required
-														className="h-12 bg-background/50"
-													/>
-												</div>
-												<div className="space-y-2">
-													<label htmlFor="subject" className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-														<FileText className="w-4 h-4" />
-														Asunto
-													</label>
-													<Input
-														id="subject"
-														name="subject"
-														placeholder="Motivo del mensaje"
-														value={formData.subject}
-														onChange={handleChange}
-														className="h-12 bg-background/50"
-													/>
-												</div>
-											</div>
-
-											<div className="space-y-2">
-												<label htmlFor="message" className="text-sm font-medium flex items-center gap-2 text-muted-foreground">
-													<MessageCircle className="w-4 h-4" />
-													Mensaje
-												</label>
-												<Textarea
-													id="message"
-													name="message"
-													placeholder="Escribe tu mensaje aquí..."
-													value={formData.message}
-													onChange={handleChange}
-													required
-													className="min-h-[150px] bg-background/50 resize-none"
-												/>
-											</div>
-
-											<Button
-												type="submit"
-												className="w-full h-12 text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-primary/20 transition-all rounded-xl"
-												disabled={loading}
-											>
-												{loading ? "Enviando..." : (
-													<>
-														Enviar Mensaje
-														<Send className="w-4 h-4 ml-2" />
-													</>
-												)}
-											</Button>
-										</form>
+									{/* Formulario - Primero en móvil */}
+									<div className="md:col-span-3 p-8 md:p-12 order-1 md:order-2">
+										<ContactForm />
 									</div>
 								</div>
 							</Card>
+
 						</div>
 					</div>
 				</section>
