@@ -42,6 +42,23 @@ export const ContactForm = () => {
 
 			if (error) throw error;
 
+			// Send email notification
+			try {
+				await supabase.functions.invoke("send-contact-email", {
+					body: {
+						record: {
+							name: formData.name,
+							email: formData.email,
+							subject: formData.subject,
+							message: formData.message
+						}
+					}
+				});
+			} catch (emailError) {
+				console.error("Error sending notification email:", emailError);
+				// We don't throw here to not interrupt the success flow for the user
+			}
+
 			toast.success("Mensaje enviado con éxito", {
 				description: "Nos pondremos en contacto contigo a la brevedad."
 			});

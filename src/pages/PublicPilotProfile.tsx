@@ -606,6 +606,22 @@ const PublicPilotProfile = () => {
 
       if (error) throw error;
 
+      // Send email notification to admins
+      try {
+        await supabase.functions.invoke("send-contact-email", {
+          body: {
+            record: {
+              name: contactForm.name,
+              email: contactForm.email,
+              subject: `Contacto a Piloto: ${profile?.full_name}`,
+              message: `Mensaje: ${contactForm.message}\n\nTeléfono: ${contactForm.phone || 'No proporcionado'}`
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error("Error sending notification email:", emailError);
+      }
+
       toast({
         title: "¡Gracias por contactarnos!",
         description: "Te contactaremos pronto.",
