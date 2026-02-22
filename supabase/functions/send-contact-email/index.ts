@@ -3,29 +3,29 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 
 const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 interface ContactMessage {
-    name: string;
-    email: string;
-    subject: string;
-    message: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
 }
 
 serve(async (req) => {
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders })
-    }
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
 
-    try {
-        const { record } = await req.json()
-        const { name, email, subject, message } = record as ContactMessage
+  try {
+    const { record } = await req.json()
+    const { name, email, subject, message } = record as ContactMessage
 
-        console.log(`Sending contact notification for: ${name} (${email})`)
+    console.log(`Sending contact notification for: ${name} (${email})`)
 
-        const emailHtml = `
+    const emailHtml = `
       <!DOCTYPE html>
       <html lang="es">
       <head>
@@ -72,36 +72,36 @@ serve(async (req) => {
       </html>
     `
 
-        if (RESEND_API_KEY) {
-            const res = await fetch('https://api.resend.com/emails', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${RESEND_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    from: 'Piloto de Drones <notificaciones@pilotodedrones.cl>',
-                    to: ['cofre@live.cl', 'Hallan@academiadronchile.cl'],
-                    subject: `Nuevo Contacto: ${subject || name}`,
-                    html: emailHtml
-                })
-            })
-
-            const data = await res.json()
-            console.log('Notification email sent via Resend:', data)
-        } else {
-            console.error('RESEND_API_KEY is not set')
-        }
-
-        return new Response(JSON.stringify({ success: true }), {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    if (RESEND_API_KEY) {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'Piloto de Drones <notificaciones@pilotodedrones.cl>',
+          to: ['cofre@live.cl', 'Info@academiadronchile.cl'],
+          subject: `Nuevo Contacto: ${subject || name}`,
+          html: emailHtml
         })
-    } catch (error: any) {
-        console.error('Error in send-contact-email function:', error)
-        return new Response(JSON.stringify({ error: error.message }), {
-            status: 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+      })
+
+      const data = await res.json()
+      console.log('Notification email sent via Resend:', data)
+    } else {
+      console.error('RESEND_API_KEY is not set')
     }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  } catch (error: any) {
+    console.error('Error in send-contact-email function:', error)
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
 })

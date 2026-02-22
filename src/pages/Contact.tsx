@@ -74,7 +74,7 @@ const Contacto = () => {
 					<div className="container mx-auto px-6">
 						<div className="max-w-4xl mx-auto">
 							<div className="text-center mb-12">
-								<h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Envíanos un Mensaje</h2>
+								<h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Solicita tu servicio con drones</h2>
 								<div className="w-24 h-1 bg-accent mx-auto rounded-full"></div>
 							</div>
 
@@ -85,7 +85,7 @@ const Contacto = () => {
 										<div className="relative z-10">
 											<h3 className="text-2xl font-bold mb-6">Información de Contacto</h3>
 											<p className="text-primary-foreground/80 mb-8 leading-relaxed">
-												Completa el formulario y nuestro equipo se pondrá en contacto contigo dentro de las próximas 24 horas.
+												Nosotros nos encargamos de conectar tu proyecto con nuestra Red de Pilotos Certificados en Chile.
 											</p>
 
 											<div className="space-y-6">
