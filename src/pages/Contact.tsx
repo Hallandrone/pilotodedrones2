@@ -90,13 +90,6 @@ const Contacto = () => {
 
 											<div className="space-y-6">
 												<div className="flex items-start gap-4">
-													<Mail className="w-6 h-6 mt-1 text-accent" />
-													<div>
-														<p className="font-semibold text-sm opacity-70 mb-1">Email</p>
-														<p className="text-lg">info@pilotodedrones.cl</p>
-													</div>
-												</div>
-												<div className="flex items-start gap-4">
 													<div className="w-6 h-6 mt-1 text-accent flex items-center justify-center">
 														<span className="text-lg font-bold">@</span>
 													</div>
