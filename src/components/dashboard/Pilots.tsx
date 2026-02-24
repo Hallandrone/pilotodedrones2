@@ -61,6 +61,12 @@ import {
   formatExpirationDate,
   calculateExpirationDate
 } from "@/utils/certificationHelpers";
+import {
+  isPaidPlan,
+  getPlanDisplayName,
+  normalizePlanName,
+  PlanType
+} from "@/lib/planFeatures";
 
 interface PilotService {
   id: string;
@@ -475,22 +481,38 @@ export function Pilots() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        {pilot.subscription_status === 'active' ? (
-                          <div className="flex items-center gap-1">
-                            <CheckCircle className="h-3 w-3 text-green-500" />
-                            <Badge
-                              variant="default"
-                              className="bg-green-500"
-                            >
-                              Suscripción Activa
-                            </Badge>
-                            {pilot.subscription_plan && (
-                              <span className="text-xs text-muted-foreground ml-1">
-                                ({pilot.subscription_plan})
-                              </span>
-                            )}
-                          </div>
-                        ) : null}
+                        {pilot.subscription_status === 'active' || !pilot.subscription_status ? (() => {
+                          const normalizedPlan = normalizePlanName(pilot.subscription_plan || 'free');
+                          const isPaid = isPaidPlan(normalizedPlan);
+                          const planName = getPlanDisplayName(normalizedPlan);
+
+                          return (
+                            <div className="flex items-center gap-1">
+                              {isPaid ? (
+                                <>
+                                  <CheckCircle className="h-3 w-3 text-green-500" />
+                                  <Badge
+                                    variant="default"
+                                    className="bg-green-500 font-bold"
+                                  >
+                                    {planName}
+                                  </Badge>
+                                </>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="text-muted-foreground border-muted-foreground/30 font-normal"
+                                >
+                                  {planName}
+                                </Badge>
+                              )}
+                            </div>
+                          );
+                        })() : (
+                          <Badge variant="secondary" className="text-xs opacity-50">
+                            Inactiva
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
