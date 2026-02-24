@@ -99,8 +99,9 @@ const Index = () => {
         const isCompany = profile?.user_type === 'company';
         const hasActiveSub = !!subscription;
 
-        // Excluir super administrador específico
-        if (profile?.email === 'cofre@live.cl') return;
+        // Excluir super administrador específico y cuentas administrativas
+        const excludedEmails = ['cofre@live.cl', 'hdrones.adm@gmail.com', 'info@academiadronchile.cl'];
+        if (profile?.email && excludedEmails.includes(profile.email)) return;
         if (profile?.user_type === 'super_admin') return;
 
         // Las empresas sin plan pagado no deben ser visibles
@@ -281,7 +282,11 @@ const Index = () => {
       if (error) throw error;
 
       const pMap = new Map();
+      const excludedEmails = ['cofre@live.cl', 'hdrones.adm@gmail.com', 'info@academiadronchile.cl'];
+
       (data || []).forEach((row: any) => {
+        if (row.profiles?.email && excludedEmails.includes(row.profiles.email)) return;
+
         if (!pMap.has(row.id)) {
           const svs = Array.isArray(row.pilot_services) ? row.pilot_services : [row.pilot_services];
           pMap.set(row.id, {

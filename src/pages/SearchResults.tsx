@@ -309,8 +309,9 @@ const SearchResults = () => {
         const isCompanyAccount = profile?.user_type === 'company';
         const hasActiveSubscription = !!pilot.subscription;
 
-        // Excluir super administrador específico
-        if (profile?.email === 'cofre@live.cl') return false;
+        // Excluir super administrador específico y cuentas administrativas
+        const excludedEmails = ['cofre@live.cl', 'hdrones.adm@gmail.com', 'info@academiadronchile.cl'];
+        if (profile?.email && excludedEmails.includes(profile.email)) return false;
 
         // Las cuentas de empresa solo aparecen si tienen el plan pagado
         if (isCompanyAccount && !hasActiveSubscription) return false;
