@@ -637,6 +637,18 @@ const DiplomaGenerator = () => {
 											</div>
 										</>
 									)}
+									{/* Número AOC - equivalente a DiplomaPDF.tsx (bottom:87, left:192) */}
+									{formData.certificateNumber && (
+										<div className="absolute w-[80px] text-left text-[#666]" style={{
+											bottom: '87px',
+											left: '192px',
+											fontSize: '12.5px',
+											fontFamily: 'Montserrat, sans-serif',
+											fontWeight: 600,
+										}}>
+											{formData.certificateNumber}
+										</div>
+									)}
 								</div>
 							</div>
 						</div>
