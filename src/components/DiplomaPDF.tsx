@@ -236,6 +236,17 @@ const styles = StyleSheet.create({
 		fontFamily: 'OpenSans',
 		color: '#00A8E1',
 	},
+	aocNumber: {
+		position: 'absolute',
+		bottom: 87,
+		left: 192,
+		width: 80,
+		fontSize: 12.5,
+		fontFamily: 'Montserrat',
+		fontWeight: 600,
+		color: '#666',
+		textAlign: 'left',
+	},
 	serialNumber: {
 		position: 'absolute',
 		top: 80,
@@ -373,6 +384,9 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 						<Text style={styles.serialNumber}>
 							#{String(data.correlativeNumber).padStart(5, '0')}
 						</Text>
+					)}
+					{data.certificateNumber && (
+						<Text style={styles.aocNumber}>{data.certificateNumber}</Text>
 					)}
 				</View>
 			</Page>

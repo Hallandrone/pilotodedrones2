@@ -571,7 +571,7 @@ const DiplomaGenerator = () => {
 									alt="Fondo Diploma"
 								/>
 
-								{/* Contenido Sincronizado EXACTAMENTE con DiplomaPDF.tsx */}
+								{/* Contenido Sincronizado EXACTAMEN TE con DiplomaPDF.tsx */}
 								<div className="absolute inset-0 pointer-events-none p-0 flex flex-col items-center">
 									{/* Correlativo */}
 									<div className="absolute top-[80px] left-[60px] text-[7px] text-[#999]" style={{ fontFamily: 'Helvetica, Arial, sans-serif' }}>
