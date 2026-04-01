@@ -39,12 +39,12 @@ const Footer = () => {
 								<h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/30 mb-1">Explorar</h4>
 								<button onClick={() => navigate('/auth')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Acceso Usuario</button>
 								<button onClick={() => navigate('/search')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Buscar Pilotos</button>
-								<button onClick={() => navigate('/planes')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Planes y Precios</button>
+								<button onClick={() => window.location.href = 'https://www.pilotodedrones.cl/precios'} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Planes y Precios</button>
 							</div>
 							<div className="flex flex-col gap-4 items-center md:items-start">
 								<h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/30 mb-1">Recursos</h4>
 								<button onClick={() => navigate('/verificar-diploma')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Verificar Diploma</button>
-								<button onClick={() => navigate('/contacto')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Contacto</button>
+								<button onClick={() => window.location.href = 'https://www.pilotodedrones.cl/contacto'} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Contacto</button>
 								<FeedbackForm
 									trigger={
 										<button className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">

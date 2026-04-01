@@ -47,10 +47,10 @@ const Header = () => {
 
 					{/* Desktop Navigation */}
 					<div className="hidden md:flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
-						<Button variant="ghost" size="sm" onClick={() => navigate('/')} className="sm:h-10 sm:px-6">Home</Button>
+						<Button variant="ghost" size="sm" onClick={() => window.location.href = 'https://www.pilotodedrones.cl'} className="sm:h-10 sm:px-6">Home</Button>
 						<Button variant="ghost" size="sm" onClick={() => navigate('/search')} className="sm:h-10 sm:px-6 text-accent font-bold">Explorar Pilotos</Button>
-						<Button variant="ghost" size="sm" onClick={() => navigate('/planes')} className="sm:h-10 sm:px-6">Precios</Button>
-						<Button variant="ghost" size="sm" onClick={() => navigate('/contacto')} className="sm:h-10 sm:px-6">Contacto</Button>
+						<Button variant="ghost" size="sm" onClick={() => window.location.href = 'https://www.pilotodedrones.cl/precios'} className="sm:h-10 sm:px-6">Precios</Button>
+						<Button variant="ghost" size="sm" onClick={() => window.location.href = 'https://www.pilotodedrones.cl/contacto'} className="sm:h-10 sm:px-6">Contacto</Button>
 
 						{user ? (
 							<>
@@ -77,16 +77,16 @@ const Header = () => {
 									<SheetTitle>Menú</SheetTitle>
 								</SheetHeader>
 								<div className="mt-6 space-y-3">
-									<Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); navigate('/'); }}>
+									<Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); window.location.href = 'https://www.pilotodedrones.cl'; }}>
 										<Home className="h-5 w-5 mr-3" />Home
 									</Button>
 									<Button variant="ghost" className="w-full justify-start font-bold text-accent" onClick={() => { setMobileMenuOpen(false); navigate('/search'); }}>
 										Explorar Pilotos
 									</Button>
-									<Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); navigate('/planes'); }}>
+									<Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); window.location.href = 'https://www.pilotodedrones.cl/precios'; }}>
 										Precios
 									</Button>
-									<Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); navigate('/contacto'); }}>
+									<Button variant="ghost" className="w-full justify-start" onClick={() => { setMobileMenuOpen(false); window.location.href = 'https://www.pilotodedrones.cl/contacto'; }}>
 										Contacto
 									</Button>
 									{user ? (
