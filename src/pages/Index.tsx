@@ -69,25 +69,29 @@ const Index = () => {
 
       const pilotUserIds = pilotsData?.map(p => p.user_id) || [];
 
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, location, region, specialties, drone_types, avatar_url, experience_years, user_type')
-        .in('id', pilotUserIds);
+      // Paralelizar queries de profiles y subscriptions
+      const [profilesResult, subscriptionsResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, full_name, email, location, region, specialties, drone_types, avatar_url, experience_years, user_type')
+          .in('id', pilotUserIds),
+        supabase
+          .from('user_subscriptions')
+          .select('user_id, status, plan_name, featured_until')
+          .in('user_id', pilotUserIds)
+          .eq('status', 'active')
+      ]);
 
+      const { data: profilesData, error: profilesError } = profilesResult;
       if (profilesError) throw profilesError;
+
+      const { data: subscriptions, error: subsError } = subscriptionsResult;
+      if (subsError) console.error('Error fetching subscriptions:', subsError);
 
       const pilotsWithProfiles = pilotsData?.map(pilot => ({
         ...pilot,
         profiles: profilesData?.find(p => p.id === pilot.user_id)
       })) || [];
-
-      const { data: subscriptions, error: subsError } = await supabase
-        .from('user_subscriptions')
-        .select('user_id, status, plan_name, featured_until')
-        .in('user_id', pilotUserIds)
-        .eq('status', 'active');
-
-      if (subsError) console.error('Error fetching subscriptions:', subsError);
 
       const now = new Date();
       const featuredPilotsList: any[] = [];
@@ -147,19 +151,24 @@ const Index = () => {
       const allQualified = [...sortedFeatured, ...sortedRegular].slice(0, 12);
       const selectedIds = allQualified.map(p => p.id);
 
-      const { data: companyPilots } = await supabase
-        .from('company_pilots')
-        .select('pilot_id, companies:company_id(company_name)')
-        .in('pilot_id', selectedIds);
+      // Paralelizar queries de company_pilots y pilot_services
+      const [companyPilotsResult, servicesResult] = await Promise.all([
+        supabase
+          .from('company_pilots')
+          .select('pilot_id, companies:company_id(company_name)')
+          .in('pilot_id', selectedIds),
+        supabase
+          .from('pilot_services')
+          .select('pilot_id, service_type')
+          .in('pilot_id', selectedIds)
+          .eq('is_published', true)
+      ]);
+
+      const { data: companyPilots } = companyPilotsResult;
+      const { data: services } = servicesResult;
 
       const companyMap = new Map();
       companyPilots?.forEach((cp: any) => cp.companies && companyMap.set(cp.pilot_id, cp.companies.company_name));
-
-      const { data: services } = await supabase
-        .from('pilot_services')
-        .select('pilot_id, service_type')
-        .in('pilot_id', selectedIds)
-        .eq('is_published', true);
 
       const servicesMap = new Map();
       services?.forEach((s: any) => {
@@ -196,17 +205,22 @@ const Index = () => {
       if (error || !comps?.length) return setFeaturedCompanies([]);
 
       const userIds = comps.map(c => c.user_id);
-      const { data: profs } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, location, region, public_profile_slug')
-        .in('id', userIds);
+      // Paralelizar queries de profiles y subscriptions de empresas
+      const [profsResult, subsResult] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url, location, region, public_profile_slug')
+          .in('id', userIds),
+        supabase
+          .from('user_subscriptions')
+          .select('user_id')
+          .in('user_id', userIds)
+          .eq('status', 'active')
+          .in('plan_name', ['empresa', 'premium'])
+      ]);
 
-      const { data: subs } = await supabase
-        .from('user_subscriptions')
-        .select('user_id')
-        .in('user_id', userIds)
-        .eq('status', 'active')
-        .in('plan_name', ['empresa', 'premium']);
+      const { data: profs } = profsResult;
+      const { data: subs } = subsResult;
 
       const activeUserIds = new Set(subs?.map(s => s.user_id) || []);
       setFeaturedCompanies(comps
@@ -414,11 +428,11 @@ const Index = () => {
                 {[
                   { img: "/AGRO 2_resultado.webp", title: "Agro", desc: "Fumigación y mapeo." },
                   { img: "/AUDIOVISUAL_resultado.webp", title: "Audiovisual", desc: "Tomas cinematográficas." },
-                  { img: "/inspeccion_infraestructura.png", title: "Inspección", desc: "Estructuras críticas." },
-                  { img: "/inspeccion_termica.png", title: "Térmica", desc: "Termografía aérea." }
+                  { img: "/inspeccion_infraestructura.webp", title: "Inspección", desc: "Estructuras críticas." },
+                  { img: "/inspeccion_termica.webp", title: "Térmica", desc: "Termografía aérea." }
                 ].map((item, i) => (
                   <div key={i} className="group border rounded-2xl overflow-hidden hover:shadow-lg transition-all">
-                    <div className="aspect-video overflow-hidden"><img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" /></div>
+                    <div className="aspect-video overflow-hidden"><img src={item.img} alt={item.title} loading="lazy" width={518} height={343} className="w-full h-full object-cover group-hover:scale-105 transition-transform" /></div>
                     <div className="p-4"><h4 className="font-bold text-primary">{item.title}</h4><p className="text-sm text-muted-foreground">{item.desc}</p></div>
                   </div>
                 ))}
@@ -485,8 +499,11 @@ const Index = () => {
                   <div className="lg:w-1/2 relative">
                     <div className="absolute -top-10 -left-10 w-32 h-32 bg-[#00b3f3]/10 blur-3xl rounded-full animate-pulse"></div>
                     <img
-                      src="/mokup-cel-clima-piloto.png"
+                      src="/mokup-cel-clima-piloto.webp"
                       alt="Clima y Condiciones de Vuelo"
+                      loading="lazy"
+                      width={522}
+                      height={652}
                       className="relative z-10 w-full max-w-[550px] md:max-w-full mx-auto transform group-hover:scale-[1.02] transition-transform duration-700 mix-blend-multiply [filter:drop-shadow(0_20px_30px_rgba(8,59,78,0.2))] scale-[1.5] sm:scale-100 mb-16 sm:mb-0 mt-8 sm:mt-0"
                     />
                   </div>

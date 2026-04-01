@@ -1,47 +1,56 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
+
+// Homepage cargada eager (ruta principal)
 import Index from "./pages/Index";
-import Planes from "./pages/Planes";
-import Contact from "./pages/Contact";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Auth from "./pages/Auth";
-import DemoAuth from "./pages/DemoAuth";
-import Dashboard from "./pages/Dashboard";
-import PilotDashboard from "./pages/PilotDashboard";
-import PilotProfile from "./pages/PilotProfile";
-import PilotCertificates from "./pages/PilotCertificates";
-import AdminCertificates from "./pages/AdminCertificates";
-import PilotFlightHours from "./pages/PilotFlightHours";
-import PilotQR from "./pages/PilotQR";
-import PilotMembership from "./pages/PilotMembership";
-import PilotPortfolio from "./pages/PilotPortfolio";
-import SearchResults from "./pages/SearchResults";
-import DebugAuth from "./pages/DebugAuth";
-import FixAuth from "./pages/FixAuth";
-import QuickFix from "./pages/QuickFix";
-import MobileFix from "./pages/MobileFix";
-import PilotDataFix from "./pages/PilotDataFix";
-import ProfileSaveFix from "./pages/ProfileSaveFix";
-import UserProfile from "./pages/UserProfile";
-import PublicPilotProfile from "./pages/PublicPilotProfile";
-import DiplomaVerification from "./pages/DiplomaVerification";
-import CompanyProfile from "./pages/CompanyProfile";
-import CompanyDashboard from "./pages/CompanyDashboard";
-import ProfileContacts from "./pages/ProfileContacts";
-import InvitationAccept from "./pages/InvitationAccept";
-import DiplomaGenerator from "./pages/DiplomaGenerator";
-import AdminDrones from "./pages/AdminDrones";
-import DronePublicView from "./pages/DronePublicView";
-import QRRedirect from "./pages/QRRedirect";
-import NotFound from "./pages/NotFound";
-import "./lib/debug-auth"; // Importar funciones de debug
-import "./lib/force-create-role"; // Importar función para crear rol
-import "./lib/auth-cache"; // Importar funciones de caché de auth
+
+// Todas las demás rutas con lazy loading para reducir bundle inicial
+const Planes = lazy(() => import("./pages/Planes"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Auth = lazy(() => import("./pages/Auth"));
+const DemoAuth = lazy(() => import("./pages/DemoAuth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const PilotDashboard = lazy(() => import("./pages/PilotDashboard"));
+const PilotProfile = lazy(() => import("./pages/PilotProfile"));
+const PilotCertificates = lazy(() => import("./pages/PilotCertificates"));
+const AdminCertificates = lazy(() => import("./pages/AdminCertificates"));
+const PilotFlightHours = lazy(() => import("./pages/PilotFlightHours"));
+const PilotQR = lazy(() => import("./pages/PilotQR"));
+const PilotMembership = lazy(() => import("./pages/PilotMembership"));
+const PilotPortfolio = lazy(() => import("./pages/PilotPortfolio"));
+const SearchResults = lazy(() => import("./pages/SearchResults"));
+const DebugAuth = lazy(() => import("./pages/DebugAuth"));
+const FixAuth = lazy(() => import("./pages/FixAuth"));
+const QuickFix = lazy(() => import("./pages/QuickFix"));
+const MobileFix = lazy(() => import("./pages/MobileFix"));
+const PilotDataFix = lazy(() => import("./pages/PilotDataFix"));
+const ProfileSaveFix = lazy(() => import("./pages/ProfileSaveFix"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
+const PublicPilotProfile = lazy(() => import("./pages/PublicPilotProfile"));
+const DiplomaVerification = lazy(() => import("./pages/DiplomaVerification"));
+const CompanyProfile = lazy(() => import("./pages/CompanyProfile"));
+const CompanyDashboard = lazy(() => import("./pages/CompanyDashboard"));
+const ProfileContacts = lazy(() => import("./pages/ProfileContacts"));
+const InvitationAccept = lazy(() => import("./pages/InvitationAccept"));
+const DiplomaGenerator = lazy(() => import("./pages/DiplomaGenerator"));
+const AdminDrones = lazy(() => import("./pages/AdminDrones"));
+const DronePublicView = lazy(() => import("./pages/DronePublicView"));
+const QRRedirect = lazy(() => import("./pages/QRRedirect"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Debug utilities solo en desarrollo
+if (import.meta.env.DEV) {
+  import("./lib/debug-auth");
+  import("./lib/force-create-role");
+  import("./lib/auth-cache");
+}
 
 const queryClient = new QueryClient();
 
@@ -52,6 +61,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div></div>}>
           <Routes>
             {/* Rutas con tema CLARO (Landing) */}
             <Route path="/" element={<Index />} />
@@ -106,6 +116,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

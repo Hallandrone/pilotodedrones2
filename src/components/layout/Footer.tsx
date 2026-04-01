@@ -23,8 +23,11 @@ const Footer = () => {
 						<div className="hidden md:flex justify-center items-center w-full">
 							<div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50 backdrop-blur-sm shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-200/50">
 								<img
-									src="/mercadopago-tarjetas.png"
+									src="/mercadopago-tarjetas.webp"
 									alt="Medios de Pago"
+									loading="lazy"
+									width={200}
+									height={48}
 									className="h-16 object-contain opacity-95 hover:opacity-100 transition-opacity"
 								/>
 							</div>
