@@ -662,7 +662,7 @@ const PublicPilotProfile = () => {
           <CardContent className="text-center text-gray-600 space-y-6">
             <p className="text-lg">No se encontró el perfil profesional que buscas.</p>
             <Button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/auth')}
               className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-gray-900 font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
             >
               Volver al Inicio

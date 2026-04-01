@@ -77,7 +77,7 @@ const QRRedirect = () => {
 
 	const handleClose = () => {
 		setShowModal(false);
-		navigate('/');
+		navigate('/auth');
 	};
 
 	if (status === 'loading') {

@@ -231,7 +231,7 @@ export default function CompanyProfile() {
       if (profile?.user_type === "pilot") {
         navigate("/pilot");
       } else {
-        navigate("/");
+        navigate("/auth");
       }
       return;
     }

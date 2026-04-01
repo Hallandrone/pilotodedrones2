@@ -314,7 +314,7 @@ const CompanyDashboard = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    navigate('/');
+    navigate('/auth');
   };
 
   const handleSave = async () => {

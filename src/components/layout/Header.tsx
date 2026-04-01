@@ -32,7 +32,7 @@ const Header = () => {
 	const handleLogout = async () => {
 		await supabase.auth.signOut();
 		setUser(null);
-		navigate('/');
+		navigate('/auth');
 	};
 
 	return (

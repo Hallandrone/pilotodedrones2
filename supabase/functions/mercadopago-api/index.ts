@@ -34,7 +34,7 @@ Deno.serve(async (req) => {
 			const { planId, price, cardTokenId, payerEmail } = body;
 			const finalPrice = user.email === "qrescueid@gmail.com" ? 1500 : price;
 			const planName = planId === "empresa" ? "Plan Empresa" : "Plan Profesional";
-			const origin = req.headers.get("origin") || "https://pilotodedrones.cl";
+			const origin = req.headers.get("origin") || "https://app.pilotodedrones.cl";
 
 			const preapprovalData: any = {
 				reason: `Suscripción ${planName} - Piloto de Drones`,

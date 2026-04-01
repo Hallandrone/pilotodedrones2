@@ -1124,7 +1124,7 @@ const Auth = () => {
             <div className="text-center mt-6">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/')}
+                onClick={() => window.location.href = 'https://www.pilotodedrones.cl'}
                 className="text-muted-foreground hover:text-foreground"
               >
                 ← Volver al inicio

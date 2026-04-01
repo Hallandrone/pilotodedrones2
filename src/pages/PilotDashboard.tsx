@@ -333,7 +333,7 @@ const PilotDashboard = () => {
           }) // Solo si hay diploma vinculado
           .map(async (item: any) => {
             const diploma = item.diplomas;
-            const qrUrl = `https://www.pilotodedrones.cl/qr/${item.token}`;
+            const qrUrl = `https://app.pilotodedrones.cl/qr/${item.token}`;
 
             let qrCodeDataUrl = '';
             try {
@@ -363,7 +363,7 @@ const PilotDashboard = () => {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      navigate('/');
+      navigate('/auth');
       toast({
         title: "Sesión cerrada",
         description: "Has cerrado sesión correctamente",

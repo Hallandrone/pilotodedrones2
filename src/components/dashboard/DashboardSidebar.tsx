@@ -210,7 +210,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
-      navigate('/');
+      navigate('/auth');
       toast({
         title: "Sesión cerrada",
         description: "Has cerrado sesión correctamente",
@@ -302,7 +302,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/auth')}
             className={`w-full bg-white/10 border-white/30 text-white hover:bg-white hover:text-[#2FB8FF] ${collapsed ? 'px-2' : ''}`}
           >
             <Home className="h-4 w-4" />

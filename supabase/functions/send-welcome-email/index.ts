@@ -2,7 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 const WELCOME_EMAIL_SECRET = Deno.env.get('WELCOME_EMAIL_SECRET') || 'default_secret_for_protection'
-const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://pilotodedrones.cl'
+const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://app.pilotodedrones.cl'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

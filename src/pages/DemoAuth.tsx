@@ -393,7 +393,7 @@ const DemoAuth = () => {
             <div className="text-center pt-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/auth')}
                 className="text-slate-600 hover:text-slate-900"
               >
                 ← Volver al inicio

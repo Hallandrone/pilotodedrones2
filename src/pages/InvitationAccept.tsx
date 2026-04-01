@@ -267,7 +267,7 @@ const InvitationAcceptPage = () => {
 					</CardHeader>
 					<CardContent>
 						<Button
-							onClick={() => navigate('/')}
+							onClick={() => navigate('/auth')}
 							variant="outline"
 							className="w-full"
 						>
@@ -421,7 +421,7 @@ const InvitationAcceptPage = () => {
 						)}
 
 						<Button
-							onClick={() => navigate('/')}
+							onClick={() => navigate('/auth')}
 							variant="ghost"
 							className="w-full"
 						>

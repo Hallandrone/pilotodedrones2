@@ -94,7 +94,7 @@ const Dashboard = () => {
           description: "No tienes permisos para acceder al dashboard",
           variant: "destructive",
         });
-        navigate('/');
+        navigate('/auth');
         return;
       }
 

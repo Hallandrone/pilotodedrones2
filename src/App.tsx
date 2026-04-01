@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,11 +6,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 
+// Redirect externo a la landing para rutas que ya no viven en la app
+const RedirectToLanding = ({ path }: { path: string }) => {
+  useEffect(() => {
+    window.location.href = `https://www.pilotodedrones.cl${path}`;
+  }, [path]);
+  return null;
+};
+
 // Todas las demás rutas con lazy loading para reducir bundle inicial
-const Planes = lazy(() => import("./pages/Planes"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Terms = lazy(() => import("./pages/Terms"));
-const Privacy = lazy(() => import("./pages/Privacy"));
 const Auth = lazy(() => import("./pages/Auth"));
 const DemoAuth = lazy(() => import("./pages/DemoAuth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -62,10 +66,10 @@ const App = () => (
           <Routes>
             {/* Rutas con tema CLARO (Landing) */}
             <Route path="/" element={<Navigate to="/auth" replace />} />
-            <Route path="/planes" element={<Planes />} />
-            <Route path="/contacto" element={<Contact />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/planes" element={<RedirectToLanding path="/precios" />} />
+            <Route path="/contacto" element={<RedirectToLanding path="/contacto" />} />
+            <Route path="/terms" element={<RedirectToLanding path="/terms" />} />
+            <Route path="/privacy" element={<RedirectToLanding path="/privacy" />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/demo" element={<DemoAuth />} />
             <Route path="/search" element={<SearchResults />} />
