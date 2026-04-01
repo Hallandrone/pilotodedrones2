@@ -246,7 +246,7 @@ const DiplomaVerification = () => {
 				<div className="pt-8 flex justify-center pb-8 border-t border-slate-200/50">
 					<Button
 						variant="ghost"
-						onClick={() => navigate("/")}
+						onClick={() => window.location.href = "https://www.pilotodedrones.cl"}
 						className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 gap-2 transition-all px-8 py-6 h-auto rounded-2xl"
 					>
 						<ArrowLeft className="h-4 w-4" />
