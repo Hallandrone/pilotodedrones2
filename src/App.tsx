@@ -3,11 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-
-// Homepage cargada eager (ruta principal)
-import Index from "./pages/Index";
 
 // Todas las demás rutas con lazy loading para reducir bundle inicial
 const Planes = lazy(() => import("./pages/Planes"));
@@ -64,7 +61,7 @@ const App = () => (
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div></div>}>
           <Routes>
             {/* Rutas con tema CLARO (Landing) */}
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/planes" element={<Planes />} />
             <Route path="/contacto" element={<Contact />} />
             <Route path="/terms" element={<Terms />} />
