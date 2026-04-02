@@ -302,7 +302,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/auth')}
+            onClick={() => window.open('https://www.pilotodedrones.cl', '_blank')}
             className={`w-full bg-white/10 border-white/30 text-white hover:bg-white hover:text-[#2FB8FF] ${collapsed ? 'px-2' : ''}`}
           >
             <Home className="h-4 w-4" />
