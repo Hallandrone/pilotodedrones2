@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx sharp-cli:*)"
+      "Bash(npx sharp-cli:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(grep -n \"canonical_url\" src/pages/blog/[slug].astro)",
+      "Bash(grep -i \"robots\" index.html blog/*/index.html guias/*/index.html)",
+      "Bash(node -e ':*)",
+      "Bash(grep:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
