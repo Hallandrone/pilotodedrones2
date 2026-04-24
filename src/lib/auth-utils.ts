@@ -11,7 +11,6 @@ export interface UserRole {
  */
 export async function getUserRole(userId: string): Promise<UserRole | null> {
   try {
-    console.log('Getting role for user:', userId);
 
     // First, try to get existing role with a retry mechanism for flaky connections
     let { data: roleData, error } = await supabase
@@ -39,11 +38,8 @@ export async function getUserRole(userId: string): Promise<UserRole | null> {
 
     // If role exists, return it
     if (roleData) {
-      console.log('Role found:', roleData.role);
       return roleData as UserRole;
     }
-
-    console.log('Role not found, attempting to identify user type from profile...');
 
     // Get user profile to determine role
     const { data: profileData, error: profileError } = await supabase
@@ -65,7 +61,6 @@ export async function getUserRole(userId: string): Promise<UserRole | null> {
     }
 
     const userType = profileData?.user_type || 'pilot';
-    console.log('Creating role with identified user type:', userType);
 
     // Create/Upsert the role
     const { error: createRoleError } = await supabase

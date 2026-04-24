@@ -8,7 +8,9 @@
       "Bash(grep -i \"robots\" index.html blog/*/index.html guias/*/index.html)",
       "Bash(node -e ':*)",
       "Bash(grep:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(sed -i 's/'\\\\''Access-Control-Allow-Origin'\\\\'': '\\\\''\\\\*'\\\\''/'\\\\''Access-Control-Allow-Origin'\\\\'': '\\\\''https:\\\\/\\\\/app.pilotodedrones.cl'\\\\''/g' supabase/functions/flow-api/index.ts supabase/functions/flow-webhook/index.ts supabase/functions/reveniu-api/index.ts supabase/functions/reveniu-webhook/index.ts supabase/functions/auth-google/index.ts supabase/functions/delete-user/index.ts supabase/functions/send-contact-email/index.ts supabase/functions/send-welcome-email/index.ts supabase/functions/invite-admin/index.ts)",
+      "Bash(sed -i 's/\"Access-Control-Allow-Origin\": \"\\\\*\"/\"Access-Control-Allow-Origin\": \"https:\\\\/\\\\/app.pilotodedrones.cl\"/g' supabase/functions/mercadopago-api/index.ts supabase/functions/mercadopago-webhook/index.ts)"
     ]
   }
 }

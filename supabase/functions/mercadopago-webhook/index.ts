@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-	"Access-Control-Allow-Origin": "*",
+	"Access-Control-Allow-Origin": "https://app.pilotodedrones.cl",
 	"Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
@@ -14,6 +14,42 @@ Deno.serve(async (req) => {
 		const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 		const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 		const mpAccessToken = Deno.env.get("MERCADOPAGO_ACCESS_TOKEN")!;
+		const mpWebhookSecret = Deno.env.get("MERCADOPAGO_WEBHOOK_SECRET");
+
+		// Validar firma HMAC-SHA256 de MercadoPago
+		if (mpWebhookSecret) {
+			const xSignature = req.headers.get("x-signature");
+			const xRequestId = req.headers.get("x-request-id") ?? "";
+			const reqUrl = new URL(req.url);
+			const dataId = reqUrl.searchParams.get("data.id") ?? reqUrl.searchParams.get("id") ?? "";
+
+			if (!xSignature) {
+				return new Response(JSON.stringify({ error: "Missing signature" }), {
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+					status: 401,
+				});
+			}
+
+			const parts = Object.fromEntries(xSignature.split(",").map(p => p.split("=")));
+			const ts = parts["ts"] ?? "";
+			const v1 = parts["v1"] ?? "";
+			const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+			const encoder = new TextEncoder();
+			const key = await crypto.subtle.importKey(
+				"raw", encoder.encode(mpWebhookSecret),
+				{ name: "HMAC", hash: "SHA-256" }, false, ["sign"]
+			);
+			const sigBytes = await crypto.subtle.sign("HMAC", key, encoder.encode(manifest));
+			const computed = Array.from(new Uint8Array(sigBytes)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+			if (computed !== v1) {
+				console.warn("[MP Webhook] Invalid signature rejected");
+				return new Response(JSON.stringify({ error: "Invalid signature" }), {
+					headers: { ...corsHeaders, "Content-Type": "application/json" },
+					status: 401,
+				});
+			}
+		}
 
 		const supabase = createClient(supabaseUrl, supabaseServiceKey);
 

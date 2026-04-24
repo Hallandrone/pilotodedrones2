@@ -5,7 +5,7 @@ const WELCOME_EMAIL_SECRET = Deno.env.get('WELCOME_EMAIL_SECRET') || 'default_se
 const FRONTEND_URL = Deno.env.get('FRONTEND_URL') || 'https://app.pilotodedrones.cl'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://app.pilotodedrones.cl',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-welcome-secret',
 }
 

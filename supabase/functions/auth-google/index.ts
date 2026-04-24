@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4'
 import { encodeBase64Url } from 'https://deno.land/std@0.220.1/encoding/base64url.ts'
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': 'https://app.pilotodedrones.cl',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 

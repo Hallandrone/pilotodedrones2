@@ -18,7 +18,7 @@ interface InvitationEmailRequest {
 serve(async (req) => {
   // CORS headers
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://app.pilotodedrones.cl',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   }
 
@@ -65,7 +65,6 @@ serve(async (req) => {
         .from('company_pilot_invitations')
         .select(`
           id,
-          pilot_email,
           message,
           invited_at,
           status,
