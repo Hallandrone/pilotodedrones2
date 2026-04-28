@@ -32,7 +32,6 @@ Deno.serve(async (req) => {
 		// ========== ACCIÓN: CREAR SUSCRIPCIÓN (Redirect o Bricks) ==========
 		if (action === "create_subscription") {
 			const { planId, price, cardTokenId, payerEmail } = body;
-			const finalPrice = user.email === "qrescueid@gmail.com" ? 1500 : price;
 			const planName = planId === "empresa" ? "Plan Empresa" : "Plan Profesional";
 			const origin = req.headers.get("origin") || "https://app.pilotodedrones.cl";
 
@@ -41,7 +40,7 @@ Deno.serve(async (req) => {
 				auto_recurring: {
 					frequency: 1,
 					frequency_type: "months",
-					transaction_amount: finalPrice,
+					transaction_amount: price,
 					currency_id: "CLP",
 				},
 				payer_email: payerEmail || user.email,

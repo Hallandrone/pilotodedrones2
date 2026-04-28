@@ -218,15 +218,6 @@ const PilotMembership = () => {
         filteredPlans = defaultPlans.filter(p => p.id === 'profesional');
       }
 
-      // 🧪 PRECIO DE PRUEBA: Si es qrescueid@gmail.com, cambiar precio a $1,500
-      if (user?.email === 'qrescueid@gmail.com') {
-        filteredPlans = filteredPlans.map(plan => ({
-          ...plan,
-          price: 1500 // Precio de prueba
-        }));
-        console.log('🧪 Test mode: Prices adjusted to $1,500 for qrescueid@gmail.com');
-      }
-
       setAvailablePlans(filteredPlans);
     };
 
@@ -432,13 +423,6 @@ const PilotMembership = () => {
       const selectedPlan = availablePlans.find(p => p.id === planId);
       if (!selectedPlan) return;
 
-      // Determinar precio (con filtro de prueba)
-      let finalPrice = selectedPlan.price;
-      if (user.email === 'qrescueid@gmail.com') {
-        finalPrice = 1500;
-        console.log('🧪 Test mode: Price reduced to $1,500 for qrescueid@gmail.com');
-      }
-
       toast({
         title: "Redirigiendo a Mercado Pago",
         description: "Serás redirigido para completar tu pago de forma segura e inmediata.",
@@ -449,7 +433,7 @@ const PilotMembership = () => {
         body: {
           action: 'create_subscription',
           planId: selectedPlan.id,
-          price: finalPrice,
+          price: selectedPlan.price,
         }
       });
 
