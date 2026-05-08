@@ -33,8 +33,21 @@ import {
 	ExternalLink,
 	Shield,
 	Plane,
-	FileSearch
+	FileSearch,
+	Eye
 } from "lucide-react";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+
+const sanitizeFilename = (name: string): string => {
+	const ext = name.includes('.') ? name.slice(name.lastIndexOf('.')).toLowerCase() : '';
+	const base = name.slice(0, name.lastIndexOf('.') === -1 ? name.length : name.lastIndexOf('.'))
+		.normalize('NFD').replace(/[̀-ͯ]/g, '')
+		.replace(/[^a-zA-Z0-9-_]/g, '_')
+		.slice(0, 60);
+	return `${base || 'file'}${ext}`;
+};
 import { QRCodeSVG } from "qrcode.react";
 
 interface Drone {
@@ -117,23 +130,59 @@ const AdminDrones = () => {
 	};
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
-		if (e.target.files && e.target.files[0]) {
-			setFiles(prev => ({ ...prev, [type]: e.target.files![0] }));
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		if (file.size > MAX_FILE_SIZE) {
+			toast({
+				title: "Archivo muy grande",
+				description: `${file.name} supera los 5 MB`,
+				variant: "destructive",
+			});
+			e.target.value = '';
+			return;
 		}
+		if (!ACCEPTED_TYPES.includes(file.type)) {
+			toast({
+				title: "Tipo no permitido",
+				description: "Solo se aceptan PDF, JPG, PNG o WEBP",
+				variant: "destructive",
+			});
+			e.target.value = '';
+			return;
+		}
+		setFiles(prev => ({ ...prev, [type]: file }));
 	};
 
 	const uploadFile = async (file: File, path: string) => {
-		const { data, error } = await supabase.storage
+		const { error } = await supabase.storage
 			.from("drone_documents")
-			.upload(path, file, { upsert: true });
+			.upload(path, file, { upsert: true, contentType: file.type });
 
 		if (error) throw error;
 		return path;
 	};
 
+	const openDocument = async (path: string) => {
+		const { data, error } = await supabase.storage
+			.from("drone_documents")
+			.createSignedUrl(path, 60 * 5); // 5 min
+		if (error || !data) {
+			toast({
+				title: "Error",
+				description: "No se pudo abrir el documento",
+				variant: "destructive",
+			});
+			return;
+		}
+		window.open(data.signedUrl, '_blank');
+	};
+
 	const handleSave = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsSaving(true);
+
+		const newUploads: string[] = [];
 
 		try {
 			let invoiceUrl = selectedDrone?.invoice_url;
@@ -141,15 +190,22 @@ const AdminDrones = () => {
 			let rpaUrl = selectedDrone?.rpa_document_url;
 
 			const droneId = selectedDrone?.id || crypto.randomUUID();
+			const ts = Date.now();
 
 			if (files.invoice) {
-				invoiceUrl = await uploadFile(files.invoice, `${droneId}/invoice_${Date.now()}_${files.invoice.name}`);
+				const path = `${droneId}/invoice_${ts}_${sanitizeFilename(files.invoice.name)}`;
+				invoiceUrl = await uploadFile(files.invoice, path);
+				newUploads.push(path);
 			}
 			if (files.insurance) {
-				insuranceUrl = await uploadFile(files.insurance, `${droneId}/insurance_${Date.now()}_${files.insurance.name}`);
+				const path = `${droneId}/insurance_${ts}_${sanitizeFilename(files.insurance.name)}`;
+				insuranceUrl = await uploadFile(files.insurance, path);
+				newUploads.push(path);
 			}
 			if (files.rpa) {
-				rpaUrl = await uploadFile(files.rpa, `${droneId}/rpa_${Date.now()}_${files.rpa.name}`);
+				const path = `${droneId}/rpa_${ts}_${sanitizeFilename(files.rpa.name)}`;
+				rpaUrl = await uploadFile(files.rpa, path);
+				newUploads.push(path);
 			}
 
 			const droneData = {
@@ -185,6 +241,10 @@ const AdminDrones = () => {
 			setIsModalOpen(false);
 			fetchDrones();
 		} catch (error: any) {
+			// Rollback: si falla la BD, borrar los archivos recién subidos
+			if (newUploads.length > 0) {
+				await supabase.storage.from("drone_documents").remove(newUploads);
+			}
 			toast({
 				title: "Error",
 				description: error.message || "No se pudo guardar el dron",
@@ -196,15 +256,25 @@ const AdminDrones = () => {
 	};
 
 	const handleDelete = async (droneId: string) => {
-		if (!confirm("¿Estás seguro de que quieres eliminar este dron?")) return;
+		if (!confirm("¿Estás seguro de que quieres eliminar este dron? Se eliminarán también todos sus documentos.")) return;
 
 		try {
+			// Listar y eliminar todos los archivos del dron en el bucket
+			const { data: filesInFolder } = await supabase.storage
+				.from("drone_documents")
+				.list(droneId);
+
+			if (filesInFolder && filesInFolder.length > 0) {
+				const paths = filesInFolder.map(f => `${droneId}/${f.name}`);
+				await supabase.storage.from("drone_documents").remove(paths);
+			}
+
 			const { error } = await supabase.from("drones").delete().eq("id", droneId);
 			if (error) throw error;
 
 			toast({
 				title: "Eliminado",
-				description: "Dron eliminado correctamente",
+				description: "Dron y documentos eliminados correctamente",
 			});
 			fetchDrones();
 		} catch (error: any) {
@@ -301,15 +371,36 @@ const AdminDrones = () => {
 											<TableCell className="text-white/80">{drone.serial_number}</TableCell>
 											<TableCell className="text-white/80">{drone.rpa_registration_number || "N/A"}</TableCell>
 											<TableCell>
-												<div className="flex gap-2">
+												<div className="flex flex-wrap gap-2">
 													{drone.invoice_url && (
-														<Badge variant="outline" className="bg-white/5 text-[#00b3f3] border-[#00b3f3]/20">Factura</Badge>
+														<button
+															type="button"
+															onClick={() => openDocument(drone.invoice_url!)}
+															className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 text-[#00b3f3] border border-[#00b3f3]/20 text-xs font-medium hover:bg-[#00b3f3]/10 transition"
+														>
+															<Eye className="h-3 w-3" /> Factura
+														</button>
 													)}
 													{drone.insurance_url && (
-														<Badge variant="outline" className="bg-white/5 text-[#00b3f3] border-[#00b3f3]/20">Seguro</Badge>
+														<button
+															type="button"
+															onClick={() => openDocument(drone.insurance_url!)}
+															className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 text-[#00b3f3] border border-[#00b3f3]/20 text-xs font-medium hover:bg-[#00b3f3]/10 transition"
+														>
+															<Eye className="h-3 w-3" /> Seguro
+														</button>
 													)}
 													{drone.rpa_document_url && (
-														<Badge variant="outline" className="bg-white/5 text-[#00b3f3] border-[#00b3f3]/20">DGAC</Badge>
+														<button
+															type="button"
+															onClick={() => openDocument(drone.rpa_document_url!)}
+															className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 text-[#00b3f3] border border-[#00b3f3]/20 text-xs font-medium hover:bg-[#00b3f3]/10 transition"
+														>
+															<Eye className="h-3 w-3" /> DGAC
+														</button>
+													)}
+													{!drone.invoice_url && !drone.insurance_url && !drone.rpa_document_url && (
+														<span className="text-white/30 text-xs italic">Sin documentos</span>
 													)}
 												</div>
 											</TableCell>

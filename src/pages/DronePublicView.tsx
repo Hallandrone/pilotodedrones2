@@ -2,13 +2,17 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, ShieldCheck, Plane, AlertCircle, Home } from "lucide-react";
+import { Loader2, ShieldCheck, Plane, AlertCircle, Home, FileText, Receipt, Shield } from "lucide-react";
 import Logo from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 
 interface DronePublicInfo {
 	model: string;
 	serial_number: string;
+	rpa_registration_number: string | null;
+	invoice_url: string | null;
+	insurance_url: string | null;
+	rpa_document_url: string | null;
 }
 
 const DronePublicView = () => {
@@ -33,7 +37,7 @@ const DronePublicView = () => {
 
 			const { data, error: dbError } = await supabase
 				.from("drones")
-				.select("model, serial_number")
+				.select("model, serial_number, rpa_registration_number, invoice_url, insurance_url, rpa_document_url")
 				.eq("qr_token", token)
 				.single();
 
@@ -46,6 +50,13 @@ const DronePublicView = () => {
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const openDocument = async (path: string) => {
+		const { data } = await supabase.storage
+			.from("drone_documents")
+			.createSignedUrl(path, 60 * 5);
+		if (data?.signedUrl) window.open(data.signedUrl, '_blank');
 	};
 
 	if (loading) {
@@ -113,7 +124,58 @@ const DronePublicView = () => {
 											<p className="text-white/40 text-[10px] uppercase font-bold tracking-wider mb-1">Número de Serie</p>
 											<p className="text-white text-xl font-mono font-bold tracking-wider">{drone?.serial_number}</p>
 										</div>
+
+										{drone?.rpa_registration_number && (
+											<div className="bg-white/5 p-5 rounded-2xl border border-white/5 transition-all hover:bg-white/10 text-left">
+												<p className="text-white/40 text-[10px] uppercase font-bold tracking-wider mb-1">Registro RPA DGAC</p>
+												<p className="text-white text-xl font-mono font-bold tracking-wider">{drone.rpa_registration_number}</p>
+											</div>
+										)}
 									</div>
+
+									{(drone?.invoice_url || drone?.insurance_url || drone?.rpa_document_url) && (
+										<div className="w-full pt-2 space-y-3">
+											<p className="text-white/40 text-[10px] uppercase font-bold tracking-wider text-left">Documentación Certificada</p>
+											<div className="grid gap-2">
+												{drone?.rpa_document_url && (
+													<button
+														type="button"
+														onClick={() => openDocument(drone.rpa_document_url!)}
+														className="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-[#00b3f3]/10 border border-white/5 hover:border-[#00b3f3]/30 rounded-xl transition-all text-left"
+													>
+														<div className="h-9 w-9 rounded-lg bg-[#00b3f3]/10 flex items-center justify-center flex-shrink-0">
+															<FileText className="h-4 w-4 text-[#00b3f3]" />
+														</div>
+														<span className="text-white text-sm font-medium">Tarjeta de Registro DGAC</span>
+													</button>
+												)}
+												{drone?.insurance_url && (
+													<button
+														type="button"
+														onClick={() => openDocument(drone.insurance_url!)}
+														className="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-[#00b3f3]/10 border border-white/5 hover:border-[#00b3f3]/30 rounded-xl transition-all text-left"
+													>
+														<div className="h-9 w-9 rounded-lg bg-[#00b3f3]/10 flex items-center justify-center flex-shrink-0">
+															<Shield className="h-4 w-4 text-[#00b3f3]" />
+														</div>
+														<span className="text-white text-sm font-medium">Póliza de Seguro</span>
+													</button>
+												)}
+												{drone?.invoice_url && (
+													<button
+														type="button"
+														onClick={() => openDocument(drone.invoice_url!)}
+														className="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-[#00b3f3]/10 border border-white/5 hover:border-[#00b3f3]/30 rounded-xl transition-all text-left"
+													>
+														<div className="h-9 w-9 rounded-lg bg-[#00b3f3]/10 flex items-center justify-center flex-shrink-0">
+															<Receipt className="h-4 w-4 text-[#00b3f3]" />
+														</div>
+														<span className="text-white text-sm font-medium">Factura de Compra</span>
+													</button>
+												)}
+											</div>
+										</div>
+									)}
 
 									<div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 rounded-full border border-green-500/20 mt-4">
 										<ShieldCheck className="h-4 w-4 text-green-500" />
