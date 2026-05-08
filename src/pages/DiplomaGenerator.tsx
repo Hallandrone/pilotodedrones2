@@ -4,7 +4,7 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 import { supabase } from '@/integrations/supabase/client';
 import { getBaseUrlClean } from '@/lib/getBaseUrl';
-import DiplomaPDF from '@/components/DiplomaPDF';
+import DiplomaPDF, { formatDateToSpanish, formatDateRange } from '@/components/DiplomaPDF';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -250,8 +250,7 @@ const DiplomaGenerator = () => {
 					newFormData.studentName.trim() !== '' &&
 					newFormData.courseDate.trim() !== '' &&
 					newFormData.certificateNumber.trim() !== '' &&
-					newFormData.city.trim() !== '' &&
-					newFormData.droneSeries.trim() !== ''
+					newFormData.city.trim() !== ''
 				);
 			} else {
 				showToast({
@@ -290,8 +289,7 @@ const DiplomaGenerator = () => {
 			(newData.firstName.trim() !== '' && newData.lastNamePaternal.trim() !== '' && newData.lastNameMaternal.trim() !== '') &&
 			newData.courseDate.trim() !== '' &&
 			newData.certificateNumber.trim() !== '' &&
-			newData.city.trim() !== '' &&
-			newData.droneSeries.trim() !== '';
+			newData.city.trim() !== '';
 
 		setIsFormValid(isValid);
 	};
@@ -415,7 +413,6 @@ const DiplomaGenerator = () => {
 							<Label htmlFor="droneSeries" className="text-white font-semibold text-base flex items-center gap-2">
 								<Award className="h-5 w-5 text-[#00b3f3]" />
 								Certificado en la serie
-								<span className="text-red-400">*</span>
 							</Label>
 							<Input
 								id="droneSeries"
@@ -605,7 +602,7 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Nombre Estudiante (Dinámico) */}
-									<div className="absolute top-[182px] left-0 right-0 h-[100px] flex items-center justify-center text-center text-[#1a1a1a]" style={{
+									<div className="absolute top-[177px] left-0 right-0 h-[100px] flex items-center justify-center text-center text-[#1a1a1a]" style={{
 										fontFamily: 'Euphorigenic, serif',
 										fontSize: `${formData.studentName.length <= 20 ? 65 : formData.studentName.length <= 30 ? 56 : formData.studentName.length <= 40 ? 48 : formData.studentName.length <= 50 ? 40 : 32}px`,
 										lineHeight: 1
@@ -617,9 +614,9 @@ const DiplomaGenerator = () => {
 									<div className="absolute top-[265px] left-0 right-0 px-[80px] text-center text-[15px] text-[#666] leading-[1.2]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
 										Por haber cumplido satisfactoriamente los requerimientos y desafíos desarrollados<br />en el curso teórico y práctico
 										{formData.startDate && formData.endDate ? (
-											` desde el ${new Date(formData.startDate + 'T00:00:00').getDate()} al ${new Date(formData.endDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
+											` ${formatDateRange(formData.startDate, formData.endDate)}`
 										) : formData.startDate ? (
-											` el día ${new Date(formData.startDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}`
+											` el día ${formatDateToSpanish(formData.startDate)}`
 										) : ''} de {formData.courseHours} horas cronológicas.
 									</div>
 
@@ -631,7 +628,8 @@ const DiplomaGenerator = () => {
 									)}
 
 									{/* Título del Curso (Dinámico) */}
-									<div className="absolute top-[335px] left-0 right-0 text-center text-[#00A8E1] uppercase font-normal" style={{
+									<div className="absolute left-0 right-0 text-center text-[#00A8E1] uppercase font-normal" style={{
+										top: formData.droneSeries ? '335px' : '310px',
 										fontFamily: 'Croogla4F, sans-serif',
 										fontSize: `${formData.courseTitle.length <= 20 ? 54 : formData.courseTitle.length <= 30 ? 46 : formData.courseTitle.length <= 40 ? 38 : 32}px`,
 										letterSpacing: '0.5px'
@@ -640,10 +638,10 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Fecha y Ciudad */}
-									<div className="absolute top-[395px] w-full text-center text-[14px] text-[#333]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
-										{formData.courseDate ? new Date(formData.courseDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+									<div className="absolute w-full text-center text-[14px] text-[#333]" style={{ top: formData.droneSeries ? '395px' : '370px', fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
+										{formatDateToSpanish(formData.courseDate)}
 									</div>
-									<div className="absolute top-[415px] w-full text-center text-[14px] text-[#333]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
+									<div className="absolute w-full text-center text-[14px] text-[#333]" style={{ top: formData.droneSeries ? '415px' : '390px', fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
 										{formData.city}
 									</div>
 

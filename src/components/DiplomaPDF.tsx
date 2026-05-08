@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
 	},
 	studentName: {
 		position: 'absolute',
-		top: 182, // Subido levemente de 188
+		top: 177, // Subido levemente de 188
 		left: 0,
 		right: 0,
 		fontSize: 65, // Aumentado
@@ -292,14 +292,14 @@ const styles = StyleSheet.create({
 	},
 });
 
-const formatDateToSpanish = (dateString: string): string => {
+export const formatDateToSpanish = (dateString: string): string => {
 	if (!dateString) return '';
 	const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 	const date = new Date(dateString + 'T00:00:00');
 	return `${date.getDate()} de ${months[date.getMonth()]} del ${date.getFullYear()}`;
 };
 
-const formatDateRange = (start?: string, end?: string): string => {
+export const formatDateRange = (start?: string, end?: string): string => {
 	if (!start || !end) return '';
 	const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 	const sDate = new Date(start + 'T00:00:00');
@@ -386,9 +386,9 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 							Certificado en la serie: {data.droneSeries}.
 						</Text>
 					)}
-					<Text style={{ ...styles.courseTitle, fontSize: courseTitleFontSize }}>{courseTitle}</Text>
-					<Text style={styles.dateCity}>{formattedDate}</Text>
-					<Text style={styles.city}>{city}</Text>
+					<Text style={{ ...styles.courseTitle, fontSize: courseTitleFontSize, top: data.droneSeries ? 335 : 310 }}>{courseTitle}</Text>
+					<Text style={{ ...styles.dateCity, top: data.droneSeries ? 395 : 370 }}>{formattedDate}</Text>
+					<Text style={{ ...styles.city, top: data.droneSeries ? 415 : 390 }}>{city}</Text>
 					{data.qrCodeDataUrl && <Image src={data.qrCodeDataUrl} style={styles.qrCode} />}
 					{data.qrToken && (
 						<>
