@@ -490,7 +490,7 @@ const PilotDashboard = () => {
       {/* Header */}
       <div className="bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm sticky top-0 z-50 relative animate-fade-in">
         <div className="px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between max-w-7xl mx-auto">
+          <div className="flex items-center justify-between max-w-5xl mx-auto">
             <Logo
               size="lg"
               className="hover:scale-105 transition-all duration-300"
@@ -510,7 +510,7 @@ const PilotDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 max-w-7xl mx-auto relative animate-fade-in" style={{ animationDelay: '0.1s' }}>
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 max-w-5xl mx-auto relative animate-fade-in" style={{ animationDelay: '0.1s' }}>
         {/* Profile Card */}
         <Card className="bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 shadow-2xl rounded-2xl sm:rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,179,243,0.3)]">
           <div className="bg-gradient-to-br from-[#00b3f3]/20 via-transparent to-[#00b3f3]/10 p-1">
