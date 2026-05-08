@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Logo from "@/components/ui/logo";
-import Footer from "@/components/layout/Footer";
 import { Plane, Mail, Lock, User as UserIcon, Building } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +13,9 @@ import { getUserRole } from "@/lib/auth-utils";
 import { getBaseUrl } from "@/lib/getBaseUrl";
 import { signInWithGoogle, getAuthUser, isAuthenticated, saveSession, loadGoogleScript, initGoogleAuth, renderGoogleButton } from "@/lib/google-auth";
 import type { User, Session } from '@supabase/supabase-js';
+import { Turnstile } from '@marsidev/react-turnstile';
+
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
 const Auth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -303,7 +305,7 @@ const Auth = () => {
     };
   }, [navigate, isRecovery]);
 
-  const handleSignUp = async (email: string, password: string, userData: any) => {
+  const handleSignUp = async (email: string, password: string, userData: any, captchaToken?: string) => {
     setLoading(true);
 
     try {
@@ -311,7 +313,8 @@ const Auth = () => {
         email,
         password,
         options: {
-          data: userData
+          data: userData,
+          captchaToken
         }
       });
 
@@ -499,12 +502,15 @@ const Auth = () => {
     }
   };
 
-  const handleSignIn = async (email: string, password: string) => {
+  const handleSignIn = async (email: string, password: string, captchaToken?: string) => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          captchaToken
+        }
       });
 
       if (error) {
@@ -680,6 +686,8 @@ const Auth = () => {
   const LoginForm = () => {
     const [email, setEmail] = useState(initialEmail);
     const [password, setPassword] = useState("");
+    const [captchaToken, setCaptchaToken] = useState<string>("");
+    const turnstileRef = useRef<any>(null);
 
     useEffect(() => {
       if (initialEmail) {
@@ -687,9 +695,19 @@ const Auth = () => {
       }
     }, [initialEmail]);
 
-    const onSubmit = (e: React.FormEvent) => {
+    const onSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      handleSignIn(email, password);
+      if (!captchaToken) {
+        toast({
+          title: "Verificación pendiente",
+          description: "Espera a que se complete la verificación anti-bot.",
+          variant: "destructive",
+        });
+        return;
+      }
+      await handleSignIn(email, password, captchaToken);
+      turnstileRef.current?.reset();
+      setCaptchaToken("");
     };
 
     return (
@@ -765,7 +783,19 @@ const Auth = () => {
               />
             </div>
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          {TURNSTILE_SITE_KEY && (
+            <div className="flex justify-center">
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setCaptchaToken(token)}
+                onError={() => setCaptchaToken("")}
+                onExpire={() => setCaptchaToken("")}
+                options={{ theme: 'auto' }}
+              />
+            </div>
+          )}
+          <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
             {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
           </Button>
         </form>
@@ -776,13 +806,24 @@ const Auth = () => {
   const ForgotPasswordForm = () => {
     const [email, setEmail] = useState("");
     const [sending, setSending] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string>("");
+    const turnstileRef = useRef<any>(null);
 
     const handleReset = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (!captchaToken) {
+        toast({
+          title: "Verificación pendiente",
+          description: "Espera a que se complete la verificación anti-bot.",
+          variant: "destructive",
+        });
+        return;
+      }
       setSending(true);
       try {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${getBaseUrl()}/auth?tab=login`,
+          captchaToken,
         });
 
         if (error) throw error;
@@ -799,6 +840,8 @@ const Auth = () => {
           description: error.message || "No se pudo enviar el email de recuperación",
         });
       } finally {
+        turnstileRef.current?.reset();
+        setCaptchaToken("");
         setSending(false);
       }
     };
@@ -820,7 +863,19 @@ const Auth = () => {
             />
           </div>
         </div>
-        <Button type="submit" className="w-full" disabled={sending}>
+        {TURNSTILE_SITE_KEY && (
+          <div className="flex justify-center">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onError={() => setCaptchaToken("")}
+              onExpire={() => setCaptchaToken("")}
+              options={{ theme: 'auto' }}
+            />
+          </div>
+        )}
+        <Button type="submit" className="w-full" disabled={sending || !captchaToken}>
           {sending ? "Enviando..." : "Enviar instrucciones"}
         </Button>
         <Button
@@ -916,6 +971,8 @@ const Auth = () => {
   const SignUpForm = () => {
     const [email, setEmail] = useState(initialEmail);
     const [password, setPassword] = useState("");
+    const [captchaToken, setCaptchaToken] = useState<string>("");
+    const turnstileRef = useRef<any>(null);
 
     useEffect(() => {
       if (initialEmail) {
@@ -926,12 +983,23 @@ const Auth = () => {
     const userType = registerUserType;
     const setUserType = (type: 'pilot' | 'company') => setRegisterUserType(type);
 
-    const onSubmit = (e: React.FormEvent) => {
+    const onSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      handleSignUp(email, password, {
+      if (!captchaToken) {
+        toast({
+          title: "Verificación pendiente",
+          description: "Espera a que se complete la verificación anti-bot.",
+          variant: "destructive",
+        });
+        return;
+      }
+      await handleSignUp(email, password, {
         full_name: name,
         user_type: userType
-      });
+      }, captchaToken);
+      // Reset CAPTCHA tras intentar registro (el token es de un solo uso)
+      turnstileRef.current?.reset();
+      setCaptchaToken("");
     };
 
     return (
@@ -1020,7 +1088,20 @@ const Auth = () => {
           </div>
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        {TURNSTILE_SITE_KEY && (
+          <div className="flex justify-center">
+            <Turnstile
+              ref={turnstileRef}
+              siteKey={TURNSTILE_SITE_KEY}
+              onSuccess={(token) => setCaptchaToken(token)}
+              onError={() => setCaptchaToken("")}
+              onExpire={() => setCaptchaToken("")}
+              options={{ theme: 'auto' }}
+            />
+          </div>
+        )}
+
+        <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
           {loading ? "Creando cuenta..." : "Crear Cuenta"}
         </Button>
       </form>
@@ -1029,25 +1110,25 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-grow flex flex-col items-center justify-center p-4 py-20 bg-gradient-to-br from-background to-secondary">
+      <div className="flex-grow flex flex-col items-center justify-center p-4 py-4 bg-gradient-to-br from-background to-secondary">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-6">
-              <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200 scale-150 mb-4" />
+          <div className="text-center mb-4">
+            <div className="flex justify-center mb-2">
+              <Logo size="xl" showText={false} className="hover:scale-105 transition-transform duration-200" />
             </div>
-            <p className="text-muted-foreground">Accede a tu cuenta profesional</p>
+            <p className="text-muted-foreground text-sm">Accede a tu cuenta profesional</p>
           </div>
 
           <Card className="border-0 shadow-xl bg-card/80 backdrop-blur-sm">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               {!isRecovery && !showForgotPassword && (
-                <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsList className="grid w-full grid-cols-2 mb-4">
                   <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
                   <TabsTrigger value="signup">Crear Cuenta</TabsTrigger>
                 </TabsList>
               )}
 
-              <CardContent className="p-6 pt-0">
+              <CardContent className="p-4 pt-0">
                 <TabsContent value="login" className="mt-0">
                   {isRecovery ? (
                     <>
@@ -1133,7 +1214,6 @@ const Auth = () => {
           )}
         </div>
       </div>
-      <Footer />
     </div >
   );
 };

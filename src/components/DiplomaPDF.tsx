@@ -113,20 +113,34 @@ const styles = StyleSheet.create({
 		textAlign: 'center',
 		lineHeight: 1.2,
 	},
+	droneSeries: {
+		position: 'absolute',
+		top: 308,
+		left: 0,
+		right: 0,
+		paddingHorizontal: 80,
+		fontSize: 13,
+		fontFamily: 'Montserrat',
+		fontWeight: 700,
+		color: '#666',
+		textAlign: 'center',
+		lineHeight: 1.2,
+		textTransform: 'uppercase',
+	},
 	courseTitle: {
 		position: 'absolute',
-		top: 310, // Ajustado (antes 325, original 300)
+		top: 335,
 		left: 0,
 		right: 0,
 		fontFamily: 'Croogla4F',
 		fontWeight: 400,
 		color: '#00A8E1',
 		textAlign: 'center',
-		letterSpacing: 0.5, // Reducido de 1 para que las letras estén más juntas
+		letterSpacing: 0.5,
 	},
 	dateCity: {
 		position: 'absolute',
-		top: 370, // Ajustado (antes 385, original 370)
+		top: 395,
 		left: 0,
 		right: 0,
 		fontSize: 14,
@@ -137,7 +151,7 @@ const styles = StyleSheet.create({
 	},
 	city: {
 		position: 'absolute',
-		top: 390, // Ajustado (antes 405, original 390)
+		top: 415,
 		left: 0,
 		right: 0,
 		fontSize: 14,
@@ -317,6 +331,7 @@ export interface DiplomaData {
 	startDate?: string;
 	endDate?: string;
 	qrToken?: string;
+	droneSeries?: string;
 }
 
 interface DiplomaPDFProps {
@@ -366,6 +381,11 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 							` el día ${formatDateToSpanish(data.startDate)}`
 						) : ''} de {hours} horas cronológicas.
 					</Text>
+					{data.droneSeries && (
+						<Text style={styles.droneSeries}>
+							Certificado en la serie: {data.droneSeries}.
+						</Text>
+					)}
 					<Text style={{ ...styles.courseTitle, fontSize: courseTitleFontSize }}>{courseTitle}</Text>
 					<Text style={styles.dateCity}>{formattedDate}</Text>
 					<Text style={styles.city}>{city}</Text>

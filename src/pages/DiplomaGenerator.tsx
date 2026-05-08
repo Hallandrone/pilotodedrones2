@@ -33,6 +33,7 @@ interface DiplomaFormData {
 	courseTitle: string;
 	startDate?: string;
 	endDate?: string;
+	droneSeries: string;
 }
 
 const DiplomaGenerator = () => {
@@ -49,6 +50,7 @@ const DiplomaGenerator = () => {
 		courseTitle: 'OPERADOR DE DRONES',
 		startDate: '',
 		endDate: '',
+		droneSeries: '',
 	});
 
 	const [isFormValid, setIsFormValid] = useState(false);
@@ -137,8 +139,9 @@ const DiplomaGenerator = () => {
 						instructor_name: formData.instructorName,
 						city: formData.city,
 						certificate_number: formData.certificateNumber,
-						correlative_number: correlativeNumber
-					})
+						correlative_number: correlativeNumber,
+						drone_series: formData.droneSeries
+					} as never)
 					.select()
 					.single();
 
@@ -225,6 +228,7 @@ const DiplomaGenerator = () => {
 					city: last.city || '',
 					certificateNumber: last.certificate_number || '',
 					instructorName: last.instructor_name || '',
+					droneSeries: (last as { drone_series?: string }).drone_series || '',
 				};
 
 				setFormData(newFormData);
@@ -246,7 +250,8 @@ const DiplomaGenerator = () => {
 					newFormData.studentName.trim() !== '' &&
 					newFormData.courseDate.trim() !== '' &&
 					newFormData.certificateNumber.trim() !== '' &&
-					newFormData.city.trim() !== ''
+					newFormData.city.trim() !== '' &&
+					newFormData.droneSeries.trim() !== ''
 				);
 			} else {
 				showToast({
@@ -285,7 +290,8 @@ const DiplomaGenerator = () => {
 			(newData.firstName.trim() !== '' && newData.lastNamePaternal.trim() !== '' && newData.lastNameMaternal.trim() !== '') &&
 			newData.courseDate.trim() !== '' &&
 			newData.certificateNumber.trim() !== '' &&
-			newData.city.trim() !== '';
+			newData.city.trim() !== '' &&
+			newData.droneSeries.trim() !== '';
 
 		setIsFormValid(isValid);
 	};
@@ -401,6 +407,21 @@ const DiplomaGenerator = () => {
 								onChange={(e) => handleInputChange('courseHours', e.target.value)}
 								placeholder="12"
 								type="number"
+								className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
+							/>
+						</div>
+
+						<div className="space-y-3 md:col-span-2">
+							<Label htmlFor="droneSeries" className="text-white font-semibold text-base flex items-center gap-2">
+								<Award className="h-5 w-5 text-[#00b3f3]" />
+								Certificado en la serie
+								<span className="text-red-400">*</span>
+							</Label>
+							<Input
+								id="droneSeries"
+								value={formData.droneSeries}
+								onChange={(e) => handleInputChange('droneSeries', e.target.value)}
+								placeholder="Ej: Mavic, Phantom, Matrice"
 								className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
 							/>
 						</div>
@@ -602,8 +623,15 @@ const DiplomaGenerator = () => {
 										) : ''} de {formData.courseHours} horas cronológicas.
 									</div>
 
+									{/* Certificado en la serie */}
+									{formData.droneSeries && (
+										<div className="absolute top-[308px] left-0 right-0 px-[80px] text-center text-[13px] text-[#666] leading-[1.2] font-bold uppercase" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+											Certificado en la serie: {formData.droneSeries}.
+										</div>
+									)}
+
 									{/* Título del Curso (Dinámico) */}
-									<div className="absolute top-[310px] left-0 right-0 text-center text-[#00A8E1] uppercase font-normal" style={{
+									<div className="absolute top-[335px] left-0 right-0 text-center text-[#00A8E1] uppercase font-normal" style={{
 										fontFamily: 'Croogla4F, sans-serif',
 										fontSize: `${formData.courseTitle.length <= 20 ? 54 : formData.courseTitle.length <= 30 ? 46 : formData.courseTitle.length <= 40 ? 38 : 32}px`,
 										letterSpacing: '0.5px'
@@ -612,10 +640,10 @@ const DiplomaGenerator = () => {
 									</div>
 
 									{/* Fecha y Ciudad */}
-									<div className="absolute top-[370px] w-full text-center text-[14px] text-[#333]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
+									<div className="absolute top-[395px] w-full text-center text-[14px] text-[#333]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
 										{formData.courseDate ? new Date(formData.courseDate + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
 									</div>
-									<div className="absolute top-[390px] w-full text-center text-[14px] text-[#333]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
+									<div className="absolute top-[415px] w-full text-center text-[14px] text-[#333]" style={{ fontFamily: 'Montserrat, sans-serif', fontWeight: 400 }}>
 										{formData.city}
 									</div>
 
