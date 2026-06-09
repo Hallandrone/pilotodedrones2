@@ -27,17 +27,8 @@ const PilotQR = lazy(() => import("./pages/PilotQR"));
 const PilotMembership = lazy(() => import("./pages/PilotMembership"));
 const PilotPortfolio = lazy(() => import("./pages/PilotPortfolio"));
 const SearchResults = lazy(() => import("./pages/SearchResults"));
-const DebugAuth = lazy(() => import("./pages/DebugAuth"));
-const FixAuth = lazy(() => import("./pages/FixAuth"));
-const QuickFix = lazy(() => import("./pages/QuickFix"));
-const MobileFix = lazy(() => import("./pages/MobileFix"));
-const PilotDataFix = lazy(() => import("./pages/PilotDataFix"));
-const ProfileSaveFix = lazy(() => import("./pages/ProfileSaveFix"));
-const UserProfile = lazy(() => import("./pages/UserProfile"));
 const PublicPilotProfile = lazy(() => import("./pages/PublicPilotProfile"));
 const DiplomaVerification = lazy(() => import("./pages/DiplomaVerification"));
-const CompanyProfile = lazy(() => import("./pages/CompanyProfile"));
-const CompanyDashboard = lazy(() => import("./pages/CompanyDashboard"));
 const ProfileContacts = lazy(() => import("./pages/ProfileContacts"));
 const InvitationAccept = lazy(() => import("./pages/InvitationAccept"));
 const DiplomaGenerator = lazy(() => import("./pages/DiplomaGenerator"));
@@ -85,20 +76,8 @@ const App = () => (
             <Route path="/pilot/membership" element={<div className="dark"><PilotMembership /></div>} />
             <Route path="/pilot/portfolio" element={<div className="dark"><PilotPortfolio /></div>} />
             <Route path="/pilot/contacts" element={<div className="dark"><ProfileContacts /></div>} />
-            <Route path="/company/*" element={<div className="dark"><CompanyDashboard /></div>} />
 
-            {/* Rutas de debug/fix */}
-            <Route path="/debug-auth" element={<DebugAuth />} />
-            <Route path="/fix-auth" element={<FixAuth />} />
-            <Route path="/quick-fix" element={<QuickFix />} />
-            <Route path="/mobile-fix" element={<MobileFix />} />
-            <Route path="/pilot-data-fix" element={<PilotDataFix />} />
-            <Route path="/profile-save-fix" element={<ProfileSaveFix />} />
-
-            {/* Ruta temporal para ver UserProfile sin auth */}
-            <Route path="/user-profile" element={<div className="dark"><UserProfile /></div>} />
-
-            {/* Rutas para aceptar invitaciones de empresa */}
+            {/* Rutas para aceptar invitaciones de pilotos */}
             <Route path="/invitation/:token" element={<InvitationAccept />} />
             <Route path="/invitation/accept/:token" element={<InvitationAccept />} />
 

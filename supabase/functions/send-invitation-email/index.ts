@@ -15,6 +15,17 @@ interface InvitationEmailRequest {
   message?: string
 }
 
+// Enmascara un email para mostrarlo en el endpoint público sin exponer el PII completo.
+// Ej: "juanperez@gmail.com" -> "ju***@gmail.com". El dominio se mantiene para que el
+// piloto reconozca que es su correo, pero un tercero con el link no obtiene el email entero.
+function maskEmail(email: string | null | undefined): string | null {
+  if (!email) return null
+  const [user, domain] = email.split('@')
+  if (!user || !domain) return null
+  const visible = user.slice(0, Math.min(2, user.length))
+  return `${visible}***@${domain}`
+}
+
 serve(async (req) => {
   // CORS headers
   const corsHeaders = {
@@ -68,6 +79,7 @@ serve(async (req) => {
           message,
           invited_at,
           status,
+          pilot_email,
           company:companies!company_pilot_invitations_company_id_fkey (
             company_name
           )
@@ -84,8 +96,11 @@ serve(async (req) => {
         )
       }
 
+      // Nunca devolvemos el email completo en este endpoint público: solo la versión
+      // enmascarada para que el piloto reconozca con qué correo debe registrarse.
+      const { pilot_email, ...safeData } = data
       return new Response(
-        JSON.stringify(data),
+        JSON.stringify({ ...safeData, pilot_email_masked: maskEmail(pilot_email) }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }

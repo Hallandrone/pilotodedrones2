@@ -21,7 +21,7 @@ import {
 interface InvitationData {
 	id: string;
 	company_name: string;
-	pilot_email: string;
+	pilot_email_masked?: string;
 	pilot_name?: string;
 	message?: string;
 	invited_at: string;
@@ -81,7 +81,7 @@ const InvitationAcceptPage = () => {
 			setInvitation({
 				id: data.id,
 				company_name: data.company?.company_name || 'Una empresa',
-				pilot_email: data.pilot_email,
+				pilot_email_masked: data.pilot_email_masked,
 				message: data.message,
 				invited_at: data.invited_at
 			});
@@ -322,7 +322,7 @@ const InvitationAcceptPage = () => {
 					<div className="space-y-3">
 						<div className="flex items-center gap-3 text-gray-600">
 							<Mail className="h-5 w-5 text-[#00b3f3]" />
-							<span>Invitación enviada a: <strong>{invitation.pilot_email}</strong></span>
+							<span>Invitación enviada a: <strong>{invitation.pilot_email_masked || 'tu correo'}</strong></span>
 						</div>
 						<div className="flex items-center gap-3 text-gray-600">
 							<Calendar className="h-5 w-5 text-[#00b3f3]" />
@@ -400,7 +400,7 @@ const InvitationAcceptPage = () => {
 
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									<Button
-										onClick={() => navigate(`/auth?invitation=${token}&tab=signup${invitation.pilot_email ? `&email=${encodeURIComponent(invitation.pilot_email)}` : ''}`)}
+										onClick={() => navigate(`/auth?invitation=${token}&tab=signup`)}
 										className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-semibold py-6 text-lg shadow-lg shadow-blue-500/20 order-1 sm:order-2"
 										size="lg"
 									>
@@ -409,7 +409,7 @@ const InvitationAcceptPage = () => {
 									</Button>
 
 									<Button
-										onClick={() => navigate(`/auth?invitation=${token}&tab=login${invitation.pilot_email ? `&email=${encodeURIComponent(invitation.pilot_email)}` : ''}`)}
+										onClick={() => navigate(`/auth?invitation=${token}&tab=login`)}
 										variant="outline"
 										className="w-full border-gray-300 text-gray-700 py-6 text-lg order-2 sm:order-1 hover:bg-gray-50"
 										size="lg"

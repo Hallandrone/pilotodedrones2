@@ -126,6 +126,7 @@ const PilotDashboard = () => {
   const { plan, loading: planLoading } = useSubscriptionPlan();
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -276,17 +277,16 @@ const PilotDashboard = () => {
       await loadDiplomas(userId);
     } catch (error) {
       console.error('Error loading pilot data:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los datos del piloto",
-        variant: "destructive",
-      });
-
-      // Redirect to fix page after showing error
-      setTimeout(() => {
-        navigate('/pilot-data-fix');
-      }, 2000);
+      // Normalmente esto es un problema de red transitorio: mostramos
+      // un estado de error con opción de reintentar (ver handleRetry).
+      setLoadError(true);
     }
+  };
+
+  const handleRetry = () => {
+    setLoadError(false);
+    setLoading(true);
+    checkUserAuth();
   };
 
   const loadContacts = async (userId: string) => {
@@ -474,6 +474,26 @@ const PilotDashboard = () => {
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
           <p className="text-muted-foreground">Cargando dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4">
+            <AlertCircle className="h-7 w-7 text-red-600" />
+          </div>
+          <h2 className="text-lg font-semibold mb-2">No pudimos cargar tu dashboard</h2>
+          <p className="text-muted-foreground mb-6">
+            Suele ser un problema temporal de conexión. Intenta nuevamente en un momento.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Button onClick={handleRetry}>Reintentar</Button>
+            <Button variant="outline" onClick={handleSignOut}>Cerrar sesión</Button>
+          </div>
         </div>
       </div>
     );
