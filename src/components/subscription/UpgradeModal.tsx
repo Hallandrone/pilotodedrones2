@@ -1,13 +1,13 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Building2, CheckCircle, ArrowRight } from 'lucide-react';
+import { Crown, CheckCircle, ArrowRight } from 'lucide-react';
 import { PlanType, getPlanDisplayName } from '@/lib/planFeatures';
 
 interface UpgradeModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	requiredPlan: 'pro' | 'empresa';
+	requiredPlan: 'pro';
 	feature: string;
 	featureDescription?: string;
 }
@@ -26,29 +26,15 @@ export function UpgradeModal({
 
 	const planConfig = {
 		pro: {
-			name: 'Plan Pro',
-			price: '$14.990/mes',
+			name: 'Plan Alumno Academia',
+			price: '$8.000/mes',
 			icon: Crown,
 			color: 'from-blue-500 to-cyan-500',
 			features: [
 				'Subida ilimitada de certificados',
-				'Datos meteorológicos geolocalizados',
 				'URL personalizada para tu perfil',
 				'Sello digital "Perfil Certificado"',
 				'Perfil destacado en búsquedas',
-			],
-		},
-		empresa: {
-			name: 'Plan Empresa',
-			price: '$39.990/mes',
-			icon: Building2,
-			color: 'from-purple-500 to-pink-500',
-			features: [
-				'Todo lo del Plan Pro',
-				'Panel multiusuario (hasta 4 pilotos)',
-				'Sello digital "Empresa Certificada"',
-				'Perfil destacado en recomendaciones',
-				'Estadísticas de vistas y contactos',
 				'Soporte por WhatsApp',
 			],
 		},

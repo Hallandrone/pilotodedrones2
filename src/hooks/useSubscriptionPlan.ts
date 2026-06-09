@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PlanType, hasFeature, normalizePlanName, getPlanDisplayName, isPaidPlan, isFreePlan, isProPlan, isEnterprisePlan } from '@/lib/planFeatures';
+import { PlanType, hasFeature, normalizePlanName, getPlanDisplayName, isPaidPlan, isFreePlan, isProPlan } from '@/lib/planFeatures';
 import type { PlanFeatures } from '@/lib/planFeatures';
 
 interface SubscriptionPlan {
@@ -11,7 +11,6 @@ interface SubscriptionPlan {
 	isPaid: boolean;
 	isFree: boolean;
 	isPro: boolean;
-	isEnterprise: boolean;
 	hasFeature: (feature: keyof PlanFeatures) => boolean;
 }
 
@@ -79,7 +78,6 @@ export function useSubscriptionPlan(userId?: string) {
 						isPaid: isPaidPlan(normalizedPlan),
 						isFree: isFreePlan(normalizedPlan),
 						isPro: isProPlan(normalizedPlan),
-						isEnterprise: isEnterprisePlan(normalizedPlan),
 						hasFeature: (feature: keyof PlanFeatures) => hasFeature(normalizedPlan, feature),
 					});
 				}
@@ -96,7 +94,6 @@ export function useSubscriptionPlan(userId?: string) {
 						isPaid: false,
 						isFree: true,
 						isPro: false,
-						isEnterprise: false,
 						hasFeature: (feature: keyof PlanFeatures) => hasFeature('free', feature),
 					});
 				}

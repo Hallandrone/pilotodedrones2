@@ -6,7 +6,6 @@ export type AdminPermission =
   | 'manage_certificates'
   | 'approve_deny_certificates'
   | 'view_users'
-  | 'view_companies'
   | 'view_notifications'
   | 'manage_banners'
   | 'upload_banners';
@@ -16,7 +15,6 @@ export const PERMISSION_LABELS: Record<AdminPermission, string> = {
   manage_certificates: 'Gestionar Certificados',
   approve_deny_certificates: 'Aprobar/Denegar Certificados',
   view_users: 'Ver Usuarios',
-  view_companies: 'Ver Empresas',
   view_notifications: 'Ver Notificaciones',
   manage_banners: 'Gestionar Banners',
   upload_banners: 'Subir Banners de Publicidad',
@@ -27,7 +25,6 @@ export const PERMISSION_DESCRIPTIONS: Record<AdminPermission, string> = {
   manage_certificates: 'Permite ver y listar certificados de pilotos',
   approve_deny_certificates: 'Permite aprobar o rechazar certificados de pilotos',
   view_users: 'Permite ver la lista de usuarios registrados',
-  view_companies: 'Permite ver la lista de empresas registradas',
   view_notifications: 'Permite ver y gestionar notificaciones del sistema',
   manage_banners: 'Permite configurar la visualización de banners publicitarios',
   upload_banners: 'Permite cargar y actualizar banners publicitarios',
@@ -38,7 +35,6 @@ export const ALL_PERMISSIONS: AdminPermission[] = [
   'manage_certificates',
   'approve_deny_certificates',
   'view_users',
-  'view_companies',
   'view_notifications',
   'manage_banners',
   'upload_banners',

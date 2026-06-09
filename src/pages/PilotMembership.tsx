@@ -106,22 +106,6 @@ const PilotMembership = () => {
         'Horarios de amanecer/atardecer para fotogrametría',
         'Soporte por Whatsapp'
       ]
-    },
-    {
-      id: 'empresa',
-      name: 'Plan Empresa',
-      price: 39990,
-      description: 'Ideal para: Publicar Empresas para realizar servicios especializados con drones',
-      features: [
-        'Todo lo del Plan Pro',
-        'Panel multiusuario (hasta 4 pilotos)',
-        'Agrega hasta 4 pilotos con Plan PRO incluido',
-        'Sello digital "Empresa Certificada" tras validación',
-        'Perfil destacado en "Empresas Recomendadas"',
-        'Estadísticas de vistas y contacto de clientes',
-        'Descuentos en asesoría de drones',
-        'Soporte técnico prioritario WhatsApp'
-      ]
     }
   ];
 
@@ -210,13 +194,8 @@ const PilotMembership = () => {
 
       let filteredPlans: AvailablePlan[] = [];
 
-      if (userType === 'company') {
-        // Si es empresa, solo mostrar Plan Empresa
-        filteredPlans = defaultPlans.filter(p => p.id === 'empresa');
-      } else {
-        // Si es piloto (o no se ha determinado), solo mostrar Plan Profesional
-        filteredPlans = defaultPlans.filter(p => p.id === 'profesional');
-      }
+      // Mostrar solo el Plan Alumno Academia (key 'profesional')
+      filteredPlans = defaultPlans.filter(p => p.id === 'profesional');
 
       setAvailablePlans(filteredPlans);
     };

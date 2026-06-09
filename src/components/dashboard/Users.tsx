@@ -216,8 +216,6 @@ export function Users() {
         return 'destructive';
       case 'admin':
         return 'default';
-      case 'company':
-        return 'secondary';
       case 'pilot':
         return 'outline';
       default:
@@ -229,7 +227,6 @@ export function Users() {
     const roleMap: { [key: string]: string } = {
       super_admin: 'Super Admin',
       admin: 'Administrador',
-      company: 'Empresa',
       pilot: 'Piloto'
     };
     return roleMap[role] || role;
@@ -250,7 +247,7 @@ export function Users() {
           <UsersIcon className="h-6 w-6 text-primary" />
           <div>
             <h1 className="text-2xl font-bold text-foreground">Gestión de Usuarios</h1>
-            <p className="text-muted-foreground">Gestiona todos los usuarios del sistema (administradores, pilotos, empresas)</p>
+            <p className="text-muted-foreground">Gestiona todos los usuarios del sistema (administradores, pilotos)</p>
           </div>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)}>
@@ -268,7 +265,7 @@ export function Users() {
             </Badge>
           </CardTitle>
           <CardDescription>
-            Información detallada de todos los usuarios registrados en la plataforma (administradores, pilotos, empresas)
+            Información detallada de todos los usuarios registrados en la plataforma (administradores, pilotos)
           </CardDescription>
         </CardHeader>
         <CardContent>

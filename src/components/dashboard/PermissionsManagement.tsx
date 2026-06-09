@@ -69,7 +69,6 @@ const PERMISSION_ICONS: Record<AdminPermission, React.ReactNode> = {
   manage_certificates: <FileCheck className="h-4 w-4" />,
   approve_deny_certificates: <FileCheck className="h-4 w-4 text-green-500" />,
   view_users: <Users className="h-4 w-4" />,
-  view_companies: <Building className="h-4 w-4" />,
   view_notifications: <Bell className="h-4 w-4" />,
   manage_banners: <Settings className="h-4 w-4" />,
   upload_banners: <Image className="h-4 w-4" />,

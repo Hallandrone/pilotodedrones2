@@ -77,13 +77,8 @@ const Auth = () => {
       }
     }
 
-    const roleParam = params.get('role') || params.get('type');
-
-    if (roleParam === 'company') {
-      setRegisterUserType('company');
-    } else if (roleParam === 'pilot') {
-      setRegisterUserType('pilot');
-    }
+    // Solo registro de pilotos: el tipo de cuenta queda fijo en 'pilot'
+    setRegisterUserType('pilot');
 
     // Asegurar que la página comience arriba al cargar
     window.scrollTo(0, 0);
@@ -1169,30 +1164,6 @@ const Auth = () => {
                     <CardDescription>
                       Únete a la plataforma profesional de drones
                     </CardDescription>
-                  </div>
-
-                  <div className="space-y-2 mb-6 bg-secondary/30 p-4 rounded-lg">
-                    <Label htmlFor="user-type-selector" className="text-sm font-medium">¿Cómo quieres unirte?</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <Button
-                        type="button"
-                        variant={registerUserType === "pilot" ? "default" : "outline"}
-                        onClick={() => setRegisterUserType("pilot")}
-                        className="flex items-center gap-2"
-                      >
-                        <UserIcon className="h-4 w-4" />
-                        Soy Piloto
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={registerUserType === "company" ? "default" : "outline"}
-                        onClick={() => setRegisterUserType("company")}
-                        className="flex items-center gap-2"
-                      >
-                        <Building className="h-4 w-4" />
-                        Soy Empresa
-                      </Button>
-                    </div>
                   </div>
 
                   <SignUpForm />

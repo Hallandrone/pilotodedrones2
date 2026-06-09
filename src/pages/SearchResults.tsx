@@ -24,7 +24,6 @@ interface PilotWithServices {
   experience_years: number;
   certification_status: boolean;
   certification_academy: string | null;
-  company_name: string | null;
   public_profile_slug: string | null;
   phone: string | null;
   email: string | null;
@@ -67,24 +66,6 @@ const loadSpecialtyTypes = async (): Promise<string[]> => {
           profile.specialties.forEach((specialty: string) => {
             if (specialty && specialty.trim()) {
               specialtySet.add(specialty.trim());
-            }
-          });
-        }
-      });
-    }
-
-    // Obtener services de companies
-    const { data: companiesData } = await supabase
-      .from("companies")
-      .select("services")
-      .not("services", "is", null);
-
-    if (companiesData) {
-      companiesData.forEach((company) => {
-        if (company.services && Array.isArray(company.services)) {
-          company.services.forEach((service: string) => {
-            if (service && service.trim()) {
-              specialtySet.add(service.trim());
             }
           });
         }
@@ -177,14 +158,10 @@ const SearchResults = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState(searchParams.get("specialty") || "all");
   const [selectedDroneType, setSelectedDroneType] = useState("all");
   const [selectedExperience, setSelectedExperience] = useState("all");
-  const [selectedCompany, setSelectedCompany] = useState("all");
   const [certifiedOnly, setCertifiedOnly] = useState(searchParams.get("certified") === "true");
-  const [pilotTypeFilter, setPilotTypeFilter] = useState(searchParams.get("pilotType") || "all");
-  const [companies, setCompanies] = useState<Array<{ id: string; company_name: string }>>([]);
 
   useEffect(() => {
     fetchPilots();
-    fetchCompanies();
     // Cargar tipos de especialidad dinámicamente
     loadSpecialtyTypes().then((types) => {
       setSpecialtyTypes(types);
@@ -198,16 +175,7 @@ const SearchResults = () => {
   useEffect(() => {
     // Aplicar filtros iniciales cuando se cargan los pilotos o cambian los filtros
     applyFilters();
-  }, [pilots, selectedRegion, selectedSpecialty, selectedDroneType, selectedExperience, selectedCompany, certifiedOnly, pilotTypeFilter, searchTerm]);
-
-  const fetchCompanies = async () => {
-    const { data } = await supabase
-      .from("companies")
-      .select("id, company_name")
-      .order("company_name");
-
-    setCompanies(data || []);
-  };
+  }, [pilots, selectedRegion, selectedSpecialty, selectedDroneType, selectedExperience, certifiedOnly, searchTerm]);
 
   const fetchPilots = async () => {
     try {
@@ -243,7 +211,7 @@ const SearchResults = () => {
 
       if (profilesError) throw profilesError;
 
-      // Obtener SOLO suscripciones activas (incluyendo las de empresa/premium)
+      // Obtener SOLO suscripciones activas
       const { data: subscriptionsData, error: subscriptionsError } = await supabase
         .from("user_subscriptions")
         .select("user_id, status, plan_name")
@@ -255,29 +223,11 @@ const SearchResults = () => {
         // Continuar sin suscripciones si hay error
       }
 
-      // Obtener asociaciones de empresas para TODOS los pilotos
-      const allPilotIds = pilotsData.map(p => p.id);
-      let companyPilotsData = null;
-      if (allPilotIds.length > 0) {
-        const { data } = await supabase
-          .from("company_pilots")
-          .select(`
-            pilot_id,
-            company:companies!inner (
-              id,
-              company_name
-            )
-          `)
-          .in("pilot_id", allPilotIds);
-        companyPilotsData = data;
-      }
-
       // Combinar datos - para TODOS los pilotos
       const pilotsWithServices: PilotWithServices[] = pilotsData.map(pilot => {
         const profile = profilesData.find(p => p.id === pilot.user_id);
         const subscription = subscriptionsData?.find(s => s.user_id === pilot.user_id);
         const pilotServices = servicesData?.filter(s => s.pilot_id === pilot.id) || [];
-        const companyAssoc = companyPilotsData?.find(cp => cp.pilot_id === pilot.id);
 
         return {
           id: pilot.user_id,
@@ -290,7 +240,6 @@ const SearchResults = () => {
           experience_years: (profile as any)?.experience_years || 0,
           certification_status: pilot.certification_status || false,
           certification_academy: pilot.certification_academy || null,
-          company_name: companyAssoc ? (companyAssoc.company as any).company_name : null,
           public_profile_slug: (profile as any)?.public_profile_slug || null,
           phone: (profile as any)?.phone || null,
           email: profile?.email || null,
@@ -306,17 +255,11 @@ const SearchResults = () => {
         };
       }).filter(pilot => {
         const profile = profilesData.find(p => p.id === pilot.id);
-        const isCompanyAccount = profile?.user_type === 'company';
-        const hasActiveSubscription = !!pilot.subscription;
 
         // Excluir super administrador específico y cuentas administrativas
         const excludedEmails = ['cofre@live.cl', 'hdrones.adm@gmail.com', 'info@academiadronchile.cl'];
         if (profile?.email && excludedEmails.includes(profile.email)) return false;
 
-        // Las cuentas de empresa solo aparecen si tienen el plan pagado
-        if (isCompanyAccount && !hasActiveSubscription) return false;
-
-        // Para pilotos independientes o asociados, se muestran según su propia suscripción o reglas generales
         return true;
       });
 
@@ -355,16 +298,6 @@ const SearchResults = () => {
       });
     }
 
-    // Filtro por tipo de piloto (company vs pilot)
-    if (pilotTypeFilter && pilotTypeFilter !== "all") {
-      if (pilotTypeFilter === "company") {
-        filtered = filtered.filter(p => p.company_name !== null);
-      } else if (pilotTypeFilter === "pilot") {
-        // Puede ser piloto independiente o con empresa
-        // No filtramos aquí, solo excluimos si es solo empresa
-      }
-    }
-
     // Filtro por especialidad
     if (selectedSpecialty && selectedSpecialty !== "all") {
       filtered = filtered.filter(p =>
@@ -389,13 +322,6 @@ const SearchResults = () => {
     // Filtro por certificación
     if (certifiedOnly) {
       filtered = filtered.filter(p => p.certification_status);
-    }
-
-    // Filtro por empresa
-    if (selectedCompany && selectedCompany !== "all") {
-      filtered = filtered.filter(p =>
-        p.company_name && p.company_name === selectedCompany
-      );
     }
 
     // Ordenar con prioridad de 5 niveles:
@@ -547,24 +473,6 @@ const SearchResults = () => {
                   </Select>
                 </div>
 
-                {/* Empresa */}
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Empresa</label>
-                  <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                    <SelectTrigger className="h-11 bg-gray-800 border-gray-700 text-white focus:border-[#00b3f3]">
-                      <SelectValue placeholder="Todas las empresas" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                      <SelectItem value="all">Todas las empresas</SelectItem>
-                      {companies.map(company => (
-                        <SelectItem key={company.id} value={company.company_name}>
-                          {company.company_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Certificación */}
                 <div className="flex items-center gap-2">
                   <input
@@ -596,7 +504,6 @@ const SearchResults = () => {
                     setSelectedSpecialty("all");
                     setSelectedDroneType("all");
                     setSelectedExperience("all");
-                    setSelectedCompany("all");
                     setCertifiedOnly(false);
                     applyFilters();
                   }}
@@ -722,7 +629,6 @@ const SearchResults = () => {
                         setSelectedSpecialty("all");
                         setSelectedDroneType("all");
                         setSelectedExperience("all");
-                        setSelectedCompany("all");
                         setCertifiedOnly(false);
                         applyFilters();
                       }}
@@ -784,7 +690,6 @@ const SearchResults = () => {
                         specialties: pilot.specialties || [],
                         drone_types: pilot.drone_types || [],
                         profileImage: pilot.avatar_url || undefined,
-                        company_name: pilot.company_name,
                       }}
                     />
                   </div>

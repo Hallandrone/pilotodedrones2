@@ -152,7 +152,7 @@ export function EditUserDialog({
       // Update role
       const { error: roleError } = await supabase
         .from("user_roles")
-        .update({ role: userData.role as "admin" | "company" | "pilot" | "super_admin" })
+        .update({ role: userData.role as "admin" | "pilot" | "super_admin" })
         .eq("id", userId);
 
       if (roleError) throw roleError;
@@ -294,7 +294,6 @@ export function EditUserDialog({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pilot">Piloto</SelectItem>
-                        <SelectItem value="company">Empresa</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -312,7 +311,6 @@ export function EditUserDialog({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="pilot">Piloto</SelectItem>
-                        <SelectItem value="company">Empresa</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                         <SelectItem value="super_admin">Super Admin</SelectItem>
                       </SelectContent>

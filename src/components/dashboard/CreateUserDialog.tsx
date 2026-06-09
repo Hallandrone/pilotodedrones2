@@ -34,7 +34,7 @@ import { Loader2 } from "lucide-react";
 const createUserSchema = z.object({
   full_name: z.string().trim().min(1, "El nombre es requerido").max(100, "El nombre debe tener máximo 100 caracteres"),
   email: z.string().trim().email("Email inválido").max(255, "El email debe tener máximo 255 caracteres"),
-  role: z.enum(["pilot", "company", "admin", "super_admin"], {
+  role: z.enum(["pilot", "admin", "super_admin"], {
     required_error: "El rol es requerido",
   }),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres").max(50, "La contraseña debe tener máximo 50 caracteres"),
@@ -86,7 +86,7 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
       } else if (data.role === 'admin') {
         permissions = ['view_users']; // Permisos base
       }
-      // Para pilot y company, permissions queda vacío []
+      // Para pilot, permissions queda vacío []
 
       const { data: funcData, error: funcError } = await supabase.functions.invoke('invite-admin', {
         body: {
@@ -199,7 +199,6 @@ export function CreateUserDialog({ open, onOpenChange, onSuccess }: CreateUserDi
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="pilot">Piloto</SelectItem>
-                      <SelectItem value="company">Empresa</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
                       <SelectItem value="super_admin">Super Admin</SelectItem>
                     </SelectContent>

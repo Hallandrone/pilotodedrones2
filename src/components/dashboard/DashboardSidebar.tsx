@@ -6,16 +6,12 @@ import {
   Settings,
   BarChart3,
   Shield,
-  Building,
   MapPin,
   Bell,
   LogOut,
   Home,
   FileCheck,
   Award,
-  QrCode,
-  CreditCard,
-  MonitorPlay,
   Image,
   MessageCircle
 } from "lucide-react";
@@ -60,22 +56,10 @@ const menuItems: MenuItem[] = [
     roles: ["super_admin"]
   },
   {
-    title: "Inicio",
-    url: "/company",
-    icon: Home,
-    roles: ["company"]
-  },
-  {
     title: "Mi Perfil de Piloto",
     url: "/pilot",
     icon: User2,
     roles: ["super_admin", "admin"]
-  },
-  {
-    title: "Mi Perfil",
-    url: "/company/profile",
-    icon: Building,
-    roles: ["company"]
   },
   {
     title: "Usuarios",
@@ -92,59 +76,11 @@ const menuItems: MenuItem[] = [
     permission: "view_users"
   },
   {
-    title: "Mis Pilotos",
-    url: "/company/pilots",
-    icon: Plane,
-    roles: ["company"],
-    requiresPaid: true
-  },
-  {
-    title: "Empresas",
-    url: "/dashboard/companies",
-    icon: Building,
-    roles: ["super_admin", "admin"],
-    permission: "view_companies"
-  },
-  {
     title: "Certificados",
     url: "/dashboard/certificates",
     icon: FileCheck,
     roles: ["super_admin", "admin"],
     permission: "manage_certificates"
-  },
-  {
-    title: "Certificados",
-    url: "/company/certificates",
-    icon: FileCheck,
-    roles: ["company"],
-    requiresPaid: true
-  },
-  {
-    title: "Mi QR",
-    url: "/company/qr",
-    icon: QrCode,
-    roles: ["company"],
-    requiresPaid: true
-  },
-  {
-    title: "Membresía",
-    url: "/company/membership",
-    icon: CreditCard,
-    roles: ["company"]
-  },
-  {
-    title: "Portafolio",
-    url: "/company/portfolio",
-    icon: MonitorPlay,
-    roles: ["company"],
-    requiresPaid: true
-  },
-  {
-    title: "Contactos",
-    url: "/company/contacts",
-    icon: MessageCircle,
-    roles: ["company"],
-    requiresPaid: true
   },
   {
     title: "Diplomas",
@@ -233,12 +169,6 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
         return true;
       }
       return false;
-    }
-
-    // Check payment status for companies
-    if (userRole === 'company' && !plan?.isPaid) {
-      // If company has not paid, ONLY show Membership
-      return item.title === "Membresía";
     }
 
     // For admin role, check specific permissions

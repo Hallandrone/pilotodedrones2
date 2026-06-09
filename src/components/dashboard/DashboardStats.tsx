@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Plane, Building, TrendingUp, Activity, MapPin, Award } from "lucide-react";
+import { Users, Plane, TrendingUp, Activity, MapPin, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface StatsData {
   totalUsers: number;
   totalPilots: number;
-  totalCompanies: number;
   newUsersThisMonth: number;
   activeUsers: number;
   totalLocations: number;
@@ -36,12 +35,6 @@ export function DashboardStats() {
         .from('profiles')
         .select('*', { count: 'exact', head: true })
         .eq('user_type', 'pilot');
-
-      // Get companies count
-      const { count: totalCompanies } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_type', 'company');
 
       // Get new users this month
       const startOfMonth = new Date();
@@ -93,7 +86,6 @@ export function DashboardStats() {
       setStats({
         totalUsers: totalUsers || 0,
         totalPilots: totalPilots || 0,
-        totalCompanies: totalCompanies || 0,
         newUsersThisMonth: newUsersThisMonth || 0,
         activeUsers: activeUsers || 0,
         totalLocations: uniqueLocations || 0,
@@ -143,14 +135,6 @@ export function DashboardStats() {
       icon: Plane,
       trend: `${((stats?.totalPilots || 0) / Math.max(stats?.totalUsers || 1, 1) * 100).toFixed(1)}% del total`,
       color: "text-green-600"
-    },
-    {
-      title: "Empresas",
-      value: stats?.totalCompanies || 0,
-      description: "Empresas registradas",
-      icon: Building,
-      trend: `${((stats?.totalCompanies || 0) / Math.max(stats?.totalUsers || 1, 1) * 100).toFixed(1)}% del total`,
-      color: "text-purple-600"
     },
     {
       title: "Usuarios Activos",
@@ -230,17 +214,6 @@ export function DashboardStats() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Tasa de conversión piloto/empresa
-                </span>
-                <span className="text-sm font-medium text-foreground">
-                  {stats?.totalPilots && stats?.totalCompanies
-                    ? `${(stats.totalPilots / Math.max(stats.totalCompanies, 1) * 100).toFixed(1)}%`
-                    : '0%'
-                  }
-                </span>
-              </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
                   Crecimiento mensual

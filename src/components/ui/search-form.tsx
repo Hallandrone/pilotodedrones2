@@ -53,24 +53,6 @@ const SearchForm = ({ onSearch }: SearchFormProps) => {
           });
         }
 
-        // Obtener services de companies (solo empresas activas con suscripción)
-        const { data: companiesData } = await supabase
-          .from("companies")
-          .select("services")
-          .not("services", "is", null);
-
-        if (companiesData) {
-          companiesData.forEach((company) => {
-            if (company.services && Array.isArray(company.services)) {
-              company.services.forEach((service: string) => {
-                if (service && service.trim()) {
-                  workTypeSet.add(service.trim());
-                }
-              });
-            }
-          });
-        }
-
         // Obtener service_type de pilot_services (solo servicios publicados)
         const { data: servicesData } = await supabase
           .from("pilot_services")
@@ -132,8 +114,6 @@ const SearchForm = ({ onSearch }: SearchFormProps) => {
       // Mapear tipos de piloto a filtros
       if (pilotType === "certificado") {
         params.set("certified", "true");
-      } else if (pilotType === "empresa") {
-        params.set("pilotType", "company");
       } else if (pilotType === "independiente") {
         params.set("pilotType", "pilot");
       }
@@ -182,7 +162,6 @@ const SearchForm = ({ onSearch }: SearchFormProps) => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="certificado">Piloto Certificado</SelectItem>
-                <SelectItem value="empresa">Empresa</SelectItem>
                 <SelectItem value="independiente">Independiente</SelectItem>
                 <SelectItem value="todos">Todos</SelectItem>
               </SelectContent>

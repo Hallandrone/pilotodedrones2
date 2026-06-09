@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { Crown, Building2, Sparkles } from 'lucide-react';
+import { Crown, Sparkles } from 'lucide-react';
 import { PlanType } from '@/lib/planFeatures';
 
 interface PlanBadgeProps {
@@ -14,22 +14,13 @@ interface PlanBadgeProps {
 export function PlanBadge({ plan, className = '', showIcon = true }: PlanBadgeProps) {
 	const getPlanConfig = (planType: PlanType) => {
 		switch (planType) {
-			case 'empresa':
-			case 'premium':
-				return {
-					label: 'Empresa',
-					className: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0',
-					icon: Building2,
-				};
 			case 'pro':
-			case 'profesional':
 				return {
 					label: 'Pro',
 					className: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0',
 					icon: Crown,
 				};
 			case 'free':
-			case 'basic':
 			default:
 				return {
 					label: 'Gratis',

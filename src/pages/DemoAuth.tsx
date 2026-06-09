@@ -279,17 +279,6 @@ const DemoAuth = () => {
               </Button>
 
               <Button
-                onClick={() => handleTypeSelect('company')}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-8 text-lg h-auto"
-                size="lg"
-              >
-                <div className="flex items-center justify-center gap-3">
-                  <Building2 className="h-6 w-6" />
-                  <span>Perfil Demo Empresa</span>
-                </div>
-              </Button>
-
-              <Button
                 onClick={() => handleTypeSelect('super_admin')}
                 className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold py-8 text-lg h-auto"
                 size="lg"

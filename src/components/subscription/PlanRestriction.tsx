@@ -5,7 +5,7 @@ import type { PlanFeatures } from '@/lib/planFeatures';
 
 interface PlanRestrictionProps {
 	children: ReactNode;
-	requiredPlan?: 'pro' | 'empresa';
+	requiredPlan?: 'pro';
 	feature?: keyof PlanFeatures;
 	fallback?: ReactNode;
 	userId?: string;
@@ -40,16 +40,8 @@ export function PlanRestriction({
 	}
 
 	// Verificar por plan requerido
-	if (requiredPlan) {
-		let hasAccess = false;
-
-		if (requiredPlan === 'pro') {
-			hasAccess = plan.isPro || plan.isEnterprise;
-		} else if (requiredPlan === 'empresa') {
-			hasAccess = plan.isEnterprise;
-		}
-
-		return hasAccess ? <>{children}</> : <>{fallback}</>;
+	if (requiredPlan === 'pro') {
+		return plan.isPro ? <>{children}</> : <>{fallback}</>;
 	}
 
 	// Si no se especifica restricción, mostrar contenido

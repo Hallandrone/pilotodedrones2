@@ -674,7 +674,7 @@ const PilotPortfolio = () => {
 				onOpenChange={setShowUpgradeModal}
 				requiredPlan="pro"
 				feature="Portafolio Profesional"
-				featureDescription="La galería de trabajos e integración de videos está disponible en Plan Pro y Plan Empresa. Sube tus mejores tomas para impresionar a tus clientes."
+				featureDescription="La galería de trabajos e integración de videos está disponible en el Plan Alumno Academia. Sube tus mejores tomas para impresionar a tus clientes."
 			/>
 
 			{/* Modal de edición */}

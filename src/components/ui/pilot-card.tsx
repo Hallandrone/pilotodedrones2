@@ -14,7 +14,6 @@ interface PilotCardProps {
     specialties: string[];
     drone_types?: string[];
     profileImage?: string;
-    company_name?: string | null;
   };
 }
 
@@ -62,16 +61,7 @@ const PilotCard = ({ pilot }: PilotCardProps) => {
                 <span>{pilot.location}</span>
               </div>
 
-              {/* Company Badge */}
-              {pilot.company_name && (
-                <div className="flex items-center gap-1.5 mt-2">
-                  <Badge variant="secondary" className="bg-[#00b3f3]/10 text-[#00b3f3] hover:bg-[#00b3f3]/20 border-0">
-                    <Briefcase className="h-3 w-3 mr-1" />
-                    {pilot.company_name}
-                  </Badge>
-                </div>
-              )}
-            </div>
+              </div>
 
             {/* Certification and Experience Info */}
             <div className="flex flex-wrap items-center gap-3 mb-3 text-xs text-gray-600">
