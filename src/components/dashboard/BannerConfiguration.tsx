@@ -138,16 +138,6 @@ export function BannerConfiguration() {
       return;
     }
 
-    // Si es banner lateral y desktopOnly es false, requiere imagen móvil
-    if (newBanner.position === "Lateral Derecho" && !newBanner.desktopOnly && !mobileImageFile) {
-      toast({
-        title: "Error",
-        description: "Para mostrar en móvil, debe subir una imagen para dispositivos móviles",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setUploading(true);
     
     try {
@@ -172,7 +162,8 @@ export function BannerConfiguration() {
           mobile_image_url: mobileImageUrl,
           redirect_url: newBanner.redirectUrl || null,
           active: newBanner.active,
-          desktop_only: newBanner.desktopOnly
+          // Solo el lateral vertical sin imagen móvil se oculta en móvil
+          desktop_only: newBanner.position === 'Lateral Derecho' && !mobileImageUrl
         });
 
       if (error) throw error;
@@ -236,16 +227,6 @@ export function BannerConfiguration() {
   const handleUpdateBanner = async () => {
     if (!editingBanner) return;
 
-    // Si es banner lateral y desktopOnly es false, requiere imagen móvil
-    if (editingBanner.position === "Lateral Derecho" && !editingBanner.desktopOnly && !editingBanner.mobileImageUrl && !mobileImageFile) {
-      toast({
-        title: "Error",
-        description: "Para mostrar en móvil, debe subir una imagen para dispositivos móviles",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setUploading(true);
     
     try {
@@ -276,7 +257,8 @@ export function BannerConfiguration() {
           mobile_image_url: mobileImageUrl || null,
           redirect_url: editingBanner.redirectUrl || null,
           active: editingBanner.active,
-          desktop_only: editingBanner.desktopOnly
+          // Solo el lateral vertical sin imagen móvil se oculta en móvil
+          desktop_only: editingBanner.position === 'Lateral Derecho' && !mobileImageUrl
         })
         .eq('id', editingBanner.id);
 
@@ -401,7 +383,7 @@ export function BannerConfiguration() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="imageFile">
-                    {newBanner.position === "Lateral Derecho" ? "Imagen del Banner (Desktop - Vertical)" : "Imagen del Banner"}
+                    {newBanner.position === "Lateral Derecho" ? "Imagen Escritorio (Vertical)" : "Imagen Escritorio"}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -414,43 +396,28 @@ export function BannerConfiguration() {
                     <Upload className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {newBanner.position === "Lateral Derecho" 
-                      ? "Recomendado: imagen vertical (320x600px o similar)"
+                    {newBanner.position === "Lateral Derecho"
+                      ? "Recomendado: imagen vertical (320x600px)"
                       : "Recomendado: imagen rectangular tipo portada (1200x300px)"}
                   </p>
                 </div>
-                {newBanner.position === "Lateral Derecho" && (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="desktopOnly"
-                        checked={!newBanner.desktopOnly}
-                        onCheckedChange={(checked) => setNewBanner({ ...newBanner, desktopOnly: !checked })}
-                      />
-                      <Label htmlFor="desktopOnly" className="cursor-pointer">
-                        Mostrar versión móvil
-                      </Label>
-                    </div>
-                    {!newBanner.desktopOnly && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="mobileImageFile">Imagen del Banner (Móvil - Horizontal)</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="mobileImageFile"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleMobileImageChange}
-                            className="flex-1"
-                          />
-                          <Upload className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Recomendado: imagen horizontal (640x320px o similar)
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
+                {/* Imagen móvil opcional, disponible para todas las posiciones */}
+                <div className="grid gap-2">
+                  <Label htmlFor="mobileImageFile">Imagen Móvil (opcional)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="mobileImageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleMobileImageChange}
+                      className="flex-1"
+                    />
+                    <Upload className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Si no la subes, en móvil se usa la imagen de escritorio. Recomendado: 320x600px (vertical) o 640x320px (horizontal).
+                  </p>
+                </div>
                 <div className="grid gap-2">
                   <Label htmlFor="redirectUrl">URL de Redirección</Label>
                   <Input
@@ -636,7 +603,7 @@ export function BannerConfiguration() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="edit-imageFile">
-                    {editingBanner.position === "Lateral Derecho" ? "Nueva Imagen Desktop (opcional - Vertical)" : "Nueva Imagen (opcional)"}
+                    {editingBanner.position === "Lateral Derecho" ? "Nueva Imagen Escritorio (opcional - Vertical)" : "Nueva Imagen Escritorio (opcional)"}
                   </Label>
                   <div className="flex items-center gap-2">
                     <Input
@@ -649,53 +616,38 @@ export function BannerConfiguration() {
                     <Upload className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {editingBanner.position === "Lateral Derecho" 
-                      ? "Recomendado: imagen vertical (320x600px o similar)"
+                    {editingBanner.position === "Lateral Derecho"
+                      ? "Recomendado: imagen vertical (320x600px)"
                       : "Recomendado: imagen rectangular tipo portada (1200x300px)"}
                   </p>
                 </div>
-                {editingBanner.position === "Lateral Derecho" && (
-                  <>
-                    {editingBanner.mobileImageUrl && (
-                      <div className="grid gap-2">
-                        <Label>Imagen Móvil Actual</Label>
-                        <img 
-                          src={editingBanner.mobileImageUrl} 
-                          alt={`${editingBanner.title} - Móvil`}
-                          className="w-full h-24 object-cover rounded border"
-                        />
-                      </div>
-                    )}
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="edit-desktopOnly"
-                        checked={!editingBanner.desktopOnly}
-                        onCheckedChange={(checked) => setEditingBanner({ ...editingBanner, desktopOnly: !checked })}
-                      />
-                      <Label htmlFor="edit-desktopOnly" className="cursor-pointer">
-                        Mostrar versión móvil
-                      </Label>
-                    </div>
-                    {!editingBanner.desktopOnly && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="edit-mobileImageFile">Nueva Imagen Móvil (opcional - Horizontal)</Label>
-                        <div className="flex items-center gap-2">
-                          <Input
-                            id="edit-mobileImageFile"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleMobileImageChange}
-                            className="flex-1"
-                          />
-                          <Upload className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Recomendado: imagen horizontal (640x320px o similar)
-                        </p>
-                      </div>
-                    )}
-                  </>
+                {/* Imagen móvil opcional, disponible para todas las posiciones */}
+                {editingBanner.mobileImageUrl && (
+                  <div className="grid gap-2">
+                    <Label>Imagen Móvil Actual</Label>
+                    <img
+                      src={editingBanner.mobileImageUrl}
+                      alt={`${editingBanner.title} - Móvil`}
+                      className="w-full h-24 object-cover rounded border"
+                    />
+                  </div>
                 )}
+                <div className="grid gap-2">
+                  <Label htmlFor="edit-mobileImageFile">Nueva Imagen Móvil (opcional)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="edit-mobileImageFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleMobileImageChange}
+                      className="flex-1"
+                    />
+                    <Upload className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Si no hay imagen móvil, en móvil se usa la de escritorio. Recomendado: 320x600px o 640x320px.
+                  </p>
+                </div>
                 <div className="grid gap-2">
                   <Label htmlFor="edit-redirectUrl">URL de Redirección</Label>
                   <Input

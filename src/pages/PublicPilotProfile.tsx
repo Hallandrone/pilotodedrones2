@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AdBanner } from "@/components/ads/AdBanner";
 import {
   Shield,
   MapPin,
@@ -708,6 +709,9 @@ const PublicPilotProfile = () => {
       {/* Content */}
       <div className="px-4 py-8 md:py-12 relative z-10">
         <div className="max-w-5xl mx-auto space-y-8">
+          {/* Banner publicitario superior */}
+          <AdBanner position="Superior" />
+
           {/* Profile Header Card */}
           <Card className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
             <CardContent className="p-0">

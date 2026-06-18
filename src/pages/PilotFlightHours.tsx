@@ -577,13 +577,13 @@ const PilotFlightHours = () => {
                   <Crown className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-[#E0E0E0] mb-3">
-                  Actualiza a Plan Pro
+                  Actualiza al Plan Alumno Academia
                 </h3>
                 <p className="text-[#B0B0B0] mb-6">
-                  La bitácora de vuelos y registro de horas está disponible en Plan Pro y Plan Empresa.
+                  La bitácora de vuelos y registro de horas está disponible en el Plan Alumno Academia.
                 </p>
                 <div className="bg-[#212121] border border-[#333333] rounded-xl p-4 mb-6 text-left">
-                  <p className="text-sm font-semibold text-[#E0E0E0] mb-3">Con Plan Pro obtienes:</p>
+                  <p className="text-sm font-semibold text-[#E0E0E0] mb-3">Con el Plan Alumno Academia obtienes:</p>
                   <ul className="space-y-2 text-sm text-[#B0B0B0]">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />

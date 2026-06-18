@@ -470,7 +470,7 @@ const PilotPortfolio = () => {
 						<p className="text-blue-100/70">Muestra tus mejores tomas y videos editados para generar confianza en tus clientes.</p>
 						{plan && plan.isFree && userType !== 'admin' && userType !== 'super_admin' && (
 							<p className="text-yellow-300 font-semibold mt-2">
-								⚠️ Plan Gratis: Puedes subir hasta 2 portafolios. Mejora a Plan Pro para portafolios ilimitados.
+								⚠️ Plan Gratis: Puedes subir hasta 2 portafolios. Mejora al Plan Alumno Academia para portafolios ilimitados.
 							</p>
 						)}
 					</div>

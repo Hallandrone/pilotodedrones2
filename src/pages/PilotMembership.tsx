@@ -92,7 +92,7 @@ const PilotMembership = () => {
     },
     {
       id: 'profesional',
-      name: 'Plan Pro',
+      name: 'Plan Alumno Academia',
       price: 8000,  // Precio de lanzamiento
       description: 'Ideal para: Pilotos individuales que buscan mostrar su experiencia certificada',
       features: [
@@ -102,7 +102,6 @@ const PilotMembership = () => {
         'Bitácora de vuelos y registro de horas acumuladas',
         'URL personalizada para tu perfil',
         'Perfil destacado en búsquedas',
-        'Datos meteorológicos geolocalizados',
         'Horarios de amanecer/atardecer para fotogrametría',
         'Soporte por Whatsapp'
       ]

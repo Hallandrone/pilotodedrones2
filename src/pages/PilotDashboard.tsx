@@ -43,7 +43,8 @@ import {
   Hash,
   QrCode as QrCodeIcon,
   MonitorPlay,
-  MessageSquarePlus
+  MessageSquarePlus,
+  Sun
 } from "lucide-react";
 import { FeedbackForm } from "@/components/dashboard/FeedbackForm";
 import type { User } from '@supabase/supabase-js';
@@ -592,11 +593,11 @@ const PilotDashboard = () => {
                     <div className="relative flex flex-col h-full justify-between">
                       <div>
                         <div className="flex items-center gap-2 text-[#FF69B4] mb-1 sm:mb-2">
-                          <Cloud className="h-4 w-4 sm:h-5 sm:w-5" />
-                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Clima Pro</span>
+                          <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Horario Solar</span>
                         </div>
                         <div className="text-white font-bold text-sm sm:text-base leading-tight">
-                          Activa ráfagas y visibilidad
+                          Amanecer y atardecer para tus vuelos
                         </div>
                       </div>
                       <div className="mt-2 text-[#FF69B4] text-[10px] sm:text-xs font-semibold flex items-center gap-1">
@@ -759,7 +760,7 @@ const PilotDashboard = () => {
                 {plan?.isPaid ? (
                   <Badge className="bg-[#00b3f3] text-white font-bold">{diplomas.length}</Badge>
                 ) : (
-                  <Badge variant="outline" className="border-[#00b3f3] text-[#00b3f3] font-bold">Plan Pro</Badge>
+                  <Badge variant="outline" className="border-[#00b3f3] text-[#00b3f3] font-bold">Plan Alumno Academia</Badge>
                 )}
               </div>
             </CardHeader>
@@ -966,7 +967,7 @@ const PilotDashboard = () => {
                     : 'bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white'
                     }`}
                 >
-                  {plan?.isPaid ? 'Gestionar Membresía' : 'Mejorar a Plan Pro'}
+                  {plan?.isPaid ? 'Gestionar Membresía' : 'Mejorar al Plan Alumno Academia'}
                 </Button>
               </CardContent>
             </div>

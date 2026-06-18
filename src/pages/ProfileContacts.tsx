@@ -155,17 +155,17 @@ const ProfileContacts = () => {
 									<Crown className="h-10 w-10 text-white" />
 								</div>
 								<h3 className="text-2xl font-bold text-[#E0E0E0] mb-3">
-									Actualiza a Plan Pro
+									Actualiza al Plan Alumno Academia
 								</h3>
 								<p className="text-[#B0B0B0] mb-6">
-									La bandeja de contactos recibidos está disponible en Plan Pro y Plan Empresa.
+									La bandeja de contactos recibidos está disponible en el Plan Alumno Academia.
 								</p>
 								<div className="bg-[#212121] border border-[#333333] rounded-xl p-4 mb-6 text-left">
 									<p className="text-sm font-semibold text-[#E0E0E0] mb-3">¿Qué es Contactos Recibidos?</p>
 									<p className="text-sm text-[#B0B0B0] mb-3">
 										Cuando clientes potenciales visitan tu perfil público, pueden enviarte un mensaje directo con sus datos de contacto (email, teléfono) y detalles sobre el servicio que necesitan.
 									</p>
-									<p className="text-sm font-semibold text-[#E0E0E0] mb-2">Con Plan Pro obtienes:</p>
+									<p className="text-sm font-semibold text-[#E0E0E0] mb-2">Con el Plan Alumno Academia obtienes:</p>
 									<ul className="space-y-2 text-sm text-[#B0B0B0]">
 										<li className="flex items-start gap-2">
 											<MessageCircle className="h-4 w-4 text-[#FF69B4] flex-shrink-0 mt-0.5" />

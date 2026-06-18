@@ -1640,7 +1640,7 @@ const PilotProfile = () => {
                             onChange={(e) => handleSlugChange(e.target.value)}
                             disabled={!subscription}
                             className={`bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/40 pl-8 ${!subscription ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            placeholder={subscription ? "nombreusuario" : "Disponible en Plan Pro"}
+                            placeholder={subscription ? "nombreusuario" : "Disponible en Plan Alumno Academia"}
                           />
                           {checkingSlug && (
                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1696,7 +1696,7 @@ const PilotProfile = () => {
                       {!subscription && (
                         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                           <p className="text-xs text-blue-400 font-medium leading-relaxed">
-                            🚀 La URL personalizada es un beneficio exclusivo del Plan Pro.
+                            🚀 La URL personalizada es un beneficio exclusivo del Plan Alumno Academia.
                             Mejora tu cuenta para poder elegir cómo se verá tu link profesional.
                           </p>
                         </div>

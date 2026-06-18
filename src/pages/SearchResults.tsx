@@ -10,6 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { MapPin, DollarSign, Shield, Briefcase, Search, Filter, Phone, Mail, Instagram, Linkedin } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import PilotCard from "@/components/ui/pilot-card";
+import { AdBanner } from "@/components/ads/AdBanner";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 
@@ -377,6 +378,11 @@ const SearchResults = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Banner publicitario superior */}
+      <div className="container mx-auto px-4 pt-6">
+        <AdBanner position="Superior" />
       </div>
 
       <div className="container mx-auto px-4 py-8">

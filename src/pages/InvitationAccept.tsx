@@ -132,7 +132,7 @@ const InvitationAcceptPage = () => {
 
 			toast({
 				title: '¡Invitación aceptada!',
-				description: 'Plan Pro activado. Bienvenido al equipo',
+				description: 'Plan Alumno Academia activado. Bienvenido al equipo',
 			});
 
 			setTimeout(() => {
@@ -217,7 +217,7 @@ const InvitationAcceptPage = () => {
 
 			toast({
 				title: '¡Invitación aceptada!',
-				description: 'Plan Pro activado. Bienvenido al equipo',
+				description: 'Plan Alumno Academia activado. Bienvenido al equipo',
 			});
 
 			// Redirigir al dashboard del piloto
@@ -344,9 +344,9 @@ const InvitationAcceptPage = () => {
 						</div>
 						<ul className="space-y-3">
 							{[
-								'Plan Pro GRATIS mientras seas parte del equipo',
+								'Plan Alumno Academia GRATIS mientras seas parte del equipo',
 								'Perfil público destacado',
-								'Acceso a condiciones meteorológicas en tiempo real',
+								'Horarios de amanecer y atardecer para tus vuelos',
 								'Certificados y documentación profesional',
 								'Código QR personalizado',
 								'Visibilidad prioritaria en búsquedas'
@@ -363,7 +363,7 @@ const InvitationAcceptPage = () => {
 					<div className="flex justify-center">
 						<Badge className="bg-[#00b3f3] hover:bg-[#0099cc] text-white px-6 py-2 text-base">
 							<Sparkles className="h-4 w-4 mr-2" />
-							Plan Pro incluido
+							Plan Alumno Academia incluido
 						</Badge>
 					</div>
 
@@ -384,7 +384,7 @@ const InvitationAcceptPage = () => {
 								) : (
 									<>
 										<CheckCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-										<span className="hidden sm:inline">Aceptar invitación y activar Plan Pro</span>
+										<span className="hidden sm:inline">Aceptar invitación y activar Plan Alumno Academia</span>
 										<span className="sm:hidden">Aceptar Invitación</span>
 										<ArrowRight className="h-5 w-5 ml-2 flex-shrink-0" />
 									</>
@@ -394,7 +394,7 @@ const InvitationAcceptPage = () => {
 							<div className="space-y-4 pt-4">
 								<div className="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-2">
 									<p className="text-center text-blue-800 text-sm font-medium">
-										¿Aún no tienes cuenta? ¡No te preocupes! Regístrate ahora para aceptar tu invitación y activar tu Plan Pro.
+										¿Aún no tienes cuenta? ¡No te preocupes! Regístrate ahora para aceptar tu invitación y activar tu Plan Alumno Academia.
 									</p>
 								</div>
 

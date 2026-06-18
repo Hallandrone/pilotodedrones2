@@ -529,7 +529,7 @@ const PilotCertificates = () => {
         onOpenChange={setShowUpgradeModal}
         requiredPlan="pro"
         feature="Subida de certificados"
-        featureDescription="La subida de certificados está disponible en Plan Pro y Plan Empresa. Actualiza tu plan para validar tu perfil profesional."
+        featureDescription="La subida de certificados está disponible en el Plan Alumno Academia. Actualiza tu plan para validar tu perfil profesional."
       />
     </div>
   );

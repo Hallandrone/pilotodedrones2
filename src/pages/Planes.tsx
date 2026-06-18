@@ -60,7 +60,6 @@ const Planes = () => {
         'Subida ilimitada de certificados',
         'URL personalizada para tu perfil',
         'Perfil destacado en búsquedas',
-        'Datos meteorológicos geolocalizados',
         'Horarios de amanecer/atardecer para fotogrametría',
         'Soporte por whatsapp'
       ],

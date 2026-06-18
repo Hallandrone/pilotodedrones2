@@ -435,7 +435,7 @@ const Auth = () => {
               console.log('Invitación por email aceptada automáticamente:', invData);
               toast({
                 title: "¡Invitación Aceptada!",
-                description: `Has sido añadido automáticamente a ${invData.companyName || 'tu empresa'} y tu Plan Pro está activo.`,
+                description: `Has sido añadido automáticamente a ${invData.companyName || 'tu academia'} y tu Plan Alumno Academia está activo.`,
                 duration: 5000
               });
               // Pequeño delay para que vean el toast antes de redirigir (si aplica)
