@@ -72,7 +72,7 @@ serve(async (req) => {
                     <ul style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 16px; line-height: 2;">
                       <li><strong>Completa tu Perfil:</strong> Muestra tu experiencia y certificaciones.</li>
                       <li><strong>Genera tu QR:</strong> Comparte tu perfil profesional fácilmente.</li>
-                      <li><strong>Estado del Tiempo:</strong> Revisa condiciones en tiempo real para tus vuelos.</li>
+                      <li><strong>Horario Solar:</strong> Revisa los horarios de amanecer y atardecer para tus vuelos.</li>
                       <li><strong>Documentación:</strong> Mantén tus certificados organizados y vigentes.</li>
                     </ul>
                   </div>
