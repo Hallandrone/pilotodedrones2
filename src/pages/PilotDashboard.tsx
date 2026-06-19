@@ -608,8 +608,8 @@ const PilotDashboard = () => {
                 )}
               </div>
 
-              {/* Weather Card showing full content if Pro */}
-              {plan?.isPaid && <WeatherCard hasActiveSubscription={true} />}
+              {/* Weather Card: solo visible para admins */}
+              {isAdminUser && <WeatherCard />}
             </CardContent>
           </div>
         </Card>

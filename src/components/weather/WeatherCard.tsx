@@ -1,27 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Sunrise, Sunset, Sun, Loader2, MapPin } from 'lucide-react';
 import { getSunTimes, getUserLocation, DEFAULT_LOCATION, type SunTimes } from '@/services/weatherService';
-
-interface WeatherCardProps {
-	hasActiveSubscription: boolean;
-}
 
 const formatTime = (date: Date) =>
 	date.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
 
-const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
+// Kit meteo: visible solo para admins (el control de acceso vive en el dashboard).
+const WeatherCard = () => {
 	const [sunTimes, setSunTimes] = useState<SunTimes | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [locationGranted, setLocationGranted] = useState(false);
 
 	useEffect(() => {
-		if (!hasActiveSubscription) {
-			setLoading(false);
-			return;
-		}
-
 		let mounted = true;
 		const load = async () => {
 			let location = DEFAULT_LOCATION;
@@ -43,34 +34,7 @@ const WeatherCard = ({ hasActiveSubscription }: WeatherCardProps) => {
 		return () => {
 			mounted = false;
 		};
-	}, [hasActiveSubscription]);
-
-	// Teaser para usuarios sin plan pagado
-	if (!hasActiveSubscription) {
-		return (
-			<div className="h-full group relative overflow-hidden bg-gradient-to-br from-[#00b3f3]/10 to-transparent rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 border-white/10 hover:border-[#00b3f3]/30 transition-all duration-300">
-				<div className="flex items-center justify-between gap-4">
-					<div className="flex items-center gap-3">
-						<div className="h-10 w-10 sm:h-12 sm:w-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
-							<Sun className="h-5 w-5 sm:h-6 sm:w-6 text-[#00b3f3]/60" />
-						</div>
-						<div>
-							<h4 className="text-white text-sm sm:text-base font-bold">Horario Solar</h4>
-							<p className="text-white/40 text-[10px] sm:text-xs">Amanecer y atardecer para tus vuelos</p>
-						</div>
-					</div>
-					<Button
-						size="sm"
-						variant="ghost"
-						className="bg-[#FF69B4]/10 hover:bg-[#FF69B4]/20 text-[#FF69B4] text-[10px] sm:text-xs h-8 px-3 rounded-lg border border-[#FF69B4]/20 transition-all"
-						onClick={() => (window.location.href = '/pilot/membership')}
-					>
-						Activar Pro
-					</Button>
-				</div>
-			</div>
-		);
-	}
+	}, []);
 
 	// Estado de carga (mientras se resuelve la geolocalización)
 	if (loading) {
