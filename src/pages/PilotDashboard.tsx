@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { getUserRole, isPilot, isAdmin } from "@/lib/auth-utils";
+import { getUserRole, isPilot, isAdmin, isSuperAdmin } from "@/lib/auth-utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -129,6 +129,7 @@ const PilotDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [isSuperAdminUser, setIsSuperAdminUser] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -161,6 +162,9 @@ const PilotDashboard = () => {
 
       const isUserAdmin = await isAdmin(session.user.id);
       setIsAdminUser(isUserAdmin);
+
+      const isUserSuperAdmin = await isSuperAdmin(session.user.id);
+      setIsSuperAdminUser(isUserSuperAdmin);
 
       if (!isUserPilot && !isUserAdmin) {
         toast({
@@ -608,8 +612,8 @@ const PilotDashboard = () => {
                 )}
               </div>
 
-              {/* Weather Card: solo visible para admins */}
-              {isAdminUser && <WeatherCard />}
+              {/* Weather Card (clima Meteoblue vía Edge Function): solo super admin */}
+              {isSuperAdminUser && <WeatherCard hasActiveSubscription={true} />}
             </CardContent>
           </div>
         </Card>

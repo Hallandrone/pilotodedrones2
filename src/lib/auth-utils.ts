@@ -113,3 +113,13 @@ export async function isAdmin(userId: string): Promise<boolean> {
   const roleData = await getUserRole(userId);
   return roleData?.role === 'admin' || roleData?.role === 'super_admin';
 }
+
+/**
+ * Checks if user is a super admin (rol más alto)
+ * @param userId - The user ID
+ * @returns Promise<boolean>
+ */
+export async function isSuperAdmin(userId: string): Promise<boolean> {
+  const roleData = await getUserRole(userId);
+  return roleData?.role === 'super_admin';
+}
