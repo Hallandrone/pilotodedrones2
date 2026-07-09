@@ -631,13 +631,9 @@ const PilotMembership = () => {
         }
       }
 
-      const { error } = await supabase
-        .from('user_subscriptions')
-        .update({
-          status: 'cancelled',
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+      // La activación/cancelación se hace vía RPC controlada (SECURITY DEFINER):
+      // el cliente ya NO puede escribir directo en user_subscriptions.
+      const { error } = await supabase.rpc('cancel_my_subscription');
 
       if (error) throw error;
 
@@ -665,15 +661,21 @@ const PilotMembership = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('user_subscriptions')
-        .update({
-          status: 'active',
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+      // RPC controlada: solo reactiva si la suscripción sigue vigente (ya pagada).
+      // Devuelve la fila actualizada, o null si no había nada vigente que reanudar.
+      const { data, error } = await supabase.rpc('resume_my_subscription');
 
       if (error) throw error;
+
+      if (!data) {
+        toast({
+          title: "No se pudo reanudar",
+          description: "Tu periodo ya venció. Vuelve a suscribirte para reactivar tu plan.",
+          variant: "destructive",
+        });
+        loadMembership();
+        return;
+      }
 
       toast({
         title: "Suscripción reanudada",
