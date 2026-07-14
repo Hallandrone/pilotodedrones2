@@ -8,7 +8,7 @@ import type { User as SupabaseUser } from '@supabase/supabase-js';
 const NAV_LINKS = [
 	{ label: 'Home', href: 'https://www.pilotodedrones.cl', external: true },
 	{ label: 'Explorar Pilotos', href: '/search', external: false },
-	{ label: 'Precios', href: 'https://www.pilotodedrones.cl/precios', external: true },
+	{ label: 'Beneficios', href: 'https://www.pilotodedrones.cl/precios', external: true },
 	{ label: 'Contacto', href: 'https://www.pilotodedrones.cl/contacto', external: true },
 	{ label: 'Blog', href: 'https://www.pilotodedrones.cl/blog', external: true },
 ];

@@ -1696,8 +1696,8 @@ const PilotProfile = () => {
                       {!subscription && (
                         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                           <p className="text-xs text-blue-400 font-medium leading-relaxed">
-                            🚀 La URL personalizada es un beneficio exclusivo del Plan Alumno Academia.
-                            Mejora tu cuenta para poder elegir cómo se verá tu link profesional.
+                            🚀 La URL personalizada es un beneficio exclusivo del Plan Alumno Academia,
+                            disponible solo para alumnos de Academia Drone Chile.
                           </p>
                         </div>
                       )}

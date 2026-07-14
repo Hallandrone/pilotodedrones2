@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Logo from "@/components/ui/logo";
-import { Plane, Mail, Lock, User as UserIcon, Building } from "lucide-react";
+import { Plane, Mail, Lock, User as UserIcon, Building, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { getUserRole } from "@/lib/auth-utils";
@@ -169,9 +169,9 @@ const Auth = () => {
 
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    if (finalRole === 'company') {
-      window.location.href = '/company';
-    } else if (finalRole === 'admin' || finalRole === 'super_admin') {
+    // Rutas company eliminadas: solo existen pilotos y admins. Un rol company
+    // residual (0 cuentas en producción) cae al flujo de piloto.
+    if (finalRole === 'admin' || finalRole === 'super_admin') {
       window.location.href = '/dashboard';
     } else {
       const storedToken = localStorage.getItem('pendingInvitationToken');
@@ -188,38 +188,146 @@ const Auth = () => {
       if (isRedirecting.current) return;
       isRedirecting.current = true;
       try {
-        // PRIORIDAD 0: Asociar QR token PRIMERO si existe
+        const sessionEmail = user.email?.trim().toLowerCase() ?? null;
+
+        // Helpers para tokens pendientes (QR / código de diploma) en localStorage.
+        const clearPending = (tokenKey: string, sealKey: string, retryKey: string) => {
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem(sealKey);
+          localStorage.removeItem(retryKey);
+        };
+        // Ante error de red TRANSITORIO: reintenta una sola vez en el próximo
+        // login y luego se rinde. Nunca queda "pegado" reintentándose para siempre.
+        const keepForRetryOrGiveUp = (tokenKey: string, sealKey: string, retryKey: string) => {
+          const retries = parseInt(localStorage.getItem(retryKey) || '0', 10);
+          if (retries < 1) {
+            localStorage.setItem(retryKey, String(retries + 1));
+            return;
+          }
+          clearPending(tokenKey, sealKey, retryKey);
+        };
+
         const storedQrToken = localStorage.getItem('pendingQrToken');
+        const storedDiplomaCode = localStorage.getItem('pendingDiplomaCode');
+        // qr_token presente en la URL de ESTA carga = el navegador es el "portador".
+        const qrInUrl = new URLSearchParams(window.location.search).get('qr_token');
+        let skipDiplomaBlock = false;
+
+        // ===== PRIORIDAD 0: Asociar QR del diploma =====
+        // POLÍTICA "AL PORTADOR": quien escanea el QR y se autentica en SU propio
+        // flujo reclama el código (aunque no sea el dueño original; es intencional).
+        // ANTI-HERENCIA-FANTASMA (navegador compartido): un token que quedó "pegado"
+        // en localStorage NO se hereda solo por loguearse. Se reclama únicamente si
+        //   (a) el qr_token viene en la URL de esta carga (bearer real: cubre login,
+        //       registro, Google y el flujo "Asociar a mi Perfil" ya logueado), o
+        //   (b) el token trae un "sello" de email que coincide con la sesión actual
+        //       (viaje de vuelta tras confirmar el correo; el sello se escribe en el
+        //        registro diferido). Si no se cumple ninguna, se descarta sin reclamar.
         if (storedQrToken) {
-          console.log('🔍 Intentando asociar QR token:', storedQrToken);
-          try {
-            const { data: existingToken } = await supabase
-              .from('diploma_qr_tokens')
-              .select('*')
-              .eq('token', storedQrToken)
-              .maybeSingle();
+          const sealEmail = localStorage.getItem('pendingQrTokenEmail');
+          const isBearerThisLoad = !!qrInUrl && qrInUrl === storedQrToken;
+          const sealMatches = !!sealEmail && !!sessionEmail && sealEmail === sessionEmail;
 
-            if (existingToken && (!existingToken.user_id || existingToken.user_id === user.id)) {
-              await supabase
-                .from('diploma_qr_tokens')
-                .update({
-                  user_id: user.id,
-                  associated_at: new Date().toISOString()
-                })
-                .eq('token', storedQrToken);
-
-              localStorage.removeItem('pendingQrToken');
-              toast({
-                title: "¡Diploma asociado!",
-                description: "Tu diploma ha sido asociado a tu perfil exitosamente",
+          if (!isBearerThisLoad && !sealMatches) {
+            // Herencia fantasma: token de otra persona pegado en el navegador → descartar.
+            clearPending('pendingQrToken', 'pendingQrTokenEmail', 'pendingQrTokenRetries');
+          } else {
+            skipDiplomaBlock = true; // flujo QR activo: no procesar además un código pendiente
+            // Sellar con la sesión actual para que un eventual reintento (error de red)
+            // pueda validarse por email en el próximo login.
+            if (sessionEmail) localStorage.setItem('pendingQrTokenEmail', sessionEmail);
+            console.log('🔍 Intentando reclamar diploma (QR):', storedQrToken);
+            try {
+              const { data: claimData, error: claimError } = await supabase.rpc('claim_diploma_code', {
+                p_code: storedQrToken
               });
 
-              // Redirigir a la página de verificación para ver el diploma recién asociado
-              navigate(`/verificar-diploma?codigo=${storedQrToken}`);
-              return;
+              if (claimError) {
+                // Transitorio: conservar para reintento acotado (FIX #6).
+                console.error('Error transitorio reclamando diploma (QR):', claimError);
+                keepForRetryOrGiveUp('pendingQrToken', 'pendingQrTokenEmail', 'pendingQrTokenRetries');
+              } else if (claimData?.success) {
+                clearPending('pendingQrToken', 'pendingQrTokenEmail', 'pendingQrTokenRetries');
+                toast({
+                  title: "¡Diploma asociado!",
+                  description: "Tu diploma fue vinculado a tu perfil y tu Plan Alumno Academia está activo.",
+                  duration: 5000,
+                });
+                // Redirigir a la verificación para ver el diploma recién asociado.
+                navigate(`/verificar-diploma?codigo=${storedQrToken}`);
+                return;
+              } else if (claimData?.error === 'already_claimed') {
+                // FIX #9: outcome definitivo → limpiar y cortar como en 'success'.
+                // Un solo toast; la redirección por rol de más abajo hace la única navegación.
+                clearPending('pendingQrToken', 'pendingQrTokenEmail', 'pendingQrTokenRetries');
+                toast({
+                  title: "Diploma ya utilizado",
+                  description: "Este diploma ya está asociado a otra cuenta.",
+                  variant: "destructive",
+                });
+              } else {
+                // invalid_code u otro error de aplicación → definitivo, limpiar (FIX #6).
+                clearPending('pendingQrToken', 'pendingQrTokenEmail', 'pendingQrTokenRetries');
+              }
+            } catch (error) {
+              // Excepción inesperada: tratar como transitorio (reintento acotado).
+              console.error('Error in QR association:', error);
+              keepForRetryOrGiveUp('pendingQrToken', 'pendingQrTokenEmail', 'pendingQrTokenRetries');
             }
-          } catch (error) {
-            console.error('Error in QR association:', error);
+          }
+        }
+
+        // ===== PRIORIDAD 0.5: Código de diploma ingresado en el registro =====
+        // Se procesa tras el primer login cuando el signup no dejó sesión inmediata
+        // (email por confirmar). Mismo criterio anti-herencia-fantasma: el código se
+        // sella con el email del registro y solo se reclama si el sello coincide con
+        // la sesión actual (al portador sí; herencia por navegador compartido no).
+        if (storedDiplomaCode && !skipDiplomaBlock) {
+          const sealEmail = localStorage.getItem('pendingDiplomaCodeEmail');
+          const sealMatches = !!sealEmail && !!sessionEmail && sealEmail === sessionEmail;
+
+          if (!sealMatches) {
+            clearPending('pendingDiplomaCode', 'pendingDiplomaCodeEmail', 'pendingDiplomaCodeRetries');
+          } else {
+            console.log('🎓 Procesando código de diploma pendiente:', storedDiplomaCode);
+            try {
+              const { data: claimData, error: claimError } = await supabase.rpc('claim_diploma_code', {
+                p_code: storedDiplomaCode
+              });
+
+              if (claimError) {
+                // Transitorio: conservar para reintento acotado (FIX #6).
+                console.error('Error transitorio procesando código de diploma:', claimError);
+                keepForRetryOrGiveUp('pendingDiplomaCode', 'pendingDiplomaCodeEmail', 'pendingDiplomaCodeRetries');
+              } else if (claimData?.success) {
+                clearPending('pendingDiplomaCode', 'pendingDiplomaCodeEmail', 'pendingDiplomaCodeRetries');
+                toast({
+                  title: "¡Plan Alumno Academia activado!",
+                  description: "Tu código de diploma fue validado. Ya tienes acceso al Plan Alumno.",
+                  duration: 5000,
+                });
+              } else if (claimData?.error === 'already_claimed') {
+                clearPending('pendingDiplomaCode', 'pendingDiplomaCodeEmail', 'pendingDiplomaCodeRetries');
+                toast({
+                  title: "Código ya utilizado",
+                  description: "Ese código de diploma ya fue reclamado por otra cuenta.",
+                  variant: "destructive",
+                });
+              } else if (claimData?.error === 'invalid_code') {
+                clearPending('pendingDiplomaCode', 'pendingDiplomaCodeEmail', 'pendingDiplomaCodeRetries');
+                toast({
+                  title: "Código inválido",
+                  description: "No pudimos validar tu código de diploma. Revísalo e inténtalo desde tu perfil.",
+                  variant: "destructive",
+                });
+              } else {
+                // Otro error de aplicación → definitivo, limpiar (FIX #6).
+                clearPending('pendingDiplomaCode', 'pendingDiplomaCodeEmail', 'pendingDiplomaCodeRetries');
+              }
+            } catch (error) {
+              console.error('Error procesando código de diploma:', error);
+              keepForRetryOrGiveUp('pendingDiplomaCode', 'pendingDiplomaCodeEmail', 'pendingDiplomaCodeRetries');
+            }
           }
         }
 
@@ -232,12 +340,6 @@ const Auth = () => {
           return;
         }
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', user.id)
-          .maybeSingle();
-
         // PRIORIDAD 1: Invitaciones pendientes
         const storedToken = localStorage.getItem('pendingInvitationToken');
         if (storedToken) {
@@ -245,12 +347,11 @@ const Auth = () => {
           return;
         }
 
-        // Redirección basada en ROL
+        // Redirección basada en ROL (rutas company eliminadas: admins a /dashboard,
+        // el resto —incluido cualquier rol company residual— a /pilot).
         console.log('Redirecting based on role:', roleData.role);
         if (roleData.role === 'admin' || roleData.role === 'super_admin') {
           navigate('/dashboard');
-        } else if (roleData.role === 'company' || profile?.user_type === 'company') {
-          navigate('/company');
         } else {
           navigate('/pilot');
         }
@@ -300,7 +401,7 @@ const Auth = () => {
     };
   }, [navigate, isRecovery]);
 
-  const handleSignUp = async (email: string, password: string, userData: any, captchaToken?: string) => {
+  const handleSignUp = async (email: string, password: string, userData: any, captchaToken?: string, diplomaCode?: string) => {
     setLoading(true);
 
     try {
@@ -390,6 +491,53 @@ const Auth = () => {
         }
       }
 
+      // Activación del Plan Alumno Academia por código de diploma (opcional).
+      // Si hubo sesión inmediata (sin confirmación de email) reclamamos al tiro
+      // vía RPC; si no, guardamos el código SELLADO con el email de ESTE registro
+      // y se procesa tras el primer login (mismo patrón que pendingQrToken).
+      const cleanDiplomaCode = diplomaCode?.trim();
+      if (cleanDiplomaCode && data.session) {
+        try {
+          const { data: claimData, error: claimError } = await supabase.rpc('claim_diploma_code', {
+            p_code: cleanDiplomaCode
+          });
+
+          if (!claimError && claimData?.success) {
+            toast({
+              title: "¡Plan Alumno Academia activado!",
+              description: "Tu código de diploma fue validado. Ya tienes acceso al Plan Alumno.",
+              duration: 6000,
+            });
+          } else if (claimData?.error === 'already_claimed') {
+            toast({
+              title: "Código ya utilizado",
+              description: "Ese código de diploma ya fue reclamado por otra cuenta. Tu cuenta se creó con Plan Gratis.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Código inválido",
+              description: "No pudimos validar el código de diploma. Puedes activarlo más tarde desde tu perfil.",
+              variant: "destructive",
+            });
+          }
+        } catch (e) {
+          console.error('Error activando código de diploma:', e);
+        }
+      } else if (!data.session) {
+        // Sin sesión aún (email por confirmar): sellamos los tokens pendientes con el
+        // email de ESTE registro para reclamarlos tras el login sin que otra persona
+        // en un navegador compartido los herede (anti-herencia-fantasma).
+        const sealEmail = email.trim().toLowerCase();
+        if (cleanDiplomaCode) {
+          localStorage.setItem('pendingDiplomaCode', cleanDiplomaCode);
+          localStorage.setItem('pendingDiplomaCodeEmail', sealEmail);
+        }
+        if (localStorage.getItem('pendingQrToken')) {
+          localStorage.setItem('pendingQrTokenEmail', sealEmail);
+        }
+      }
+
       // Check if user is immediately confirmed (email confirmation disabled)
       if (!data.user.email_confirmed_at) {
         if (profile?.user_type === 'company') {
@@ -474,14 +622,6 @@ const Auth = () => {
 
       if (effectiveToken) {
         navigate(`/invitation/${effectiveToken}`);
-      } else if (profile?.user_type === 'company') {
-        // Redirección forzada inmediata para empresas
-        console.log('[Auth] Redirigiendo empresa a activación obligatoria...');
-        toast({
-          title: "¡Bienvenido!",
-          description: "Tu cuenta empresa ha sido creada. Activa tu plan para empezar a agregar pilotos.",
-        });
-        navigate('/company/membership');
       } else {
         navigate('/dashboard');
       }
@@ -581,10 +721,8 @@ const Auth = () => {
         } else {
           navigate('/pilot');
         }
-      } else if (roleData.role === 'company') {
-        navigate('/company');
       } else {
-        // Por defecto, redirigir a pilot
+        // Rol company eliminado (0 cuentas): por defecto va a /pilot.
         navigate('/pilot');
       }
     } catch (err: any) {
@@ -624,17 +762,15 @@ const Auth = () => {
 
         console.log('Redirigiendo usuario con rol real:', userRole);
 
-        if (userRole === 'company') {
-          window.location.href = '/company';
-        } else if (userRole === 'admin' || userRole === 'super_admin') {
+        if (userRole === 'admin' || userRole === 'super_admin') {
           window.location.href = '/dashboard';
         } else {
-          // Verificar si hay invitación pendiente
+          // Verificar si hay invitación pendiente (rutas company eliminadas)
           const storedToken = localStorage.getItem('pendingInvitationToken');
           if (storedToken) {
             window.location.href = `/invitation/${storedToken}`;
           } else {
-            // Pilotos van a /pilot
+            // Pilotos (y cualquier rol company residual) van a /pilot
             window.location.href = '/pilot';
           }
         }
@@ -975,6 +1111,7 @@ const Auth = () => {
       }
     }, [initialEmail]);
     const [name, setName] = useState("");
+    const [diplomaCode, setDiplomaCode] = useState("");
     const userType = registerUserType;
     const setUserType = (type: 'pilot' | 'company') => setRegisterUserType(type);
 
@@ -991,7 +1128,7 @@ const Auth = () => {
       await handleSignUp(email, password, {
         full_name: name,
         user_type: userType
-      }, captchaToken);
+      }, captchaToken, diplomaCode);
       // Reset CAPTCHA tras intentar registro (el token es de un solo uso)
       turnstileRef.current?.reset();
       setCaptchaToken("");
@@ -1081,6 +1218,26 @@ const Auth = () => {
               autoComplete="new-password"
             />
           </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="signup-diploma-code">Código de diploma (opcional)</Label>
+          <div className="relative">
+            <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="signup-diploma-code"
+              type="text"
+              placeholder="Ej: ABCD2345"
+              value={diplomaCode}
+              onChange={(e) => setDiplomaCode(e.target.value)}
+              className="pl-10 uppercase"
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Si hiciste el curso en Academia Drone Chile, ingresa el código de tu diploma para activar tu Plan Alumno.
+          </p>
         </div>
 
         {TURNSTILE_SITE_KEY && (

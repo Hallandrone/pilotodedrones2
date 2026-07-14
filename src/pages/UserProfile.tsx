@@ -2059,8 +2059,12 @@ const UserProfile = () => {
                       </div>
                     </div>
                     <div className="mt-6">
-                      <Button variant="outline" className="border-accent text-accent hover:bg-accent hover:text-white">
-                        Actualizar plan
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate('/pilot/membership')}
+                        className="border-accent text-accent hover:bg-accent hover:text-white"
+                      >
+                        Gestionar mi plan
                       </Button>
                     </div>
                   </CardContent>

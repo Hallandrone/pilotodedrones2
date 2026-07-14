@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +25,6 @@ const PilotQR = () => {
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(false);
   const qrRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -209,10 +208,7 @@ const PilotQR = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                const isCompany = location.pathname.includes('/company') || userType === 'company';
-                navigate(isCompany ? '/company' : '/pilot');
-              }}
+              onClick={() => navigate('/pilot')}
               className="h-12 w-12 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-900"
             >
               <ArrowLeft className="h-7 w-7" />
@@ -273,13 +269,10 @@ const PilotQR = () => {
                       Necesitas una suscripción activa para generar tu código QR y hacer tu perfil público visible.
                     </p>
                     <Button
-                      onClick={() => {
-                        const isCompany = location.pathname.includes('/company') || userType === 'company';
-                        navigate(isCompany ? '/company/membership' : '/pilot/membership');
-                      }}
+                      onClick={() => navigate('/pilot/membership')}
                       className="mt-4 bg-[#FF69B4] hover:bg-[#FF69B4]/90 text-white"
                     >
-                      Ver Planes de Suscripción
+                      Activar mi plan
                     </Button>
                   </div>
                 </div>

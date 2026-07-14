@@ -577,10 +577,10 @@ const PilotFlightHours = () => {
                   <Crown className="h-10 w-10 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-[#E0E0E0] mb-3">
-                  Actualiza al Plan Alumno Academia
+                  Función exclusiva para alumnos
                 </h3>
                 <p className="text-[#B0B0B0] mb-6">
-                  La bitácora de vuelos y registro de horas está disponible en el Plan Alumno Academia.
+                  La bitácora de vuelos y registro de horas es parte del Plan Alumno Academia, exclusivo para alumnos de Academia Drone Chile.
                 </p>
                 <div className="bg-[#212121] border border-[#333333] rounded-xl p-4 mb-6 text-left">
                   <p className="text-sm font-semibold text-[#E0E0E0] mb-3">Con el Plan Alumno Academia obtienes:</p>
@@ -612,7 +612,7 @@ const PilotFlightHours = () => {
                   className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                 >
                   <Crown className="h-4 w-4 mr-2" />
-                  Ver Planes y Precios
+                  Ya soy alumno — activar mi plan
                 </Button>
               </CardContent>
             </div>

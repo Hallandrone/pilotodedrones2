@@ -25,12 +25,17 @@ const QRRedirect = () => {
 			}
 
 			try {
-				// Buscar el token en la base de datos
-				const { data, error } = await supabase
-					.from('diploma_qr_tokens')
-					.select('user_id, token')
-					.eq('token', token)
-					.maybeSingle();
+				// Verificar el token vía RPC SECURITY DEFINER (no enumerable).
+				// Devuelve: { found, token, user_id, diploma }.
+				const { data: tokenResult, error } = await supabase.rpc(
+					'get_diploma_by_token',
+					{ p_token: token }
+				);
+
+				const data = tokenResult as {
+					found: boolean;
+					user_id?: string | null;
+				} | null;
 
 				if (error) {
 					console.error('Error fetching QR token:', error);
@@ -41,7 +46,7 @@ const QRRedirect = () => {
 				}
 
 				// Si el token no existe, mostrar error
-				if (!data) {
+				if (!data || !data.found) {
 					console.log('Token no encontrado');
 					setErrorMessage('El código del diploma no es válido o no existe.');
 					setStatus('error');

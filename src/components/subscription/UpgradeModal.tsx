@@ -27,7 +27,6 @@ export function UpgradeModal({
 	const planConfig = {
 		pro: {
 			name: 'Plan Alumno Academia',
-			price: '$8.000/mes',
 			icon: Crown,
 			color: 'from-blue-500 to-cyan-500',
 			features: [
@@ -43,7 +42,7 @@ export function UpgradeModal({
 	const config = planConfig[requiredPlan];
 	const Icon = config.icon;
 
-	const handleUpgrade = () => {
+	const handleActivate = () => {
 		onOpenChange(false);
 		navigate('/pilot/membership');
 	};
@@ -56,17 +55,20 @@ export function UpgradeModal({
 						<Icon className="h-8 w-8 text-white" />
 					</div>
 					<DialogTitle className="text-2xl">
-						Actualiza a {config.name}
+						{config.name}
 					</DialogTitle>
 					<DialogDescription className="text-base">
-						{featureDescription || `La característica "${feature}" está disponible en ${config.name}.`}
+						{featureDescription || `La característica "${feature}" es exclusiva del ${config.name}.`}
 					</DialogDescription>
 				</DialogHeader>
 
 				<div className="space-y-4 py-4">
-					<div className="flex items-baseline gap-2">
-						<span className="text-3xl font-bold text-primary">{config.price}</span>
-						<span className="text-muted-foreground">por mes</span>
+					<div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
+						<p className="text-sm text-muted-foreground">
+							El <span className="font-semibold text-foreground">Plan Alumno Academia</span> es
+							exclusivo para alumnos de <span className="font-semibold text-foreground">Academia Drone Chile</span>.
+							Si ya eres alumno, actívalo con el código de tu diploma.
+						</p>
 					</div>
 
 					<div className="space-y-2">
@@ -85,17 +87,19 @@ export function UpgradeModal({
 				<DialogFooter className="flex-col sm:flex-row gap-2">
 					<Button
 						variant="outline"
-						onClick={() => onOpenChange(false)}
+						onClick={handleActivate}
 						className="w-full sm:w-auto"
 					>
-						Ahora no
+						Ya soy alumno — activar con mi código
 					</Button>
 					<Button
-						onClick={handleUpgrade}
+						asChild
 						className={`w-full sm:w-auto bg-gradient-to-r ${config.color} text-white hover:opacity-90`}
 					>
-						Ver Planes
-						<ArrowRight className="h-4 w-4 ml-2" />
+						<a href="https://www.academiadronchile.cl" target="_blank" rel="noopener noreferrer">
+							Conoce los cursos
+							<ArrowRight className="h-4 w-4 ml-2" />
+						</a>
 					</Button>
 				</DialogFooter>
 			</DialogContent>

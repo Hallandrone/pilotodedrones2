@@ -49,32 +49,39 @@ const DiplomaVerification = () => {
 		setProfile(null);
 
 		try {
-			// 1. Buscar el token y ver si tiene usuario asociado
-			const { data: tokenData, error: tokenError } = await supabase
-				.from("diploma_qr_tokens")
-				.select("diploma_id, user_id")
-				.eq("token", verificationCode.trim())
-				.maybeSingle();
+			// 1. Verificar el token vía RPC SECURITY DEFINER (no enumerable).
+			//    Devuelve: { found, token, user_id, diploma } — exige el token exacto.
+			const { data: tokenResult, error: tokenError } = await supabase.rpc(
+				"get_diploma_by_token",
+				{ p_token: verificationCode.trim() }
+			);
 
-			if (tokenError || !tokenData) {
+			const info = tokenResult as {
+				found: boolean;
+				token?: string;
+				user_id?: string | null;
+				diploma?: DiplomaDetails | null;
+			} | null;
+
+			if (tokenError || !info || !info.found) {
 				setResult("invalid");
 				setLoading(false);
 				return;
 			}
 
 			// 2. Si NO tiene usuario asociado, redirigir al flujo de reclamo (QR)
-			if (!tokenData.user_id) {
+			if (!info.user_id) {
 				console.log('⚠️ Token no asociado, redirigiendo al flujo de reclamo');
 				navigate(`/qr/${verificationCode.trim()}`);
 				return;
 			}
 
 			// 3. Si tiene usuario, buscar su perfil público
-			if (tokenData.user_id) {
+			if (info.user_id) {
 				const { data: profileData } = await supabase
 					.from("profiles")
 					.select("id, full_name, public_profile_slug")
-					.eq("id", tokenData.user_id)
+					.eq("id", info.user_id)
 					.maybeSingle();
 
 				if (profileData) {
@@ -82,17 +89,11 @@ const DiplomaVerification = () => {
 				}
 			}
 
-			// 3. Buscar datos del diploma
-			const { data: diplomaData, error: diplomaError } = await supabase
-				.from("diplomas")
-				.select("*")
-				.eq("id", tokenData.diploma_id)
-				.single();
-
-			if (diplomaError || !diplomaData) {
+			// 4. Los datos del diploma vienen dentro de la respuesta de la RPC.
+			if (!info.diploma) {
 				setResult("invalid");
 			} else {
-				setDiploma(diplomaData);
+				setDiploma(info.diploma);
 				setResult("valid");
 			}
 		} catch (error) {

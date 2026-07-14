@@ -515,7 +515,7 @@ const Index = () => {
                       Condiciones de Vuelo en <span className="text-[#00b3f3]">Tiempo Real</span>
                     </h3>
                     <p className="text-xl text-muted-foreground leading-relaxed font-light">
-                      Potenciamos tu perfil profesional con tecnología de vanguardia. Accede a meteorología aeronáutica diseñada exclusivamente para pilotos de drones.
+                      Potenciamos tu perfil profesional con tecnología de vanguardia. Meteorología aeronáutica diseñada para pilotos de drones, disponible en el Plan Alumno Academia, exclusivo para alumnos de Academia Drone Chile.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {[
@@ -534,11 +534,13 @@ const Index = () => {
                       ))}
                     </div>
                     <Button
+                      asChild
                       className="h-14 px-8 rounded-2xl bg-[#083b4e] hover:bg-[#00b3f3] text-white font-bold transition-all shadow-xl shadow-[#083b4e]/10 group/btn"
-                      onClick={() => navigate('/planes')}
                     >
-                      Mejorar a Plan PRO
-                      <Zap className="ml-2 h-4 w-4 fill-current group-hover/btn:animate-bounce" />
+                      <a href="https://www.academiadronchile.cl" target="_blank" rel="noopener noreferrer">
+                        Conoce los cursos
+                        <Zap className="ml-2 h-4 w-4 fill-current group-hover/btn:animate-bounce" />
+                      </a>
                     </Button>
                   </div>
                 </div>
@@ -562,7 +564,7 @@ const Index = () => {
 
             {!results.length && featuredCompanies.length > 0 && (
               <section>
-                <div className="mb-12 text-center"><h3 className="text-3xl font-bold text-primary mb-2">Empresas Destacadas</h3><p className="text-muted-foreground">Empresas certificadas con Plan Empresa.</p></div>
+                <div className="mb-12 text-center"><h3 className="text-3xl font-bold text-primary mb-2">Empresas Destacadas</h3><p className="text-muted-foreground">Empresas certificadas que confían en nuestra red de pilotos.</p></div>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">{featuredCompanies.map(c => <div key={c.id}><PilotCard pilot={c} /></div>)}</div>
               </section>
             )}
@@ -608,9 +610,11 @@ const Index = () => {
 
       <section className="py-20 bg-accent/5 border-t">
         <div className="container mx-auto px-6 text-center max-w-4xl">
-          <h3 className="text-3xl md:text-4xl font-bold text-primary mb-4">El Plan Perfecto para Ti</h3>
-          <p className="text-xl text-muted-foreground mb-8">Desde Plan Gratis hasta Plan Empresa.</p>
-          <Button size="lg" onClick={() => navigate('/planes')} className="bg-accent px-10">Ver Planes y Precios</Button>
+          <h3 className="text-3xl md:text-4xl font-bold text-primary mb-4">El Plan Alumno Academia</h3>
+          <p className="text-xl text-muted-foreground mb-8">Todas las funciones profesionales son exclusivas para alumnos de Academia Drone Chile.</p>
+          <Button size="lg" asChild className="bg-accent px-10">
+            <a href="https://www.academiadronchile.cl" target="_blank" rel="noopener noreferrer">Conoce los cursos</a>
+          </Button>
         </div>
       </section>
       <Footer />

@@ -674,7 +674,7 @@ const PilotPortfolio = () => {
 				onOpenChange={setShowUpgradeModal}
 				requiredPlan="pro"
 				feature="Portafolio Profesional"
-				featureDescription="La galería de trabajos e integración de videos está disponible en el Plan Alumno Academia. Sube tus mejores tomas para impresionar a tus clientes."
+				featureDescription="La galería de trabajos e integración de videos es exclusiva del Plan Alumno Academia, disponible solo para alumnos de Academia Drone Chile."
 			/>
 
 			{/* Modal de edición */}

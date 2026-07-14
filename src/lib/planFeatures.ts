@@ -32,22 +32,6 @@ export const PLAN_LIMITS = {
 	MAX_FLIGHT_LOGS_PRO: -1, // -1 = ilimitado
 } as const;
 
-// Precios originales (antes del lanzamiento)
-export const ORIGINAL_PRICES = {
-	pro: 14990,
-} as const;
-
-// Precios de lanzamiento
-export const LAUNCH_PRICES = {
-	pro: 8000,
-} as const;
-
-// Precios actuales por plan (en CLP)
-export const PLAN_PRICES = {
-	free: 0,
-	pro: 8000, // Precio de lanzamiento
-} as const;
-
 // Características disponibles por plan
 export const PLAN_FEATURES: Record<PlanType, PlanFeatures> = {
 	free: {
@@ -111,28 +95,6 @@ export function getPlanDisplayName(plan: PlanType): string {
 		pro: 'Plan Alumno Academia',
 	};
 	return names[plan] ?? 'Plan Desconocido';
-}
-
-/**
- * Obtiene el precio del plan
- */
-export function getPlanPrice(plan: PlanType): number {
-	return PLAN_PRICES[plan] ?? 0;
-}
-
-/**
- * Obtiene el precio original del plan (antes del lanzamiento)
- * Retorna null si el plan no tiene precio original
- */
-export function getOriginalPrice(plan: PlanType): number | null {
-	return ORIGINAL_PRICES[plan as keyof typeof ORIGINAL_PRICES] ?? null;
-}
-
-/**
- * Verifica si un plan tiene precio de lanzamiento
- */
-export function hasLaunchPrice(plan: PlanType): boolean {
-	return plan === 'pro';
 }
 
 /**
