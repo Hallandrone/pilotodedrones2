@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AdBanner } from "@/components/ads/AdBanner";
 import {
@@ -17,15 +15,18 @@ import {
   Briefcase,
   Award,
   ArrowLeft,
-  MessageCircle,
   Share2,
   Copy,
   ExternalLink,
   Play,
   MonitorPlay,
   X,
-  Youtube
+  Youtube,
+  Instagram,
+  Linkedin,
+  Globe
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -144,26 +145,26 @@ const PublicPilotProfile = () => {
   const renderDiplomaCard = (diploma: Diploma) => (
     <div
       key={diploma.id}
-      className="group relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 bg-white select-none transition-all duration-500 hover:scale-[1.02] hover:shadow-[#00b3f3]/20 cursor-pointer"
+      className="group relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-sm ring-1 ring-zinc-200 bg-white select-none transition-shadow duration-300 hover:shadow-md cursor-pointer"
       onClick={() => navigate(`/verificar-diploma?codigo=${diploma.token}`)}
     >
       <img
         src="/DIPLOMA_2026.jpg"
-        className="absolute inset-0 w-full h-full object-cover opacity-80"
+        className="absolute inset-0 w-full h-full object-cover"
         alt="Diploma Background"
         onContextMenu={(e) => e.preventDefault()}
       />
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
         <p className="text-[4.5vw] sm:text-[2.2vw] font-serif font-bold text-black leading-tight mb-2 tracking-tight">{diploma.student_name}</p>
-        <p className="text-[3.5vw] sm:text-[1.6vw] font-bold text-[#00A8E1]">{diploma.course_title}</p>
+        <p className="text-[3.5vw] sm:text-[1.6vw] font-bold text-[#00b3f3]">{diploma.course_title}</p>
         <p className="text-[2vw] sm:text-[1vw] italic text-gray-500 mt-2 font-medium">
           {new Date(diploma.course_date).toLocaleDateString('es-CL')}
         </p>
       </div>
-      <div className="absolute inset-0 bg-transparent z-10 cursor-pointer group-hover:bg-[#00b3f3]/5 transition-colors"></div>
+      <div className="absolute inset-0 bg-zinc-950/0 group-hover:bg-zinc-950/[0.03] transition-colors z-10"></div>
       <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="bg-[#00b3f3] text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs font-bold shadow-lg">
-          <CheckCircle className="h-4 w-4" />
+        <div className="bg-[#083b4e]/90 backdrop-blur text-zinc-50 px-3 py-1.5 rounded-lg flex items-center gap-2 text-[11px] font-medium font-display tracking-wide shadow-sm">
+          <CheckCircle className="h-3.5 w-3.5 text-[#00b3f3]" strokeWidth={2} />
           Verificar en línea
         </div>
       </div>
@@ -644,10 +645,36 @@ const PublicPilotProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center font-inter">
-        <div className="relative z-10 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-b-[#00b3f3] mb-6"></div>
-          <p className="text-[#00b3f3] font-bold text-xl tracking-widest uppercase animate-pulse">Cargando perfil...</p>
+      <div className="min-h-screen bg-zinc-50 font-geist">
+        {/* Skeleton header */}
+        <div className="bg-white/80 backdrop-blur border-b border-zinc-200">
+          <div className="px-4 py-3 max-w-7xl mx-auto flex items-center gap-4">
+            <div className="h-9 w-9 rounded-lg bg-zinc-200 animate-pulse" />
+            <div className="h-9 w-9 rounded-lg bg-zinc-200 animate-pulse" />
+            <div className="h-4 w-40 rounded bg-zinc-200 animate-pulse" />
+          </div>
+        </div>
+        {/* Skeleton hero */}
+        <div className="px-4 py-8 md:py-12">
+          <div className="max-w-5xl mx-auto">
+            <div className="rounded-2xl border border-zinc-200 bg-white overflow-hidden">
+              <div className="h-36 md:h-44 bg-zinc-900 animate-pulse" />
+              <div className="px-6 md:px-10 pb-10">
+                <div className="-mt-14 mb-6 h-28 w-28 rounded-2xl bg-zinc-200 border-4 border-white animate-pulse" />
+                <div className="h-8 w-64 rounded bg-zinc-200 animate-pulse mb-3" />
+                <div className="h-4 w-40 rounded bg-zinc-200 animate-pulse mb-8" />
+                <div className="grid grid-cols-3 gap-6 mb-8">
+                  <div className="h-16 rounded bg-zinc-100 animate-pulse" />
+                  <div className="h-16 rounded bg-zinc-100 animate-pulse" />
+                  <div className="h-16 rounded bg-zinc-100 animate-pulse" />
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="h-28 rounded-xl bg-zinc-100 animate-pulse" />
+                  <div className="h-28 rounded-xl bg-zinc-100 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -655,52 +682,77 @@ const PublicPilotProfile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-inter">
-        <Card className="max-w-md w-full bg-white border border-gray-200 shadow-lg rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-center text-gray-900 text-3xl font-bold tracking-tight">Perfil no encontrado</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center text-gray-600 space-y-6">
-            <p className="text-lg">No se encontró el perfil profesional que buscas.</p>
-            <Button
-              onClick={() => navigate('/auth')}
-              className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-gray-900 font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
-            >
-              Volver al Inicio
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-4 font-geist">
+        <div className="max-w-md w-full text-center">
+          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#083b4e] text-zinc-100">
+            <Shield className="h-7 w-7" strokeWidth={1.5} />
+          </div>
+          <h1 className="font-display text-3xl font-semibold text-zinc-900 tracking-tight mb-3">
+            Perfil no encontrado
+          </h1>
+          <p className="text-zinc-500 leading-relaxed mb-8">
+            No pudimos encontrar el perfil profesional que buscas. Es posible que el enlace haya cambiado o ya no esté disponible.
+          </p>
+          <Button
+            onClick={() => navigate('/auth')}
+            className="h-11 px-6 rounded-xl bg-[#083b4e] hover:bg-[#0c4d63] text-zinc-50 font-medium transition-colors active:translate-y-px"
+          >
+            Volver al inicio
+          </Button>
+        </div>
       </div>
     );
   }
 
+  const heroContainer = {
+    hidden: {},
+    show: {
+      transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+    },
+  };
+  const heroItem = {
+    hidden: { opacity: 0, y: 16 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring" as const, stiffness: 100, damping: 20 },
+    },
+  };
+  const sectionReveal = {
+    initial: { opacity: 0, y: 16 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-60px" },
+    transition: { type: "spring" as const, stiffness: 100, damping: 20 },
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 font-inter">
+    <div className="min-h-screen bg-zinc-50 font-geist text-zinc-900">
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
-        <div className="px-4 py-2">
-          <div className="flex items-center gap-4 max-w-7xl mx-auto">
+      <div className="bg-white/85 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-50">
+        <div className="px-4 py-3">
+          <div className="flex items-center gap-3 max-w-7xl mx-auto">
             <Button
               variant="ghost"
               size="sm"
               onClick={handleBack}
-              className="h-10 w-10 rounded-full hover:bg-gray-100 hover:scale-110 transition-all duration-300 text-gray-700"
+              className="h-9 w-9 rounded-lg text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 transition-colors active:translate-y-px"
             >
-              <ArrowLeft className="h-6 w-6" />
+              <ArrowLeft className="h-5 w-5" />
             </Button>
             <Logo
-              size="lg"
+              size="md"
               showText={false}
-              className="flex-shrink-0 hover:scale-110 transition-all duration-300 filter drop-shadow-[0_0_15px_rgba(0,179,243,0.3)]"
+              className="flex-shrink-0"
             />
+            <div className="h-6 w-px bg-zinc-200 mx-1 hidden sm:block" />
             <div className="flex flex-col min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight leading-tight truncate">
+              <span className="text-[10px] sm:text-[11px] text-[#00b3f3] font-medium uppercase tracking-[0.18em] leading-none mb-1 font-display">
                 {isCompany ? 'Perfil de Empresa' : 'Perfil Profesional'}
-              </h1>
-              <p className="text-[10px] sm:text-sm text-gray-500 font-semibold uppercase tracking-widest leading-none truncate">
+              </span>
+              <h1 className="text-sm sm:text-base font-semibold text-zinc-900 tracking-tight leading-none truncate font-display">
                 {isCompany && companyData?.company_name ? companyData.company_name : profile.full_name}
-              </p>
+              </h1>
             </div>
           </div>
         </div>
@@ -713,422 +765,442 @@ const PublicPilotProfile = () => {
           <AdBanner position="Superior" />
 
           {/* Profile Header Card */}
-          <Card className="bg-white border border-gray-200 shadow-lg rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-            <CardContent className="p-0">
-              {/* Header Section */}
-              <div className="bg-gradient-to-br from-[#00b3f3]/10 via-gray-50 to-[#00b3f3]/5 p-8 md:p-10 border-b border-gray-200">
-                <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
-                  {/* Avatar Section */}
-                  <div className="flex flex-col items-center gap-6 w-full lg:w-auto">
-                    <div className="relative">
-                      <div className="h-40 w-40 bg-gray-100 rounded-2xl flex items-center justify-center text-5xl font-semibold text-gray-700 border-4 border-gray-200 shadow-lg ring-4 ring-[#00b3f3]/10">
-                        {profile.avatar_url ? (
-                          <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-full w-full rounded-2xl object-cover" />
-                        ) : (
-                          <img
-                            src="/piloto de drones-logo.png"
-                            alt="Piloto de Drones"
-                            className="h-full w-full rounded-2xl object-contain p-2 opacity-80"
-                          />
-                        )}
-                      </div>
-                      {(pilotData?.certification_status || companyData?.certification_status) && (
-                        <div className="absolute -bottom-2 -right-2 bg-[#00b3f3] rounded-full p-2 border-4 border-white shadow-md">
-                          <CheckCircle className="h-5 w-5 text-gray-900" />
-                        </div>
-                      )}
-                    </div>
-                  </div>
+          <motion.div
+            variants={heroContainer}
+            initial="hidden"
+            animate="show"
+            className="relative bg-white border border-zinc-200 rounded-2xl overflow-hidden shadow-sm"
+          >
+            {/* Deep teal sky band (brand, evokes altitude) */}
+            <div className="relative h-36 md:h-44 bg-[#083b4e] overflow-hidden">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(120% 140% at 85% -20%, rgba(0,179,243,0.22) 0%, rgba(8,59,78,0) 55%), linear-gradient(180deg, #0a4a5f 0%, #062e3d 100%)",
+                }}
+              />
+              {/* Fine horizon line */}
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-[#00b3f3]/20" />
+              {/* Category label, top-right */}
+              <motion.div
+                variants={heroItem}
+                className="absolute top-5 right-6 hidden sm:flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-zinc-400 font-display"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-[#00b3f3]" />
+                {isCompany ? 'Operador · Empresa' : 'Piloto · Operador'}
+              </motion.div>
+            </div>
 
-                  {/* Info Section */}
-                  <div className="flex-1 w-full text-center lg:text-left">
-                    <div className="flex flex-col lg:flex-row lg:items-start gap-4 mb-6">
-                      <div className="flex-1">
-                        <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-2 tracking-tight">
-                          {isCompany && companyData?.company_name ? companyData.company_name : profile.full_name}
-                        </h1>
-                        {profile.location && (
-                          <p className="text-[#00b3f3] text-lg flex items-center gap-2 justify-center lg:justify-start mb-4 font-medium">
-                            <MapPin className="h-5 w-5" />
-                            {profile.location}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-                        {pilotData?.certification_status && (
-                          <Badge className="bg-[#00b3f3] text-white border-0 px-4 py-2 text-sm font-semibold rounded-xl shadow-[0_0_15px_rgba(0,179,243,0.3)]">
-                            <Shield className="h-4 w-4 mr-2" />
-                            Perfil Certificado
-                          </Badge>
-                        )}
-                        {companyData?.certification_status && (
-                          <Badge className="bg-[#00b3f3] text-white border-0 px-4 py-2 text-sm font-semibold rounded-xl shadow-[0_0_15px_rgba(0,179,243,0.3)]">
-                            <Shield className="h-4 w-4 mr-2" />
-                            Empresa Certificada
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Share Buttons */}
-                    <div className="flex flex-wrap gap-3 justify-center lg:justify-start mb-6">
-                      <Button
-                        onClick={handleShare}
-                        className="bg-[#00b3f3] text-white hover:bg-[#0099cc] font-semibold flex items-center gap-2"
-                      >
-                        <Share2 className="h-4 w-4" />
-                        Compartir Perfil
-                      </Button>
-                      <Button
-                        onClick={handleCopyLink}
-                        variant="outline"
-                        className="border-[#00b3f3] text-[#00b3f3] hover:bg-[#00b3f3]/10 font-semibold flex items-center gap-2"
-                      >
-                        <Copy className="h-4 w-4" />
-                        Copiar Link
-                      </Button>
-                    </div>
-
-                    {profile.bio && (
-                      <div className="bg-[#00b3f3]/10 backdrop-blur-md rounded-2xl p-6 mb-8 border border-gray-200 shadow-inner">
-                        <p className="text-gray-700 text-lg leading-relaxed italic">"{profile.bio}"</p>
-                      </div>
+            <div className="px-6 md:px-10 pb-8 md:pb-10">
+              {/* Avatar overlapping the band */}
+              <motion.div variants={heroItem} className="relative -mt-16 md:-mt-20 mb-6 w-fit">
+                <div className="h-28 w-28 md:h-32 md:w-32 rounded-2xl bg-white p-1.5 shadow-md ring-1 ring-zinc-200">
+                  <div className="h-full w-full rounded-xl bg-zinc-100 overflow-hidden flex items-center justify-center">
+                    {profile.avatar_url ? (
+                      <img src={profile.avatar_url} alt={profile.full_name || ''} className="h-full w-full object-cover" />
+                    ) : (
+                      <img
+                        src="/piloto de drones-logo.png"
+                        alt="Piloto de Drones"
+                        className="h-full w-full object-contain p-3 opacity-70"
+                      />
                     )}
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                      {/* Flight Hours */}
-                      <div className="flex flex-col gap-2">
-                        <div className="relative bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
-                          <div className="flex justify-between items-start mb-3">
-                            <Clock className="h-8 w-8 text-[#00b3f3] group-hover:scale-110 transition-transform" />
-                            {isFlightHoursValidated && (
-                              <div className="bg-green-100 p-1.5 rounded-full shadow-sm border border-green-200" title="Información Certificada">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-gray-900 text-4xl font-bold mb-1">{flightHours}</div>
-                          <div className="text-[#00b3f3]/70 text-sm font-bold uppercase tracking-wider">Horas de Vuelo</div>
-                        </div>
-                        {isFlightHoursValidated && (
-                          <div className="flex items-center gap-2 px-2 text-[10px] text-green-600 font-bold uppercase tracking-tighter italic">
-                            <Shield className="h-3 w-3" />
-                            Horas certificadas con documentos oficiales
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Experience */}
-                      {profile.experience_years && profile.experience_years > 0 && (
-                        <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6 hover:border-[#00b3f3]/50 transition-all duration-300 hover:scale-105 group">
-                          <Star className="h-8 w-8 text-[#00b3f3] mb-3 group-hover:scale-110 transition-transform" />
-                          <div className="text-gray-900 text-4xl font-bold mb-1">{profile.experience_years}</div>
-                          <div className="text-[#00b3f3]/70 text-sm font-bold uppercase tracking-wider">Años Experiencia</div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Certification Badge */}
-                    {pilotData?.certification_academy && (
-                      <div className="bg-[#00b3f3]/10 border-2 border-gray-200 rounded-2xl p-6 mb-8 flex items-center gap-5">
-                        <div className="bg-[#00b3f3] rounded-xl p-4 shadow-[0_0_20px_rgba(0,179,243,0.4)]">
-                          <Award className="h-10 w-10 text-white" />
-                        </div>
-                        <div>
-                          <div className="text-[#00b3f3]/70 font-bold text-xs uppercase tracking-[0.2em] mb-1">Certificado por</div>
-                          <div className="text-gray-900 font-bold text-2xl">{pilotData.certification_academy}</div>
-                        </div>
-                      </div>
-                    )}
-                    {companyData?.certification_status && (
-                      <div className="bg-[#00b3f3]/20 border-2 border-[#00b3f3]/40 rounded-2xl p-6 mb-8 flex items-center gap-5">
-                        <div className="bg-[#00b3f3] rounded-xl p-4 shadow-[0_0_20px_rgba(0,179,243,0.4)]">
-                          <Shield className="h-10 w-10 text-gray-900" />
-                        </div>
-                        <div>
-                          <div className="text-[#00b3f3]/70 font-bold text-xs uppercase tracking-[0.2em] mb-1">Empresa Certificada</div>
-                          <div className="text-gray-900 font-bold text-2xl">Validada y verificada</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Specialties & Drones Grid */}
-                    <div className="grid md:grid-cols-2 gap-6">
-                      {/* Specialties */}
-                      {profile.specialties && profile.specialties.length > 0 && (
-                        <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6">
-                          <h3 className="text-gray-900 font-bold mb-5 text-xl flex items-center gap-3">
-                            <div className="h-2 w-2 bg-[#00b3f3] rounded-full animate-pulse"></div>
-                            Especialidades
-                          </h3>
-                          <div className="flex flex-wrap gap-2">
-                            {profile.specialties.map((specialty, index) => (
-                              <Badge key={index} className="bg-[#00b3f3]/10 text-gray-900 border-2 border-gray-200 px-3 py-1.5 text-sm font-medium hover:bg-[#00b3f3]/20 transition-all rounded-lg">
-                                {specialty}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Drone Types */}
-                      {profile.drone_types && profile.drone_types.length > 0 && (
-                        <div className="bg-white backdrop-blur-md border-2 border-gray-200 rounded-2xl p-6">
-                          <h3 className="text-gray-900 font-bold mb-5 text-xl flex items-center gap-3">
-                            <div className="h-2 w-2 bg-[#00b3f3] rounded-full animate-pulse"></div>
-                            Tipos de Drones
-                          </h3>
-                          <div className="flex flex-wrap gap-2">
-                            {profile.drone_types.map((drone, index) => (
-                              <Badge key={index} className="bg-[#00b3f3]/10 text-gray-900 border-2 border-gray-200 px-3 py-1.5 text-sm font-medium hover:bg-[#00b3f3]/20 transition-all rounded-lg">
-                                {drone}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                {(pilotData?.certification_status || companyData?.certification_status) && (
+                  <div className="absolute -bottom-1.5 -right-1.5 bg-[#00b3f3] rounded-lg p-1.5 ring-2 ring-white">
+                    <CheckCircle className="h-4 w-4 text-white" strokeWidth={2} />
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Name + location + cert badge */}
+              <motion.div variants={heroItem} className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-7">
+                <div className="min-w-0">
+                  <h1 className="font-display text-3xl md:text-[2.75rem] leading-[1.05] font-semibold text-zinc-900 tracking-tight">
+                    {isCompany && companyData?.company_name ? companyData.company_name : profile.full_name}
+                  </h1>
+                  {profile.location && (
+                    <p className="mt-3 text-zinc-500 text-sm flex items-center gap-1.5">
+                      <MapPin className="h-4 w-4 text-[#00b3f3]" strokeWidth={1.75} />
+                      {profile.location}
+                    </p>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 md:justify-end shrink-0">
+                  {pilotData?.certification_status && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#00b3f3] border border-[#00b3f3]/30 bg-[#00b3f3]/5 rounded-full font-display tracking-wide">
+                      <Shield className="h-3.5 w-3.5" strokeWidth={2} />
+                      Perfil Certificado
+                    </span>
+                  )}
+                  {companyData?.certification_status && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#00b3f3] border border-[#00b3f3]/30 bg-[#00b3f3]/5 rounded-full font-display tracking-wide">
+                      <Shield className="h-3.5 w-3.5" strokeWidth={2} />
+                      Empresa Certificada
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+
+              {/* Share Buttons */}
+              <motion.div variants={heroItem} className="flex flex-wrap gap-2.5 mb-8">
+                <Button
+                  onClick={handleShare}
+                  className="h-10 px-4 rounded-lg bg-[#083b4e] hover:bg-[#0c4d63] text-zinc-50 text-sm font-medium flex items-center gap-2 transition-colors active:translate-y-px shadow-none"
+                >
+                  <Share2 className="h-4 w-4" strokeWidth={1.75} />
+                  Compartir Perfil
+                </Button>
+                <Button
+                  onClick={handleCopyLink}
+                  variant="outline"
+                  className="h-10 px-4 rounded-lg border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 text-sm font-medium flex items-center gap-2 transition-colors active:translate-y-px"
+                >
+                  <Copy className="h-4 w-4" strokeWidth={1.75} />
+                  Copiar Link
+                </Button>
+              </motion.div>
+
+              {profile.bio && (
+                <motion.div variants={heroItem} className="border-l-2 border-[#00b3f3]/40 pl-5 mb-9">
+                  <p className="text-zinc-600 text-[15px] md:text-base leading-relaxed">{profile.bio}</p>
+                </motion.div>
+              )}
+
+              {/* Stats row — métricas que respiran, separadas por líneas */}
+              <motion.div variants={heroItem} className="border-y border-zinc-200 divide-y sm:divide-y-0 sm:divide-x divide-zinc-200 grid grid-cols-1 sm:grid-cols-2 mb-9">
+                {/* Flight Hours */}
+                <div className="py-5 sm:pr-8 flex flex-col">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4 text-[#00b3f3]" strokeWidth={1.75} />
+                    <span className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 font-medium font-display">Horas de Vuelo</span>
+                    {isFlightHoursValidated && (
+                      <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600" title="Información Certificada">
+                        <CheckCircle className="h-3.5 w-3.5" strokeWidth={2} />
+                        Certificado
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-display text-4xl md:text-5xl font-semibold text-zinc-900 tabular-nums leading-none">{flightHours}</span>
+                  {isFlightHoursValidated && (
+                    <span className="mt-2 flex items-center gap-1.5 text-[11px] text-zinc-400">
+                      <Shield className="h-3 w-3" strokeWidth={1.75} />
+                      Verificadas con documentos oficiales
+                    </span>
+                  )}
+                </div>
+
+                {/* Experience */}
+                {profile.experience_years && profile.experience_years > 0 && (
+                  <div className="py-5 sm:pl-8 flex flex-col">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="h-4 w-4 text-[#00b3f3]" strokeWidth={1.75} />
+                      <span className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 font-medium font-display">Años de Experiencia</span>
+                    </div>
+                    <span className="font-display text-4xl md:text-5xl font-semibold text-zinc-900 tabular-nums leading-none">{profile.experience_years}</span>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Certification / trust block */}
+              {pilotData?.certification_academy && (
+                <motion.div variants={heroItem} className="flex items-center gap-4 p-5 rounded-xl bg-zinc-50 border border-zinc-200 mb-9">
+                  <div className="shrink-0 flex h-12 w-12 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100">
+                    <Award className="h-6 w-6" strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 font-medium font-display mb-1">Certificado por</div>
+                    <div className="font-display text-lg md:text-xl font-semibold text-zinc-900 tracking-tight truncate">{pilotData.certification_academy}</div>
+                  </div>
+                </motion.div>
+              )}
+              {companyData?.certification_status && (
+                <motion.div variants={heroItem} className="flex items-center gap-4 p-5 rounded-xl bg-zinc-50 border border-zinc-200 mb-9">
+                  <div className="shrink-0 flex h-12 w-12 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100">
+                    <Shield className="h-6 w-6" strokeWidth={1.5} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 font-medium font-display mb-1">Empresa Certificada</div>
+                    <div className="font-display text-lg md:text-xl font-semibold text-zinc-900 tracking-tight">Validada y verificada</div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Specialties & Drones */}
+              <motion.div variants={heroItem} className="grid md:grid-cols-2 gap-8">
+                {/* Specialties */}
+                {profile.specialties && profile.specialties.length > 0 && (
+                  <div>
+                    <h3 className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 font-medium font-display mb-3">Especialidades</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.specialties.map((specialty, index) => (
+                        <span key={index} className="inline-flex items-center px-3 py-1.5 text-[13px] font-medium text-zinc-700 bg-white border border-zinc-200 rounded-md hover:border-[#00b3f3]/40 hover:text-zinc-900 transition-colors">
+                          {specialty}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Drone Types */}
+                {profile.drone_types && profile.drone_types.length > 0 && (
+                  <div>
+                    <h3 className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 font-medium font-display mb-3">Tipos de Drones</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.drone_types.map((drone, index) => (
+                        <span key={index} className="inline-flex items-center px-3 py-1.5 text-[13px] font-medium text-zinc-700 bg-white border border-zinc-200 rounded-md hover:border-[#00b3f3]/40 hover:text-zinc-900 transition-colors">
+                          {drone}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          </motion.div>
 
 
           {/* Redes Sociales - Solo si tiene */}
           {(profile.instagram_url || profile.instagram_username || profile.linkedin_url || profile.linkedin_username || profile.youtube_url) && (
-            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-              <CardHeader className="bg-white border-b border-gray-200">
-                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
-                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
-                    <MessageCircle className="h-6 w-6 text-[#00b3f3]" />
-                  </div>
-                  Redes Sociales
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  {(profile.instagram_url || profile.instagram_username) && (
-                    <a
-                      href={profile.instagram_url || `https://instagram.com/${profile.instagram_username}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
-                    >
-                      <div className="h-14 w-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-                        <span className="text-gray-900 text-2xl font-bold">📷</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">Instagram</p>
-                        <p className="font-bold text-gray-900 text-lg">
-                          @{profile.instagram_username || (profile.instagram_url ? profile.instagram_url.split('/').pop() : '')}
-                        </p>
-                      </div>
-                    </a>
-                  )}
-                  {(profile.linkedin_url || profile.linkedin_username) && (
-                    <a
-                      href={profile.linkedin_url || `https://linkedin.com/in/${profile.linkedin_username}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
-                    >
-                      <div className="h-14 w-14 bg-[#0077b5] rounded-xl flex items-center justify-center transform group-hover:-rotate-12 transition-transform shadow-[0_0_15px_rgba(0,119,181,0.4)]">
-                        <span className="text-gray-900 text-2xl font-bold">💼</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">LinkedIn</p>
-                        <p className="font-bold text-gray-900 text-lg">
-                          {profile.linkedin_username || (profile.linkedin_url ? profile.linkedin_url.split('/').pop() : '')}
-                        </p>
-                      </div>
-                    </a>
-                  )}
-                  {profile.youtube_url && (
-                    <a
-                      href={profile.youtube_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all sm:col-span-2 md:col-span-1"
-                    >
-                      <div className="h-14 w-14 bg-red-600 rounded-xl flex items-center justify-center transform group-hover:rotate-6 transition-transform shadow-[0_0_15px_rgba(220,38,38,0.4)]">
-                        <Youtube className="h-7 w-7 text-white fill-current" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">YouTube</p>
-                        <p className="font-bold text-gray-900 text-lg">Canal de Contenido</p>
-                      </div>
-                    </a>
-                  )}
+            <motion.section
+              {...sectionReveal}
+              className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 md:p-8"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
+                  <Share2 className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-              </CardContent>
-            </Card>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Redes Sociales</h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(profile.instagram_url || profile.instagram_username) && (
+                  <a
+                    href={profile.instagram_url || `https://instagram.com/${profile.instagram_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3.5 p-4 rounded-xl border border-zinc-200 bg-white hover:border-[#00b3f3]/40 hover:bg-zinc-50 transition-colors"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700 group-hover:text-[#00b3f3] transition-colors shrink-0">
+                      <Instagram className="h-5 w-5" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400 font-medium font-display mb-0.5">Instagram</p>
+                      <p className="font-medium text-zinc-900 text-sm truncate">
+                        @{profile.instagram_username || (profile.instagram_url ? profile.instagram_url.split('/').pop() : '')}
+                      </p>
+                    </div>
+                    <ExternalLink className="ml-auto h-4 w-4 text-zinc-300 group-hover:text-[#00b3f3] transition-colors shrink-0" strokeWidth={1.75} />
+                  </a>
+                )}
+                {(profile.linkedin_url || profile.linkedin_username) && (
+                  <a
+                    href={profile.linkedin_url || `https://linkedin.com/in/${profile.linkedin_username}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3.5 p-4 rounded-xl border border-zinc-200 bg-white hover:border-[#00b3f3]/40 hover:bg-zinc-50 transition-colors"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700 group-hover:text-[#00b3f3] transition-colors shrink-0">
+                      <Linkedin className="h-5 w-5" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400 font-medium font-display mb-0.5">LinkedIn</p>
+                      <p className="font-medium text-zinc-900 text-sm truncate">
+                        {profile.linkedin_username || (profile.linkedin_url ? profile.linkedin_url.split('/').pop() : '')}
+                      </p>
+                    </div>
+                    <ExternalLink className="ml-auto h-4 w-4 text-zinc-300 group-hover:text-[#00b3f3] transition-colors shrink-0" strokeWidth={1.75} />
+                  </a>
+                )}
+                {profile.youtube_url && (
+                  <a
+                    href={profile.youtube_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center gap-3.5 p-4 rounded-xl border border-zinc-200 bg-white hover:border-[#00b3f3]/40 hover:bg-zinc-50 transition-colors"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700 group-hover:text-[#00b3f3] transition-colors shrink-0">
+                      <Youtube className="h-5 w-5" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400 font-medium font-display mb-0.5">YouTube</p>
+                      <p className="font-medium text-zinc-900 text-sm truncate">Canal de Contenido</p>
+                    </div>
+                    <ExternalLink className="ml-auto h-4 w-4 text-zinc-300 group-hover:text-[#00b3f3] transition-colors shrink-0" strokeWidth={1.75} />
+                  </a>
+                )}
+              </div>
+            </motion.section>
           )}
 
           {/* Servicios Card - Solo para empresas */}
           {isCompany && profile.services && profile.services.length > 0 && (
-            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-              <CardHeader className="bg-white border-b border-gray-200">
-                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
-                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
-                    <Briefcase className="h-6 w-6 text-[#00b3f3]" />
-                  </div>
-                  Servicios que Prestamos
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="flex flex-wrap gap-3 p-2">
-                  {profile.services.map((service, index) => (
-                    <Badge
-                      key={index}
-                      className="bg-[#00b3f3] text-white border-0 px-5 py-2.5 text-base font-bold hover:bg-[#0099cc] transition-all rounded-xl shadow-[0_0_10px_rgba(0,179,243,0.2)]"
-                    >
-                      {service}
-                    </Badge>
-                  ))}
+            <motion.section
+              {...sectionReveal}
+              className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 md:p-8"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
+                  <Briefcase className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-              </CardContent>
-            </Card>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Servicios que Prestamos</h2>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {profile.services.map((service, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center px-3.5 py-2 text-[13px] font-medium text-zinc-700 bg-white border border-zinc-200 rounded-lg hover:border-[#00b3f3]/40 hover:text-zinc-900 transition-colors"
+                  >
+                    {service}
+                  </span>
+                ))}
+              </div>
+            </motion.section>
           )}
 
           {/* Website Card - Solo si tiene website */}
           {isCompany && profile.website && (
-            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-              <CardHeader className="bg-white border-b border-gray-200">
-                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
-                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
-                    <Mail className="h-6 w-6 text-[#00b3f3]" />
-                  </div>
-                  Sitio Web
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <a
-                  href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
-                >
-                  <div className="h-14 w-14 bg-[#00b3f3] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,179,243,0.4)]">
-                    <span className="text-white text-2xl font-bold">🌐</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">Visita nuestro sitio web</p>
-                    <p className="font-bold text-[#00b3f3] text-lg break-all">{profile.website}</p>
-                  </div>
-                </a>
-              </CardContent>
-            </Card>
+            <motion.section
+              {...sectionReveal}
+              className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 md:p-8"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
+                  <Globe className="h-4 w-4" strokeWidth={1.75} />
+                </div>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Sitio Web</h2>
+              </div>
+              <a
+                href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3.5 p-4 rounded-xl border border-zinc-200 bg-white hover:border-[#00b3f3]/40 hover:bg-zinc-50 transition-colors"
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 text-zinc-700 group-hover:text-[#00b3f3] transition-colors shrink-0">
+                  <Globe className="h-5 w-5" strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400 font-medium font-display mb-0.5">Visita nuestro sitio</p>
+                  <p className="font-medium text-zinc-900 text-sm truncate group-hover:text-[#00b3f3] transition-colors">{profile.website}</p>
+                </div>
+                <ExternalLink className="ml-auto h-4 w-4 text-zinc-300 group-hover:text-[#00b3f3] transition-colors shrink-0" strokeWidth={1.75} />
+              </a>
+            </motion.section>
           )}
 
 
           {/* Portafolio Profesional */}
           {portfolio.length > 0 && (
-            <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300 my-8">
-              <CardHeader className="bg-white border-b border-gray-200">
-                <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
-                  <div className="bg-[#00b3f3]/10 rounded-lg p-2">
-                    <MonitorPlay className="h-6 w-6 text-[#00b3f3]" />
-                  </div>
-                  Portafolio Profesional
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {portfolio.map((item) => (
-                    <div key={item.id} className="group relative bg-gray-50 rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-[#00b3f3]/50 transition-all duration-300 shadow-sm hover:shadow-xl">
-                      <div className="aspect-video relative overflow-hidden bg-gray-200">
-                        {item.type === 'image' ? (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <div className="cursor-zoom-in w-full h-full">
-                                <img
-                                  src={item.url}
-                                  alt={item.title}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                />
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-4xl bg-black/90 border-0 p-0 overflow-hidden">
-                              <DialogClose className="absolute top-4 right-4 z-50 rounded-full bg-white/10 p-2 hover:bg-white/20 text-white transition-all backdrop-blur-md">
-                                <X className="h-6 w-6" />
-                              </DialogClose>
-                              <img src={item.url} alt={item.title} className="w-full h-auto max-h-[85vh] object-contain" />
-                              <div className="p-6 bg-black/50 backdrop-blur-md">
-                                <h3 className="text-white text-xl font-bold">{item.title}</h3>
-                                {item.description && <p className="text-white/70 mt-2">{item.description}</p>}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        ) : (
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-full h-full relative group/video cursor-pointer"
-                          >
-                            {getYouTubeId(item.url) ? (
-                              <>
-                                <img
-                                  src={`https://img.youtube.com/vi/${getYouTubeId(item.url)}/hqdefault.jpg`}
-                                  className="w-full h-full object-cover group-hover/video:scale-110 transition-transform duration-500"
-                                  alt={item.title}
-                                />
-                                <div className="absolute inset-0 bg-black/40 group-hover/video:bg-black/20 transition-colors flex items-center justify-center">
-                                  <div className="h-12 w-12 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover/video:scale-125 transition-transform duration-300">
-                                    <Play className="h-6 w-6 text-white fill-current ml-0.5" />
-                                  </div>
+            <motion.section
+              {...sectionReveal}
+              className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 md:p-8"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
+                  <MonitorPlay className="h-4 w-4" strokeWidth={1.75} />
+                </div>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Portafolio Profesional</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {portfolio.map((item) => (
+                  <div key={item.id} className="group relative bg-white rounded-xl overflow-hidden border border-zinc-200 hover:border-[#00b3f3]/40 transition-all duration-300 shadow-sm hover:shadow-md">
+                    <div className="aspect-video relative overflow-hidden bg-zinc-100">
+                      {item.type === 'image' ? (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <div className="cursor-zoom-in w-full h-full">
+                              <img
+                                src={item.url}
+                                alt={item.title}
+                                className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                              />
+                            </div>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl bg-[#083b4e]/95 border-0 p-0 overflow-hidden rounded-2xl">
+                            <DialogClose className="absolute top-4 right-4 z-50 rounded-full bg-white/10 p-2 hover:bg-white/20 text-white transition-colors backdrop-blur-md">
+                              <X className="h-5 w-5" strokeWidth={1.75} />
+                            </DialogClose>
+                            <img src={item.url} alt={item.title} className="w-full h-auto max-h-[85vh] object-contain" />
+                            <div className="p-6 bg-[#083b4e]/60 backdrop-blur-md">
+                              <h3 className="font-display text-white text-lg font-semibold tracking-tight">{item.title}</h3>
+                              {item.description && <p className="text-zinc-300 text-sm mt-1.5 leading-relaxed">{item.description}</p>}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      ) : (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-full h-full relative group/video cursor-pointer"
+                        >
+                          {getYouTubeId(item.url) ? (
+                            <>
+                              <img
+                                src={`https://img.youtube.com/vi/${getYouTubeId(item.url)}/hqdefault.jpg`}
+                                className="w-full h-full object-cover group-hover/video:scale-[1.04] transition-transform duration-500"
+                                alt={item.title}
+                              />
+                              <div className="absolute inset-0 bg-zinc-950/40 group-hover/video:bg-zinc-950/25 transition-colors flex items-center justify-center">
+                                <div className="h-12 w-12 bg-white/95 rounded-full flex items-center justify-center shadow-md">
+                                  <Play className="h-5 w-5 text-zinc-950 fill-current ml-0.5" />
                                 </div>
-                              </>
-                            ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#083b4e]">
-                                <Play className="h-10 w-10 text-white/50" />
-                                <span className="text-white/50 text-xs font-mono">VER VIDEO</span>
                               </div>
-                            )}
-                          </a>
-                        )}
-                        <div className="absolute top-2 left-2">
-                          <Badge className={item.type === 'image' ? "bg-[#00b3f3] text-white" : "bg-red-600 text-white"}>
-                            {item.type === 'image' ? 'TRABAJO' : 'VIDEO'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="p-4 bg-white border-t-2 border-gray-100">
-                        <h4 className="font-bold text-gray-900 group-hover:text-[#00b3f3] transition-colors truncate">{item.title}</h4>
-                        {item.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>}
+                            </>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#083b4e]">
+                              <Play className="h-9 w-9 text-zinc-500" strokeWidth={1.5} />
+                              <span className="text-zinc-400 text-[11px] uppercase tracking-[0.16em] font-display">Ver Video</span>
+                            </div>
+                          )}
+                        </a>
+                      )}
+                      <div className="absolute top-2.5 left-2.5">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] uppercase tracking-[0.14em] font-medium font-display bg-[#083b4e]/80 backdrop-blur text-zinc-50">
+                          {item.type === 'image' ? 'Trabajo' : 'Video'}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <div className="p-4 border-t border-zinc-200">
+                      <h4 className="font-medium text-zinc-900 group-hover:text-[#00b3f3] transition-colors truncate">{item.title}</h4>
+                      {item.description && <p className="text-xs text-zinc-500 mt-1 line-clamp-2 leading-relaxed">{item.description}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.section>
           )}
 
 
           {/* Capacitaciones y Diplomas Section */}
           {(diplomas.length > 0 || userCertifications.length > 0) && (
-            <div className="space-y-8 my-16">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-12 w-12 bg-[#00b3f3] rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(0,179,243,0.4)]">
-                  <Award className="h-7 w-7 text-white" />
+            <motion.section {...sectionReveal} className="bg-white border border-zinc-200 rounded-2xl shadow-sm p-6 md:p-8">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
+                  <Award className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Capacitaciones y Diplomas</h2>
+                <div>
+                  <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 font-medium font-display">Formación certificada</div>
+                  <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Capacitaciones y Diplomas</h2>
+                </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <p className="text-sm text-zinc-500 leading-relaxed mb-6 max-w-2xl">
+                Diplomas y certificados emitidos por academias acreditadas. Cada documento es verificable en línea.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Official Diplomas */}
                 {diplomas.length > 2 ? (
                   <Accordion type="single" collapsible className="w-full col-span-1 md:col-span-2">
                     <AccordionItem value="diplomas" className="border-none">
-                      <AccordionTrigger className="hover:no-underline py-4 px-6 bg-blue-50/50 rounded-2xl group transition-all">
+                      <AccordionTrigger className="hover:no-underline py-4 px-5 bg-zinc-50 border border-zinc-200 rounded-xl group transition-colors data-[state=open]:rounded-b-none">
                         <div className="flex items-center gap-3">
-                          <Award className="h-6 w-6 text-[#00b3f3]" />
-                          <span className="font-bold text-xl text-gray-900">Ver {diplomas.length} Diplomas Oficiales</span>
+                          <Award className="h-5 w-5 text-[#00b3f3]" strokeWidth={1.75} />
+                          <span className="font-display font-semibold text-base text-zinc-900 tracking-tight">Ver {diplomas.length} Diplomas Oficiales</span>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent className="pt-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <AccordionContent className="pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           {diplomas.map((diploma) => renderDiplomaCard(diploma))}
                         </div>
                       </AccordionContent>
@@ -1142,7 +1214,7 @@ const PublicPilotProfile = () => {
                 {userCertifications
                   .filter(cert => /\.(jpg|jpeg|png|webp)$/i.test(cert.file_name))
                   .map((cert) => (
-                    <div key={cert.id} className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-100 group bg-white select-none">
+                    <div key={cert.id} className="relative aspect-[1.414/1] w-full rounded-2xl overflow-hidden shadow-sm ring-1 ring-zinc-200 group bg-white select-none">
                       <img
                         src={cert.signedUrl}
                         className="w-full h-full object-cover"
@@ -1157,142 +1229,146 @@ const PublicPilotProfile = () => {
                     </div>
                   ))}
               </div>
-            </div>
+            </motion.section>
           )}
 
 
-          {/* Contact Form Card - Solo para usuarios con suscripción activa */}
-          {hasActiveSubscription && (
-            <Card className="bg-gradient-to-br from-[#00b3f3] to-[#0099cc] border-0 shadow-2xl rounded-3xl overflow-hidden">
-              <CardHeader className="bg-white/10 border-b border-white/20">
-                <CardTitle className="text-white text-2xl font-bold flex items-center gap-3">
-                  <div className="bg-white/20 rounded-lg p-2">
-                    <MessageCircle className="h-6 w-6 text-white" />
-                  </div>
-                  ¿Interesado en mis servicios?
-                </CardTitle>
-                <CardDescription className="text-white/90 text-base mt-2">
-                  Déjame tus datos y te contactaré a la brevedad
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 text-lg rounded-xl shadow-lg transition-all hover:scale-105">
-                      <Phone className="h-5 w-5 mr-2" />
-                      Te llamaremos
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Déjanos tus datos</DialogTitle>
-                      <DialogDescription>
-                        Te contactaremos a la brevedad para ofrecerte nuestros servicios
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleContactSubmit} className="space-y-4">
-                      <div>
-                        <Label htmlFor="name">Nombre completo *</Label>
-                        <Input
-                          id="name"
-                          required
-                          value={contactForm.name}
-                          onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                          placeholder="Tu nombre"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="email">Email *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          required
-                          value={contactForm.email}
-                          onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                          placeholder="tu@email.com"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Teléfono</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          value={contactForm.phone}
-                          onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
-                          placeholder="+56 9 1234 5678"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="message">Mensaje (opcional)</Label>
-                        <Textarea
-                          id="message"
-                          value={contactForm.message}
-                          onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                          placeholder="Cuéntanos sobre tu proyecto..."
-                          className="mt-1 min-h-[100px]"
-                        />
-                      </div>
-                      <Button
-                        type="submit"
-                        disabled={submittingContact}
-                        className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white"
-                      >
-                        {submittingContact ? 'Enviando...' : 'Enviar solicitud'}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-          )}
-
-
-          {/* Contact Card */}
-          <Card className="bg-white backdrop-blur-xl border-2 border-gray-200 shadow-2xl rounded-3xl overflow-hidden hover:border-[#00b3f3]/50 transition-all duration-300">
-            <CardHeader className="bg-white border-b border-gray-200">
-              <CardTitle className="text-gray-900 text-2xl font-bold flex items-center gap-3">
-                <div className="bg-[#00b3f3]/10 rounded-lg p-2">
-                  <Mail className="h-6 w-6 text-[#00b3f3]" />
+          {/* Contacto — CTA + info unificados */}
+          {(hasActiveSubscription || profile.email || profile.phone) && (
+            <motion.section {...sectionReveal} className="bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden">
+              {/* Deep teal header band */}
+              <div className="bg-[#083b4e] px-6 md:px-8 py-6">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-zinc-400 font-display mb-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#00b3f3]" />
+                  Contacto
                 </div>
-                Información de Contacto
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="grid gap-6 sm:grid-cols-2">
-                {profile.email && (
-                  <a
-                    href={`mailto:${profile.email}`}
-                    className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
-                  >
-                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-xl flex items-center justify-center border-2 border-gray-200 group-hover:scale-110 transition-transform">
-                      <Mail className="h-7 w-7 text-[#00b3f3]" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">Email</p>
-                      <p className="font-bold text-gray-900 text-lg break-all">{profile.email}</p>
-                    </div>
-                  </a>
-                )}
-                {profile.phone && (
-                  <a
-                    href={`tel:${profile.phone}`}
-                    className="group flex items-center gap-5 p-6 bg-white border-2 border-gray-200 rounded-2xl hover:border-[#00b3f3]/50 hover:bg-[#00b3f3]/10 transition-all"
-                  >
-                    <div className="h-14 w-14 bg-[#00b3f3]/10 rounded-xl flex items-center justify-center border-2 border-gray-200 group-hover:scale-110 transition-transform">
-                      <Phone className="h-7 w-7 text-[#00b3f3]" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#00b3f3]/70 text-xs font-bold uppercase tracking-widest mb-1">Teléfono</p>
-                      <p className="font-bold text-gray-900 text-lg">{profile.phone}</p>
-                    </div>
-                  </a>
+                <h2 className="font-display text-xl md:text-2xl font-semibold text-zinc-50 tracking-tight">
+                  {hasActiveSubscription ? '¿Interesado en mis servicios?' : 'Ponte en contacto'}
+                </h2>
+                {hasActiveSubscription && (
+                  <p className="text-zinc-400 text-sm mt-2 leading-relaxed max-w-md">
+                    Déjame tus datos y te contactaré a la brevedad.
+                  </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="px-6 md:px-8 py-6">
+                {/* CTA — solo con suscripción activa */}
+                {hasActiveSubscription && (
+                  <Dialog open={contactDialogOpen} onOpenChange={setContactDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full sm:w-auto h-11 px-6 rounded-xl bg-[#083b4e] hover:bg-[#0c4d63] text-zinc-50 text-sm font-medium flex items-center gap-2 transition-colors active:translate-y-px shadow-none">
+                        <Phone className="h-4 w-4" strokeWidth={1.75} />
+                        Te llamaremos
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md rounded-2xl">
+                      <DialogHeader>
+                        <DialogTitle className="font-display text-xl font-semibold tracking-tight text-zinc-900">Déjanos tus datos</DialogTitle>
+                        <DialogDescription className="text-zinc-500">
+                          Te contactaremos a la brevedad para ofrecerte nuestros servicios.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handleContactSubmit} className="space-y-4 mt-2">
+                        <div>
+                          <Label htmlFor="name" className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 font-medium font-display">Nombre completo *</Label>
+                          <Input
+                            id="name"
+                            required
+                            value={contactForm.name}
+                            onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                            placeholder="Tu nombre"
+                            className="mt-1.5 h-11 rounded-lg border-zinc-200 focus-visible:ring-[#00b3f3]/30"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="email" className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 font-medium font-display">Email *</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            required
+                            value={contactForm.email}
+                            onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                            placeholder="tu@email.com"
+                            className="mt-1.5 h-11 rounded-lg border-zinc-200 focus-visible:ring-[#00b3f3]/30"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="phone" className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 font-medium font-display">Teléfono</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={contactForm.phone}
+                            onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                            placeholder="+56 9 1234 5678"
+                            className="mt-1.5 h-11 rounded-lg border-zinc-200 focus-visible:ring-[#00b3f3]/30"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="message" className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 font-medium font-display">Mensaje (opcional)</Label>
+                          <Textarea
+                            id="message"
+                            value={contactForm.message}
+                            onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                            placeholder="Cuéntanos sobre tu proyecto..."
+                            className="mt-1.5 min-h-[100px] rounded-lg border-zinc-200 focus-visible:ring-[#00b3f3]/30"
+                          />
+                        </div>
+                        <Button
+                          type="submit"
+                          disabled={submittingContact}
+                          className="w-full h-11 rounded-lg bg-[#083b4e] hover:bg-[#0c4d63] text-zinc-50 font-medium transition-colors active:translate-y-px"
+                        >
+                          {submittingContact ? 'Enviando...' : 'Enviar solicitud'}
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
+                )}
+
+                {/* Separador entre CTA e info */}
+                {hasActiveSubscription && (profile.email || profile.phone) && (
+                  <div className="border-t border-zinc-200 my-6" />
+                )}
+
+                {/* Info de contacto — filas limpias */}
+                {(profile.email || profile.phone) && (
+                  <div className="divide-y divide-zinc-200 border-y border-zinc-200">
+                    {profile.email && (
+                      <a
+                        href={`mailto:${profile.email}`}
+                        className="group flex items-center gap-4 py-4 transition-colors"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-[#00b3f3] shrink-0">
+                          <Mail className="h-4 w-4" strokeWidth={1.75} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400 font-medium font-display mb-0.5">Email</p>
+                          <p className="font-medium text-zinc-900 text-sm truncate group-hover:text-[#00b3f3] transition-colors">{profile.email}</p>
+                        </div>
+                        <ExternalLink className="ml-auto h-4 w-4 text-zinc-300 group-hover:text-[#00b3f3] transition-colors shrink-0" strokeWidth={1.75} />
+                      </a>
+                    )}
+                    {profile.phone && (
+                      <a
+                        href={`tel:${profile.phone}`}
+                        className="group flex items-center gap-4 py-4 transition-colors"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 text-[#00b3f3] shrink-0">
+                          <Phone className="h-4 w-4" strokeWidth={1.75} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400 font-medium font-display mb-0.5">Teléfono</p>
+                          <p className="font-medium text-zinc-900 text-sm truncate group-hover:text-[#00b3f3] transition-colors">{profile.phone}</p>
+                        </div>
+                        <ExternalLink className="ml-auto h-4 w-4 text-zinc-300 group-hover:text-[#00b3f3] transition-colors shrink-0" strokeWidth={1.75} />
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.section>
+          )}
         </div>
       </div>
     </div>
