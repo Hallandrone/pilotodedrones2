@@ -258,6 +258,7 @@ const PublicPilotProfile = () => {
 
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     loadPilotProfile();
   }, [pilotId]);
 
@@ -720,8 +721,7 @@ const PublicPilotProfile = () => {
   };
   const sectionReveal = {
     initial: { opacity: 0, y: 16 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, margin: "-60px" },
+    animate: { opacity: 1, y: 0 },
     transition: { type: "spring" as const, stiffness: 100, damping: 20 },
   };
 
