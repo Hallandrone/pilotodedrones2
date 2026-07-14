@@ -37,7 +37,7 @@ import {
 import { ImageCropper } from "@/components/ui/ImageCropper";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/ui/logo";
-import { isPaidPlan, PlanType, normalizePlanName } from "@/lib/planFeatures";
+import { isPaidPlan, PlanType, normalizePlanName, getPlanDisplayName } from "@/lib/planFeatures";
 
 interface ProfileData {
   full_name: string;
@@ -1183,7 +1183,7 @@ const PilotProfile = () => {
                       <div className="flex items-center gap-2 mt-2">
                         <Badge variant="default" className="bg-accent text-accent-foreground">
                           <Crown className="h-3 w-3 mr-1" />
-                          Plan {subscription.plan_name || 'Pro'} Activo
+                          {getPlanDisplayName(normalizePlanName(subscription.plan_name || 'pro'))}
                         </Badge>
                       </div>
                     )}

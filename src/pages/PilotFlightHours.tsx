@@ -607,13 +607,24 @@ const PilotFlightHours = () => {
                     </li>
                   </ul>
                 </div>
-                <Button
-                  onClick={() => navigate('/pilot/membership')}
-                  className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                >
-                  <Crown className="h-4 w-4 mr-2" />
-                  Ya soy alumno — activar mi plan
-                </Button>
+                <div className="space-y-3">
+                  <Button
+                    asChild
+                    className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  >
+                    <a href="https://www.academiadronchile.cl" target="_blank" rel="noopener noreferrer">
+                      Conoce los cursos
+                    </a>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate('/pilot/membership')}
+                    className="w-full text-[#B0B0B0] hover:text-white hover:bg-white/5 font-semibold rounded-xl transition-all duration-200"
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    Ya soy alumno — activar mi plan
+                  </Button>
+                </div>
               </CardContent>
             </div>
           </Card>

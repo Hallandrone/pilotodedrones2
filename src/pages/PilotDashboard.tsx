@@ -605,7 +605,7 @@ const PilotDashboard = () => {
                         </div>
                       </div>
                       <div className="mt-2 text-[#FF69B4] text-[10px] sm:text-xs font-semibold flex items-center gap-1">
-                        Mejorar ahora <ArrowRight className="h-3 w-3" />
+                        Activar mi plan <ArrowRight className="h-3 w-3" />
                       </div>
                     </div>
                   </div>
@@ -785,7 +785,7 @@ const PilotDashboard = () => {
                     onClick={() => navigate('/pilot/membership')}
                     className="w-full sm:w-auto bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-10 px-6 rounded-xl shadow-lg transition-all hover:scale-105 shrink-0"
                   >
-                    Activar con Pro
+                    Soy alumno
                   </Button>
                 </div>
               ) : diplomas.length === 0 ? (
@@ -930,7 +930,7 @@ const PilotDashboard = () => {
                             'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
                           } ${!plan?.isPaid ? 'opacity-90' : ''}`}
                       >
-                        {certStatus === 'not_validated' ? (plan?.isPaid ? 'Subir Certificados' : 'Activar Pro para Validar') :
+                        {certStatus === 'not_validated' ? (plan?.isPaid ? 'Subir Certificados' : 'Activar mi plan') :
                           certStatus === 'expired' ? 'Renovar Certificación' :
                             'Ver Certificados'}
                       </Button>
@@ -960,19 +960,37 @@ const PilotDashboard = () => {
                 </div>
                 <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
                   {plan?.isPaid
-                    ? `Plan ${plan.displayName} - ${plan.status === 'active' ? 'Suscripción Activa' : 'Finaliza pronto'}`
-                    : 'Plan Gratis - Acceso Limitado'}
+                    ? `${plan.displayName} · ${plan.status === 'active' ? 'Activo' : 'Finaliza pronto'}`
+                    : 'Plan Gratis. El Plan Alumno Academia es exclusivo para alumnos de Academia Drone Chile: al hacer un curso recibes un código de diploma para activarlo.'}
                 </p>
-                <Button
-                  size="lg"
-                  onClick={() => navigate('/pilot/membership')}
-                  className={`w-full hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 border-0 ${plan?.isPaid
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white'
-                    : 'bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white'
-                    }`}
-                >
-                  {plan?.isPaid ? 'Gestionar Membresía' : 'Mejorar al Plan Alumno Academia'}
-                </Button>
+                {plan?.isPaid ? (
+                  <Button
+                    size="lg"
+                    onClick={() => navigate('/pilot/membership')}
+                    className="w-full hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 border-0 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white"
+                  >
+                    Gestionar Membresía
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <Button
+                      asChild
+                      size="lg"
+                      className="w-full hover:scale-105 transition-all duration-300 rounded-xl sm:rounded-2xl text-sm sm:text-base shadow-xl hover:shadow-2xl h-12 sm:h-14 border-0 bg-gradient-to-r from-[#00b3f3] to-[#0099cc] hover:from-[#0099cc] hover:to-[#00b3f3] text-white"
+                    >
+                      <a href="https://www.academiadronchile.cl" target="_blank" rel="noopener noreferrer">
+                        Conoce los cursos
+                      </a>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate('/pilot/membership')}
+                      className="w-full text-white/70 hover:text-white hover:bg-white/5 rounded-xl sm:rounded-2xl text-sm sm:text-base h-10"
+                    >
+                      Ya soy alumno
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </div>
           </Card>
