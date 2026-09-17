@@ -1,3 +1,4 @@
+import DeleteCertificationButton from '@/components/DeleteCertificationButton';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -989,30 +990,6 @@ const UserProfile = () => {
     event.target.value = '';
   };
 
-  const handleDeleteCertification = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_certifications')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCertifications(prev => prev.filter(cert => cert.id !== id));
-
-      toast({
-        title: "Certificación eliminada",
-        description: "La certificación ha sido eliminada correctamente",
-      });
-    } catch (error) {
-      console.error('Error deleting certification:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar la certificación",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Función simple para subir certificados/registros de vuelo (sin formulario)
   const handleFlightLogFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1819,14 +1796,8 @@ const UserProfile = () => {
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleDeleteCertification(cert.id)}
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
+                                <DeleteCertificationButton id={cert.id} fileName={cert.file_name}
+                                  onDeleted={id => setCertifications(prev => prev.filter(cert => cert.id !== id))} />
                               </div>
                             </div>
                             {cert.rejection_observations && (
