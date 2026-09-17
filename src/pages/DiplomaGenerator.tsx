@@ -140,7 +140,9 @@ const DiplomaGenerator = () => {
 						city: formData.city,
 						certificate_number: formData.certificateNumber,
 						correlative_number: correlativeNumber,
-						drone_series: formData.droneSeries
+						drone_series: formData.droneSeries,
+						start_date: formData.startDate || null,
+						end_date: formData.endDate || null
 					} as never)
 					.select()
 					.single();
@@ -229,6 +231,8 @@ const DiplomaGenerator = () => {
 					certificateNumber: last.certificate_number || '',
 					instructorName: last.instructor_name || '',
 					droneSeries: (last as { drone_series?: string }).drone_series || '',
+					startDate: last.start_date || '',
+					endDate: last.end_date || '',
 				};
 
 				setFormData(newFormData);
