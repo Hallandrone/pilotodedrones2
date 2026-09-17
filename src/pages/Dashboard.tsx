@@ -11,7 +11,7 @@ import { Pilots } from "@/components/dashboard/Pilots";
 import { Configuration } from "@/components/dashboard/Configuration";
 import { BannerConfiguration } from "@/components/dashboard/BannerConfiguration";
 import AdminCertificates from "./AdminCertificates";
-import DiplomaGenerator from "./DiplomaGenerator";
+import DiplomaWorkspace from "./DiplomaWorkspace";
 import UserProfile from "./UserProfile";
 import AdminFeedback from "./AdminFeedback";
 import AdminDrones from "./AdminDrones";
@@ -163,7 +163,7 @@ const Dashboard = () => {
                 <Route path="/users" element={<Users />} />
                 <Route path="/pilots" element={<Pilots />} />
                 <Route path="/certificates" element={<AdminCertificates />} />
-                <Route path="/diplomas" element={<DiplomaGenerator />} />
+                <Route path="/diplomas" element={<DiplomaWorkspace />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/banners" element={<BannerConfiguration />} />
                 <Route path="/feedback" element={<AdminFeedback />} />
