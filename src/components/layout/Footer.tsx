@@ -23,13 +23,13 @@ const Footer = () => {
 						<div className="grid grid-cols-2 md:flex gap-x-12 gap-y-10 w-full justify-center md:justify-end px-4 md:px-0">
 							<div className="flex flex-col gap-4 items-center md:items-start">
 								<h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/30 mb-1">Explorar</h4>
-								<button onClick={() => navigate('/auth')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Acceso Usuario</button>
-								<button onClick={() => navigate('/search')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Buscar Pilotos</button>
+								<button onClick={() => navigate('/auth')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Acceso de usuarios</button>
+								<button onClick={() => navigate('/search')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Buscar pilotos</button>
 								<button onClick={() => window.location.href = 'https://www.pilotodedrones.cl/precios'} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Beneficios</button>
 							</div>
 							<div className="flex flex-col gap-4 items-center md:items-start">
 								<h4 className="text-xs font-bold uppercase tracking-widest text-[#1A1A1A]/30 mb-1">Recursos</h4>
-								<button onClick={() => navigate('/verificar-diploma')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Verificar Diploma</button>
+								<button onClick={() => navigate('/verificar-diploma')} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Verificar diploma</button>
 								<button onClick={() => window.location.href = 'https://www.pilotodedrones.cl/contacto'} className="text-sm text-muted-foreground hover:text-accent transition-colors font-medium">Contacto</button>
 								<FeedbackForm
 									trigger={
@@ -47,8 +47,8 @@ const Footer = () => {
 						<div className="flex flex-col items-center justify-center gap-y-4 text-sm text-muted-foreground font-medium w-full text-center">
 							<p>© {currentYear} Piloto de Drones. Todos los derechos reservados.</p>
 							<div className="flex flex-wrap justify-center items-center gap-x-6 gap-y-2">
-								<button onClick={() => navigate('/terms')} className="hover:text-accent transition-colors px-2 py-1">Términos y Condiciones</button>
-								<button onClick={() => navigate('/privacy')} className="hover:text-accent transition-colors px-2 py-1">Política de Privacidad</button>
+								<button onClick={() => navigate('/terms')} className="hover:text-accent transition-colors px-2 py-1">Términos y condiciones</button>
+								<button onClick={() => navigate('/privacy')} className="hover:text-accent transition-colors px-2 py-1">Política de privacidad</button>
 							</div>
 						</div>
 					</div>

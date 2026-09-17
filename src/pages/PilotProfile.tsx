@@ -766,7 +766,7 @@ const PilotProfile = () => {
     } else if (trimmed && profile.drone_types.includes(trimmed)) {
       toast({
         title: "Modelo duplicado",
-        description: "Este modelo de drone ya está agregado",
+        description: "Este modelo de dron ya está agregado",
         variant: "destructive",
       });
     }
@@ -813,7 +813,7 @@ const PilotProfile = () => {
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
-        description: "La imagen no puede ser mayor a 5MB",
+        description: "La imagen no puede ser mayor a 5 MB",
         variant: "destructive",
       });
       return;
@@ -1038,7 +1038,7 @@ const PilotProfile = () => {
 
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                Editar Perfil
+                Editar perfil
               </h1>
               <p className="text-[10px] sm:text-sm text-[#00b3f3] font-bold uppercase tracking-[0.2em]">
                 Área de Piloto
@@ -1099,7 +1099,7 @@ const PilotProfile = () => {
                     <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                       <User className="h-6 w-6 text-white" />
                     </div>
-                    Información Básica
+                    Información básica
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
@@ -1149,7 +1149,7 @@ const PilotProfile = () => {
                         disabled={uploadingAvatar}
                       />
                       <p className="text-xs text-white/60 text-center">
-                        JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+                        JPG, PNG hasta 5 MB. La imagen se recortará en formato cuadrado.
                       </p>
                     </div>
                   </div>
@@ -1206,7 +1206,7 @@ const PilotProfile = () => {
 
                   <div className="space-y-3">
                     <Label htmlFor="bio" className="text-base font-semibold text-white">
-                      Biografía Profesional
+                      Biografía profesional
                     </Label>
                     <Textarea
                       id="bio"
@@ -1228,7 +1228,7 @@ const PilotProfile = () => {
                     <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                       <MapPin className="h-6 w-6 text-white" />
                     </div>
-                    Ubicación y Zona de Trabajo
+                    Ubicación y zona de trabajo
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-8 bg-transparent rounded-xl space-y-6">
@@ -1259,14 +1259,14 @@ const PilotProfile = () => {
                       id="location"
                       value={profile.location}
                       onChange={(e) => handleInputChange('location', e.target.value)}
-                      placeholder="Ej: Santiago, Las Condes"
+                      placeholder="Ej.: Santiago, Las Condes"
                       className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-base"
                     />
                   </div>
 
                   <div className="space-y-3">
                     <Label htmlFor="experience_years" className="text-sm font-semibold text-[#E0E0E0]">
-                      Años de Experiencia
+                      Años de experiencia
                     </Label>
                     <Input
                       id="experience_years"
@@ -1562,7 +1562,7 @@ const PilotProfile = () => {
                               addCustomDrone();
                             }
                           }}
-                          placeholder="Escribe otro modelo de drone..."
+                          placeholder="Escribe otro modelo de dron..."
                           className="bg-white/5 border-white/10 text-white focus:border-[#00b3f3] placeholder:text-white/30"
                         />
                         <Button
@@ -1575,7 +1575,7 @@ const PilotProfile = () => {
                         </Button>
                       </div>
                       <p className="text-xs text-[#B0B0B0] mt-2">
-                        Presiona Enter o haz clic en "Agregar" para incluir tu modelo de drone personalizado
+                        Presiona Enter o haz clic en "Agregar" para incluir tu modelo de dron personalizado
                       </p>
                     </div>
                   </div>
@@ -1592,7 +1592,7 @@ const PilotProfile = () => {
                       <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center">
                         <Crown className="h-6 w-6 text-white" />
                       </div>
-                      URL Personalizada del Perfil Público
+                      URL personalizada del perfil público
                     </div>
                     {!subscription && (
                       <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 flex items-center gap-1.5 px-3 py-1">
@@ -1697,7 +1697,7 @@ const PilotProfile = () => {
                         <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                           <p className="text-xs text-blue-400 font-medium leading-relaxed">
                             🚀 La URL personalizada es un beneficio exclusivo del Plan Alumno Academia,
-                            disponible solo para alumnos de Academia Drone Chile.
+                            disponible solo para alumnos de Academia de Drones de Chile.
                           </p>
                         </div>
                       )}

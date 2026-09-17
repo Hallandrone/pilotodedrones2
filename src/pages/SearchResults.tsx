@@ -371,7 +371,7 @@ const SearchResults = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-7xl mx-auto">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-              Buscar Pilotos
+              Buscar pilotos
             </h1>
             <p className="text-sm text-gray-500 font-medium uppercase tracking-widest mt-1">
               Profesionales certificados
@@ -448,7 +448,7 @@ const SearchResults = () => {
 
                 {/* Tipo de Drone */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Tipo de Drone</label>
+                  <label className="text-sm font-medium mb-2 block">Tipo de dron</label>
                   <Select value={selectedDroneType} onValueChange={setSelectedDroneType}>
                     <SelectTrigger className="h-11 bg-gray-800 border-gray-700 text-white focus:border-[#00b3f3]">
                       <SelectValue placeholder="Todos los drones" />
@@ -464,17 +464,17 @@ const SearchResults = () => {
 
                 {/* Experiencia */}
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Experiencia Mínima</label>
+                  <label className="text-sm font-medium mb-2 block">Experiencia mínima</label>
                   <Select value={selectedExperience} onValueChange={setSelectedExperience}>
                     <SelectTrigger className="h-11 bg-gray-800 border-gray-700 text-white focus:border-[#00b3f3]">
                       <SelectValue placeholder="Cualquier experiencia" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-800 border-gray-700 text-white">
                       <SelectItem value="all">Cualquier experiencia</SelectItem>
-                      <SelectItem value="1">1+ años</SelectItem>
-                      <SelectItem value="3">3+ años</SelectItem>
-                      <SelectItem value="5">5+ años</SelectItem>
-                      <SelectItem value="10">10+ años</SelectItem>
+                      <SelectItem value="1">1 año o más</SelectItem>
+                      <SelectItem value="3">3 años o más</SelectItem>
+                      <SelectItem value="5">5 años o más</SelectItem>
+                      <SelectItem value="10">10 años o más</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -582,7 +582,7 @@ const SearchResults = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-2 block">Tipo de Drone</label>
+                    <label className="text-sm font-semibold text-gray-700 mb-2 block">Tipo de dron</label>
                     <Select value={selectedDroneType} onValueChange={setSelectedDroneType}>
                       <SelectTrigger className="h-11 bg-gray-800 border-gray-700 text-white focus:border-[#00b3f3]">
                         <SelectValue placeholder="Todos los drones" />
@@ -604,10 +604,10 @@ const SearchResults = () => {
                       </SelectTrigger>
                       <SelectContent className="bg-gray-800 border-gray-700 text-white">
                         <SelectItem value="all">Cualquier experiencia</SelectItem>
-                        <SelectItem value="1">1+ años</SelectItem>
-                        <SelectItem value="3">3+ años</SelectItem>
-                        <SelectItem value="5">5+ años</SelectItem>
-                        <SelectItem value="10">10+ años</SelectItem>
+                        <SelectItem value="1">1 año o más</SelectItem>
+                        <SelectItem value="3">3 años o más</SelectItem>
+                        <SelectItem value="5">5 años o más</SelectItem>
+                        <SelectItem value="10">10 años o más</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

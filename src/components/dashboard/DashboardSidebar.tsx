@@ -56,7 +56,7 @@ const menuItems: MenuItem[] = [
     roles: ["super_admin"]
   },
   {
-    title: "Mi Perfil de Piloto",
+    title: "Mi perfil de piloto",
     url: "/pilot",
     icon: User2,
     roles: ["super_admin", "admin"]
@@ -194,7 +194,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
     <Sidebar className={`${collapsed ? "w-16" : "w-64"} [--sidebar-foreground:0_0%_100%] [--sidebar-accent-foreground:0_0%_100%] [--sidebar-accent:0_0%_100%_/_0.2]`} collapsible="icon">
       <SidebarContent className="bg-[hsl(var(--accent))] backdrop-blur-sm border-r-2 border-[#1a365d] transform-gpu">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white/80">Navegación Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white/80">Navegación principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {filteredItems.map((item) => (
@@ -236,7 +236,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
             className={`w-full bg-white/10 border-white/30 text-white hover:bg-white hover:text-[#2FB8FF] ${collapsed ? 'px-2' : ''}`}
           >
             <Home className="h-4 w-4" />
-            {!collapsed && <span className="ml-2">Ir al Sitio</span>}
+            {!collapsed && <span className="ml-2">Ir al sitio</span>}
           </Button>
 
           <Button
@@ -246,7 +246,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
             className={`w-full text-white hover:text-white hover:bg-red-500/20 ${collapsed ? 'px-2' : ''}`}
           >
             <LogOut className="h-4 w-4" />
-            {!collapsed && <span className="ml-2">Cerrar Sesión</span>}
+            {!collapsed && <span className="ml-2">Cerrar sesión</span>}
           </Button>
         </div>
       </SidebarContent>

@@ -123,7 +123,7 @@ const PilotCertificates = () => {
     if (file.size > 15 * 1024 * 1024) {
       toast({
         title: "Archivo muy grande",
-        description: "El archivo no puede superar los 15MB",
+        description: "El archivo no puede superar los 15 MB",
         variant: "destructive",
       });
       return;
@@ -337,7 +337,7 @@ const PilotCertificates = () => {
                 Certificados
               </h1>
               <p className="text-xs sm:text-lg text-gray-600 font-medium uppercase tracking-wider">
-                Gestión de Documentos
+                Gestión de documentos
               </p>
             </div>
           </div>
@@ -357,7 +357,7 @@ const PilotCertificates = () => {
                 Subir Certificado
               </CardTitle>
               <CardDescription className="text-[#B0B0B0] font-medium">
-                Sube tus certificaciones en formato PDF, JPG o PNG para validación solo por Academia de drone Chile
+                Sube tus certificados en formato PDF, JPG o PNG para que la Academia de Drones de Chile los valide
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 bg-[#2C2C2C] rounded-xl">
@@ -389,7 +389,7 @@ const PilotCertificates = () => {
                   />
                 </label>
                 <p className="text-xs text-[#B0B0B0] mt-3">
-                  Archivos PDF, JPG, JPEG o PNG (máx. 15MB)
+                  Archivos PDF, JPG, JPEG o PNG (máx. 15 MB)
                 </p>
               </div>
             </CardContent>
@@ -529,7 +529,7 @@ const PilotCertificates = () => {
         onOpenChange={setShowUpgradeModal}
         requiredPlan="pro"
         feature="Subida de certificados"
-        featureDescription="La subida de certificados es exclusiva del Plan Alumno Academia, disponible solo para alumnos de Academia Drone Chile."
+        featureDescription="La subida de certificados es exclusiva del Plan Alumno Academia, disponible solo para alumnos de Academia de Drones de Chile."
       />
     </div>
   );

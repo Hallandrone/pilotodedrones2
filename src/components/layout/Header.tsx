@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 const NAV_LINKS = [
-	{ label: 'Home', href: 'https://www.pilotodedrones.cl', external: true },
-	{ label: 'Explorar Pilotos', href: '/search', external: false },
+	{ label: 'Inicio', href: 'https://www.pilotodedrones.cl', external: true },
+	{ label: 'Explorar pilotos', href: '/search', external: false },
 	{ label: 'Beneficios', href: 'https://www.pilotodedrones.cl/precios', external: true },
 	{ label: 'Contacto', href: 'https://www.pilotodedrones.cl/contacto', external: true },
 	{ label: 'Blog', href: 'https://www.pilotodedrones.cl/blog', external: true },
@@ -79,7 +79,7 @@ const Header = () => {
 									key={label}
 									onClick={() => handleNavClick(href, external)}
 									className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-										label === 'Explorar Pilotos'
+										label === 'Explorar pilotos'
 											? 'text-cyan-500 font-semibold hover:bg-slate-100'
 											: 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
 									}`}
@@ -95,13 +95,13 @@ const Header = () => {
 										className="ml-2 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border-2 border-slate-200 text-slate-700 hover:border-cyan-400 hover:text-cyan-600 transition-colors duration-200"
 									>
 										<User className="h-4 w-4" aria-hidden="true" />
-										<span>Mi Cuenta</span>
+										<span>Mi cuenta</span>
 									</button>
 									<button
 										onClick={handleLogout}
 										className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors duration-200"
 									>
-										Cerrar Sesión
+										Cerrar sesión
 									</button>
 								</>
 							) : (
@@ -147,7 +147,7 @@ const Header = () => {
 								key={label}
 								onClick={() => handleNavClick(href, external)}
 								className={`w-full py-5 text-center text-xl font-semibold border-b border-white/[0.06] transition-colors duration-200 ${
-									label === 'Explorar Pilotos'
+									label === 'Explorar pilotos'
 										? 'text-cyan-400'
 										: 'text-white/70 hover:text-white'
 								}`}
@@ -163,13 +163,13 @@ const Header = () => {
 									className="w-full py-5 flex items-center justify-center gap-2 text-xl font-semibold text-white/70 hover:text-white border-b border-white/[0.06] transition-colors duration-200"
 								>
 									<User className="h-5 w-5" aria-hidden="true" />
-									Mi Cuenta
+									Mi cuenta
 								</button>
 								<button
 									onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
 									className="mt-9 w-full max-w-xs py-[18px] rounded-xl text-lg font-semibold bg-white/10 text-white hover:bg-white/20 transition-colors duration-200"
 								>
-									Cerrar Sesión
+									Cerrar sesión
 								</button>
 							</>
 						) : (

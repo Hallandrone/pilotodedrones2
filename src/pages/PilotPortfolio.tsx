@@ -142,7 +142,7 @@ const PilotPortfolio = () => {
 		if (file.size > 5 * 1024 * 1024) {
 			toast({
 				title: "Archivo demasiado grande",
-				description: "El tamaño máximo permitido es de 5MB",
+				description: "El tamaño máximo permitido es de 5 MB",
 				variant: "destructive",
 			});
 			return;
@@ -453,7 +453,7 @@ const PilotPortfolio = () => {
 								Portafolio
 							</h1>
 							<p className="text-[10px] sm:text-sm text-gray-600 font-medium uppercase tracking-wider truncate">
-								Imágenes y Videos
+								Imágenes y videos
 							</p>
 						</div>
 					</div>
@@ -466,11 +466,11 @@ const PilotPortfolio = () => {
 				<div className="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-3 sm:p-4 flex gap-3 sm:gap-4 items-start">
 					<ImageIcon className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 flex-shrink-0 mt-0.5" />
 					<div className="text-xs sm:text-sm min-w-0">
-						<p className="font-bold text-blue-300">Portafolio Profesional</p>
+						<p className="font-bold text-blue-300">Portafolio profesional</p>
 						<p className="text-blue-100/70">Muestra tus mejores tomas y videos editados para generar confianza en tus clientes.</p>
 						{plan && plan.isFree && userType !== 'admin' && userType !== 'super_admin' && (
 							<p className="text-yellow-300 font-semibold mt-2">
-								⚠️ Plan Gratis: Puedes subir hasta 2 portafolios. Los portafolios ilimitados son una función exclusiva del Plan Alumno Academia, disponible para alumnos de Academia Drone Chile (curso + código de diploma).
+								⚠️ Plan Gratis: Puedes subir hasta 2 portafolios. Los portafolios ilimitados son una función exclusiva del Plan Alumno Academia, disponible para alumnos de Academia de Drones de Chile (curso + código de diploma).
 							</p>
 						)}
 					</div>
@@ -517,7 +517,7 @@ const PilotPortfolio = () => {
 									<div>
 										<Label className="text-white/70">Título del trabajo</Label>
 										<Input
-											placeholder="Ej: Inspección Solar, Boda en la Playa..."
+											placeholder="Ej.: inspección solar, boda en la playa..."
 											value={title}
 											onChange={(e) => setTitle(e.target.value)}
 											className="bg-[#1A1A1A] border-[#333333] mt-1 text-white"
@@ -553,12 +553,12 @@ const PilotPortfolio = () => {
 													onChange={handleImageUpload}
 												/>
 											</label>
-											<p className="text-xs text-[#B0B0B0] mt-3">Máx 5MB - Las imágenes de alta calidad serán optimizadas automáticamente</p>
+											<p className="text-xs text-[#B0B0B0] mt-3">Máx. 5 MB. Las imágenes de alta calidad serán optimizadas automáticamente</p>
 										</div>
 									) : (
 										<div className="space-y-4 h-full flex flex-col justify-end">
 											<div>
-												<Label className="text-white/70">Link de YouTube o Vimeo</Label>
+												<Label className="text-white/70">Enlace de YouTube o Vimeo</Label>
 												<Input
 													placeholder="https://www.youtube.com/watch?v=..."
 													value={videoUrl}
@@ -658,7 +658,7 @@ const PilotPortfolio = () => {
 										<div className="mt-3 flex items-center justify-between text-[10px] text-white/40 font-mono">
 											<span>{new Date(item.created_at).toLocaleDateString()}</span>
 											<a href={item.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-[#00b3f3] transition-colors">
-												LINK <ExternalLink className="h-3 w-3" />
+												ENLACE <ExternalLink className="h-3 w-3" />
 											</a>
 										</div>
 									</CardContent>
@@ -673,15 +673,15 @@ const PilotPortfolio = () => {
 				open={showUpgradeModal}
 				onOpenChange={setShowUpgradeModal}
 				requiredPlan="pro"
-				feature="Portafolio Profesional"
-				featureDescription="La galería de trabajos e integración de videos es exclusiva del Plan Alumno Academia, disponible solo para alumnos de Academia Drone Chile."
+				feature="Portafolio profesional"
+				featureDescription="La galería de trabajos y la integración de videos son exclusivas del Plan Alumno Academia, disponible solo para alumnos de Academia de Drones de Chile."
 			/>
 
 			{/* Modal de edición */}
 			<Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
 				<DialogContent className="bg-[#1A1A1A] border-[#333333] text-white">
 					<DialogHeader>
-						<DialogTitle>Editar Elemento</DialogTitle>
+						<DialogTitle>Editar elemento</DialogTitle>
 						<DialogDescription className="text-white/60">
 							Modifica la información de tu trabajo en el portafolio.
 						</DialogDescription>
@@ -710,7 +710,7 @@ const PilotPortfolio = () => {
 
 							{editingItem.type === 'image' ? (
 								<div className="space-y-3 pt-2">
-									<Label>Cambiar Imagen</Label>
+									<Label>Cambiar imagen</Label>
 									<div className="flex flex-col gap-3">
 										{editFile ? (
 											<div className="text-xs text-blue-400 bg-blue-500/10 p-2 rounded-lg border border-blue-500/20">

@@ -59,7 +59,7 @@ const PilotMembership = () => {
     id: 'profesional',
     name: 'Plan Alumno Academia',
     price: 0,
-    description: 'Exclusivo para alumnos de Academia Drone Chile',
+    description: 'Exclusivo para alumnos de Academia de Drones de Chile',
     features: [
       'Todo lo del Plan Gratis',
       'Sello digital "Perfil Certificado" tras validación',
@@ -565,7 +565,7 @@ const PilotMembership = () => {
                         Plan Alumno Academia
                       </CardTitle>
                       <CardDescription className="text-[#B0B0B0] font-medium">
-                        Exclusivo para alumnos de Academia Drone Chile
+                        Exclusivo para alumnos de Academia de Drones de Chile
                       </CardDescription>
                     </div>
                   </div>
@@ -583,7 +583,7 @@ const PilotMembership = () => {
                   <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
                     <p className="text-sm text-blue-200 leading-relaxed">
                       <AlertCircle className="h-4 w-4 inline mr-2 text-blue-400" />
-                      Este plan es <span className="font-bold text-white">exclusivo para alumnos de Academia Drone Chile</span>. Se activa con el código que recibes en tu diploma al completar un curso.
+                      Este plan es <span className="font-bold text-white">exclusivo para alumnos de Academia de Drones de Chile</span>. Se activa con el código que recibes en tu diploma al completar un curso.
                     </p>
                   </div>
 
@@ -665,7 +665,7 @@ const PilotMembership = () => {
               >
                 <Mail className="h-5 w-5 mr-4" />
                 <div className="text-left">
-                  <div className="font-semibold text-[#E0E0E0]">Email de Soporte</div>
+                  <div className="font-semibold text-[#E0E0E0]">Correo de soporte</div>
                   <div className="text-sm text-[#B0B0B0]">info@pilotodedrones.cl</div>
                 </div>
               </Button>

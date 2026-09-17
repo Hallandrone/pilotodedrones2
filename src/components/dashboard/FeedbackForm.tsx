@@ -62,7 +62,7 @@ export function FeedbackForm({ trigger }: FeedbackFormProps) {
 			if (error) throw error;
 
 			toast({
-				title: "¡Gracias por tu feedback!",
+				title: "¡Gracias por tus comentarios!",
 				description: "Tu sugerencia o reporte ha sido enviado correctamente.",
 			});
 			setContent("");
@@ -71,7 +71,7 @@ export function FeedbackForm({ trigger }: FeedbackFormProps) {
 			console.error("Error sending feedback:", error);
 			toast({
 				title: "Error",
-				description: "No se pudo enviar el feedback. Inténtalo de nuevo.",
+				description: "No se pudieron enviar los comentarios. Inténtalo de nuevo.",
 				variant: "destructive",
 			});
 		} finally {
@@ -94,14 +94,14 @@ export function FeedbackForm({ trigger }: FeedbackFormProps) {
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-[500px] bg-[#083b4e] border-white/10 text-white">
 				<DialogHeader>
-					<DialogTitle className="text-2xl font-bold">Enviar Feedback</DialogTitle>
+					<DialogTitle className="text-2xl font-bold">Enviar comentarios</DialogTitle>
 					<DialogDescription className="text-white/60">
-						Cuéntanos sobre cualquier problema, bug o sugerencia de mejora para la plataforma.
+						Cuéntanos sobre cualquier error o sugerencia de mejora para la plataforma.
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-4 mt-4">
 					<div className="space-y-2">
-						<label className="text-sm font-medium">Email de contacto</label>
+						<label className="text-sm font-medium">Correo electrónico de contacto</label>
 						<Input
 							type="email"
 							placeholder="ejemplo@correo.com"
@@ -119,7 +119,7 @@ export function FeedbackForm({ trigger }: FeedbackFormProps) {
 							</SelectTrigger>
 							<SelectContent className="bg-[#083b4e] border-white/10 text-white">
 								<SelectItem value="suggestion">Sugerencia</SelectItem>
-								<SelectItem value="bug">Reportar Bug</SelectItem>
+								<SelectItem value="bug">Informar un error</SelectItem>
 								<SelectItem value="improvement">Mejora</SelectItem>
 								<SelectItem value="other">Otro</SelectItem>
 							</SelectContent>
@@ -145,7 +145,7 @@ export function FeedbackForm({ trigger }: FeedbackFormProps) {
 						) : (
 							<Send className="h-5 w-5 mr-2" />
 						)}
-						Enviar Feedback
+						Enviar comentarios
 					</Button>
 				</form>
 			</DialogContent>

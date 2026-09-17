@@ -368,7 +368,7 @@ const PilotFlightHours = () => {
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "Archivo muy grande",
-        description: "El archivo no debe exceder 10MB",
+        description: "El archivo no debe exceder 10 MB",
         variant: "destructive",
       });
       return;
@@ -403,7 +403,7 @@ const PilotFlightHours = () => {
       await sendNotification({
         targetAdmins: true,
         type: 'new_flight_log',
-        title: 'Nueva Bitácora Pendiente',
+        title: 'Nueva bitácora pendiente',
         message: `${user.email} ha subido una bitácora de vuelo: ${file.name}`,
         data: { logId: data?.[0]?.id }
       });
@@ -558,7 +558,7 @@ const PilotFlightHours = () => {
               />
               <div className="flex flex-col">
                 <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-                  Horas de Vuelo
+                  Horas de vuelo
                 </h1>
                 <p className="text-xs sm:text-lg text-gray-600 font-medium uppercase tracking-wider">
                   Característica Pro
@@ -580,7 +580,7 @@ const PilotFlightHours = () => {
                   Función exclusiva para alumnos
                 </h3>
                 <p className="text-[#B0B0B0] mb-6">
-                  La bitácora de vuelos y registro de horas es parte del Plan Alumno Academia, exclusivo para alumnos de Academia Drone Chile.
+                  La bitácora de vuelos y el registro de horas forman parte del Plan Alumno Academia, exclusivo para alumnos de Academia de Drones de Chile.
                 </p>
                 <div className="bg-[#212121] border border-[#333333] rounded-xl p-4 mb-6 text-left">
                   <p className="text-sm font-semibold text-[#E0E0E0] mb-3">Con el Plan Alumno Academia obtienes:</p>
@@ -654,7 +654,7 @@ const PilotFlightHours = () => {
             />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-                Horas de Vuelo
+                Horas de vuelo
               </h1>
               <p className="text-xs sm:text-lg text-gray-600 font-medium uppercase tracking-wider">
                 Área de Piloto
@@ -684,7 +684,7 @@ const PilotFlightHours = () => {
                 <div className="text-4xl font-bold text-green-500 mb-2">
                   {getThisMonthHours().toFixed(1)}h
                 </div>
-                <div className="text-[#B0B0B0] font-medium">Este Mes</div>
+                <div className="text-[#B0B0B0] font-medium">Este mes</div>
               </CardContent>
             </div>
           </Card>
@@ -823,7 +823,7 @@ const PilotFlightHours = () => {
         {/* Flight Records List */}
         {flightRecords.length > 0 ? (
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-[#E0E0E0]">Registros de Vuelo</h3>
+            <h3 className="text-lg font-semibold text-[#E0E0E0]">Registros de vuelo</h3>
             {flightRecords.map((record) => (
               <Card key={record.id} className="bg-[#212121] border border-[#333333] shadow-xl rounded-2xl overflow-hidden">
                 <div className="bg-gradient-to-r from-[#FF69B4]/20 via-[#FF69B4]/10 to-[#FF69B4]/20 p-1">
@@ -895,7 +895,7 @@ const PilotFlightHours = () => {
                 <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
                   <FileText className="h-5 w-5 text-white" />
                 </div>
-                Certificados de Horas de Vuelo o Itinerarios
+                Certificados de horas de vuelo o itinerarios
               </CardTitle>
               <CardDescription className="text-[#B0B0B0] mt-2">
                 Sube archivos como "flight data center" para validación de horas de vuelo por el administrador
@@ -920,7 +920,7 @@ const PilotFlightHours = () => {
                   />
                 </Label>
                 <p className="text-xs text-[#B0B0B0] mt-1">
-                  Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                  Formatos admitidos: PDF, JPG, PNG (máx. 10 MB)
                 </p>
                 {uploadingCertificate && (
                   <div className="mt-3 flex items-center justify-center gap-2 text-sm text-[#B0B0B0]">

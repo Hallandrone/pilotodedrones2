@@ -219,14 +219,14 @@ const UserProfile = () => {
 
             if (payload.new.status === 'rejected' && payload.new.rejection_observations) {
               toast({
-                title: "Vitacora rechazada",
-                description: "Tu vitacora ha sido rechazada. Revisa las observaciones.",
+                title: "Bitácora rechazada",
+                description: "Tu bitácora ha sido rechazada. Revisa las observaciones.",
                 variant: "destructive",
               });
             } else if (payload.new.status === 'validated') {
               toast({
-                title: "Vitacora validada",
-                description: "Tu vitacora ha sido validada exitosamente",
+                title: "Bitácora validada",
+                description: "Tu bitácora ha sido validada exitosamente",
               });
             }
           } else if (payload.eventType === 'INSERT' && payload.new) {
@@ -675,7 +675,7 @@ const UserProfile = () => {
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
-        description: "La imagen no puede ser mayor a 5MB",
+        description: "La imagen no puede ser mayor a 5 MB",
         variant: "destructive",
       });
       return;
@@ -1035,7 +1035,7 @@ const UserProfile = () => {
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "Archivo muy grande",
-        description: "El archivo no debe exceder 10MB",
+        description: "El archivo no debe exceder 10 MB",
         variant: "destructive",
       });
       return;
@@ -1133,14 +1133,14 @@ const UserProfile = () => {
       setFlightLogs(prev => prev.filter(log => log.id !== id));
 
       toast({
-        title: "Vitacora eliminada",
-        description: "La vitacora ha sido eliminada correctamente",
+        title: "Bitácora eliminada",
+        description: "La bitácora ha sido eliminada correctamente",
       });
     } catch (error) {
       console.error('Error deleting flight log:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar la vitacora",
+        description: "No se pudo eliminar la bitácora",
         variant: "destructive",
       });
     }
@@ -1165,7 +1165,7 @@ const UserProfile = () => {
       console.error('Error viewing flight log:', error);
       toast({
         title: "Error",
-        description: "No se pudo abrir la vitacora",
+        description: "No se pudo abrir la bitácora",
         variant: "destructive",
       });
     }
@@ -1285,7 +1285,7 @@ const UserProfile = () => {
                   onClick={() => navigate('/auth')}
                   className="w-full bg-[#00b3f3] hover:bg-[#0099cc] text-white font-bold h-12 rounded-xl shadow-lg hover:shadow-[#00b3f3]/20 transition-all"
                 >
-                  Iniciar Sesión
+                  Iniciar sesión
                 </Button>
               </CardContent>
             </Card>
@@ -1294,13 +1294,13 @@ const UserProfile = () => {
           <div className="text-center py-20">
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-white mb-2">Acceso Restringido</h1>
-              <p className="text-white/60">Los super administradores no tienen perfil personal</p>
+              <p className="text-white/60">Los superadministradores no tienen perfil personal</p>
             </div>
             <Card className="max-w-md mx-auto shadow-md border-0 bg-white/5 backdrop-blur-sm p-8">
               <Shield className="h-12 w-12 text-[#00b3f3] mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">Panel de Administración</h3>
               <p className="text-sm text-white/60 mb-6">
-                Como super administrador, utiliza las herramientas de gestión disponibles en el panel principal.
+                Como superadministrador, utiliza las herramientas de gestión disponibles en el panel principal.
               </p>
               <Button
                 onClick={() => window.history.back()}
@@ -1369,7 +1369,7 @@ const UserProfile = () => {
                         disabled={uploadingAvatar}
                       />
                       <p className="text-xs text-muted-foreground text-center">
-                        JPG, PNG hasta 5MB. La imagen se recortará en formato cuadrado.
+                        JPG, PNG hasta 5 MB. La imagen se recortará en formato cuadrado.
                       </p>
                     </div>
                   </div>
@@ -1437,9 +1437,9 @@ const UserProfile = () => {
                     {/* Redes Sociales */}
                     <div className="space-y-4 pt-8 border-t border-white/10">
                       <div className="mb-6">
-                        <h3 className="text-2xl font-bold text-white mb-2">Redes Sociales</h3>
+                        <h3 className="text-2xl font-bold text-white mb-2">Redes sociales</h3>
                         <p className="text-sm text-white/60">
-                          Agrega tus redes sociales. Puedes ingresar solo tu alias (ej: juan_perez) o la URL completa.
+                          Agrega tus redes sociales. Puedes ingresar solo tu alias (ej.: juan_perez) o la URL completa.
                         </p>
                       </div>
 
@@ -1517,7 +1517,7 @@ const UserProfile = () => {
                         <p className="text-xs text-muted-foreground">
                           {useInstagramUrl
                             ? "Ingresa la URL completa de tu perfil de Instagram"
-                            : "Ingresa solo tu nombre de usuario (ej: juan_perez). El sistema construirá la URL automáticamente."}
+                            : "Ingresa solo tu nombre de usuario (ej.: juan_perez). El sistema construirá la URL automáticamente."}
                         </p>
                       </div>
 
@@ -1595,7 +1595,7 @@ const UserProfile = () => {
                         <p className="text-xs text-muted-foreground">
                           {useLinkedInUrl
                             ? "Ingresa la URL completa de tu perfil de LinkedIn"
-                            : "Ingresa solo tu nombre de usuario (ej: juan-perez). El sistema construirá la URL automáticamente."}
+                            : "Ingresa solo tu nombre de usuario (ej.: juan-perez). El sistema construirá la URL automáticamente."}
                         </p>
                       </div>
                     </div>
@@ -1607,7 +1607,7 @@ const UserProfile = () => {
                       <div className="flex items-center gap-2 mb-2">
                         <Crown className="h-5 w-5 text-yellow-500" />
                         <Label className="text-foreground font-semibold text-lg">
-                          URL Personalizada del Perfil Público
+                          URL personalizada del perfil público
                         </Label>
                       </div>
                       <p className="text-sm text-muted-foreground mb-4">
@@ -1739,7 +1739,7 @@ const UserProfile = () => {
                     <div className="flex items-center gap-2">
                       <Shield className="h-5 w-5 text-accent" />
                       <Label className="text-foreground font-semibold text-lg">
-                        Certificados de Academia Drone Chile
+                        Certificados de Academia de Drones de Chile
                       </Label>
                     </div>
 
@@ -1753,7 +1753,7 @@ const UserProfile = () => {
                           </p>
                           <div className="text-sm text-blue-700 dark:text-blue-400 leading-relaxed space-y-1">
                             <p>
-                              <strong>• Solo los certificados impartidos por Academia de Drone Chile serán autenticados.</strong>
+                              <strong>• Solo los certificados emitidos por Academia de Drones de Chile serán autenticados.</strong>
                             </p>
                             <p>
                               • Esta acción es realizada por un administrador humano que revisa cada certificado.
@@ -1783,7 +1783,7 @@ const UserProfile = () => {
                         />
                       </Label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                        Formatos admitidos: PDF, JPG, PNG (máx. 10 MB)
                       </p>
                     </div>
                   </div>
@@ -1792,7 +1792,7 @@ const UserProfile = () => {
                   {certifications.length > 0 && (
                     <div className="mt-6">
                       <Separator className="mb-4" />
-                      <h4 className="font-medium text-foreground mb-4">Certificados de Academia Drone Chile subidos</h4>
+                      <h4 className="font-medium text-foreground mb-4">Certificados de Academia de Drones de Chile subidos</h4>
                       <div className="space-y-3">
                         {certifications.map((cert) => (
                           <div key={cert.id} className="p-4 bg-muted/30 rounded-lg border border-border/30">
@@ -1884,7 +1884,7 @@ const UserProfile = () => {
                     <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-accent" />
                       <Label className="text-foreground font-semibold text-lg">
-                        Certificados o Registros de Vuelo
+                        Certificados o registros de vuelo
                       </Label>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
@@ -1909,7 +1909,7 @@ const UserProfile = () => {
                         />
                       </Label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Formatos admitidos: PDF, JPG, PNG (máx. 10MB)
+                        Formatos admitidos: PDF, JPG, PNG (máx. 10 MB)
                       </p>
                       {uploadingFlightLog && (
                         <div className="mt-3 flex items-center justify-center gap-2 text-sm text-muted-foreground">

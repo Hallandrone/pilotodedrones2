@@ -137,7 +137,7 @@ const ProfileContacts = () => {
 								showText={false}
 							/>
 							<div className="flex flex-col min-w-0">
-								<h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight truncate">Contactos Recibidos</h1>
+								<h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight truncate">Contactos recibidos</h1>
 								<p className="text-[10px] sm:text-sm text-gray-600 font-medium uppercase tracking-wider truncate">
 									Característica Pro
 								</p>
@@ -158,10 +158,10 @@ const ProfileContacts = () => {
 									Función exclusiva para alumnos
 								</h3>
 								<p className="text-[#B0B0B0] mb-6">
-									La bandeja de contactos recibidos es parte del Plan Alumno Academia, exclusivo para alumnos de Academia Drone Chile.
+									La bandeja de contactos recibidos es parte del Plan Alumno Academia, exclusivo para alumnos de Academia de Drones de Chile.
 								</p>
 								<div className="bg-[#212121] border border-[#333333] rounded-xl p-4 mb-6 text-left">
-									<p className="text-sm font-semibold text-[#E0E0E0] mb-3">¿Qué es Contactos Recibidos?</p>
+									<p className="text-sm font-semibold text-[#E0E0E0] mb-3">¿Qué es la sección «Contactos recibidos»?</p>
 									<p className="text-sm text-[#B0B0B0] mb-3">
 										Cuando clientes potenciales visitan tu perfil público, pueden enviarte un mensaje directo con sus datos de contacto (email, teléfono) y detalles sobre el servicio que necesitan.
 									</p>
