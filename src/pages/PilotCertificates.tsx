@@ -1,3 +1,4 @@
+import DeleteCertificationButton from '@/components/DeleteCertificationButton';
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,6 @@ import {
   Upload,
   FileText,
   Download,
-  Trash2,
   CheckCircle,
   Clock,
   XCircle,
@@ -238,30 +238,6 @@ const PilotCertificates = () => {
     }
   };
 
-  const handleDeleteCertification = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('user_certifications')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCertifications(prev => prev.filter(cert => cert.id !== id));
-
-      toast({
-        title: "Certificación eliminada",
-        description: "La certificación ha sido eliminada correctamente",
-      });
-    } catch (error) {
-      console.error('Error deleting certification:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar la certificación",
-        variant: "destructive",
-      });
-    }
-  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -428,7 +404,7 @@ const PilotCertificates = () => {
                       </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-3">
                       <Button
                         size="sm"
                         variant="outline"
@@ -447,14 +423,8 @@ const PilotCertificates = () => {
                         <Download className="h-4 w-4 mr-2" />
                         Descargar
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteCertification(cert.id)}
-                        className="bg-[#2C2C2C] border-[#333333] hover:bg-red-500/10 hover:border-red-500 hover:text-red-500 transition-all duration-200 rounded-xl text-[#E0E0E0]"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <DeleteCertificationButton id={cert.id} fileName={cert.file_name}
+                                  onDeleted={id => setCertifications(prev => prev.filter(cert => cert.id !== id))} />
                     </div>
 
                     {/* Observaciones del administrador */}
