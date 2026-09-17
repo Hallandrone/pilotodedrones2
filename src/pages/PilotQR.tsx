@@ -155,7 +155,7 @@ const PilotQR = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: userType === 'company' ? 'Mi Perfil de Empresa' : 'Mi Perfil de Piloto',
+          title: userType === 'company' ? 'Mi perfil de empresa' : 'Mi perfil de piloto',
           text: userType === 'company'
             ? `Soy ${pilotData?.full_name || 'una empresa'}, empresa certificada de drones`
             : `Soy ${pilotData?.full_name}, piloto certificado de drones`,

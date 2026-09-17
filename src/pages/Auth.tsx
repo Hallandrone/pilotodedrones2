@@ -460,7 +460,7 @@ const Auth = () => {
           console.error('Error creando perfil:', createProfileError);
           toast({
             title: "Advertencia",
-            description: "Cuenta creada pero hubo un problema creando el perfil. Intenta iniciar sesión.",
+            description: "La cuenta se creó, pero hubo un problema al crear el perfil. Intenta iniciar sesión.",
             variant: "default",
           });
         } else {
@@ -543,7 +543,7 @@ const Auth = () => {
         if (profile?.user_type === 'company') {
           toast({
             title: "¡Cuenta creada!",
-            description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
+            description: "Para activar tu perfil de empresa, necesitas seleccionar un plan de suscripción.",
           });
         } else {
           // Verificar si hay invitación pendiente (usando storage o URL)
@@ -567,7 +567,7 @@ const Auth = () => {
         if (profile?.user_type === 'company') {
           toast({
             title: "¡Bienvenido!",
-            description: "Para activar tu perfil empresa, necesitas seleccionar un plan de suscripción.",
+            description: "Para activar tu perfil de empresa, necesitas seleccionar un plan de suscripción.",
           });
         } else {
           // Intentar aceptar invitaciones por email automáticamente
@@ -582,7 +582,7 @@ const Auth = () => {
             if (!invError && invData?.success && invData?.found) {
               console.log('Invitación por email aceptada automáticamente:', invData);
               toast({
-                title: "¡Invitación Aceptada!",
+                title: "¡Invitación aceptada!",
                 description: `Has sido añadido automáticamente a ${invData.companyName || 'tu academia'} y tu Plan Alumno Academia está activo.`,
                 duration: 5000
               });
@@ -831,7 +831,7 @@ const Auth = () => {
       if (!captchaToken) {
         toast({
           title: "Verificación pendiente",
-          description: "Espera a que se complete la verificación anti-bot.",
+          description: "Espera a que se complete la verificación antibot.",
           variant: "destructive",
         });
         return;
@@ -927,7 +927,7 @@ const Auth = () => {
             </div>
           )}
           <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
-            {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+            {loading ? "Iniciando sesión..." : "Iniciar sesión"}
           </Button>
         </form>
       </div>
@@ -945,7 +945,7 @@ const Auth = () => {
       if (!captchaToken) {
         toast({
           title: "Verificación pendiente",
-          description: "Espera a que se complete la verificación anti-bot.",
+          description: "Espera a que se complete la verificación antibot.",
           variant: "destructive",
         });
         return;
@@ -1063,7 +1063,7 @@ const Auth = () => {
     return (
       <form onSubmit={handleUpdate} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="update-password">Nueva Contraseña</Label>
+          <Label htmlFor="update-password">Nueva contraseña</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -1078,7 +1078,7 @@ const Auth = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+          <Label htmlFor="confirm-password">Confirmar contraseña</Label>
           <div className="relative">
             <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -1120,7 +1120,7 @@ const Auth = () => {
       if (!captchaToken) {
         toast({
           title: "Verificación pendiente",
-          description: "Espera a que se complete la verificación anti-bot.",
+          description: "Espera a que se complete la verificación antibot.",
           variant: "destructive",
         });
         return;
@@ -1226,7 +1226,7 @@ const Auth = () => {
             <Input
               id="signup-diploma-code"
               type="text"
-              placeholder="Ej: ABCD2345"
+              placeholder="Ej.: ABCD2345"
               value={diplomaCode}
               onChange={(e) => setDiplomaCode(e.target.value)}
               className="pl-10 uppercase"
@@ -1236,7 +1236,7 @@ const Auth = () => {
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Si hiciste el curso en Academia Drone Chile, ingresa el código de tu diploma para activar tu Plan Alumno.
+            Si hiciste el curso en Academia de Drones de Chile, ingresa el código de tu diploma para activar tu Plan Alumno.
           </p>
         </div>
 
@@ -1275,7 +1275,7 @@ const Auth = () => {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               {!isRecovery && !showForgotPassword && (
                 <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+                  <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
                   <TabsTrigger value="signup">Crear Cuenta</TabsTrigger>
                 </TabsList>
               )}

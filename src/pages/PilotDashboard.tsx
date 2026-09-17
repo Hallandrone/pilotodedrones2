@@ -478,7 +478,7 @@ const PilotDashboard = () => {
       <div className="min-h-screen bg-gradient-to-br from-background to-secondary flex items-center justify-center p-4">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
-          <p className="text-muted-foreground">Cargando dashboard...</p>
+          <p className="text-muted-foreground">Cargando panel...</p>
         </div>
       </div>
     );
@@ -491,7 +491,7 @@ const PilotDashboard = () => {
           <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-red-100 mb-4">
             <AlertCircle className="h-7 w-7 text-red-600" />
           </div>
-          <h2 className="text-lg font-semibold mb-2">No pudimos cargar tu dashboard</h2>
+          <h2 className="text-lg font-semibold mb-2">No pudimos cargar tu panel</h2>
           <p className="text-muted-foreground mb-6">
             Suele ser un problema temporal de conexión. Intenta nuevamente en un momento.
           </p>
@@ -528,7 +528,7 @@ const PilotDashboard = () => {
               className="text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-xl px-4 py-2.5 transition-all duration-300 hover:scale-105 border border-transparent hover:border-red-200 font-semibold"
             >
               <LogOut className="h-5 w-5 sm:mr-2" />
-              <span className="hidden sm:inline">Cerrar Sesión</span>
+              <span className="hidden sm:inline">Cerrar sesión</span>
             </Button>
           </div>
         </div>
@@ -574,7 +574,7 @@ const PilotDashboard = () => {
                       {flightHours.total_hours}
                       <span className="text-sm sm:text-lg text-[#00b3f3]/60">hrs</span>
                     </div>
-                    <div className="text-xs sm:text-base text-white/90">Horas Totales</div>
+                    <div className="text-xs sm:text-base text-white/90">Horas totales</div>
                   </div>
                 </div>
                 <div className="relative group overflow-hidden bg-gradient-to-br from-[#00b3f3]/20 to-transparent rounded-xl sm:rounded-2xl p-3 sm:p-6 border-2 border-[#00b3f3]/30 hover:border-[#00b3f3]/60 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,179,243,0.3)] hover:scale-105">
@@ -598,7 +598,7 @@ const PilotDashboard = () => {
                       <div>
                         <div className="flex items-center gap-2 text-[#FF69B4] mb-1 sm:mb-2">
                           <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
-                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Horario Solar</span>
+                          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Horario solar</span>
                         </div>
                         <div className="text-white font-bold text-sm sm:text-base leading-tight">
                           Amanecer y atardecer para tus vuelos
@@ -630,7 +630,7 @@ const PilotDashboard = () => {
             <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
               <Settings className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Editar Perfil</span>
+            <span className="relative text-xs sm:text-base text-white px-1">Editar perfil</span>
           </Button>
           <Button
             variant="outline"
@@ -664,7 +664,7 @@ const PilotDashboard = () => {
                 </div>
               )}
             </div>
-            <span className="relative text-xs sm:text-base text-white px-1">Horas de Vuelo</span>
+            <span className="relative text-xs sm:text-base text-white px-1">Horas de vuelo</span>
           </Button>
           <Button
             variant="outline"
@@ -719,7 +719,7 @@ const PilotDashboard = () => {
                     </div>
                     <div>
                       <h3 className="text-white font-semibold text-base sm:text-lg flex items-center gap-2">
-                        Contactos Recibidos
+                        Contactos recibidos
                         {unreadContacts > 0 && (
                           <Badge className="bg-[#FF69B4] text-white text-[10px] animate-pulse">
                             {unreadContacts} nuevo{unreadContacts !== 1 ? 's' : ''}
@@ -777,7 +777,7 @@ const PilotDashboard = () => {
                       <Lock className="h-6 w-6 sm:h-8 sm:w-8 text-[#00b3f3]" />
                     </div>
                     <div>
-                      <h3 className="text-white text-base sm:text-lg font-bold">Diplomas Digitales</h3>
+                      <h3 className="text-white text-base sm:text-lg font-bold">Diplomas digitales</h3>
                       <p className="text-white/60 text-xs sm:text-sm">Asocia y descarga tus diplomas oficiales.</p>
                     </div>
                   </div>
@@ -845,7 +845,7 @@ const PilotDashboard = () => {
                             }`}>
                             <Shield className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
                           </div>
-                          <span className="text-white text-sm sm:text-xl">Estado de Certificación</span>
+                          <span className="text-white text-sm sm:text-xl">Estado de certificación</span>
                         </div>
                         {certStatus === 'valid' ? (
                           <div className="h-8 w-8 sm:h-12 sm:w-12 bg-emerald-500/20 border-2 border-emerald-400 rounded-full flex items-center justify-center shadow-lg animate-pulse flex-shrink-0">
@@ -870,7 +870,7 @@ const PilotDashboard = () => {
                         {certStatus === 'valid' && (
                           <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-lg p-3 sm:p-4">
                             <p className="text-white text-sm sm:text-base font-medium mb-1">
-                              ✓ Certificación Vigente
+                              ✓ Certificación vigente
                             </p>
                             <p className="text-white/80 text-xs sm:text-sm">
                               Válida hasta: {formatExpirationDate(pilotData?.certification_expires_at || null)}
@@ -887,7 +887,7 @@ const PilotDashboard = () => {
                           <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-lg p-3 sm:p-4">
                             <p className="text-white text-sm sm:text-base font-medium mb-1 flex items-center gap-2">
                               <AlertCircle className="h-4 w-4" />
-                              Certificación por Vencer
+                              Certificación por vencer
                             </p>
                             <p className="text-white/80 text-xs sm:text-sm">
                               Vence el: {formatExpirationDate(pilotData?.certification_expires_at || null)}
@@ -961,7 +961,7 @@ const PilotDashboard = () => {
                 <p className="text-white/80 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed">
                   {plan?.isPaid
                     ? `${plan.displayName} · ${plan.status === 'active' ? 'Activo' : 'Finaliza pronto'}`
-                    : 'Plan Gratis. El Plan Alumno Academia es exclusivo para alumnos de Academia Drone Chile: al hacer un curso recibes un código de diploma para activarlo.'}
+                    : 'Plan Gratis. El Plan Alumno Academia es exclusivo para alumnos de Academia de Drones de Chile: al hacer un curso recibes un código de diploma para activarlo.'}
                 </p>
                 {plan?.isPaid ? (
                   <Button

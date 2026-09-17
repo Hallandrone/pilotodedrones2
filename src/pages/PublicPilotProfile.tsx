@@ -223,7 +223,7 @@ const PublicPilotProfile = () => {
         // Fallback: copiar al portapapeles
         await navigator.clipboard.writeText(profileUrl);
         toast({
-          title: "Link copiado",
+          title: "Enlace copiado",
           description: "El link del perfil se copió al portapapeles.",
         });
       }
@@ -243,7 +243,7 @@ const PublicPilotProfile = () => {
     try {
       await navigator.clipboard.writeText(profileUrl);
       toast({
-        title: "¡Link copiado!",
+        title: "¡Enlace copiado!",
         description: "El link del perfil se copió al portapapeles.",
       });
     } catch (error) {
@@ -859,7 +859,7 @@ const PublicPilotProfile = () => {
                   className="h-10 px-4 rounded-lg border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 text-sm font-medium flex items-center gap-2 transition-colors active:translate-y-px"
                 >
                   <Copy className="h-4 w-4" strokeWidth={1.75} />
-                  Copiar Link
+                  Copiar enlace
                 </Button>
               </motion.div>
 
@@ -875,7 +875,7 @@ const PublicPilotProfile = () => {
                 <div className="py-5 sm:pr-8 flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-4 w-4 text-[#00b3f3]" strokeWidth={1.75} />
-                    <span className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 font-medium font-display">Horas de Vuelo</span>
+                    <span className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 font-medium font-display">Horas de vuelo</span>
                     {isFlightHoursValidated && (
                       <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600" title="Información Certificada">
                         <CheckCircle className="h-3.5 w-3.5" strokeWidth={2} />
@@ -897,7 +897,7 @@ const PublicPilotProfile = () => {
                   <div className="py-5 sm:pl-8 flex flex-col">
                     <div className="flex items-center gap-2 mb-2">
                       <Star className="h-4 w-4 text-[#00b3f3]" strokeWidth={1.75} />
-                      <span className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 font-medium font-display">Años de Experiencia</span>
+                      <span className="text-[11px] uppercase tracking-[0.16em] text-zinc-500 font-medium font-display">Años de experiencia</span>
                     </div>
                     <span className="font-display text-4xl md:text-5xl font-semibold text-zinc-900 tabular-nums leading-none">{profile.experience_years}</span>
                   </div>
@@ -972,7 +972,7 @@ const PublicPilotProfile = () => {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
                   <Share2 className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Redes Sociales</h2>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Redes sociales</h2>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {(profile.instagram_url || profile.instagram_username) && (
@@ -1044,7 +1044,7 @@ const PublicPilotProfile = () => {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
                   <Briefcase className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Servicios que Prestamos</h2>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Servicios que prestamos</h2>
               </div>
               <div className="flex flex-wrap gap-2">
                 {profile.services.map((service, index) => (
@@ -1069,7 +1069,7 @@ const PublicPilotProfile = () => {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
                   <Globe className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Sitio Web</h2>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Sitio web</h2>
               </div>
               <a
                 href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
@@ -1100,7 +1100,7 @@ const PublicPilotProfile = () => {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#083b4e] text-zinc-100 shrink-0">
                   <MonitorPlay className="h-4 w-4" strokeWidth={1.75} />
                 </div>
-                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Portafolio Profesional</h2>
+                <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Portafolio profesional</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {portfolio.map((item) => (
@@ -1151,7 +1151,7 @@ const PublicPilotProfile = () => {
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#083b4e]">
                               <Play className="h-9 w-9 text-zinc-500" strokeWidth={1.5} />
-                              <span className="text-zinc-400 text-[11px] uppercase tracking-[0.16em] font-display">Ver Video</span>
+                              <span className="text-zinc-400 text-[11px] uppercase tracking-[0.16em] font-display">Ver video</span>
                             </div>
                           )}
                         </a>
@@ -1182,7 +1182,7 @@ const PublicPilotProfile = () => {
                 </div>
                 <div>
                   <div className="text-[11px] uppercase tracking-[0.18em] text-zinc-500 font-medium font-display">Formación certificada</div>
-                  <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Capacitaciones y Diplomas</h2>
+                  <h2 className="font-display text-lg font-semibold text-zinc-900 tracking-tight">Capacitaciones y diplomas</h2>
                 </div>
               </div>
               <p className="text-sm text-zinc-500 leading-relaxed mb-6 max-w-2xl">
