@@ -2,7 +2,7 @@
  * Series de aeronaves que puede acreditar un diploma.
  *
  * Son familias, no modelos: «MAVIC» cubre Mavic 2, Mavic 3 y Mavic 3
- * Enterprise; «MATRICE» cubre M30, M300, M350 y M4. En el diploma se imprimen
+ * Enterprise; «MATRICE» cubre M30, M300, M350 y M4; «DOCK», Dock 1, 2 y 3. En el diploma se imprimen
  * tal cual, en mayúsculas, tras «Certificado en la serie:». Las de Autel llevan
  * la marca delante porque «EVO» a secas no identifica al fabricante.
  */
@@ -38,6 +38,7 @@ export const DRONE_SERIES_CATALOG: DroneSeriesBrand[] = [
       "MATRICE",
       "AGRAS",
       "FLYCART",
+      "DOCK",
     ].map(dji),
   },
   {
