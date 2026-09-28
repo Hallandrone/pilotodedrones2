@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+// Iconografía industrial: medidor, credencial, casco, lista de inspección, medalla, llave, engranaje…
 import {
-  User2,
-  Plane,
-  Settings,
-  BarChart3,
-  Shield,
-  MapPin,
-  Bell,
-  LogOut,
-  Home,
-  FileCheck,
-  Award,
-  Image,
-  MessageCircle
+  Gauge,
+  IdCard,
+  Users,
+  HardHat,
+  ClipboardCheck,
+  Medal,
+  BellRing,
+  Megaphone,
+  Wrench,
+  Cog,
+  Globe,
+  Power
 } from "lucide-react";
+import DroneIcon from "@/components/icons/DroneIcon";
 import {
   Sidebar,
   SidebarContent,
@@ -52,73 +53,73 @@ const menuItems: MenuItem[] = [
   {
     title: "Inicio",
     url: "/dashboard",
-    icon: Home,
+    icon: Gauge,
     roles: ["super_admin"]
   },
   {
     title: "Mi perfil de piloto",
     url: "/pilot",
-    icon: User2,
+    icon: IdCard,
     roles: ["super_admin", "admin"]
   },
   {
     title: "Usuarios",
     url: "/dashboard/users",
-    icon: User2,
+    icon: Users,
     roles: ["super_admin", "admin"],
     permission: "view_users"
   },
   {
     title: "Pilotos",
     url: "/dashboard/pilots",
-    icon: Plane,
+    icon: HardHat,
     roles: ["super_admin", "admin"],
     permission: "view_users"
   },
   {
     title: "Certificados",
     url: "/dashboard/certificates",
-    icon: FileCheck,
+    icon: ClipboardCheck,
     roles: ["super_admin", "admin"],
     permission: "manage_certificates"
   },
   {
     title: "Diplomas",
     url: "/dashboard/diplomas",
-    icon: Award,
+    icon: Medal,
     roles: ["super_admin", "admin"],
     permission: "create_diplomas"
   },
   {
     title: "Notificaciones",
     url: "/dashboard/notifications",
-    icon: Bell,
+    icon: BellRing,
     roles: ["super_admin", "admin"],
     permission: "view_notifications"
   },
   {
     title: "Banners",
     url: "/dashboard/banners",
-    icon: Image,
+    icon: Megaphone,
     roles: ["super_admin", "admin"],
     permission: "manage_banners"
   },
   {
     title: "Problemas/Sugerencias",
     url: "/dashboard/feedback",
-    icon: MessageCircle,
+    icon: Wrench,
     roles: ["super_admin"]
   },
   {
     title: "Drones",
     url: "/dashboard/drones",
-    icon: Plane,
+    icon: DroneIcon,
     roles: ["super_admin"]
   },
   {
     title: "Configuración",
     url: "/dashboard/configuracion",
-    icon: Settings,
+    icon: Cog,
     roles: ["super_admin"]
   }
 ];
@@ -235,7 +236,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
             onClick={() => window.open('https://www.pilotodedrones.cl', '_blank')}
             className={`w-full bg-white/10 border-white/30 text-white hover:bg-white hover:text-[#2FB8FF] ${collapsed ? 'px-2' : ''}`}
           >
-            <Home className="h-4 w-4" />
+            <Globe className="h-4 w-4" />
             {!collapsed && <span className="ml-2">Ir al sitio</span>}
           </Button>
 
@@ -245,7 +246,7 @@ export function DashboardSidebar({ userRole }: DashboardSidebarProps) {
             onClick={handleSignOut}
             className={`w-full text-white hover:text-white hover:bg-red-500/20 ${collapsed ? 'px-2' : ''}`}
           >
-            <LogOut className="h-4 w-4" />
+            <Power className="h-4 w-4" />
             {!collapsed && <span className="ml-2">Cerrar sesión</span>}
           </Button>
         </div>
