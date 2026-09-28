@@ -1,8 +1,14 @@
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Loader2, Trash2, Upload, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { STUDENT_TEMPLATE_CSV, isStudentComplete, parseStudentFile, type StudentRow } from "@/lib/studentList";
+import {
+  STUDENT_TEMPLATE_FILE_NAME,
+  buildStudentTemplateXlsx,
+  isStudentComplete,
+  parseStudentFile,
+  type StudentRow,
+} from "@/lib/studentList";
 import { generateDiplomasBatch, type BulkDiplomaOutcome, type BulkDiplomaShared } from "@/lib/bulkDiplomas";
 
 interface BulkDiplomaUploadProps {
@@ -22,7 +28,6 @@ const FIELDS: Array<{ key: keyof StudentRow; label: string }> = [
   { key: "lastNameMaternal", label: "Apellido Materno" },
 ];
 
-const TEMPLATE_URL = `data:text/csv;charset=utf-8,${encodeURIComponent(STUDENT_TEMPLATE_CSV)}`;
 const CELL_CLASS = "h-10 rounded-lg border-white/10 bg-white/5 text-sm text-white focus:border-[#00b3f3]";
 
 let nextRowId = 1;
@@ -39,6 +44,24 @@ const BulkDiplomaUpload = ({ shared, missingShared, onIssued }: BulkDiplomaUploa
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0, current: "" });
   const [outcome, setOutcome] = useState<(BulkDiplomaOutcome & { zipUrl: string | null }) | null>(null);
+  const [templateUrl, setTemplateUrl] = useState<string | null>(null);
+
+  // La plantilla se arma al montar para que el enlace sea una descarga directa (Safari no la bloquea).
+  useEffect(() => {
+    let url: string | null = null;
+    let cancelled = false;
+    buildStudentTemplateXlsx()
+      .then((blob) => {
+        if (cancelled) return;
+        url = URL.createObjectURL(blob);
+        setTemplateUrl(url);
+      })
+      .catch((error) => console.error("No se pudo preparar la plantilla de alumnos:", error));
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, []);
 
   const incomplete = rows.filter((row) => !isStudentComplete(row)).length;
   const canGenerate = rows.length > 0 && incomplete === 0 && missingShared.length === 0 && !generating;
@@ -112,14 +135,16 @@ const BulkDiplomaUpload = ({ shared, missingShared, onIssued }: BulkDiplomaUploa
             diploma por alumno y se descargan todos en un ZIP.
           </p>
         </div>
-        <a
-          href={TEMPLATE_URL}
-          download="plantilla-alumnos.csv"
-          className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-[#00b3f3] hover:underline"
-        >
-          <FileSpreadsheet className="h-4 w-4" />
-          Descargar plantilla CSV
-        </a>
+        {templateUrl && (
+          <a
+            href={templateUrl}
+            download={STUDENT_TEMPLATE_FILE_NAME}
+            className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-[#00b3f3] hover:underline"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Descargar plantilla Excel
+          </a>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

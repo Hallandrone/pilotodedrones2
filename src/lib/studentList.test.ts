@@ -1,13 +1,14 @@
 import JSZip from "jszip";
 import { describe, expect, it } from "vitest";
 import {
+  buildStudentTemplateXlsx,
   decodeTextFile,
   detectColumns,
   parseDelimited,
   parseXlsx,
   parseXlsxRows,
   rowsToStudents,
-  STUDENT_TEMPLATE_CSV,
+  STUDENT_TEMPLATE_HEADERS,
 } from "./studentList";
 
 describe("parseDelimited", () => {
@@ -80,10 +81,8 @@ describe("rowsToStudents", () => {
     expect(result.warnings).toEqual(["1 fila(s) tienen algún campo vacío; complétalas o quítalas antes de generar."]);
   });
 
-  it("la plantilla se lee tal cual", () => {
-    const result = rowsToStudents(parseDelimited(STUDENT_TEMPLATE_CSV.replace(/^\uFEFF/, "")));
-    expect(result.headerDetected).toBe(true);
-    expect(result.students).toEqual([{ firstName: "Isabel", lastNamePaternal: "Martínez", lastNameMaternal: "Armijo" }]);
+  it("los encabezados de la plantilla se reconocen", () => {
+    expect(detectColumns([...STUDENT_TEMPLATE_HEADERS])).toEqual({ firstName: 0, paternal: 1, maternal: 2 });
   });
 });
 
@@ -139,5 +138,26 @@ describe("parseXlsxRows", () => {
     const students = rowsToStudents(rows).students;
     expect(students).toHaveLength(25);
     expect(students[24].firstName).toBe("Alumno 25");
+  });
+});
+
+describe("buildStudentTemplateXlsx", () => {
+  it("genera un .xlsx válido que el propio lector entiende: solo encabezados, sin alumnos", async () => {
+    const blob = await buildStudentTemplateXlsx();
+    expect(blob.type).toBe("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    const buffer = await blob.arrayBuffer();
+    expect(String.fromCharCode(...new Uint8Array(buffer.slice(0, 2)))).toBe("PK");
+
+    const zip = await JSZip.loadAsync(buffer);
+    for (const part of ["[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/styles.xml", "xl/worksheets/sheet1.xml"]) {
+      expect(zip.file(part), part).not.toBeNull();
+    }
+
+    const { rows, sheetNames } = await parseXlsx(buffer);
+    expect(sheetNames).toEqual(["Alumnos"]);
+    expect(rows).toEqual([["Nombres", "Apellido Paterno", "Apellido Materno"]]);
+    const result = rowsToStudents(rows);
+    expect(result.headerDetected).toBe(true);
+    expect(result.students).toEqual([]);
   });
 });

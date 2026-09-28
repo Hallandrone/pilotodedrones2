@@ -28,8 +28,8 @@ export interface StudentColumns {
   maternal: number;
 }
 
-/** Plantilla con «;», que es el separador que Excel en español usa al abrir y guardar CSV. */
-export const STUDENT_TEMPLATE_CSV = "\uFEFFNombres;Apellido Paterno;Apellido Materno\r\nIsabel;Martínez;Armijo\r\n";
+export const STUDENT_TEMPLATE_HEADERS = ["Nombres", "Apellido Paterno", "Apellido Materno"] as const;
+export const STUDENT_TEMPLATE_FILE_NAME = "plantilla-alumnos.xlsx";
 
 const DEFAULT_COLUMNS: StudentColumns = { firstName: 0, paternal: 1, maternal: 2 };
 
@@ -246,4 +246,81 @@ export const parseStudentFile = async (file: File): Promise<StudentListParseResu
     );
   }
   return result;
+};
+
+const escapeXml = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+const XML_HEADER = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+
+/**
+ * Plantilla .xlsx con solo la fila de encabezados, en negrita y con columnas
+ * anchas. Un .xlsx es un ZIP con unas pocas partes XML, así que se arma con
+ * JSZip sin depender de SheetJS. Sin fila de ejemplo, para que nadie emita
+ * por descuido un diploma a un alumno inventado.
+ */
+export const buildStudentTemplateXlsx = async (): Promise<Blob> => {
+  const { default: JSZipLib } = await import("jszip");
+  const zip = new JSZipLib();
+  const headerCells = STUDENT_TEMPLATE_HEADERS.map(
+    (label, index) => `<c r="${String.fromCharCode(65 + index)}1" t="inlineStr" s="1"><is><t>${escapeXml(label)}</t></is></c>`,
+  ).join("");
+
+  zip.file(
+    "[Content_Types].xml",
+    XML_HEADER +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+      "</Types>",
+  );
+  zip.file(
+    "_rels/.rels",
+    XML_HEADER +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+      "</Relationships>",
+  );
+  zip.file(
+    "xl/workbook.xml",
+    XML_HEADER +
+      '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      '<sheets><sheet name="Alumnos" sheetId="1" r:id="rId1"/></sheets>' +
+      "</workbook>",
+  );
+  zip.file(
+    "xl/_rels/workbook.xml.rels",
+    XML_HEADER +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+      "</Relationships>",
+  );
+  zip.file(
+    "xl/styles.xml",
+    XML_HEADER +
+      '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>' +
+      '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>' +
+      '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>' +
+      '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+      "</styleSheet>",
+  );
+  zip.file(
+    "xl/worksheets/sheet1.xml",
+    XML_HEADER +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<cols><col min="1" max="3" width="26" customWidth="1"/></cols>' +
+      `<sheetData><row r="1">${headerCells}</row></sheetData>` +
+      "</worksheet>",
+  );
+  return zip.generateAsync({
+    type: "blob",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
 };
