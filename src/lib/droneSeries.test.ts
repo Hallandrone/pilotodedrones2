@@ -35,16 +35,17 @@ describe("parseDroneSeries", () => {
     expect(parseDroneSeries("matrice-mavic-joyance jtc10")).toEqual({ selected: ["MATRICE", "MAVIC"], other: "JOYANCE JTC10" });
   });
 
-  it("reconoce las series de Autel con o sin marca y con «Robotics»", () => {
-    expect(parseDroneSeries("mavic, autel evo max")).toEqual({ selected: ["MAVIC", "AUTEL EVO MAX"], other: "" });
-    expect(parseDroneSeries("EVO LITE")).toEqual({ selected: ["AUTEL EVO LITE"], other: "" });
-    expect(parseDroneSeries("Autel Robotics EVO").selected).toEqual(["AUTEL EVO"]);
+  it("reconoce las series de Autel con o sin marca y con «Robotics», y las guarda sin marca", () => {
+    expect(parseDroneSeries("mavic, autel evo max")).toEqual({ selected: ["MAVIC", "EVO MAX"], other: "" });
+    expect(parseDroneSeries("EVO LITE")).toEqual({ selected: ["EVO LITE"], other: "" });
+    expect(parseDroneSeries("Autel Robotics EVO").selected).toEqual(["EVO"]);
+    expect(parseDroneSeries("MATRICE, AUTEL DRAGONFISH Y AVATA").selected).toEqual(["MATRICE", "DRAGONFISH", "AVATA"]);
   });
 
   it("ida y vuelta: lo compuesto se vuelve a leer igual", () => {
-    const composed = composeDroneSeries(["MAVIC", "AUTEL EVO", "JOYANCE JTC10"]);
-    expect(composed).toBe("MAVIC, AUTEL EVO Y JOYANCE JTC10");
-    expect(parseDroneSeries(composed)).toEqual({ selected: ["MAVIC", "AUTEL EVO"], other: "JOYANCE JTC10" });
+    const composed = composeDroneSeries(["MAVIC", "EVO", "JOYANCE JTC10"]);
+    expect(composed).toBe("MAVIC, EVO Y JOYANCE JTC10");
+    expect(parseDroneSeries(composed)).toEqual({ selected: ["MAVIC", "EVO"], other: "JOYANCE JTC10" });
   });
 
   it("el catálogo no tiene valores repetidos", () => {

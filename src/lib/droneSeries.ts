@@ -5,9 +5,8 @@
  * Enterprise y también Air y Mini (nacieron como Mavic Air y Mavic Mini);
  * «LITO» cubre Lito 1 y Lito X1; «MATRICE» cubre M30, M300, M350 y M4;
  * «DOCK» cubre Dock 1, 2 y 3. En el
- * diploma se imprimen tal cual, en mayúsculas, tras «Certificado en la
- * serie:». Las de Autel llevan la marca delante porque «EVO» a secas no
- * identifica al fabricante.
+ * diploma se imprimen tal cual, en mayúsculas y sin marca («DRAGONFISH»,
+ * no «AUTEL DRAGONFISH»), tras «Certificado en la serie:».
  */
 export interface DroneSeriesOption {
   /** Texto que se guarda y se imprime. */
@@ -21,8 +20,7 @@ export interface DroneSeriesBrand {
   options: DroneSeriesOption[];
 }
 
-const dji = (label: string): DroneSeriesOption => ({ value: label, label });
-const autel = (label: string): DroneSeriesOption => ({ value: `AUTEL ${label}`, label });
+const option = (label: string): DroneSeriesOption => ({ value: label, label });
 
 export const DRONE_SERIES_CATALOG: DroneSeriesBrand[] = [
   {
@@ -41,11 +39,11 @@ export const DRONE_SERIES_CATALOG: DroneSeriesBrand[] = [
       "AGRAS",
       "FLYCART",
       "DOCK",
-    ].map(dji),
+    ].map(option),
   },
   {
     brand: "Autel",
-    options: ["EVO", "EVO LITE", "EVO NANO", "EVO MAX", "ALPHA", "DRAGONFISH"].map(autel),
+    options: ["EVO", "EVO LITE", "EVO NANO", "EVO MAX", "ALPHA", "DRAGONFISH"].map(option),
   },
 ];
 
@@ -69,8 +67,8 @@ export const composeDroneSeries = (items: string[]): string => {
 /**
  * Recupera la selección desde un texto guardado, incluidos los formatos
  * antiguos escritos a mano («matrice-mavic», «Mavic, Phantom, Matrice»,
- * «MAVIC, MATRICE Y AGRAS SERIES»). Lo que no está en el catálogo queda en
- * `other` para el campo manual.
+ * «MAVIC, MATRICE Y AGRAS SERIES», «AUTEL EVO»). Lo que no está en el
+ * catálogo queda en `other` para el campo manual.
  */
 export const parseDroneSeries = (value: string): { selected: string[]; other: string } => {
   const tokens = value
@@ -80,7 +78,8 @@ export const parseDroneSeries = (value: string): { selected: string[]; other: st
   const selected: string[] = [];
   const other: string[] = [];
   for (const token of tokens) {
-    const candidate = CATALOG_VALUES.has(token) ? token : CATALOG_VALUES.has(`AUTEL ${token}`) ? `AUTEL ${token}` : null;
+    const bare = token.replace(/^AUTEL /, "");
+    const candidate = CATALOG_VALUES.has(token) ? token : CATALOG_VALUES.has(bare) ? bare : null;
     if (candidate) {
       if (!selected.includes(candidate)) selected.push(candidate);
     } else if (!other.includes(token)) {
