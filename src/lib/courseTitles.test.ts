@@ -29,11 +29,14 @@ describe("matchCourseTitle", () => {
     expect(matchCourseTitle("CURSO INSPECCION DE TORRES AT MT Y TELECOM")).toBe("INSPECCIÓN DE TORRES AT, MT Y TELECOMUNICACIONES");
     expect(matchCourseTitle("CURSO LOTEO DE TERRENOS, MÁSTER PLAN 360° CON DRONES")).toBe("MÁSTER PLAN 360° CON DRONES");
     expect(matchCourseTitle("CURSO USO Y OPERACION WINGTRA GEN II")).toBe("OPERACIÓN WINGTRA GEN II");
+    expect(matchCourseTitle("MANEJO DE DRONE Y FOTOGRAMETRIA")).toBe("MANEJO DE DRONES Y FOTOGRAMETRÍA");
+    expect(matchCourseTitle("MANTENIMIENTO DE DRONES AGRICOLAS")).toBe("MANTENIMIENTO DE DRONES AGRÍCOLAS");
+    expect(matchCourseTitle("Aprender a volar drones")).toBe("APRENDER A VOLAR DRONES");
   });
 
   it("devuelve null para cursos fuera del catálogo o texto vacío", () => {
     expect(matchCourseTitle("PRINCESA DE DRONES")).toBeNull();
-    expect(matchCourseTitle("MANTENIMIENTO DE DRONES AGRICOLAS")).toBeNull();
+    expect(matchCourseTitle("PILOTO DE HELICÓPTEROS")).toBeNull();
     expect(matchCourseTitle("")).toBeNull();
     expect(matchCourseTitle("   ")).toBeNull();
   });
