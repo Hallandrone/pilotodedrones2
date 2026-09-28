@@ -46,7 +46,9 @@ const DocumentPreviewDialog = ({
   onRetry,
 }: DocumentPreviewDialogProps) => {
   const title = fileName || "Documento";
-  const showAsImage = isImageFile(fileName);
+  // Algunas páginas abren el documento con una etiqueta en vez del nombre del archivo;
+  // en ese caso la extensión se toma de la ruta de la URL firmada.
+  const showAsImage = isImageFile(fileName, preview.status === "ready" ? preview.url : undefined);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

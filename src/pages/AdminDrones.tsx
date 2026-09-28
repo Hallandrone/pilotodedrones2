@@ -49,6 +49,8 @@ const sanitizeFilename = (name: string): string => {
 	return `${base || 'file'}${ext}`;
 };
 import { QRCodeSVG } from "qrcode.react";
+import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
+import { useDocumentPreview } from "@/hooks/useDocumentPreview";
 
 interface Drone {
 	id: string;
@@ -71,6 +73,7 @@ const AdminDrones = () => {
 	const [selectedDrone, setSelectedDrone] = useState<Drone | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
 	const { toast } = useToast();
+	const { openPreview, dialogProps: previewDialogProps } = useDocumentPreview();
 
 	// Form state
 	const [formData, setFormData] = useState({
@@ -163,19 +166,23 @@ const AdminDrones = () => {
 		return path;
 	};
 
-	const openDocument = async (path: string) => {
-		const { data, error } = await supabase.storage
-			.from("drone_documents")
-			.createSignedUrl(path, 60 * 5); // 5 min
-		if (error || !data) {
-			toast({
-				title: "Error",
-				description: "No se pudo abrir el documento",
-				variant: "destructive",
-			});
-			return;
-		}
-		window.open(data.signedUrl, '_blank');
+	// La vista previa se abre en el mismo clic y la URL firmada llega después:
+	// abrir una pestaña tras el await hacía que Safari la bloqueara como ventana emergente.
+	const openDocument = (drone: Drone, path: string, label: string) => {
+		openPreview(
+			{
+				fileName: label,
+				description: `${drone.model} · ${drone.serial_number}`,
+				errorMessage: "No se pudo abrir el documento. Inténtalo de nuevo.",
+			},
+			async () => {
+				const { data, error } = await supabase.storage
+					.from("drone_documents")
+					.createSignedUrl(path, 60 * 5); // 5 min
+				if (error || !data) throw error ?? new Error("Sin URL firmada");
+				return data.signedUrl;
+			},
+		);
 	};
 
 	const handleSave = async (e: React.FormEvent) => {
@@ -375,7 +382,7 @@ const AdminDrones = () => {
 													{drone.invoice_url && (
 														<button
 															type="button"
-															onClick={() => openDocument(drone.invoice_url!)}
+															onClick={() => openDocument(drone, drone.invoice_url!, "Factura de Compra")}
 															className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 text-[#00b3f3] border border-[#00b3f3]/20 text-xs font-medium hover:bg-[#00b3f3]/10 transition"
 														>
 															<Eye className="h-3 w-3" /> Factura
@@ -384,7 +391,7 @@ const AdminDrones = () => {
 													{drone.insurance_url && (
 														<button
 															type="button"
-															onClick={() => openDocument(drone.insurance_url!)}
+															onClick={() => openDocument(drone, drone.insurance_url!, "Póliza de Seguro")}
 															className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 text-[#00b3f3] border border-[#00b3f3]/20 text-xs font-medium hover:bg-[#00b3f3]/10 transition"
 														>
 															<Eye className="h-3 w-3" /> Seguro
@@ -393,7 +400,7 @@ const AdminDrones = () => {
 													{drone.rpa_document_url && (
 														<button
 															type="button"
-															onClick={() => openDocument(drone.rpa_document_url!)}
+															onClick={() => openDocument(drone, drone.rpa_document_url!, "Tarjeta Registro RPA")}
 															className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 text-[#00b3f3] border border-[#00b3f3]/20 text-xs font-medium hover:bg-[#00b3f3]/10 transition"
 														>
 															<Eye className="h-3 w-3" /> DGAC
@@ -554,6 +561,9 @@ const AdminDrones = () => {
 					</form>
 				</DialogContent>
 			</Dialog>
+
+			{/* Vista previa de documentos sin salir de la página */}
+			<DocumentPreviewDialog {...previewDialogProps} />
 
 			{/* QR Modal */}
 			<Dialog open={isQRModalOpen} onOpenChange={setIsQRModalOpen}>

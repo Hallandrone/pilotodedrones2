@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
+import { useDocumentPreview } from "@/hooks/useDocumentPreview";
 
 interface FlightRecord {
   id: string;
@@ -65,6 +67,7 @@ const PilotFlightHours = () => {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { openPreview, dialogProps: previewDialogProps } = useDocumentPreview();
   const { plan, loading: planLoading } = useSubscriptionPlan();
 
   const [formData, setFormData] = useState({
@@ -430,28 +433,26 @@ const PilotFlightHours = () => {
     }
   };
 
-  const handleViewCertificate = async (id: string) => {
-    try {
-      const certificate = certificates.find(cert => cert.id === id);
-      if (!certificate) return;
+  // La vista previa se abre en el mismo clic y la URL firmada llega después:
+  // abrir una pestaña tras el await hacía que Safari la bloqueara como ventana emergente.
+  const handleViewCertificate = (id: string) => {
+    const certificate = certificates.find(cert => cert.id === id);
+    if (!certificate) return;
 
-      const { data, error } = await supabase.storage
-        .from('flight-logs')
-        .createSignedUrl(certificate.file_url, 3600);
-
-      if (error) throw error;
-
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
-      }
-    } catch (error) {
-      console.error('Error viewing certificate:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo abrir el certificado",
-        variant: "destructive",
-      });
-    }
+    openPreview(
+      {
+        fileName: certificate.file_name,
+        description: `Subido: ${formatDate(certificate.uploaded_at)}`,
+        errorMessage: "No se pudo abrir el certificado. Inténtalo de nuevo.",
+      },
+      async () => {
+        const { data, error } = await supabase.storage
+          .from('flight-logs')
+          .createSignedUrl(certificate.file_url, 3600);
+        if (error) throw error;
+        return data.signedUrl;
+      },
+    );
   };
 
   const handleDeleteCertificate = async (id: string) => {
@@ -1025,6 +1026,9 @@ const PilotFlightHours = () => {
           </div>
         </Card>
       </div>
+
+      {/* Vista previa del certificado sin salir de la página */}
+      <DocumentPreviewDialog {...previewDialogProps} />
     </div>
   );
 };

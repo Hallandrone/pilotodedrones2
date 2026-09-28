@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
 import { UpgradeModal } from "@/components/subscription/UpgradeModal";
+import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
+import { useDocumentPreview } from "@/hooks/useDocumentPreview";
 import Logo from "@/components/ui/logo";
 
 interface Certification {
@@ -44,6 +46,7 @@ const PilotCertificates = () => {
   const location = useLocation();
   const { toast } = useToast();
   const { plan, loading: planLoading } = useSubscriptionPlan();
+  const { openPreview, dialogProps: previewDialogProps } = useDocumentPreview();
 
   useEffect(() => {
     checkUserType();
@@ -209,17 +212,17 @@ const PilotCertificates = () => {
     return data.signedUrl;
   };
 
-  const handleViewCertification = async (filePath: string) => {
-    try {
-      const url = await getSignedUrl(filePath);
-      window.open(url, '_blank');
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo abrir el certificado",
-        variant: "destructive",
-      });
-    }
+  // La vista previa se abre en el mismo clic y la URL firmada llega después:
+  // abrir una pestaña tras el await hacía que Safari la bloqueara como ventana emergente.
+  const handleViewCertification = (cert: Certification) => {
+    openPreview(
+      {
+        fileName: cert.file_name,
+        description: `Subido: ${formatDate(cert.uploaded_at)}`,
+        errorMessage: "No se pudo abrir el certificado. Inténtalo de nuevo.",
+      },
+      () => getSignedUrl(cert.file_url),
+    );
   };
 
   const handleDownloadCertification = async (filePath: string, fileName: string) => {
@@ -408,7 +411,7 @@ const PilotCertificates = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => handleViewCertification(cert.file_url)}
+                        onClick={() => handleViewCertification(cert)}
                         className="flex-1 bg-[#2C2C2C] border-[#333333] hover:bg-blue-500/10 hover:border-blue-500 hover:text-blue-500 transition-all duration-200 rounded-xl text-[#E0E0E0]"
                       >
                         <Eye className="h-4 w-4 mr-2" />
@@ -492,6 +495,9 @@ const PilotCertificates = () => {
           </Card>
         )}
       </div>
+
+      {/* Vista previa del certificado sin salir de la página */}
+      <DocumentPreviewDialog {...previewDialogProps} />
 
       {/* Modal de Upgrade */}
       <UpgradeModal

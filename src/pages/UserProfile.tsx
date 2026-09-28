@@ -18,6 +18,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { User } from '@supabase/supabase-js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getBaseUrlClean } from "@/lib/getBaseUrl";
+import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
+import { useDocumentPreview } from "@/hooks/useDocumentPreview";
 
 // Types
 interface ProfileData {
@@ -112,6 +114,7 @@ const UserProfile = () => {
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const { toast } = useToast();
+  const { openPreview, dialogProps: previewDialogProps } = useDocumentPreview();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -1123,29 +1126,26 @@ const UserProfile = () => {
     }
   };
 
-  const handleViewFlightLog = async (id: string) => {
-    try {
-      const log = flightLogs.find(l => l.id === id);
-      if (!log) return;
+  // La vista previa se abre en el mismo clic y la URL firmada llega después:
+  // abrir una pestaña tras el await hacía que Safari la bloqueara como ventana emergente.
+  const handleViewFlightLog = (id: string) => {
+    const log = flightLogs.find(l => l.id === id);
+    if (!log) return;
 
-      // Get signed URL for the file
-      const { data, error } = await supabase.storage
-        .from('flight-logs')
-        .createSignedUrl(log.file_url, 3600); // 1 hour expiration
-
-      if (error) throw error;
-
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
-      }
-    } catch (error) {
-      console.error('Error viewing flight log:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo abrir la bitácora",
-        variant: "destructive",
-      });
-    }
+    openPreview(
+      {
+        fileName: log.file_name,
+        description: `Bitácora de vuelo · Subida el ${new Date(log.uploaded_at).toLocaleDateString()}`,
+        errorMessage: "No se pudo abrir la bitácora. Inténtalo de nuevo.",
+      },
+      async () => {
+        const { data, error } = await supabase.storage
+          .from('flight-logs')
+          .createSignedUrl(log.file_url, 3600); // 1 hour expiration
+        if (error) throw error;
+        return data.signedUrl;
+      },
+    );
   };
 
   const getStatusColor = (status: string) => {
@@ -1201,21 +1201,18 @@ const UserProfile = () => {
     return data.signedUrl;
   };
 
-  const handleViewCertification = async (certId: string) => {
-    try {
-      const cert = certifications.find(c => c.id === certId);
-      if (!cert) return;
+  const handleViewCertification = (certId: string) => {
+    const cert = certifications.find(c => c.id === certId);
+    if (!cert) return;
 
-      const signedUrl = await getSignedUrl(cert.file_url);
-      window.open(signedUrl, '_blank');
-    } catch (error) {
-      console.error('Error viewing certification:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo abrir el certificado",
-        variant: "destructive",
-      });
-    }
+    openPreview(
+      {
+        fileName: cert.file_name,
+        description: `Certificación · Subida el ${new Date(cert.uploaded_at).toLocaleDateString()}`,
+        errorMessage: "No se pudo abrir el certificado. Inténtalo de nuevo.",
+      },
+      () => getSignedUrl(cert.file_url),
+    );
   };
 
   const isLoading = loading;
@@ -2045,6 +2042,9 @@ const UserProfile = () => {
           </>
         )}
       </div>
+
+      {/* Vista previa de certificaciones y bitácoras sin salir de la página */}
+      <DocumentPreviewDialog {...previewDialogProps} />
 
       {imageToCrop && (
         <ImageCropper

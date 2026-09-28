@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, ShieldCheck, Plane, AlertCircle, Home, FileText, Receipt, Shield } from "lucide-react";
 import Logo from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
+import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
+import { useDocumentPreview } from "@/hooks/useDocumentPreview";
 
 interface DronePublicInfo {
 	model: string;
@@ -20,6 +22,7 @@ const DronePublicView = () => {
 	const [drone, setDrone] = useState<DronePublicInfo | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(false);
+	const { openPreview, dialogProps: previewDialogProps } = useDocumentPreview();
 
 	useEffect(() => {
 		fetchDronePublicInfo();
@@ -52,11 +55,22 @@ const DronePublicView = () => {
 		}
 	};
 
-	const openDocument = async (path: string) => {
-		const { data } = await supabase.storage
-			.from("drone_documents")
-			.createSignedUrl(path, 60 * 5);
-		if (data?.signedUrl) window.open(data.signedUrl, '_blank');
+	// La vista previa se abre en el mismo clic y la URL firmada llega después:
+	// abrir una pestaña tras el await hacía que Safari la bloqueara como ventana emergente.
+	const openDocument = (path: string, label: string) => {
+		openPreview(
+			{
+				fileName: label,
+				description: drone ? `${drone.model} · ${drone.serial_number}` : undefined,
+			},
+			async () => {
+				const { data, error: storageError } = await supabase.storage
+					.from("drone_documents")
+					.createSignedUrl(path, 60 * 5);
+				if (storageError || !data?.signedUrl) throw storageError ?? new Error("Sin URL firmada");
+				return data.signedUrl;
+			},
+		);
 	};
 
 	if (loading) {
@@ -140,7 +154,7 @@ const DronePublicView = () => {
 												{drone?.rpa_document_url && (
 													<button
 														type="button"
-														onClick={() => openDocument(drone.rpa_document_url!)}
+														onClick={() => openDocument(drone.rpa_document_url!, "Tarjeta de Registro DGAC")}
 														className="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-[#00b3f3]/10 border border-white/5 hover:border-[#00b3f3]/30 rounded-xl transition-all text-left"
 													>
 														<div className="h-9 w-9 rounded-lg bg-[#00b3f3]/10 flex items-center justify-center flex-shrink-0">
@@ -152,7 +166,7 @@ const DronePublicView = () => {
 												{drone?.insurance_url && (
 													<button
 														type="button"
-														onClick={() => openDocument(drone.insurance_url!)}
+														onClick={() => openDocument(drone.insurance_url!, "Póliza de Seguro")}
 														className="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-[#00b3f3]/10 border border-white/5 hover:border-[#00b3f3]/30 rounded-xl transition-all text-left"
 													>
 														<div className="h-9 w-9 rounded-lg bg-[#00b3f3]/10 flex items-center justify-center flex-shrink-0">
@@ -164,7 +178,7 @@ const DronePublicView = () => {
 												{drone?.invoice_url && (
 													<button
 														type="button"
-														onClick={() => openDocument(drone.invoice_url!)}
+														onClick={() => openDocument(drone.invoice_url!, "Factura de Compra")}
 														className="flex items-center gap-3 w-full p-3 bg-white/5 hover:bg-[#00b3f3]/10 border border-white/5 hover:border-[#00b3f3]/30 rounded-xl transition-all text-left"
 													>
 														<div className="h-9 w-9 rounded-lg bg-[#00b3f3]/10 flex items-center justify-center flex-shrink-0">
@@ -191,6 +205,9 @@ const DronePublicView = () => {
 					</div>
 				)}
 			</div>
+
+			{/* Vista previa de documentos sin salir de la página */}
+			<DocumentPreviewDialog {...previewDialogProps} />
 
 			<footer className="mt-12 text-white/20 text-[9px] uppercase tracking-widest font-black">
 				Powered by Hallan Holding & PilotodeDrones.cl
