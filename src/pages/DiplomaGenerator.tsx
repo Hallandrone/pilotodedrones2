@@ -18,6 +18,8 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { composeDroneSeries, parseDroneSeries } from '@/lib/droneSeries';
+import DroneSeriesPicker from '@/components/diploma/DroneSeriesPicker';
 import { Info } from 'lucide-react';
 
 interface DiplomaFormData {
@@ -61,6 +63,10 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 	const [correlativeNumber, setCorrelativeNumber] = useState<number>(0);
 	const [folioError, setFolioError] = useState(false);
 	const [certOption, setCertOption] = useState<string>('');
+	// Chips de «Certificado en la serie»: la selección se compone en formData.droneSeries.
+	const [selectedSeries, setSelectedSeries] = useState<string[]>([]);
+	const [otherSeriesOn, setOtherSeriesOn] = useState(false);
+	const [otherSeries, setOtherSeries] = useState('');
 	const { toast: showToast } = useToast();
 	const previewContainerRef = useRef<HTMLDivElement>(null);
 	const [previewScale, setPreviewScale] = useState(1);
@@ -236,6 +242,7 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 				}
 
 				// Actualizar datos del formulario
+				const lastSeries = parseDroneSeries((last as { drone_series?: string }).drone_series || '');
 				const newFormData = {
 					...formData,
 					studentName: last.student_name || '',
@@ -248,12 +255,15 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 					city: last.city || '',
 					certificateNumber: last.certificate_number || '',
 					instructorName: last.instructor_name || '',
-					droneSeries: (last as { drone_series?: string }).drone_series || '',
+					droneSeries: composeDroneSeries([...lastSeries.selected, lastSeries.other]),
 					startDate: last.start_date || '',
 					endDate: last.end_date || '',
 				};
 
 				setFormData(newFormData);
+				setSelectedSeries(lastSeries.selected);
+				setOtherSeriesOn(!!lastSeries.other);
+				setOtherSeries(lastSeries.other);
 
 				// Sincronizar el selector de número de certificado
 				if (['1501', '1688'].includes(last.certificate_number)) {
@@ -314,6 +324,14 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 			newData.city.trim() !== '';
 
 		setIsFormValid(isValid);
+	};
+
+	// Recompone el texto impreso a partir de los chips y del campo manual.
+	const applyDroneSeries = (selected: string[], otherOn: boolean, other: string) => {
+		setSelectedSeries(selected);
+		setOtherSeriesOn(otherOn);
+		setOtherSeries(other);
+		handleInputChange('droneSeries', composeDroneSeries([...selected, otherOn ? other : '']));
 	};
 
 	const filename = `Certificado_${formData.studentName.replace(/\s+/g, '_')}_${formData.certificateNumber}.pdf`;
@@ -432,16 +450,17 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 						</div>
 
 						<div className="space-y-3 md:col-span-2">
-							<Label htmlFor="droneSeries" className="text-white font-semibold text-base flex items-center gap-2">
+							<Label className="text-white font-semibold text-base flex items-center gap-2">
 								<Award className="h-5 w-5 text-[#00b3f3]" />
 								Certificado en la serie
 							</Label>
-							<Input
-								id="droneSeries"
-								value={formData.droneSeries}
-								onChange={(e) => handleInputChange('droneSeries', e.target.value)}
-								placeholder="Ej: Mavic, Phantom, Matrice"
-								className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
+							<p className="text-sm text-white/50">Elige una o varias series; se imprimen en el orden en que las marques.</p>
+							<DroneSeriesPicker
+								selected={selectedSeries}
+								otherOn={otherSeriesOn}
+								other={otherSeries}
+								composed={formData.droneSeries}
+								onChange={applyDroneSeries}
 							/>
 						</div>
 
