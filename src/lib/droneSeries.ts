@@ -3,7 +3,8 @@
  *
  * Son familias, no modelos: «MAVIC» cubre Mavic 2, Mavic 3, Mavic 3
  * Enterprise y también Air y Mini (nacieron como Mavic Air y Mavic Mini);
- * «MATRICE» cubre M30, M300, M350 y M4; «DOCK» cubre Dock 1, 2 y 3. En el
+ * «LITO» cubre Lito 1 y Lito X1; «MATRICE» cubre M30, M300, M350 y M4;
+ * «DOCK» cubre Dock 1, 2 y 3. En el
  * diploma se imprimen tal cual, en mayúsculas, tras «Certificado en la
  * serie:». Las de Autel llevan la marca delante porque «EVO» a secas no
  * identifica al fabricante.
@@ -28,6 +29,7 @@ export const DRONE_SERIES_CATALOG: DroneSeriesBrand[] = [
     brand: "DJI",
     options: [
       "MAVIC",
+      "LITO",
       "NEO",
       "FLIP",
       "AVATA",
