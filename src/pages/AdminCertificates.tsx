@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,6 +42,7 @@ import {
   Building2
 } from "lucide-react";
 import { calculateExpirationDate } from "@/utils/certificationHelpers";
+import DocumentPreviewDialog, { type DocumentPreviewState } from "@/components/DocumentPreviewDialog";
 
 type DocumentSource = 'user_certifications' | 'flight_logs';
 
@@ -94,6 +95,10 @@ const AdminCertificates = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionObservations, setRejectionObservations] = useState('');
   const [targetDocument, setTargetDocument] = useState<DocumentRecord | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewDocument, setPreviewDocument] = useState<DocumentRecord | null>(null);
+  const [preview, setPreview] = useState<DocumentPreviewState>({ status: 'loading' });
+  const previewRequestRef = useRef(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -447,16 +452,32 @@ const AdminCertificates = () => {
     return data.signedUrl;
   };
 
+  const hasAttachedFile = (doc: DocumentRecord) =>
+    !!doc.file_url && doc.file_url !== 'manual-entry';
+
+  const getDocumentTypeLabel = (doc: DocumentRecord) => {
+    if (doc.document_type === 'flight_log') return 'Certificado de Itinerario/Horas de Vuelo';
+    if (doc.document_type === 'company_certificate') return `Certificado de Empresa (${doc.certificate_type})`;
+    return 'Certificado de Cursos/Capacitaciones';
+  };
+
+  // La vista previa se abre en el mismo clic y la URL firmada llega después.
+  // Abrir una pestaña con window.open tras el await hacía que Safari la
+  // bloqueara como ventana emergente y el documento nunca se mostrara.
   const handleViewDocument = async (doc: DocumentRecord) => {
+    const requestId = ++previewRequestRef.current;
+    setPreviewDocument(doc);
+    setPreview({ status: 'loading' });
+    setPreviewOpen(true);
+
     try {
       const url = await getSignedUrl(doc.file_url, doc.storage_bucket);
-      window.open(url, '_blank');
+      if (previewRequestRef.current !== requestId) return;
+      setPreview({ status: 'ready', url });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "No se pudo abrir el documento",
-        variant: "destructive",
-      });
+      console.error('Error al cargar la vista previa del documento:', error);
+      if (previewRequestRef.current !== requestId) return;
+      setPreview({ status: 'error', message: 'No se pudo cargar el documento. Inténtalo de nuevo.' });
     }
   };
 
@@ -759,14 +780,20 @@ const AdminCertificates = () => {
                           )}
 
                           <div className="flex items-center justify-end gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleViewDocument(doc)}
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Ver Documento
-                            </Button>
+                            {hasAttachedFile(doc) ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleViewDocument(doc)}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                Ver Documento
+                              </Button>
+                            ) : (
+                              <span className="mr-auto text-xs text-muted-foreground">
+                                Registro manual, sin archivo adjunto
+                              </span>
+                            )}
                             {doc.status === 'pending' && (
                               <>
                                 <Button
@@ -816,6 +843,21 @@ const AdminCertificates = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Vista previa del documento sin salir de la página */}
+      <DocumentPreviewDialog
+        open={previewOpen}
+        onOpenChange={(open) => {
+          setPreviewOpen(open);
+          if (!open) previewRequestRef.current += 1; // ignora respuestas tardías
+        }}
+        fileName={previewDocument?.file_name || ''}
+        description={previewDocument
+          ? `${previewDocument.profiles?.full_name || 'Usuario'} · ${getDocumentTypeLabel(previewDocument)} · Subido: ${formatDate(previewDocument.uploaded_at)}`
+          : undefined}
+        preview={preview}
+        onRetry={previewDocument ? () => handleViewDocument(previewDocument) : undefined}
+      />
 
       {/* Dialog para ingresar observaciones al rechazar */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
