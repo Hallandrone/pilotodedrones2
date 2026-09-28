@@ -20,6 +20,8 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { composeDroneSeries, parseDroneSeries } from '@/lib/droneSeries';
 import DroneSeriesPicker from '@/components/diploma/DroneSeriesPicker';
+import BulkDiplomaUpload from '@/components/diploma/BulkDiplomaUpload';
+import type { BulkDiplomaOutcome, BulkDiplomaShared } from '@/lib/bulkDiplomas';
 import { Info } from 'lucide-react';
 
 interface DiplomaFormData {
@@ -336,6 +338,47 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 
 	const filename = `Certificado_${formData.studentName.replace(/\s+/g, '_')}_${formData.certificateNumber}.pdf`;
 
+	// Carga masiva: los datos del curso salen del formulario; los nombres, del archivo.
+	const bulkShared: BulkDiplomaShared = {
+		courseDate: formData.courseDate,
+		courseHours: formData.courseHours,
+		courseTitle: formData.courseTitle,
+		instructorName: formData.instructorName,
+		city: formData.city,
+		certificateNumber: formData.certificateNumber,
+		droneSeries: formData.droneSeries,
+		startDate: formData.startDate,
+		endDate: formData.endDate,
+	};
+	const missingShared = [
+		!formData.courseDate.trim() && 'fecha de emisión',
+		!formData.certificateNumber.trim() && 'número de certificado',
+		!formData.city.trim() && 'ciudad',
+	].filter((item): item is string => !!item);
+
+	const handleBulkIssued = async (outcome: BulkDiplomaOutcome) => {
+		if (outcome.issued.length === 0) return;
+		try {
+			const { sendNotification } = await import('@/lib/notification-service');
+			await sendNotification({
+				targetAdmins: true,
+				type: 'diploma_created',
+				title: 'Diplomas generados en lote',
+				message: `Se generaron ${outcome.issued.length} diplomas de ${formData.courseTitle} (Certificado #${formData.certificateNumber})`,
+				data: { folios: outcome.issued.map((item) => item.folio) }
+			});
+		} catch (error) {
+			console.error('No se pudo notificar el lote de diplomas:', error);
+		}
+		// El generador individual sigue con un token y un folio nuevos.
+		await generateQRCode();
+		await fetchNextCorrelative();
+		showToast({
+			title: 'Diplomas generados',
+			description: `${outcome.issued.length} diploma(s) registrados en el sistema.`,
+		});
+	};
+
 	return (
 		<div className="space-y-6">
 			<div className="space-y-3 mb-8">
@@ -605,6 +648,8 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 							</Button>
 						)}
 					</div>
+
+					<BulkDiplomaUpload shared={bulkShared} missingShared={missingShared} onIssued={handleBulkIssued} />
 				</CardContent>
 			</Card>
 

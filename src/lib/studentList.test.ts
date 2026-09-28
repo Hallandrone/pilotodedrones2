@@ -1,0 +1,107 @@
+import JSZip from "jszip";
+import { describe, expect, it } from "vitest";
+import {
+  decodeTextFile,
+  detectColumns,
+  parseDelimited,
+  parseXlsxRows,
+  rowsToStudents,
+  STUDENT_TEMPLATE_CSV,
+} from "./studentList";
+
+describe("parseDelimited", () => {
+  it("lee CSV con punto y coma, comillas y saltos CRLF", () => {
+    const text = 'Nombres;Apellido Paterno;Apellido Materno\r\n"Isabel";Martínez;Armijo\r\n"Juan ""Pepe""";Pérez;"Soto; Díaz"\r\n';
+    expect(parseDelimited(text)).toEqual([
+      ["Nombres", "Apellido Paterno", "Apellido Materno"],
+      ["Isabel", "Martínez", "Armijo"],
+      ['Juan "Pepe"', "Pérez", "Soto; Díaz"],
+    ]);
+  });
+
+  it("elige la coma o el tabulador cuando predominan", () => {
+    expect(parseDelimited("a,b,c\n1,2,3")).toEqual([["a", "b", "c"], ["1", "2", "3"]]);
+    expect(parseDelimited("a\tb\tc\n1\t2\t3")).toEqual([["a", "b", "c"], ["1", "2", "3"]]);
+  });
+});
+
+describe("detectColumns", () => {
+  it("reconoce los encabezados en cualquier orden, con acentos y mayúsculas", () => {
+    expect(detectColumns(["APELLIDO MATERNO", "Nombre(s)", "Apellido paterno"])).toEqual({ firstName: 1, paternal: 2, maternal: 0 });
+    expect(detectColumns(["Nombres", "Ap. Paterno", "Ap. Materno"])).toEqual({ firstName: 0, paternal: 1, maternal: 2 });
+  });
+
+  it("devuelve null si falta alguna columna", () => {
+    expect(detectColumns(["Nombre", "Apellidos"])).toBeNull();
+    expect(detectColumns(["Isabel", "Martínez", "Armijo"])).toBeNull();
+  });
+});
+
+describe("rowsToStudents", () => {
+  it("usa los encabezados para ordenar las columnas y descarta filas vacías", () => {
+    const result = rowsToStudents([
+      ["Apellido Materno", "Nombres", "Apellido Paterno"],
+      ["Armijo", " Isabel ", "Martínez"],
+      ["", "", ""],
+      ["Soto", "Juan  Pablo", "Pérez"],
+    ]);
+    expect(result.headerDetected).toBe(true);
+    expect(result.warnings).toEqual([]);
+    expect(result.students).toEqual([
+      { firstName: "Isabel", lastNamePaternal: "Martínez", lastNameMaternal: "Armijo" },
+      { firstName: "Juan Pablo", lastNamePaternal: "Pérez", lastNameMaternal: "Soto" },
+    ]);
+  });
+
+  it("sin encabezados asume Nombres, Paterno, Materno y avisa", () => {
+    const result = rowsToStudents([["Isabel", "Martínez", "Armijo"]]);
+    expect(result.headerDetected).toBe(false);
+    expect(result.students).toEqual([{ firstName: "Isabel", lastNamePaternal: "Martínez", lastNameMaternal: "Armijo" }]);
+    expect(result.warnings[0]).toMatch(/No se encontró la fila de encabezados/);
+  });
+
+  it("avisa de las filas incompletas", () => {
+    const result = rowsToStudents([["Nombres", "Apellido Paterno", "Apellido Materno"], ["Isabel", "Martínez", ""]]);
+    expect(result.warnings).toEqual(["1 fila(s) tienen algún campo vacío; complétalas o quítalas antes de generar."]);
+  });
+
+  it("la plantilla se lee tal cual", () => {
+    const result = rowsToStudents(parseDelimited(STUDENT_TEMPLATE_CSV.replace(/^\uFEFF/, "")));
+    expect(result.headerDetected).toBe(true);
+    expect(result.students).toEqual([{ firstName: "Isabel", lastNamePaternal: "Martínez", lastNameMaternal: "Armijo" }]);
+  });
+});
+
+describe("decodeTextFile", () => {
+  it("quita el BOM de UTF-8 y entiende la codificación de Excel para Windows", () => {
+    const utf8 = new TextEncoder().encode("\uFEFFMartínez").buffer;
+    expect(decodeTextFile(utf8)).toBe("Martínez");
+    const windows1252 = new Uint8Array([0x4d, 0x61, 0x72, 0x74, 0xed, 0x6e, 0x65, 0x7a]).buffer; // «Martínez»
+    expect(decodeTextFile(windows1252)).toBe("Martínez");
+  });
+});
+
+describe("parseXlsxRows", () => {
+  it("lee la primera hoja de un .xlsx con cadenas compartidas y en línea", async () => {
+    const zip = new JSZip();
+    zip.file("xl/workbook.xml", '<workbook><sheets><sheet name="Alumnos" sheetId="1" r:id="rId1"/></sheets></workbook>');
+    zip.file("xl/_rels/workbook.xml.rels", '<Relationships><Relationship Id="rId1" Type="x" Target="worksheets/sheet7.xml"/></Relationships>');
+    zip.file("xl/sharedStrings.xml", "<sst><si><t>Nombres</t></si><si><t>Apellido Paterno</t></si><si><t>Apellido Materno</t></si><si><r><t>Mar</t></r><r><t>tínez</t></r></si></sst>");
+    zip.file(
+      "xl/worksheets/sheet7.xml",
+      '<worksheet><sheetData>' +
+        '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="C1" t="s"><v>2</v></c></row>' +
+        '<row r="2"><c r="A2" t="inlineStr"><is><t>Isabel</t></is></c><c r="B2" t="s"><v>3</v></c><c r="C2" t="inlineStr"><is><t>Armijo &amp; Cía</t></is></c></row>' +
+        '<row r="3"><c r="A3" t="inlineStr"><is><t>Juan</t></is></c><c r="C3" t="inlineStr"><is><t>Soto</t></is></c></row>' +
+        "</sheetData></worksheet>",
+    );
+    const buffer = await zip.generateAsync({ type: "arraybuffer" });
+    const rows = await parseXlsxRows(buffer);
+    expect(rows).toEqual([
+      ["Nombres", "Apellido Paterno", "Apellido Materno"],
+      ["Isabel", "Martínez", "Armijo & Cía"],
+      ["Juan", "", "Soto"],
+    ]);
+    expect(rowsToStudents(rows).students[1]).toEqual({ firstName: "Juan", lastNamePaternal: "", lastNameMaternal: "Soto" });
+  });
+});
