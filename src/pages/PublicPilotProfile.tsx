@@ -149,7 +149,7 @@ const PublicPilotProfile = () => {
       onClick={() => navigate(`/verificar-diploma?codigo=${diploma.token}`)}
     >
       <img
-        src="/DIPLOMA_2026.jpg"
+        src="/DIPLOMA_2026-300ppp.jpg"
         className="absolute inset-0 w-full h-full object-cover"
         alt="Diploma Background"
         onContextMenu={(e) => e.preventDefault()}

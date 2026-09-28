@@ -614,7 +614,7 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 							}}>
 								{/* Fondo Real del Diploma */}
 								<img
-									src="/DIPLOMA_2026.jpg"
+									src="/DIPLOMA_2026-300ppp.jpg"
 									className="absolute inset-0 w-full h-full object-fill pointer-events-none"
 									alt="Fondo Diploma"
 								/>

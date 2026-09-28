@@ -368,7 +368,7 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 		<Document>
 			<Page size={{ width: 935.43, height: 612.28 }} style={styles.page}>
 				<View style={styles.content}>
-					<Image src="/DIPLOMA_2026.jpg" style={styles.backgroundImage} />
+					<Image src="/DIPLOMA_2026-300ppp.jpg" style={styles.backgroundImage} />
 					<Text style={styles.introText}>
 						Academia de Drones de Chile, AOC N°{data.certificateNumber}, entrega el presente certificado a:
 					</Text>
