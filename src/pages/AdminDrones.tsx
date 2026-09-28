@@ -51,6 +51,7 @@ const sanitizeFilename = (name: string): string => {
 import { QRCodeSVG } from "qrcode.react";
 import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
 import { useDocumentPreview } from "@/hooks/useDocumentPreview";
+import { extractPdfText, parseRpaRegistration } from "@/lib/rpaRegistration";
 
 interface Drone {
 	id: string;
@@ -72,6 +73,7 @@ const AdminDrones = () => {
 	const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 	const [selectedDrone, setSelectedDrone] = useState<Drone | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
+	const [readingRpa, setReadingRpa] = useState(false);
 	const { toast } = useToast();
 	const { openPreview, dialogProps: previewDialogProps } = useDocumentPreview();
 
@@ -155,6 +157,56 @@ const AdminDrones = () => {
 			return;
 		}
 		setFiles(prev => ({ ...prev, [type]: file }));
+		if (type === "rpa") void autofillFromRpaCertificate(file);
+	};
+
+	// El certificado de registro de la DGAC trae modelo, serie y número de
+	// registro: al subirlo en PDF se completan esos campos del formulario.
+	const autofillFromRpaCertificate = async (file: File) => {
+		if (file.type !== "application/pdf") {
+			toast({
+				title: "Autocompletado no disponible",
+				description: "Sube el certificado de registro en PDF para completar los datos automáticamente.",
+			});
+			return;
+		}
+
+		setReadingRpa(true);
+		try {
+			const data = parseRpaRegistration(await extractPdfText(file));
+			const model = [data.brand, data.model].filter(Boolean).join(" ");
+			const updates: Partial<typeof formData> = {};
+			if (model) updates.model = model;
+			if (data.serialNumber) updates.serial_number = data.serialNumber;
+			if (data.registrationNumber) updates.rpa_registration_number = data.registrationNumber;
+
+			if (Object.keys(updates).length === 0) {
+				toast({
+					title: "No se reconoció el certificado",
+					description: "El PDF no contiene los datos del registro RPA. Completa el formulario manualmente.",
+				});
+				return;
+			}
+
+			setFormData(prev => ({ ...prev, ...updates }));
+			toast({
+				title: "Datos completados desde el certificado",
+				description: [
+					updates.model && `Modelo ${updates.model}`,
+					updates.serial_number && `Serie ${updates.serial_number}`,
+					updates.rpa_registration_number && `Registro ${updates.rpa_registration_number}`,
+				].filter(Boolean).join(" · "),
+			});
+		} catch (error) {
+			console.error("Error al leer el certificado de registro RPA:", error);
+			toast({
+				title: "No se pudo leer el certificado",
+				description: "El archivo quedó adjunto, pero los datos deben completarse manualmente.",
+				variant: "destructive",
+			});
+		} finally {
+			setReadingRpa(false);
+		}
 	};
 
 	const uploadFile = async (file: File, path: string) => {
@@ -530,9 +582,14 @@ const AdminDrones = () => {
 								<div className="space-y-3">
 									<Label className="text-white/80">Tarjeta Registro RPA</Label>
 									<label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-white/10 rounded-2xl hover:border-[#00b3f3]/50 cursor-pointer transition-all bg-white/5">
-										<Plus className="h-6 w-6 text-[#00b3f3] mb-2" />
+										{readingRpa
+											? <Loader2 className="h-6 w-6 text-[#00b3f3] mb-2 animate-spin" />
+											: <Plus className="h-6 w-6 text-[#00b3f3] mb-2" />}
 										<span className="text-xs text-center text-white/40 font-medium">
-											{files.rpa ? files.rpa.name : "Subir archivo"}
+											{readingRpa ? "Leyendo certificado…" : files.rpa ? files.rpa.name : "Subir archivo"}
+										</span>
+										<span className="mt-1 text-[10px] text-center text-white/30">
+											El PDF de la DGAC completa modelo, serie y registro
 										</span>
 										<input type="file" className="hidden" accept=".pdf,image/*" onChange={(e) => handleFileChange(e, "rpa")} />
 									</label>
