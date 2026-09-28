@@ -44,8 +44,7 @@ import {
   QrCode as QrCodeIcon,
   MonitorPlay,
   MessageSquarePlus,
-  Sun,
-  Unlink
+  Sun
 } from "lucide-react";
 import { FeedbackForm } from "@/components/dashboard/FeedbackForm";
 import type { User } from '@supabase/supabase-js';
@@ -59,16 +58,6 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 import DiplomaPDF from '@/components/DiplomaPDF';
 import { useSubscriptionPlan } from "@/hooks/useSubscriptionPlan";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface PilotData {
   id: string;
@@ -135,8 +124,6 @@ const PilotDashboard = () => {
   });
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [diplomas, setDiplomas] = useState<Diploma[]>([]);
-  const [unlinkTarget, setUnlinkTarget] = useState<Diploma | null>(null);
-  const [unlinking, setUnlinking] = useState(false);
   const { plan, loading: planLoading } = useSubscriptionPlan();
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -427,44 +414,6 @@ const PilotDashboard = () => {
     }
   };
 
-  // Quita la asociación entre el QR del diploma y esta cuenta. El diploma sigue
-  // siendo válido y el QR queda libre para que lo reclame su titular.
-  const handleUnlinkDiploma = async () => {
-    if (!unlinkTarget) return;
-    setUnlinking(true);
-    try {
-      const { data, error } = await supabase.rpc('unlink_diploma_code', { p_token: unlinkTarget.token });
-      if (error) throw error;
-      if (!data?.success) {
-        const reasons: Record<string, string> = {
-          not_found: 'El código del diploma no existe.',
-          not_claimed: 'Este diploma ya no está asociado a ninguna cuenta.',
-          forbidden: 'No tienes permiso para desvincular este diploma.',
-        };
-        throw new Error(reasons[String(data?.error)] || 'No se pudo desvincular el diploma.');
-      }
-      setDiplomas((prev) => prev.filter((item) => item.token !== unlinkTarget.token));
-      setUnlinkTarget(null);
-      toast({
-        title: 'Diploma desvinculado',
-        description: data.plan_downgraded
-          ? 'Era tu único diploma asociado: el Plan Alumno Academia queda desactivado.'
-          : 'El diploma ya no aparece en tu perfil; su código QR puede volver a reclamarse.',
-      });
-      // El plan cambió: se recarga para que el panel refleje el nuevo estado.
-      if (data.plan_downgraded) setTimeout(() => window.location.reload(), 1500);
-    } catch (error) {
-      console.error('Error al desvincular el diploma:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'No se pudo desvincular el diploma.',
-        variant: 'destructive',
-      });
-    } finally {
-      setUnlinking(false);
-    }
-  };
-
   const renderDiplomaCard = (diploma: Diploma) => (
     <div key={diploma.id} className="group relative bg-[#020617]/40 border-2 border-white/10 rounded-2xl p-4 sm:p-6 transition-all duration-300 hover:border-[#00b3f3]/50 hover:bg-[#020617]/60">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -487,7 +436,6 @@ const PilotDashboard = () => {
           </div>
         </div>
 
-        <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">
         <PDFDownloadLink
           document={
             <DiplomaPDF
@@ -521,17 +469,6 @@ const PilotDashboard = () => {
             </Button>
           )}
         </PDFDownloadLink>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => setUnlinkTarget(diploma)}
-          title="Quitar este diploma de mi perfil"
-          className="w-full sm:w-auto text-white/50 hover:text-red-400 hover:bg-red-500/10 rounded-xl h-11 px-4 font-semibold"
-        >
-          <Unlink className="h-4 w-4 mr-2" />
-          Desvincular
-        </Button>
-        </div>
       </div>
     </div>
   );
@@ -1088,48 +1025,6 @@ const PilotDashboard = () => {
           </div>
         </Card>
       </div >
-
-      {/* Confirmación para desvincular un diploma del perfil */}
-      <AlertDialog
-        open={unlinkTarget !== null}
-        onOpenChange={(open) => {
-          if (!open && !unlinking) setUnlinkTarget(null);
-        }}
-      >
-        <AlertDialogContent className="bg-[#0f172a] border-white/10 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Desvincular este diploma de tu perfil?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/70 space-y-2">
-              <span className="block font-semibold text-white">
-                {unlinkTarget?.course_title} · N° {unlinkTarget?.certificate_number}
-              </span>
-              <span className="block">
-                El diploma sigue siendo válido, pero dejará de aparecer aquí y su código QR quedará libre para que lo reclame su titular.
-              </span>
-              {diplomas.length === 1 && (
-                <span className="block text-amber-300">
-                  Es tu único diploma asociado: si tu Plan Alumno Academia proviene de él, quedará desactivado.
-                </span>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={unlinking} className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={unlinking}
-              onClick={(event) => {
-                event.preventDefault();
-                void handleUnlinkDiploma();
-              }}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {unlinking ? 'Desvinculando…' : 'Desvincular'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div >
   );
 };

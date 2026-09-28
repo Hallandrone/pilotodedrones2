@@ -114,6 +114,8 @@ export default function DiplomaHistory({ onDeleted }: DiplomaHistoryProps) {
   const [selected, setSelected] = useState<IssuedDiploma | null>(null);
   const [toDelete, setToDelete] = useState<IssuedDiploma | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [toUnlink, setToUnlink] = useState<IssuedDiploma | null>(null);
+  const [unlinking, setUnlinking] = useState(false);
   const { toast: showToast } = useToast();
 
   const confirmDelete = async () => {
@@ -144,6 +146,43 @@ export default function DiplomaHistory({ onDeleted }: DiplomaHistoryProps) {
       });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  // Quita la asociación entre el QR y la cuenta del alumno que lo reclamó. El
+  // diploma sigue válido y el QR queda libre para que lo reclame su titular.
+  const confirmUnlink = async () => {
+    if (!toUnlink?.qr_token || unlinking) return;
+    setUnlinking(true);
+    try {
+      const { data, error: rpcError } = await supabase.rpc('unlink_diploma_code', { p_token: toUnlink.qr_token });
+      if (rpcError) throw rpcError;
+      if (!data?.success) {
+        const reasons: Record<string, string> = {
+          not_found: 'El código QR de este diploma no existe.',
+          not_claimed: 'Este QR ya no está asociado a ninguna cuenta.',
+          forbidden: 'No tienes permiso para desvincular diplomas.',
+        };
+        throw new Error(reasons[String(data?.error)] || 'Respuesta no válida');
+      }
+      const unlinkedId = toUnlink.id;
+      setResult(prev => ({ ...prev, items: prev.items.map(item => item.id === unlinkedId ? { ...item, qr_claimed: false } : item) }));
+      showToast({
+        title: 'QR desvinculado',
+        description: data.plan_downgraded
+          ? 'El diploma ya no aparece en el perfil del alumno; era su único diploma, así que su Plan Alumno Academia quedó desactivado.'
+          : 'El diploma ya no aparece en el perfil del alumno; el código QR puede volver a reclamarse.',
+      });
+      setToUnlink(null);
+    } catch (unlinkError) {
+      console.error('Error unlinking diploma:', unlinkError);
+      showToast({
+        title: 'No se pudo desvincular el QR',
+        description: unlinkError instanceof Error ? unlinkError.message : 'Reintenta o verifica tus permisos.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUnlinking(false);
     }
   };
 
@@ -219,6 +258,10 @@ export default function DiplomaHistory({ onDeleted }: DiplomaHistoryProps) {
                       <Button type="button" variant="outline"
                         aria-label={'Ver diploma de ' + diploma.student_name}
                         onClick={() => setSelected(diploma)}>Ver diploma</Button>
+                      {diploma.qr_claimed && diploma.qr_token && <Button type="button" variant="outline"
+                        className="border-amber-400/50 text-amber-200 hover:bg-amber-500/10 hover:text-amber-100"
+                        aria-label={'Desvincular el QR del diploma de ' + diploma.student_name}
+                        onClick={() => setToUnlink(diploma)}>Desvincular QR</Button>}
                       <Button type="button" variant="destructive"
                         aria-label={'Eliminar diploma de ' + diploma.student_name}
                         onClick={() => setToDelete(diploma)}>Eliminar</Button>
@@ -270,6 +313,31 @@ export default function DiplomaHistory({ onDeleted }: DiplomaHistoryProps) {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={event => { event.preventDefault(); void confirmDelete(); }}>
               {deleting ? 'Eliminando...' : 'Eliminar diploma'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={toUnlink !== null} onOpenChange={open => { if (!open && !unlinking) setToUnlink(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {toUnlink ? '¿Desvincular el QR del diploma ' + (toUnlink.correlative_number != null ? '#' + toUnlink.correlative_number + ' ' : '') + 'de ' + toUnlink.student_name + '?' : '¿Desvincular QR?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                {toUnlink && <p>{(toUnlink.course_title || 'Sin título') + ', emitido el ' + formatDateToSpanish(toUnlink.course_date) + '.'} El diploma sigue siendo válido y conserva su folio y su QR; solo deja de estar asociado a la cuenta que lo reclamó.</p>}
+                <p>El diploma desaparecerá del perfil de ese alumno y el código QR quedará libre para que lo reclame su titular.</p>
+                <p className="rounded-lg bg-amber-500/10 p-3 text-amber-700 dark:text-amber-200">
+                  Si era el único diploma asociado a esa cuenta y su Plan Alumno Academia provenía de él, el plan volverá a Free.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={unlinking}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction disabled={unlinking}
+              onClick={event => { event.preventDefault(); void confirmUnlink(); }}>
+              {unlinking ? 'Desvinculando...' : 'Desvincular QR'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
