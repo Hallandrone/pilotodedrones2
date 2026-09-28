@@ -7,6 +7,8 @@ import DiplomaHistory from './DiplomaHistory';
 export default function DiplomaWorkspace() {
   const { loading, hasPermission } = useUserPermissions();
   const [section, setSection] = useState<'create' | 'history'>('create');
+  // Cambia cuando se elimina un diploma o se vuelve a «Crear», para refrescar el folio.
+  const [folioVersion, setFolioVersion] = useState(0);
 
   if (loading) return <p role="status" className="text-white">Verificando permisos...</p>;
   if (!hasPermission('create_diplomas')) {
@@ -18,13 +20,13 @@ export default function DiplomaWorkspace() {
       <div className="flex flex-wrap gap-3" aria-label="Secciones de diplomas">
         <Button type="button" aria-pressed={section === 'create'}
           variant={section === 'create' ? 'default' : 'outline'}
-          onClick={() => setSection('create')}>Crear diploma</Button>
+          onClick={() => { setSection('create'); setFolioVersion(v => v + 1); }}>Crear diploma</Button>
         <Button type="button" aria-pressed={section === 'history'}
           variant={section === 'history' ? 'default' : 'outline'}
           onClick={() => setSection('history')}>Consultar diplomas</Button>
       </div>
-      <div hidden={section !== 'create'}><DiplomaGenerator /></div>
-      {section === 'history' && <DiplomaHistory />}
+      <div hidden={section !== 'create'}><DiplomaGenerator folioVersion={folioVersion} /></div>
+      {section === 'history' && <DiplomaHistory onDeleted={() => setFolioVersion(v => v + 1)} />}
     </div>
   );
 }

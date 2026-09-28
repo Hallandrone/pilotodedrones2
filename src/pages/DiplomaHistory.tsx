@@ -8,6 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface IssuedDiploma {
   id: string;
@@ -23,6 +28,7 @@ interface IssuedDiploma {
   start_date: string | null;
   end_date: string | null;
   qr_token: string | null;
+  qr_claimed?: boolean;
 }
 interface SearchResult { items: IssuedDiploma[]; total: number }
 
@@ -92,7 +98,12 @@ function DiplomaPreview({ diploma }: { diploma: IssuedDiploma }) {
   );
 }
 
-export default function DiplomaHistory() {
+interface DiplomaHistoryProps {
+  /** Se llama tras eliminar un diploma; el folio liberado lo tomará el próximo que se emita. */
+  onDeleted?: (info: { releasedFolio: number | null; nextFolio: number | null }) => void;
+}
+
+export default function DiplomaHistory({ onDeleted }: DiplomaHistoryProps) {
   const [input, setInput] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
@@ -101,6 +112,40 @@ export default function DiplomaHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState<IssuedDiploma | null>(null);
+  const [toDelete, setToDelete] = useState<IssuedDiploma | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const { toast: showToast } = useToast();
+
+  const confirmDelete = async () => {
+    if (!toDelete || deleting) return;
+    setDeleting(true);
+    try {
+      const { data, error: rpcError } = await supabase.rpc('delete_issued_diploma', { p_diploma_id: toDelete.id });
+      if (rpcError) throw rpcError;
+      if (!data?.success) throw new Error(data?.error || 'Respuesta no válida');
+      const releasedFolio = typeof data.released_folio === 'number' ? data.released_folio : null;
+      const nextFolio = typeof data.next_folio === 'number' ? data.next_folio : null;
+      showToast({
+        title: 'Diploma eliminado',
+        description: releasedFolio != null
+          ? `El folio #${releasedFolio} quedó libre` + (nextFolio != null ? `: el próximo diploma que se emita tomará el #${nextFolio}.` : '.')
+          : 'El registro se eliminó. No tenía un folio reutilizable.',
+      });
+      onDeleted?.({ releasedFolio, nextFolio });
+      if (selected?.id === toDelete.id) setSelected(null);
+      setToDelete(null);
+      setRefresh(n => n + 1);
+    } catch (deleteError) {
+      console.error('Error deleting diploma:', deleteError);
+      showToast({
+        title: 'No se pudo eliminar el diploma',
+        description: 'Reintenta o verifica tus permisos.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -170,9 +215,14 @@ export default function DiplomaHistory() {
                     <td className="p-3">{diploma.student_name}</td>
                     <td className="p-3">{diploma.course_title || 'Sin título'}</td>
                     <td className="p-3">{formatDateToSpanish(diploma.course_date)}</td>
-                    <td className="p-3"><Button type="button" variant="outline"
-                      aria-label={'Ver diploma de ' + diploma.student_name}
-                      onClick={() => setSelected(diploma)}>Ver diploma</Button></td>
+                    <td className="p-3"><div className="flex flex-wrap gap-2">
+                      <Button type="button" variant="outline"
+                        aria-label={'Ver diploma de ' + diploma.student_name}
+                        onClick={() => setSelected(diploma)}>Ver diploma</Button>
+                      <Button type="button" variant="destructive"
+                        aria-label={'Eliminar diploma de ' + diploma.student_name}
+                        onClick={() => setToDelete(diploma)}>Eliminar</Button>
+                    </div></td>
                   </tr>)}</tbody>
                 </table>
               </div>
@@ -196,6 +246,34 @@ export default function DiplomaHistory() {
           {selected && <DiplomaPreview key={selected.id} diploma={selected} />}
         </DialogContent>
       </Dialog>
+      <AlertDialog open={toDelete !== null} onOpenChange={open => { if (!open && !deleting) setToDelete(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {toDelete ? '¿Eliminar el diploma ' + (toDelete.correlative_number != null ? '#' + toDelete.correlative_number + ' ' : '') + 'de ' + toDelete.student_name + '?' : '¿Eliminar diploma?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                {toDelete && <p>{(toDelete.course_title || 'Sin título') + ', emitido el ' + formatDateToSpanish(toDelete.course_date) + '.'} El registro y su código QR dejarán de ser válidos, así que el PDF ya entregado no podrá verificarse.</p>}
+                {toDelete?.correlative_number != null
+                  ? <p>El folio #{toDelete.correlative_number} quedará libre y lo tomará el próximo diploma que se emita; después la numeración continúa donde iba.</p>
+                  : <p>Este registro no tiene folio, así que no libera ningún número.</p>}
+                {toDelete?.qr_claimed && <p className="rounded-lg bg-amber-500/10 p-3 text-amber-700 dark:text-amber-200">
+                  Un alumno ya reclamó el código QR de este diploma: desaparecerá de su perfil hasta que reclame el código del diploma corregido.
+                </p>}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={event => { event.preventDefault(); void confirmDelete(); }}>
+              {deleting ? 'Eliminando...' : 'Eliminar diploma'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }

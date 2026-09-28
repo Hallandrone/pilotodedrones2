@@ -36,7 +36,9 @@ interface DiplomaFormData {
 	droneSeries: string;
 }
 
-const DiplomaGenerator = () => {
+// folioVersion: el espacio de trabajo lo incrementa cuando se elimina un diploma
+// o se vuelve a esta sección, para pedir de nuevo el folio a la base de datos.
+const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 	const [formData, setFormData] = useState<DiplomaFormData>({
 		studentName: '',
 		firstName: '',
@@ -57,6 +59,7 @@ const DiplomaGenerator = () => {
 	const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 	const [qrToken, setQrToken] = useState<string>('');
 	const [correlativeNumber, setCorrelativeNumber] = useState<number>(0);
+	const [folioError, setFolioError] = useState(false);
 	const [certOption, setCertOption] = useState<string>('');
 	const { toast: showToast } = useToast();
 	const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -82,20 +85,25 @@ const DiplomaGenerator = () => {
 
 	useEffect(() => {
 		generateQRCode();
-		fetchNextCorrelative();
 	}, []);
+
+	useEffect(() => {
+		fetchNextCorrelative();
+	}, [folioVersion]);
 
 	const fetchNextCorrelative = async () => {
 		try {
-			const { count, error } = await supabase
-				.from('diplomas')
-				.select('*', { count: 'exact', head: true });
-
+			// El folio lo asigna la base de datos: reutiliza el de un diploma eliminado
+			// o continúa desde el último emitido (ver next_diploma_folio).
+			const { data, error } = await supabase.rpc('next_diploma_folio');
 			if (error) throw error;
-			// Comienza en #14600: suma 14600 al count actual
-			setCorrelativeNumber((count || 0) + 14600);
+			if (typeof data !== 'number') throw new Error('Folio no válido');
+			setCorrelativeNumber(data);
+			setFolioError(false);
 		} catch (error) {
 			console.error('Error fetching correlative:', error);
+			setCorrelativeNumber(0);
+			setFolioError(true);
 		}
 	};
 
@@ -127,11 +135,12 @@ const DiplomaGenerator = () => {
 	};
 
 	const handlePDFGenerated = async () => {
-		if (qrToken && isFormValid) {
+		if (qrToken && isFormValid && correlativeNumber > 0) {
 			try {
-				const { data: diplomaData, error: diplomaError } = await supabase
-					.from('diplomas')
-					.insert({
+				// La base de datos inserta diploma + QR y confirma que el folio mostrado
+				// sigue disponible (issue_diploma bloquea para que no se repita).
+				const { data: result, error: issueError } = await supabase.rpc('issue_diploma', {
+					p_diploma: {
 						student_name: formData.studentName,
 						course_date: formData.courseDate,
 						course_hours: formData.courseHours,
@@ -139,22 +148,31 @@ const DiplomaGenerator = () => {
 						instructor_name: formData.instructorName,
 						city: formData.city,
 						certificate_number: formData.certificateNumber,
-						correlative_number: correlativeNumber,
 						drone_series: formData.droneSeries,
 						start_date: formData.startDate || null,
 						end_date: formData.endDate || null
-					} as never)
-					.select()
-					.single();
-
-				if (diplomaError) throw diplomaError;
-
-				const { error: tokenError } = await supabase.from('diploma_qr_tokens').insert({
-					token: qrToken,
-					diploma_id: diplomaData.id
+					},
+					p_folio: correlativeNumber,
+					p_token: qrToken
 				});
 
-				if (tokenError) throw tokenError;
+				if (issueError) throw issueError;
+
+				if (!result?.success) {
+					if (result?.error === 'folio_no_disponible' && typeof result.next_folio === 'number') {
+						const usedFolio = correlativeNumber;
+						setCorrelativeNumber(result.next_folio);
+						showToast({
+							title: "Folio actualizado",
+							description: `El folio #${usedFolio} ya fue usado por otro diploma, así que este no se registró y el PDF descargado no es válido. Vuelve a descargarlo con el folio #${result.next_folio}.`,
+							variant: "destructive"
+						});
+						return;
+					}
+					throw new Error(result?.error || 'Respuesta no válida');
+				}
+
+				const diplomaData = result.diploma;
 
 				// Notify admins
 				const { sendNotification } = await import('@/lib/notification-service');
@@ -538,7 +556,15 @@ const DiplomaGenerator = () => {
 					</div>
 
 					<div className="pt-6 border-t border-white/10">
-						{isFormValid ? (
+						{isFormValid && (folioError || correlativeNumber === 0) ? (
+							<Button
+								type="button"
+								onClick={fetchNextCorrelative}
+								className="w-full h-16 text-lg font-bold rounded-2xl bg-amber-500 hover:bg-amber-600 text-white"
+							>
+								No se pudo obtener el folio. Reintentar
+							</Button>
+						) : isFormValid ? (
 							<PDFDownloadLink
 								document={<DiplomaPDF data={{ ...formData, qrCodeDataUrl, correlativeNumber, qrToken }} />}
 								fileName={filename}
