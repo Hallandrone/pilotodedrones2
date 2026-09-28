@@ -4,6 +4,7 @@ import {
   decodeTextFile,
   detectColumns,
   parseDelimited,
+  parseXlsx,
   parseXlsxRows,
   rowsToStudents,
   STUDENT_TEMPLATE_CSV,
@@ -17,6 +18,20 @@ describe("parseDelimited", () => {
       ["Isabel", "Martínez", "Armijo"],
       ['Juan "Pepe"', "Pérez", "Soto; Díaz"],
     ]);
+  });
+
+  it("una comilla suelta dentro de un nombre no se traga el resto del archivo", () => {
+    const lines = ["Nombres;Apellido Paterno;Apellido Materno"];
+    for (let i = 1; i <= 25; i++) lines.push(`Alumno ${i};Apellido;Materno`);
+    lines[20] = `Juan "Pepe;Apellido;Materno`; // comilla suelta en la fila 20
+    const rows = parseDelimited(lines.join("\r\n"));
+    expect(rows).toHaveLength(26);
+    expect(rows[20]).toEqual(['Juan "Pepe', "Apellido", "Materno"]);
+    expect(rows[25]).toEqual(["Alumno 25", "Apellido", "Materno"]);
+  });
+
+  it("una comilla de cierre seguida de texto es literal", () => {
+    expect(parseDelimited('"Isa"bel;Martínez;Armijo')).toEqual([['Isa"bel', "Martínez", "Armijo"]]);
   });
 
   it("elige la coma o el tabulador cuando predominan", () => {
@@ -103,5 +118,26 @@ describe("parseXlsxRows", () => {
       ["Juan", "", "Soto"],
     ]);
     expect(rowsToStudents(rows).students[1]).toEqual({ firstName: "Juan", lastNamePaternal: "", lastNameMaternal: "Soto" });
+  });
+
+  it("una fila vacía autocerrada no absorbe la siguiente, y se informan las hojas", async () => {
+    const zip = new JSZip();
+    zip.file("xl/workbook.xml", '<workbook><sheets><sheet name="Curso" sheetId="1" r:id="rId1"/><sheet name="Notas" sheetId="2" r:id="rId2"/></sheets></workbook>');
+    zip.file("xl/_rels/workbook.xml.rels", '<Relationships><Relationship Id="rId1" Type="x" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="x" Target="worksheets/sheet2.xml"/></Relationships>');
+    const cell = (ref: string, text: string) => `<c r="${ref}" t="inlineStr"><is><t>${text}</t></is></c>`;
+    let sheet = "<worksheet><sheetData>";
+    sheet += `<row r="1">${cell("A1", "Nombres")}${cell("B1", "Apellido Paterno")}${cell("C1", "Apellido Materno")}</row>`;
+    for (let i = 2; i <= 21; i++) sheet += `<row r="${i}">${cell(`A${i}`, `Alumno ${i - 1}`)}${cell(`B${i}`, "Paterno")}${cell(`C${i}`, "Materno")}</row>`;
+    sheet += '<row r="22" ht="15" customHeight="1"/>'; // fila vacía con formato
+    for (let i = 23; i <= 27; i++) sheet += `<row r="${i}">${cell(`A${i}`, `Alumno ${i - 2}`)}${cell(`B${i}`, "Paterno")}${cell(`C${i}`, "Materno")}</row>`;
+    sheet += "</sheetData></worksheet>";
+    zip.file("xl/worksheets/sheet1.xml", sheet);
+    zip.file("xl/worksheets/sheet2.xml", "<worksheet><sheetData/></worksheet>");
+    const buffer = await zip.generateAsync({ type: "arraybuffer" });
+    const { rows, sheetNames } = await parseXlsx(buffer);
+    expect(sheetNames).toEqual(["Curso", "Notas"]);
+    const students = rowsToStudents(rows).students;
+    expect(students).toHaveLength(25);
+    expect(students[24].firstName).toBe("Alumno 25");
   });
 });

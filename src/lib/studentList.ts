@@ -52,7 +52,11 @@ export const detectColumns = (header: string[]): StudentColumns | null => {
 
 const countChar = (text: string, char: string) => text.split(char).length - 1;
 
-/** CSV con comillas; el separador se elige por frecuencia en la primera línea. */
+/**
+ * CSV con comillas; el separador se elige por frecuencia en la primera línea.
+ * Las comillas solo abren texto al inicio de una celda, y una comilla suelta
+ * dentro de un nombre es texto: nunca se traga el resto del archivo.
+ */
 export const parseDelimited = (text: string): string[][] => {
   const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
   const delimiter = [",", "\t"].reduce(
@@ -64,6 +68,8 @@ export const parseDelimited = (text: string): string[][] => {
   let row: string[] = [];
   let cell = "";
   let quoted = false;
+  let cellStarted = false;
+  const endsCell = (char: string | undefined) => char === undefined || char === delimiter || char === "\n" || char === "\r";
   for (let i = 0; i < text.length; i++) {
     const char = text[i];
     if (quoted) {
@@ -72,24 +78,30 @@ export const parseDelimited = (text: string): string[][] => {
           cell += '"';
           i++;
         } else {
+          // Cierra la cita; si no le sigue el separador, la comilla era texto.
           quoted = false;
+          if (!endsCell(text[i + 1])) cell += '"';
         }
       } else {
         cell += char;
       }
-    } else if (char === '"') {
+    } else if (char === '"' && !cellStarted) {
       quoted = true;
+      cellStarted = true;
     } else if (char === delimiter) {
       row.push(cell);
       cell = "";
+      cellStarted = false;
     } else if (char === "\n" || char === "\r") {
       if (char === "\r" && text[i + 1] === "\n") i++;
       row.push(cell);
       rows.push(row);
       row = [];
       cell = "";
+      cellStarted = false;
     } else {
       cell += char;
+      cellStarted = true;
     }
   }
   if (cell !== "" || row.length > 0) {
@@ -156,21 +168,30 @@ const columnIndex = (ref: string): number => {
 
 const textOf = (xml: string) => Array.from(xml.matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g), (m) => decodeXml(m[1])).join("");
 
-const firstSheetPath = async (zip: JSZip): Promise<string> => {
+/** Nombres de las hojas del libro, en su orden, y la ruta de la primera. */
+const sheetInfo = async (zip: JSZip): Promise<{ names: string[]; firstPath: string }> => {
   const workbook = await zip.file("xl/workbook.xml")?.async("string");
   const rels = await zip.file("xl/_rels/workbook.xml.rels")?.async("string");
-  const rid = workbook ? /<sheet\b[^>]*\br:id="([^"]+)"/.exec(workbook)?.[1] : undefined;
+  const sheets = workbook ? Array.from(workbook.matchAll(/<sheet\b([^>]*)\/?>/g), (m) => m[1]) : [];
+  const names = sheets.map((attrs, index) => decodeXml(/\bname="([^"]*)"/.exec(attrs)?.[1] ?? `Hoja ${index + 1}`));
+  const rid = sheets[0] ? /\br:id="([^"]+)"/.exec(sheets[0])?.[1] : undefined;
+  let firstPath = "xl/worksheets/sheet1.xml";
   if (rid && rels) {
     const target =
       new RegExp(`<Relationship\\b[^>]*\\bId="${rid}"[^>]*\\bTarget="([^"]+)"`).exec(rels)?.[1] ??
       new RegExp(`<Relationship\\b[^>]*\\bTarget="([^"]+)"[^>]*\\bId="${rid}"`).exec(rels)?.[1];
-    if (target) return target.startsWith("/") ? target.slice(1) : `xl/${target}`;
+    if (target) firstPath = target.startsWith("/") ? target.slice(1) : `xl/${target}`;
   }
-  return "xl/worksheets/sheet1.xml";
+  return { names, firstPath };
 };
 
+export interface XlsxContent {
+  rows: string[][];
+  sheetNames: string[];
+}
+
 /** Primera hoja de un .xlsx: un ZIP con XML, así que basta JSZip y no hace falta SheetJS. */
-export const parseXlsxRows = async (buffer: ArrayBuffer): Promise<string[][]> => {
+export const parseXlsx = async (buffer: ArrayBuffer): Promise<XlsxContent> => {
   const { default: JSZipLib } = await import("jszip");
   const zip = await JSZipLib.loadAsync(buffer);
 
@@ -180,13 +201,15 @@ export const parseXlsxRows = async (buffer: ArrayBuffer): Promise<string[][]> =>
     for (const item of sharedXml.matchAll(/<si>([\s\S]*?)<\/si>/g)) shared.push(textOf(item[1]));
   }
 
-  const sheetXml = await zip.file(await firstSheetPath(zip))?.async("string");
+  const { names, firstPath } = await sheetInfo(zip);
+  const sheetXml = await zip.file(firstPath)?.async("string");
   if (!sheetXml) throw new Error("El archivo .xlsx no tiene una hoja legible.");
 
   const rows: string[][] = [];
-  for (const rowMatch of sheetXml.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/g)) {
+  // Una fila vacía con formato viene autocerrada (<row r="5" .../>) y no debe absorber la siguiente.
+  for (const rowMatch of sheetXml.matchAll(/<row\b[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g)) {
     const row: string[] = [];
-    for (const cellMatch of rowMatch[1].matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
+    for (const cellMatch of (rowMatch[1] ?? "").matchAll(/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
       const attrs = cellMatch[1];
       const inner = cellMatch[2] ?? "";
       const ref = /\br="([A-Z]+)\d+"/.exec(attrs)?.[1];
@@ -201,8 +224,10 @@ export const parseXlsxRows = async (buffer: ArrayBuffer): Promise<string[][]> =>
     }
     rows.push(Array.from(row, (value) => value ?? ""));
   }
-  return rows;
+  return { rows, sheetNames: names };
 };
+
+export const parseXlsxRows = async (buffer: ArrayBuffer): Promise<string[][]> => (await parseXlsx(buffer)).rows;
 
 export const parseStudentFile = async (file: File): Promise<StudentListParseResult> => {
   const buffer = await file.arrayBuffer();
@@ -211,6 +236,14 @@ export const parseStudentFile = async (file: File): Promise<StudentListParseResu
   if (!isZip && /\.xlsx?$/i.test(file.name)) {
     throw new Error("Este archivo de Excel no se puede leer; guárdalo como .xlsx o como CSV.");
   }
-  const rows = isZip ? await parseXlsxRows(buffer) : parseDelimited(decodeTextFile(buffer));
-  return rowsToStudents(rows);
+  if (!isZip) return rowsToStudents(parseDelimited(decodeTextFile(buffer)));
+
+  const { rows, sheetNames } = await parseXlsx(buffer);
+  const result = rowsToStudents(rows);
+  if (sheetNames.length > 1) {
+    result.warnings.unshift(
+      `El archivo tiene ${sheetNames.length} hojas y solo se leyó la primera («${sheetNames[0]}»). Si los alumnos están en otra hoja, muévelos a la primera o guárdala como CSV.`,
+    );
+  }
+  return result;
 };
