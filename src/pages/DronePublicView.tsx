@@ -7,6 +7,7 @@ import Logo from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
 import { useDocumentPreview } from "@/hooks/useDocumentPreview";
+import { DRONE_STATUS, normalizeDroneStatus, type DroneOperationalStatus } from "@/lib/droneStatus";
 
 interface DronePublicInfo {
 	model: string;
@@ -15,6 +16,7 @@ interface DronePublicInfo {
 	invoice_url: string | null;
 	insurance_url: string | null;
 	rpa_document_url: string | null;
+	operational_status: DroneOperationalStatus;
 }
 
 const DronePublicView = () => {
@@ -40,13 +42,13 @@ const DronePublicView = () => {
 
 			const { data, error: dbError } = await supabase
 				.from("drones")
-				.select("model, serial_number, rpa_registration_number, invoice_url, insurance_url, rpa_document_url")
+				.select("model, serial_number, rpa_registration_number, invoice_url, insurance_url, rpa_document_url, operational_status")
 				.eq("qr_token", token)
 				.single();
 
 			if (dbError || !data) throw dbError;
 
-			setDrone(data);
+			setDrone({ ...data, operational_status: normalizeDroneStatus(data.operational_status) });
 		} catch (err) {
 			console.error("Error fetching drone info:", err);
 			setError(true);
@@ -127,6 +129,13 @@ const DronePublicView = () => {
 											Información del Dron
 										</h1>
 									</div>
+
+									{drone && (
+										<div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-bold ${DRONE_STATUS[drone.operational_status].className}`}>
+											<span className={`h-2.5 w-2.5 rounded-full ${DRONE_STATUS[drone.operational_status].dotClassName}`} />
+											Aeronave {DRONE_STATUS[drone.operational_status].label.toLowerCase()}
+										</div>
+									)}
 
 									<div className="w-full grid gap-4 pt-4">
 										<div className="bg-white/5 p-5 rounded-2xl border border-white/5 transition-all hover:bg-white/10 text-left">

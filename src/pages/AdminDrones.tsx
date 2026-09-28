@@ -34,7 +34,8 @@ import {
 	Shield,
 	Plane,
 	FileSearch,
-	Eye
+	Eye,
+	Activity
 } from "lucide-react";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -52,6 +53,7 @@ import { QRCodeSVG } from "qrcode.react";
 import DocumentPreviewDialog from "@/components/DocumentPreviewDialog";
 import { useDocumentPreview } from "@/hooks/useDocumentPreview";
 import { extractPdfText, parseRpaRegistration } from "@/lib/rpaRegistration";
+import { DRONE_STATUS, normalizeDroneStatus, type DroneOperationalStatus } from "@/lib/droneStatus";
 
 interface Drone {
 	id: string;
@@ -61,6 +63,7 @@ interface Drone {
 	invoice_url: string | null;
 	insurance_url: string | null;
 	rpa_document_url: string | null;
+	operational_status: DroneOperationalStatus;
 	qr_token: string;
 	created_at: string;
 }
@@ -82,6 +85,7 @@ const AdminDrones = () => {
 		serial_number: "",
 		model: "",
 		rpa_registration_number: "",
+		operational_status: "operational" as DroneOperationalStatus,
 	});
 	const [files, setFiles] = useState<{ [key: string]: File | null }>({
 		invoice: null,
@@ -102,7 +106,7 @@ const AdminDrones = () => {
 				.order("created_at", { ascending: false });
 
 			if (error) throw error;
-			setDrones(data || []);
+			setDrones((data || []).map((drone) => ({ ...drone, operational_status: normalizeDroneStatus(drone.operational_status) })));
 		} catch (error: any) {
 			toast({
 				title: "Error",
@@ -121,6 +125,7 @@ const AdminDrones = () => {
 				serial_number: drone.serial_number,
 				model: drone.model,
 				rpa_registration_number: drone.rpa_registration_number || "",
+				operational_status: normalizeDroneStatus(drone.operational_status),
 			});
 		} else {
 			setSelectedDrone(null);
@@ -128,6 +133,7 @@ const AdminDrones = () => {
 				serial_number: "",
 				model: "",
 				rpa_registration_number: "",
+				operational_status: "operational",
 			});
 		}
 		setFiles({ invoice: null, insurance: null, rpa: null });
@@ -271,6 +277,7 @@ const AdminDrones = () => {
 				serial_number: formData.serial_number,
 				model: formData.model,
 				rpa_registration_number: formData.rpa_registration_number || null,
+				operational_status: formData.operational_status,
 				invoice_url: invoiceUrl,
 				insurance_url: insuranceUrl,
 				rpa_document_url: rpaUrl,
@@ -345,6 +352,28 @@ const AdminDrones = () => {
 		}
 	};
 
+	// Cambio rápido desde la tabla: la insignia de estado alterna entre operacional y no operacional.
+	const toggleOperationalStatus = async (drone: Drone) => {
+		const next: DroneOperationalStatus = drone.operational_status === "operational" ? "non_operational" : "operational";
+		const { error } = await supabase
+			.from("drones")
+			.update({ operational_status: next })
+			.eq("id", drone.id);
+		if (error) {
+			toast({
+				title: "Error",
+				description: "No se pudo cambiar el estado de la aeronave",
+				variant: "destructive",
+			});
+			return;
+		}
+		setDrones(prev => prev.map(d => (d.id === drone.id ? { ...d, operational_status: next } : d)));
+		toast({
+			title: `Aeronave ${DRONE_STATUS[next].label.toLowerCase()}`,
+			description: `${drone.model} · ${drone.serial_number}`,
+		});
+	};
+
 	const handleViewQR = (drone: Drone) => {
 		setSelectedDrone(drone);
 		setIsQRModalOpen(true);
@@ -397,6 +426,7 @@ const AdminDrones = () => {
 									<TableHead className="text-white/60">Dron / Modelo</TableHead>
 									<TableHead className="text-white/60">Nº Serie</TableHead>
 									<TableHead className="text-white/60">Registro RPA</TableHead>
+									<TableHead className="text-white/60">Estado</TableHead>
 									<TableHead className="text-white/60">Documentos</TableHead>
 									<TableHead className="text-white/60 text-right">Acciones</TableHead>
 								</TableRow>
@@ -404,14 +434,14 @@ const AdminDrones = () => {
 							<TableBody>
 								{loading ? (
 									<TableRow>
-										<TableCell colSpan={5} className="h-40 text-center">
+										<TableCell colSpan={6} className="h-40 text-center">
 											<Loader2 className="h-8 w-8 animate-spin text-[#00b3f3] mx-auto" />
 											<p className="mt-2 text-white/40">Cargando drones...</p>
 										</TableCell>
 									</TableRow>
 								) : filteredDrones.length === 0 ? (
 									<TableRow>
-										<TableCell colSpan={5} className="h-40 text-center">
+										<TableCell colSpan={6} className="h-40 text-center">
 											<FileSearch className="h-12 w-12 text-white/10 mx-auto mb-2" />
 											<p className="text-white/40 font-medium">No se encontraron drones</p>
 										</TableCell>
@@ -429,6 +459,17 @@ const AdminDrones = () => {
 											</TableCell>
 											<TableCell className="text-white/80">{drone.serial_number}</TableCell>
 											<TableCell className="text-white/80">{drone.rpa_registration_number || "N/A"}</TableCell>
+											<TableCell>
+												<button
+													type="button"
+													onClick={() => toggleOperationalStatus(drone)}
+													title={`Cambiar a ${DRONE_STATUS[drone.operational_status === "operational" ? "non_operational" : "operational"].label.toLowerCase()}`}
+													className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-xs font-semibold whitespace-nowrap transition hover:brightness-125 ${DRONE_STATUS[drone.operational_status].className}`}
+												>
+													<span className={`h-2 w-2 rounded-full ${DRONE_STATUS[drone.operational_status].dotClassName}`} />
+													{DRONE_STATUS[drone.operational_status].label}
+												</button>
+											</TableCell>
 											<TableCell>
 												<div className="flex flex-wrap gap-2">
 													{drone.invoice_url && (
@@ -548,6 +589,31 @@ const AdminDrones = () => {
 								className="bg-white/5 border-white/10 rounded-xl h-12"
 								placeholder="Ej: DAN-151-0123"
 							/>
+						</div>
+
+						<div className="space-y-3 pt-4 border-t border-white/10">
+							<h3 className="font-semibold text-lg flex items-center gap-2">
+								<Activity className="h-5 w-5 text-[#00b3f3]" />
+								Estado de la Aeronave
+							</h3>
+							<div role="radiogroup" aria-label="Estado de la aeronave" className="grid grid-cols-2 gap-3">
+								{(Object.keys(DRONE_STATUS) as DroneOperationalStatus[]).map((status) => {
+									const selected = formData.operational_status === status;
+									return (
+										<button
+											key={status}
+											type="button"
+											role="radio"
+											aria-checked={selected}
+											onClick={() => setFormData({ ...formData, operational_status: status })}
+											className={`flex items-center justify-center gap-2 h-12 rounded-xl border text-sm font-bold transition-all ${selected ? DRONE_STATUS[status].selectedClassName : "bg-white/5 border-white/10 text-white/50 hover:bg-white/10"}`}
+										>
+											<span className={`h-2.5 w-2.5 rounded-full ${DRONE_STATUS[status].dotClassName}`} />
+											{DRONE_STATUS[status].label}
+										</button>
+									);
+								})}
+							</div>
 						</div>
 
 						<div className="space-y-4 pt-4 border-t border-white/10">
