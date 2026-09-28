@@ -515,7 +515,7 @@ const Index = () => {
                       Condiciones de Vuelo en <span className="text-[#00b3f3]">Tiempo Real</span>
                     </h3>
                     <p className="text-xl text-muted-foreground leading-relaxed font-light">
-                      Potenciamos tu perfil profesional con tecnología de vanguardia. Meteorología aeronáutica diseñada para pilotos de drones, disponible en el Plan Alumno Academia, exclusivo para alumnos de Academia Drone Chile.
+                      Potenciamos tu perfil profesional con tecnología de vanguardia. Meteorología aeronáutica diseñada para pilotos de drones, disponible en el Plan Alumno Academia, exclusivo para alumnos de Academia de Drones de Chile.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       {[
@@ -611,7 +611,7 @@ const Index = () => {
       <section className="py-20 bg-accent/5 border-t">
         <div className="container mx-auto px-6 text-center max-w-4xl">
           <h3 className="text-3xl md:text-4xl font-bold text-primary mb-4">El Plan Alumno Academia</h3>
-          <p className="text-xl text-muted-foreground mb-8">Todas las funciones profesionales son exclusivas para alumnos de Academia Drone Chile.</p>
+          <p className="text-xl text-muted-foreground mb-8">Todas las funciones profesionales son exclusivas para alumnos de Academia de Drones de Chile.</p>
           <Button size="lg" asChild className="bg-accent px-10">
             <a href="https://www.academiadronchile.cl" target="_blank" rel="noopener noreferrer">Conoce los cursos</a>
           </Button>

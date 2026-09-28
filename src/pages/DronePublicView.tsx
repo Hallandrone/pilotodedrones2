@@ -202,7 +202,7 @@ const DronePublicView = () => {
 
 									<div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 rounded-full border border-green-500/20 mt-4">
 										<ShieldCheck className="h-4 w-4 text-green-500" />
-										<span className="text-green-500 text-xs font-bold">Registro Validado por Academia Drone Chile</span>
+										<span className="text-green-500 text-xs font-bold">Registro Validado por Academia de Drones de Chile</span>
 									</div>
 								</div>
 							</CardContent>

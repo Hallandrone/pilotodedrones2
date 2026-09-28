@@ -53,7 +53,7 @@ const PilotMembership = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Plan aspiracional que ahora es EXCLUSIVO para alumnos de Academia Drone Chile.
+  // Plan aspiracional que ahora es EXCLUSIVO para alumnos de Academia de Drones de Chile.
   // Se activa únicamente con el código del diploma (RPC claim_diploma_code).
   const academyPlan: AvailablePlan = {
     id: 'profesional',

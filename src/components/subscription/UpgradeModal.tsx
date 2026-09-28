@@ -66,7 +66,7 @@ export function UpgradeModal({
 					<div className="rounded-xl border border-accent/30 bg-accent/5 p-4">
 						<p className="text-sm text-muted-foreground">
 							El <span className="font-semibold text-foreground">Plan Alumno Academia</span> es
-							exclusivo para alumnos de <span className="font-semibold text-foreground">Academia Drone Chile</span>.
+							exclusivo para alumnos de <span className="font-semibold text-foreground">Academia de Drones de Chile</span>.
 							Si ya eres alumno, actívalo con el código de tu diploma.
 						</p>
 					</div>

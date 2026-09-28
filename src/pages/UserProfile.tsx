@@ -1708,7 +1708,7 @@ const UserProfile = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-8 pt-0">
-                  {/* Apartado 1: Certificados de Academia Drone Chile */}
+                  {/* Apartado 1: Certificados de Academia de Drones de Chile */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <Shield className="h-5 w-5 text-accent" />

@@ -326,7 +326,7 @@ const SearchResults = () => {
     }
 
     // Ordenar con prioridad de 5 niveles:
-    // 1. Suscripción activa + Certificación Academia de Drones Chile
+    // 1. Suscripción activa + Certificación Academia de Drones de Chile
     // 2. Suscripción activa (sin certificación específica)
     // 3. Perfil con foto (sin suscripción)
     // 4. Perfil completo sin foto (sin suscripción)
