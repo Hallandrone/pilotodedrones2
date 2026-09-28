@@ -21,6 +21,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { composeDroneSeries, parseDroneSeries } from '@/lib/droneSeries';
 import DroneSeriesPicker from '@/components/diploma/DroneSeriesPicker';
 import BulkDiplomaUpload from '@/components/diploma/BulkDiplomaUpload';
+import CourseTitlePicker from '@/components/diploma/CourseTitlePicker';
+import { matchCourseTitle } from '@/lib/courseTitles';
 import type { BulkDiplomaOutcome, BulkDiplomaShared } from '@/lib/bulkDiplomas';
 import { Info } from 'lucide-react';
 
@@ -253,7 +255,7 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 					lastNameMaternal,
 					courseDate: last.course_date || '',
 					courseHours: last.course_hours || '12',
-					courseTitle: last.course_title || 'OPERADOR DE DRONES',
+					courseTitle: matchCourseTitle(last.course_title || '') ?? (last.course_title || 'OPERADOR DE DRONES'),
 					city: last.city || '',
 					certificateNumber: last.certificate_number || '',
 					instructorName: last.instructor_name || '',
@@ -322,6 +324,7 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 			newData.studentName.trim() !== '' &&
 			(newData.firstName.trim() !== '' && newData.lastNamePaternal.trim() !== '' && newData.lastNameMaternal.trim() !== '') &&
 			newData.courseDate.trim() !== '' &&
+			newData.courseTitle.trim() !== '' &&
 			newData.certificateNumber.trim() !== '' &&
 			newData.city.trim() !== '';
 
@@ -352,6 +355,7 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 	};
 	const missingShared = [
 		!formData.courseDate.trim() && 'fecha de emisión',
+		!formData.courseTitle.trim() && 'título del curso',
 		!formData.certificateNumber.trim() && 'número de certificado',
 		!formData.city.trim() && 'ciudad',
 	].filter((item): item is string => !!item);
@@ -540,13 +544,7 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 								<Award className="h-5 w-5 text-[#00b3f3]" />
 								Título del Curso
 							</Label>
-							<Input
-								id="courseTitle"
-								value={formData.courseTitle}
-								onChange={(e) => handleInputChange('courseTitle', e.target.value)}
-								placeholder="Ej: OPERADOR DE DRONES"
-								className="h-14 rounded-xl border-white/10 bg-white/5 text-white focus:border-[#00b3f3] transition-all duration-200 text-lg"
-							/>
+							<CourseTitlePicker value={formData.courseTitle} onChange={(title) => handleInputChange('courseTitle', title)} />
 						</div>
 
 						<div className="space-y-3">
