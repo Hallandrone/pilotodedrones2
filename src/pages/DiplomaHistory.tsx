@@ -245,24 +245,25 @@ export default function DiplomaHistory({ onDeleted }: DiplomaHistoryProps) {
               <div className="overflow-x-auto rounded-xl border border-white/15">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-white/10"><tr>
-                    <th scope="col" className="p-3">Folio</th><th scope="col" className="p-3">Alumno</th>
-                    <th scope="col" className="p-3">Curso</th><th scope="col" className="p-3">Emisión</th>
-                    <th scope="col" className="p-3">Acción</th>
+                    <th scope="col" className="p-3 whitespace-nowrap">Folio</th><th scope="col" className="p-3">Alumno</th>
+                    <th scope="col" className="p-3">Curso</th><th scope="col" className="p-3 whitespace-nowrap">Emisión</th>
+                    <th scope="col" className="p-3 text-right whitespace-nowrap">Acciones</th>
                   </tr></thead>
                   <tbody>{result.items.map(diploma => <tr key={diploma.id} className="border-t border-white/10">
-                    <td className="p-3">{diploma.correlative_number != null ? '#' + diploma.correlative_number : 'Sin folio'}</td>
-                    <td className="p-3">{diploma.student_name}</td>
-                    <td className="p-3">{diploma.course_title || 'Sin título'}</td>
-                    <td className="p-3">{formatDateToSpanish(diploma.course_date)}</td>
-                    <td className="p-3"><div className="flex flex-wrap gap-2">
-                      <Button type="button" variant="outline"
+                    <td className="p-3 whitespace-nowrap font-mono">{diploma.correlative_number != null ? '#' + diploma.correlative_number : 'Sin folio'}</td>
+                    <td className="p-3 min-w-[12rem]">{diploma.student_name}</td>
+                    <td className="p-3 text-white/80">{diploma.course_title || 'Sin título'}</td>
+                    <td className="p-3 whitespace-nowrap text-white/80">{formatDateToSpanish(diploma.course_date)}</td>
+                    {/* Las tres acciones caben en una línea: botones compactos y sin salto */}
+                    <td className="p-3 w-px whitespace-nowrap"><div className="flex flex-nowrap items-center justify-end gap-2">
+                      <Button type="button" variant="outline" size="sm"
                         aria-label={'Ver diploma de ' + diploma.student_name}
                         onClick={() => setSelected(diploma)}>Ver diploma</Button>
-                      {diploma.qr_claimed && diploma.qr_token && <Button type="button" variant="outline"
+                      {diploma.qr_claimed && diploma.qr_token && <Button type="button" variant="outline" size="sm"
                         className="border-amber-400/50 text-amber-200 hover:bg-amber-500/10 hover:text-amber-100"
                         aria-label={'Desvincular el QR del diploma de ' + diploma.student_name}
                         onClick={() => setToUnlink(diploma)}>Desvincular QR</Button>}
-                      <Button type="button" variant="destructive"
+                      <Button type="button" variant="destructive" size="sm"
                         aria-label={'Eliminar diploma de ' + diploma.student_name}
                         onClick={() => setToDelete(diploma)}>Eliminar</Button>
                     </div></td>
