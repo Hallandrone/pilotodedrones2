@@ -2,7 +2,7 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 
 // Registro de fuentes personalizadas
-import { displayCourseTitle, getCourseTitleFontSize, getStudentNameFontSize } from '@/lib/diplomaLayout';
+import { getCourseTitleFontSize, getStudentNameFontSize } from '@/lib/diplomaLayout';
 
 Font.register({
 	family: 'Euphorigenic',
@@ -28,9 +28,11 @@ Font.register({
 	],
 });
 
+// Título del curso: Quicksand Bold (Google Fonts, SIL OFL), con todas las letras acentuadas.
 Font.register({
-	family: 'Croogla4F',
-	src: '/fonts/fonnts.com-croogla_4f-regular.otf',
+	family: 'Quicksand',
+	src: '/fonts/Quicksand-Bold.ttf',
+	fontWeight: 700,
 });
 
 Font.register({
@@ -134,8 +136,8 @@ const styles = StyleSheet.create({
 		top: 335,
 		left: 0,
 		right: 0,
-		fontFamily: 'Croogla4F',
-		fontWeight: 400,
+		fontFamily: 'Quicksand',
+		fontWeight: 700,
 		color: '#00A8E1',
 		textAlign: 'center',
 		letterSpacing: 0.5,
@@ -344,7 +346,7 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 	const hours = data.courseHours || '12';
 	const city = data.city || 'Antofagasta';
 	const formattedDate = formatDateToSpanish(data.courseDate);
-	const courseTitle = displayCourseTitle(data.courseTitle || 'OPERADOR DE DRONES');
+	const courseTitle = (data.courseTitle || 'OPERADOR DE DRONES').toUpperCase();
 
 	const studentNameFontSize = getStudentNameFontSize(data.studentName);
 	const courseTitleFontSize = getCourseTitleFontSize(courseTitle);

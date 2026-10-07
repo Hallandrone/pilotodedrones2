@@ -8,9 +8,9 @@ Due to download connection issues, please manually download these fonts:
 - Download from: https://www.1001fonts.com/euphorigenic-font.html
 - Save as: `public/fonts/Euphorigenic.ttf`
 
-### 2. Croogla 4F (para nombre del curso)
-- Download from: https://www.dafontdl.com/croogla-4f-font/
-- Save as: `public/fonts/Croogla4F.ttf`
+### 2. Quicksand Bold (para nombre del curso)
+- Ya incluida: `Quicksand-Bold.ttf` (Google Fonts, licencia SIL OFL en `OFL-Quicksand.txt`).
+- Reemplazó a Croogla 4F, cuya versión demo no tenía letras acentuadas.
 
 ### 3. Montserrat Light Italic (para fecha y ciudad)
 - Download from: https://fonts.google.com/specimen/Montserrat

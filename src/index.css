@@ -12,9 +12,9 @@
 }
 
 @font-face {
-  font-family: 'Croogla4F';
-  src: url('/fonts/fonnts.com-croogla_4f-regular.otf') format('opentype');
-  font-weight: normal;
+  font-family: 'Quicksand';
+  src: url('/fonts/Quicksand-Bold.ttf') format('truetype');
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }

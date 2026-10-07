@@ -23,7 +23,7 @@ import DroneSeriesPicker from '@/components/diploma/DroneSeriesPicker';
 import BulkDiplomaUpload from '@/components/diploma/BulkDiplomaUpload';
 import CourseTitlePicker from '@/components/diploma/CourseTitlePicker';
 import { matchCourseTitle } from '@/lib/courseTitles';
-import { displayCourseTitle, getCourseTitleFontSize } from '@/lib/diplomaLayout';
+import { getCourseTitleFontSize } from '@/lib/diplomaLayout';
 import type { BulkDiplomaOutcome, BulkDiplomaShared } from '@/lib/bulkDiplomas';
 import { Info } from 'lucide-react';
 
@@ -721,13 +721,13 @@ const DiplomaGenerator = ({ folioVersion = 0 }: { folioVersion?: number }) => {
 									)}
 
 									{/* Título del Curso (Dinámico) */}
-									<div className="absolute left-0 right-0 text-center text-[#00A8E1] uppercase font-normal" style={{
+									<div className="absolute left-0 right-0 text-center text-[#00A8E1] uppercase font-bold" style={{
 										top: formData.droneSeries ? '335px' : '310px',
-										fontFamily: 'Croogla4F, sans-serif',
-										fontSize: `${getCourseTitleFontSize(displayCourseTitle(formData.courseTitle))}px`,
+										fontFamily: 'Quicksand, sans-serif',
+										fontSize: `${getCourseTitleFontSize(formData.courseTitle)}px`,
 										letterSpacing: '0.5px'
 									}}>
-										{displayCourseTitle(formData.courseTitle)}
+										{formData.courseTitle}
 									</div>
 
 									{/* Fecha y Ciudad */}
