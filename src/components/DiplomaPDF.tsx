@@ -2,6 +2,8 @@ import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
 
 // Registro de fuentes personalizadas
+import { displayCourseTitle, getCourseTitleFontSize, getStudentNameFontSize } from '@/lib/diplomaLayout';
+
 Font.register({
 	family: 'Euphorigenic',
 	src: '/fonts/Euphorigenic.otf',
@@ -342,24 +344,7 @@ const DiplomaPDF: React.FC<DiplomaPDFProps> = ({ data }) => {
 	const hours = data.courseHours || '12';
 	const city = data.city || 'Antofagasta';
 	const formattedDate = formatDateToSpanish(data.courseDate);
-	const courseTitle = data.courseTitle || 'OPERADOR DE DRONES';
-
-	const getStudentNameFontSize = (name: string): number => {
-		const length = name.length;
-		if (length <= 20) return 65;  // Aumentado de 60
-		if (length <= 30) return 56;  // Aumentado
-		if (length <= 40) return 48;  // Aumentado
-		if (length <= 50) return 40;  // Aumentado
-		return 32;
-	};
-
-	const getCourseTitleFontSize = (title: string): number => {
-		const length = title.length;
-		if (length <= 20) return 54; // Aumentado de 48
-		if (length <= 30) return 46; // Aumentado de 40
-		if (length <= 40) return 38; // Aumentado de 34
-		return 32; // Aumentado de 28
-	};
+	const courseTitle = displayCourseTitle(data.courseTitle || 'OPERADOR DE DRONES');
 
 	const studentNameFontSize = getStudentNameFontSize(data.studentName);
 	const courseTitleFontSize = getCourseTitleFontSize(courseTitle);
