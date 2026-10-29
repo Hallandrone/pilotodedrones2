@@ -44,7 +44,8 @@ import {
   QrCode as QrCodeIcon,
   MonitorPlay,
   MessageSquarePlus,
-  Sun
+  Sun,
+  Route
 } from "lucide-react";
 import { FeedbackForm } from "@/components/dashboard/FeedbackForm";
 import type { User } from '@supabase/supabase-js';
@@ -689,6 +690,18 @@ const PilotDashboard = () => {
               )}
             </div>
             <span className="relative text-xs sm:text-base text-white px-1">Portafolio</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="group relative h-24 sm:h-32 flex-col gap-2 sm:gap-4 bg-[#083b4e] isolate border-2 border-[#00b3f3]/30 hover:bg-[#00b3f3] hover:text-white hover:border-[#00b3f3] hover:scale-105 sm:hover:scale-110 transition-all duration-300 rounded-xl sm:rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(0,179,243,0.5)] overflow-hidden"
+            onClick={() => navigate('/pilot/planificador')}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[#00b3f3]/0 to-[#00b3f3]/0 group-hover:from-[#00b3f3]/20 group-hover:to-transparent transition-all duration-300"></div>
+            <div className="relative h-10 w-10 sm:h-14 sm:w-14 bg-gradient-to-br from-[#00b3f3] to-[#0099cc] rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+              <Route className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
+            </div>
+            <span className="relative text-xs sm:text-base text-white px-1">Planificador</span>
           </Button>
         </div>
 

@@ -26,6 +26,7 @@ const PilotFlightHours = lazy(() => import("./pages/PilotFlightHours"));
 const PilotQR = lazy(() => import("./pages/PilotQR"));
 const PilotMembership = lazy(() => import("./pages/PilotMembership"));
 const PilotPortfolio = lazy(() => import("./pages/PilotPortfolio"));
+const PilotMissionPlanner = lazy(() => import("./pages/PilotMissionPlanner"));
 const SearchResults = lazy(() => import("./pages/SearchResults"));
 const PublicPilotProfile = lazy(() => import("./pages/PublicPilotProfile"));
 const DiplomaVerification = lazy(() => import("./pages/DiplomaVerification"));
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/pilot/membership" element={<div className="dark"><PilotMembership /></div>} />
             <Route path="/pilot/portfolio" element={<div className="dark"><PilotPortfolio /></div>} />
             <Route path="/pilot/contacts" element={<div className="dark"><ProfileContacts /></div>} />
+            <Route path="/pilot/planificador" element={<div className="dark"><PilotMissionPlanner /></div>} />
 
             {/* Rutas para aceptar invitaciones de pilotos */}
             <Route path="/invitation/:token" element={<InvitationAccept />} />
